@@ -1,24 +1,15 @@
-node_modules# Logs
-logs
-*.log
+# Dossiers de dépendances
+/node_modules
+
+# Fichiers d'environnement (secrets de l'API, base de données)
+.env
+.env.local
+
+# Fichiers de log et temporaires
 npm-debug.log*
-yarn-debug.log*
 yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
+*.log
 
-node_modules
-dist
-dist-ssr
-*.local
-
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+# Dossiers de build (si vous en utilisez)
+/dist
+/build
