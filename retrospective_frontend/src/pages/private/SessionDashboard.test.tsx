@@ -20,6 +20,14 @@ vi.mock('@/context/auth/useAuth', () => ({
   }),
 }));
 
+const addToastMock = vi.fn();
+
+vi.mock('@/context/toast/useToast', () => ({
+  useToast: () => ({
+    addToast: addToastMock,
+  }),
+}));
+
 const renderDashboard = () =>
   render(
     <MemoryRouter initialEntries={['/session/1']}>
@@ -32,6 +40,7 @@ const renderDashboard = () =>
 describe('SessionDashboard', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
+    addToastMock.mockReset();
   });
 
   it('affiche les 3 colonnes start / stop / continue', async () => {
@@ -79,6 +88,7 @@ describe('SessionDashboard', () => {
               columnType: 'start',
               content: 'Faire plus de pair programming',
               createdAt: '2026-07-07T10:00:00.000Z',
+              votesCount: 0,
             },
             {
               id: 2,
@@ -87,6 +97,7 @@ describe('SessionDashboard', () => {
               columnType: 'stop',
               content: 'Le daily était trop long',
               createdAt: '2026-07-07T10:01:00.000Z',
+              votesCount: 2,
             },
           ],
         }),
@@ -142,6 +153,7 @@ describe('SessionDashboard', () => {
               columnType: 'stop',
               content: 'Le daily était trop long',
               createdAt: '2026-07-07T10:01:00.000Z',
+              votesCount: 0,
             },
           ],
         }),
@@ -161,5 +173,118 @@ describe('SessionDashboard', () => {
 
     expect(await screen.findByText('Le daily était trop long')).toBeTruthy();
     expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
+  it('affiche le nombre de votes et un bouton "Voter" sur chaque carte', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          success: true,
+          data: [
+            {
+              id: 1,
+              sessionId: 1,
+              authorId: 1,
+              columnType: 'start',
+              content: 'Faire plus de pair programming',
+              createdAt: '2026-07-07T10:00:00.000Z',
+              votesCount: 3,
+            },
+          ],
+        }),
+      })
+    );
+
+    renderDashboard();
+
+    expect(await screen.findByText('3 votes')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Voter' })).toBeTruthy();
+  });
+
+  it('vote avec succès et rafraîchit les cartes', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          success: true,
+          data: [
+            {
+              id: 1,
+              sessionId: 1,
+              authorId: 1,
+              columnType: 'start',
+              content: 'Faire plus de pair programming',
+              createdAt: '2026-07-07T10:00:00.000Z',
+              votesCount: 0,
+            },
+          ],
+        }),
+      }) // GET initial
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ success: true, data: { voteId: 1 } }) }) // POST vote
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          success: true,
+          data: [
+            {
+              id: 1,
+              sessionId: 1,
+              authorId: 1,
+              columnType: 'start',
+              content: 'Faire plus de pair programming',
+              createdAt: '2026-07-07T10:00:00.000Z',
+              votesCount: 1,
+            },
+          ],
+        }),
+      }); // GET après vote
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderDashboard();
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Voter' }));
+
+    expect(await screen.findByText('1 vote')).toBeTruthy();
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(addToastMock).not.toHaveBeenCalled();
+  });
+
+  it("affiche un toast d'erreur si le vote échoue (ex: déjà voté)", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          success: true,
+          data: [
+            {
+              id: 1,
+              sessionId: 1,
+              authorId: 1,
+              columnType: 'start',
+              content: 'Faire plus de pair programming',
+              createdAt: '2026-07-07T10:00:00.000Z',
+              votesCount: 1,
+            },
+          ],
+        }),
+      }) // GET initial
+      .mockResolvedValueOnce({
+        ok: false,
+        json: async () => ({ success: false, message: 'Vous avez déjà voté pour cette carte' }),
+      }); // POST vote refusé
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderDashboard();
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Voter' }));
+
+    await vi.waitFor(() => {
+      expect(addToastMock).toHaveBeenCalledWith('error', 'Vous avez déjà voté pour cette carte');
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 });

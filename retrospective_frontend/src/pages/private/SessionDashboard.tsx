@@ -1,4 +1,5 @@
 import { useAuth } from '@/context/auth/useAuth';
+import { useToast } from '@/context/toast/useToast';
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Container from '@/components/ui/Container';
@@ -38,6 +39,7 @@ const COLUMNS: {
 const SessionDashboard = () => {
   const { id } = useParams();
   const { isAuthenticated, token } = useAuth();
+  const { addToast } = useToast();
   const navigate = useNavigate();
   const [cards, setCards] = useState<RetroCard[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -93,6 +95,28 @@ const SessionDashboard = () => {
     }
   };
 
+  const handleVote = async (cardId: number) => {
+    if (!id || !token) return;
+
+    try {
+      const response = await fetch(`http://localhost:8000/session/${id}/cards/${cardId}/vote`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        await fetchCards();
+      } else {
+        addToast('error', data.message || 'Impossible d\'enregistrer le vote.');
+      }
+    } catch (error) {
+      console.error('Erreur lors du vote :', error);
+      addToast('error', 'Erreur de connexion au serveur.');
+    }
+  };
+
   return (
     <Container className="flex flex-col gap-6">
       <h1 className="text-xl font-bold text-slate-50">
@@ -112,6 +136,7 @@ const SessionDashboard = () => {
               emptyMessage={column.emptyMessage}
               cards={cards.filter((card) => card.columnType === column.key)}
               onAddCard={(content) => handleAddCard(column.key, content)}
+              onVote={handleVote}
             />
           ))}
         </div>
