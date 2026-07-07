@@ -4,7 +4,7 @@
 
 ## Date de dernière mise à jour
 
-2026-07-07
+2026-07-08
 
 ## État global
 
@@ -37,16 +37,17 @@
 
 - Tableau de rétrospective : lecture ET ajout de cartes fonctionnels (backend + frontend, formulaire React Hook Form + Zod). Il manque le système de votes.
 - Nouvelle convention de projet : tout formulaire doit utiliser React Hook Form + Zod (plus de validation maison pour les nouveaux formulaires).
-- `feature/auth-session` : US-05 "lister ses sessions" couverte, trous de tests comblés sur `create.controller.ts`/`join.controller.ts`, dettes techniques repérées en review nettoyées (`console.log` résiduel, logs trackés par erreur).
+- **Réorganisation de l'architecture backend sous `src/`** (`refactor/backend-architecture`, 7 commits) : `types`, `utils`, `routes`, `middlewares`, `controllers`, `services`, `models` déplacés vers `retrospective_backend/src/*`. **Déplacement structurel uniquement** — le pattern `controller → service → model` reste un pilote limité à `session/list` (`GET /session`) ; tous les autres controllers ont juste changé d'adresse, ils font toujours du SQL inline.
 
 ## Prochaine étape
 
 - Système de votes (backend puis frontend), dernière brique du cœur métier MVP avant les rôles facilitateur/participant.
+- Généraliser le pattern `service/model` aux autres domaines (auth, create/join/card) si le projet le justifie — pas engagé pour l'instant.
 
 ## Preuves de validation (2026-07-08)
 
-- Frontend : `npm run test` → 17 tests passés (14 précédents + 3 sur `SessionList.tsx`) ; `npm run build` → succès ; `npm run lint` → aucune erreur
-- Backend : `npm run test` → 29 tests passés (19 précédents + 10 nouveaux sur `create`/`join`/`list.controller.ts`), inchangé après le nettoyage de dette technique (`console.log` retiré, `logs/*.log` retirés du suivi Git)
+- Frontend : `npm run test` → 17 tests passés ; `npm run build` → succès ; `npm run lint` → aucune erreur (inchangé, aucun fichier frontend touché par la réorganisation backend)
+- Backend : `npm run test` → 42 tests passés, `npx tsc --noEmit` → aucune erreur — validé après chacun des 7 déplacements (types, utils, routes, middlewares, controllers, services, models)
 
 ## Blocages / Risques
 

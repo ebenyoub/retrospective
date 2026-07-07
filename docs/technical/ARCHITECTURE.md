@@ -14,14 +14,22 @@ retrospective/
 │       ├── hooks/             # Hooks customs
 │       └── pages/             # Pages / routes
 │
-├── backend/           # API Express
-│   └── src/
-│       ├── authentication/    # Contrôleurs auth
-│       ├── controllers/       # Contrôleurs métier
-│       └── session/           # Gestion des sessions
+├── retrospective_backend/   # API Express
+│   ├── src/
+│   │   ├── routes/            # Déclaration des routes (auth.routes.ts, session.routes.ts)
+│   │   ├── controllers/       # HTTP uniquement (req/res), pas de SQL
+│   │   ├── services/          # Logique métier (session.service.ts)
+│   │   ├── models/            # Accès MySQL direct (db.ts, session.model.ts)
+│   │   ├── middlewares/       # auth.middleware.ts
+│   │   ├── utils/             # logger, AppError, asyncHandler, errorHandler
+│   │   └── types/             # Types partagés (AuthRequest, etc.)
+│   ├── authentication/utils/  # transporter.ts, types.ts — spécifique au domaine auth, pas déplacé
+│   └── server.ts              # Assemble les routes + middleware d'erreur, point d'entrée
 │
 └── docs/              # Documentation
 ```
+
+**État réel (2026-07-08)** : seul le domaine `session` a été entièrement migré vers le pattern `controller → service → model` (route `GET /session`). Tous les autres controllers (`auth`, `create`, `join`, `card`) ont été **déplacés physiquement** sous `src/controllers/` mais **contiennent toujours du SQL inline** — le déplacement de fichiers (ce ticket) et le refactor de logique (futur ticket) sont deux choses distinctes. Voir `docs/TODO.md` pour la dette restante.
 
 ## Frontend
 
@@ -46,7 +54,7 @@ Page → Hook custom → Fetch API → Backend
 ## Backend
 
 **Runtime** : Node.js
-**Framework** : Express + TypeScript
+**Framework** : Express **4** (`^4.19.2`) — pas Express 5, malgré des demandes formulées en ce sens ; voir `docs/TODO.md`
 **Auth** : JWT (jsonwebtoken)
 **Hachage** : bcrypt
 **Email** : nodemailer
@@ -55,12 +63,20 @@ Page → Hook custom → Fetch API → Backend
 ### Flux d'une requête
 
 ```
-Client → Route Express → Middleware Auth → Contrôleur → Base de données → Réponse JSON
+Client → server.ts → src/routes/*.routes.ts → src/middlewares/auth.middleware.ts
+   → src/controllers/*.controller.ts → (session uniquement) src/services/session.service.ts
+   → src/models/*.ts → MySQL → réponse JSON
 ```
+
+Pour tous les domaines sauf `session` (lecture des sessions), le contrôleur fait encore directement l'accès SQL — le schéma ci-dessus représente la cible, pas encore la réalité partout.
+
+### Gestion des erreurs
+
+`src/utils/errorHandler.ts` (middleware centralisé) + `src/utils/asyncHandler.ts` (wrapper Express 4 pour transmettre les rejets de promesse) + `src/utils/AppError.ts` (erreur typée avec `statusCode`/`code`/`details`). Uniquement branché sur `GET /session` pour l'instant.
 
 ### Routes principales
 
-> À compléter dans `docs/technical/API.md`
+`src/routes/auth.routes.ts` (montée sur `/auth`) et `src/routes/session.routes.ts` (montée sur `/session`). Détail des routes dans `docs/technical/API.md` (à vérifier/actualiser séparément).
 
 ## Base de données
 
