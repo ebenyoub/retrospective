@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import jwt, { TokenExpiredError } from "jsonwebtoken"; import { logger } from "../src/utils/logger";
+import jwt, { TokenExpiredError } from "jsonwebtoken"; import { logger } from "../utils/logger";
 
 export interface AuthRequest extends Request {
   user?: any;

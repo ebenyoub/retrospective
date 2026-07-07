@@ -7,7 +7,7 @@ vi.mock("../db", () => ({
 }));
 
 import db from "../db";
-import { auth } from "../authentication/auth.middleware";
+import { auth } from "../src/middlewares/auth.middleware";
 import { createCard, getCards } from "./card.controller";
 import type { AuthRequest } from '../src/types';
 

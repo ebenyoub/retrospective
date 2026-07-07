@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { auth } from '../../authentication/auth.middleware';
+import { auth } from '../middlewares/auth.middleware';
 import { verifyCode } from '../../authentication/code.controller';
 import { deleteAccount } from '../../authentication/delete.controller';
 import { login } from '../../authentication/login.controller';

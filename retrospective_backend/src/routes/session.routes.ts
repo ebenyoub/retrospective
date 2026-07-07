@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { auth } from '../../authentication/auth.middleware';
+import { auth } from '../middlewares/auth.middleware';
 import { createSession } from '../../session/create.controller';
 import joinSession from '../../session/join.controller';
 import { createCard, getCards } from '../../session/card.controller';
