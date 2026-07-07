@@ -1,6 +1,7 @@
 import Button from "@/components/ui/Button";
 import Container from "@/components/ui/Container";
-import FormContainer, { FormGroup, FormTitle, Input } from "@/components/ui/FormContainer";
+import FormContainer, { FormTitle } from "@/components/ui/FormContainer";
+import FormField from "@/components/ui/FormField";
 import SpinContainer from "@/components/ui/SpinContainer";
 import React, { useState, type ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
@@ -157,20 +158,17 @@ const Forgot = () => {
         {step === 'EMAIL' && (
           <FormContainer onSubmit={handleEmailSubmit}>
             <FormTitle>Récupération du mot de passe</FormTitle>
-            <FormGroup>
-              <label htmlFor="email" className="block text-sm mb-1">Entrez votre email</label>
-              <Input
-                type="email"
-                id="email"
-                value={email}
-                autoFocus
-                disabled={isLoading}
-                onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
-                placeholder="exemple@email.com"
-                className={inputErrors.email ? "border-red-500" : ""}
-              />
-              {inputErrors.email && <small className="text-red-400 text-xs mt-1">{inputErrors.email}</small>}
-            </FormGroup>
+            <FormField
+              id="email"
+              label="Entrez votre email"
+              type="email"
+              value={email}
+              autoFocus
+              disabled={isLoading}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+              placeholder="exemple@email.com"
+              error={inputErrors.email}
+            />
             <Button disabled={isLoading}>
               {isLoading ? "Envoi..." : "Recevoir un code"}
             </Button>
@@ -185,22 +183,20 @@ const Forgot = () => {
               Envoyé à : <span className="text-white font-semibold">{email}</span>
             </p>
 
-            <FormGroup>
-              <label htmlFor="code" className="block text-sm mb-1">Code à 4 chiffres</label>
-              <Input
-                type="text"
-                inputMode="numeric"
-                id="code"
-                maxLength={4}
-                value={code}
-                autoFocus
-                disabled={isLoading}
-                onChange={(e: ChangeEvent<HTMLInputElement>) => setCode(e.target.value)}
-                placeholder="1234"
-                className={inputErrors.code ? "border-red-500 text-center tracking-widest text-lg" : "text-center tracking-widest text-lg"}
-              />
-              {inputErrors.code && <small className="text-red-400 text-xs mt-1">{inputErrors.code}</small>}
-            </FormGroup>
+            <FormField
+              id="code"
+              label="Code à 4 chiffres"
+              type="text"
+              inputMode="numeric"
+              maxLength={4}
+              value={code}
+              autoFocus
+              disabled={isLoading}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setCode(e.target.value)}
+              placeholder="1234"
+              className="text-center tracking-widest text-lg"
+              error={inputErrors.code}
+            />
 
             <Button disabled={isLoading}>
               {isLoading ? "Vérification..." : "Valider le code"}
@@ -220,33 +216,27 @@ const Forgot = () => {
         {step === 'NEW_PASSWORD' && (
           <FormContainer onSubmit={handlePasswordSubmit}>
             <FormTitle>Nouveau mot de passe</FormTitle>
-            <FormGroup>
-              <label htmlFor="new-password" className="block text-sm mb-1">Nouveau mot de passe</label>
-              <Input
-                type="password"
-                id="new-password"
-                value={newPassword}
-                autoComplete="new-password"
-                autoFocus
-                disabled={isLoading}
-                onChange={(e: ChangeEvent<HTMLInputElement>) => setNewPassword(e.target.value)}
-                className={inputErrors.newPassword ? "border-red-500" : ""}
-              />
-              {inputErrors.newPassword && <small className="text-red-400 text-xs mt-1">{inputErrors.newPassword}</small>}
-            </FormGroup>
-            <FormGroup>
-              <label htmlFor="confirm" className="block text-sm mb-1">confirmez le mot de passe</label>
-              <Input
-                type="password"
-                id="confirm"
-                value={confirmation}
-                autoComplete="confirm"
-                disabled={isLoading}
-                onChange={(e: ChangeEvent<HTMLInputElement>) => setConfirmation(e.target.value)}
-                className={inputErrors.confirmation ? "border-red-500" : ""}
-              />
-              {inputErrors.confirmation && <small className="text-red-400 text-xs mt-1">{inputErrors.confirmation}</small>}
-            </FormGroup>
+            <FormField
+              id="new-password"
+              label="Nouveau mot de passe"
+              type="password"
+              value={newPassword}
+              autoComplete="new-password"
+              autoFocus
+              disabled={isLoading}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setNewPassword(e.target.value)}
+              error={inputErrors.newPassword}
+            />
+            <FormField
+              id="confirm"
+              label="confirmez le mot de passe"
+              type="password"
+              value={confirmation}
+              autoComplete="confirm"
+              disabled={isLoading}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setConfirmation(e.target.value)}
+              error={inputErrors.confirmation}
+            />
             <Button type="submit" disabled={isLoading}>Modifier</Button>
           </FormContainer>
         )}

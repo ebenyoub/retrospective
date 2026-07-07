@@ -1,6 +1,7 @@
 import Button from "@/components/ui/Button";
 import Container from "@/components/ui/Container";
-import FormContainer, { FormTitle, FormGroup, Input } from "@/components/ui/FormContainer";
+import FormContainer, { FormTitle } from "@/components/ui/FormContainer";
+import FormField from "@/components/ui/FormField";
 import SpinContainer from "@/components/ui/SpinContainer";
 import { useAuth } from "@/context/auth/useAuth";
 import { useState, type ChangeEvent } from "react";
@@ -88,22 +89,20 @@ const Profile = () => {
             <FormContainer onSubmit={handleCodeSubmit}>
               <FormTitle>Code de la rétrospective</FormTitle>
 
-              <FormGroup>
-                <label htmlFor="code" className="block text-sm mb-1">Code à 4 chiffres</label>
-                <Input
-                  type="text"
-                  inputMode="numeric"
-                  id="code"
-                  maxLength={4}
-                  value={code}
-                  autoFocus
-                  disabled={isLoading}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) => setCode(e.target.value)}
-                  placeholder="1234"
-                  className={inputErrors.code ? "border-red-500 text-center tracking-widest text-lg" : "text-center tracking-widest text-lg"}
-                />
-                {inputErrors.code && <small className="text-red-400 text-xs mt-1">{inputErrors.code}</small>}
-              </FormGroup>
+              <FormField
+                id="code"
+                label="Code à 4 chiffres"
+                type="text"
+                inputMode="numeric"
+                maxLength={4}
+                value={code}
+                autoFocus
+                disabled={isLoading}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setCode(e.target.value)}
+                placeholder="1234"
+                className="text-center tracking-widest text-lg"
+                error={inputErrors.code}
+              />
 
               {globalError && (
                 <div className="mb-4 p-3 bg-red-500/20 border border-red-500 text-red-200 rounded text-center text-sm">
