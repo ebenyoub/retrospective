@@ -2,15 +2,15 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { Response } from "express";
 import type { Mock } from "vitest";
 
-vi.mock("../db", () => ({
-  default: { execute: vi.fn() },
+vi.mock("./session.service", () => ({
+  getSessionsForUser: vi.fn(),
 }));
 
-import db from "../db";
+import { getSessionsForUser } from "./session.service";
 import { listSessions } from "./list.controller";
 import type { AuthRequest } from "../types";
 
-const mockExecute = db.execute as unknown as Mock;
+const mockGetSessionsForUser = getSessionsForUser as unknown as Mock;
 
 const createMockResponse = () => {
   const res = {
@@ -33,11 +33,11 @@ const createMockRequest = (): AuthRequest =>
 
 describe("list.controller", () => {
   beforeEach(() => {
-    mockExecute.mockReset();
+    mockGetSessionsForUser.mockReset();
   });
 
-  it("renvoie 200 et une liste vide si l'utilisateur n'a aucune session", async () => {
-    mockExecute.mockResolvedValueOnce([[]]);
+  it("renvoie 200 et une liste vide si le service ne renvoie aucune session", async () => {
+    mockGetSessionsForUser.mockResolvedValueOnce([]);
 
     const req = createMockRequest();
     const res = createMockResponse();
@@ -49,30 +49,13 @@ describe("list.controller", () => {
     expect(body.data).toEqual([]);
   });
 
-  it("renvoie les sessions mappées en camelCase avec leur rôle", async () => {
+  it("renvoie 200 et les sessions telles que fournies par le service", async () => {
     const createdAt = new Date("2026-07-08T09:00:00.000Z");
     const expiresAt = new Date("2026-07-08T10:00:00.000Z");
-
-    mockExecute.mockResolvedValueOnce([
-      [
-        {
-          id: 1,
-          code: "1234",
-          status: "open",
-          expires_at: expiresAt,
-          created_at: createdAt,
-          role: "facilitator",
-        },
-        {
-          id: 2,
-          code: "5678",
-          status: "closed",
-          expires_at: expiresAt,
-          created_at: createdAt,
-          role: "participant",
-        },
-      ],
-    ]);
+    const sessions = [
+      { id: 1, code: "1234", status: "open", expiresAt, createdAt, role: "facilitator" as const },
+    ];
+    mockGetSessionsForUser.mockResolvedValueOnce(sessions);
 
     const req = createMockRequest();
     const res = createMockResponse();
@@ -80,21 +63,17 @@ describe("list.controller", () => {
     await listSessions(req, res as unknown as Response);
 
     expect(res.statusCode).toBe(200);
-    const body = res.body as { success: boolean; data: Array<Record<string, unknown>> };
-    expect(body.data).toEqual([
-      { id: 1, code: "1234", status: "open", expiresAt, createdAt, role: "facilitator" },
-      { id: 2, code: "5678", status: "closed", expiresAt, createdAt, role: "participant" },
-    ]);
+    const body = res.body as { success: boolean; data: unknown[] };
+    expect(body.data).toEqual(sessions);
+    expect(mockGetSessionsForUser).toHaveBeenCalledWith(1);
   });
 
-  it("renvoie 500 en cas d'erreur SQL", async () => {
-    mockExecute.mockRejectedValueOnce(new Error("boom"));
+  it("ne capture pas les erreurs du service (remontée au middleware d'erreur)", async () => {
+    mockGetSessionsForUser.mockRejectedValueOnce(new Error("boom"));
 
     const req = createMockRequest();
     const res = createMockResponse();
 
-    await listSessions(req, res as unknown as Response);
-
-    expect(res.statusCode).toBe(500);
+    await expect(listSessions(req, res as unknown as Response)).rejects.toThrow("boom");
   });
 });

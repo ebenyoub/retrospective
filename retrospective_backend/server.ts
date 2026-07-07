@@ -16,6 +16,8 @@ import { logger } from './utils/logger';
 import joinSession from './session/join.controller';
 import { createCard, getCards } from './session/card.controller';
 import { listSessions } from './session/list.controller';
+import { asyncHandler } from './utils/asyncHandler';
+import { errorHandler } from './utils/errorHandler';
 
 dotenv.config();
 
@@ -34,11 +36,15 @@ app.post('/auth/forgot', forgot);
 app.post('/auth/verify-code', verifyCode);
 app.patch('/auth/reset-password', resetPassword);
 
-app.get("/session", auth, listSessions);
+app.get("/session", auth, asyncHandler(listSessions));
 app.post("/session/create-session", auth, createSession);
 app.post("/session/join", auth, joinSession);
 app.post("/session/:sessionId/cards", auth, createCard);
 app.get("/session/:sessionId/cards", auth, getCards);
+
+// Middleware d'erreur centralisé — doit être déclaré après toutes les routes.
+// N'est atteint que par les routes passées à asyncHandler (voir utils/asyncHandler.ts).
+app.use(errorHandler);
 
 app.listen(port, () => {
   logger.http(`Server API sur http://localhost:${port}`);
