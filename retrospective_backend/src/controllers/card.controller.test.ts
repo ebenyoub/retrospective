@@ -138,6 +138,7 @@ describe("card.controller", () => {
           column_type: "start",
           content: "Faire plus de pair programming",
           created_at: createdAt,
+          votes_count: 3,
         },
       ],
     ]);
@@ -157,6 +158,7 @@ describe("card.controller", () => {
         columnType: "start",
         content: "Faire plus de pair programming",
         createdAt,
+        votesCount: 3,
       },
     ]);
   });
