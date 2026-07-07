@@ -12,12 +12,12 @@ import { forgot } from './authentication/forgot.controller';
 import { profile } from './authentication/profile.controller';
 import { resetPassword } from './authentication/reset.controller';
 import { createSession } from './session/create.controller';
-import { logger } from './utils/logger';
+import { logger } from './src/utils/logger';
 import joinSession from './session/join.controller';
 import { createCard, getCards } from './session/card.controller';
 import { listSessions } from './session/list.controller';
-import { asyncHandler } from './utils/asyncHandler';
-import { errorHandler } from './utils/errorHandler';
+import { asyncHandler } from './src/utils/asyncHandler';
+import { errorHandler } from './src/utils/errorHandler';
 
 dotenv.config();
 

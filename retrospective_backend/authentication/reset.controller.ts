@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import { RowDataPacket } from 'mysql2';
 import db from '../db'; // Ton fichier de config DB
-import { logger } from '../utils/logger';
+import { logger } from '../src/utils/logger';
 
 
 export const resetPassword = async (req: Request, res: Response) => {

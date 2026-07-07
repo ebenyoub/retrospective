@@ -3,7 +3,7 @@ import jwt, { SignOptions } from "jsonwebtoken";
 import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import db from "../db";
-import { logger } from "../utils/logger";
+import { logger } from "../src/utils/logger";
 
 interface UserRow extends RowDataPacket {
     id: number;

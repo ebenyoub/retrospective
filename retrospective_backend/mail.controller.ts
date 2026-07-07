@@ -1,5 +1,5 @@
 import nodemailer, { SentMessageInfo } from "nodemailer";
-import { logger } from "./utils/logger";
+import { logger } from "./src/utils/logger";
 
 // Créer un objet transporteur
 const transporter = nodemailer.createTransport({

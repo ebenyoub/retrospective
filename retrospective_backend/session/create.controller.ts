@@ -1,5 +1,5 @@
 import { Response } from "express";
-import { logger } from "../utils/logger";
+import { logger } from "../src/utils/logger";
 import db from "../db";
 import { ResultSetHeader, RowDataPacket } from "mysql2";
 import crypto from "crypto";

@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import { AuthRequest } from '../src/types';
-import { logger } from '../utils/logger';
+import { logger } from '../src/utils/logger';
 
 export const profile = (req: AuthRequest, res: Response) => {
   // logger.info("ℹ️ Récupération de l'id de l'utilisateur.");
