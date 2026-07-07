@@ -26,6 +26,8 @@
 - [ ] Système de votes — pas commencé, prochaine tâche
 - [ ] Dette documentée : la table `sessions` n'a pas de colonne `name`, alors que le cahier des charges (F04/US-04) exige un nom de session obligatoire à la création. Décision prise le 2026-07-08 : hors périmètre de `feature/auth-session`, à traiter dans un ticket dédié si besoin.
 - [ ] Tests manquants restants côté auth : `forgot.controller.ts`, `code.controller.ts`, `reset.controller.ts`, `delete.controller.ts` (identifiés en review du 2026-07-08, non traités — hors périmètre de ce ticket)
+- [ ] **Dette d'architecture backend (importante)** : le backend n'a **aucune couche service/model** — tous les contrôleurs (`authentication/*`, `session/create.controller.ts`, `session/join.controller.ts`, `session/card.controller.ts`) font du SQL directement inline, sans centralisation des erreurs. Seul `session/list.controller.ts` a été pilote d'un pattern `controller → service → model` + middleware d'erreur centralisé (`utils/errorHandler.ts` + `utils/asyncHandler.ts`), le 2026-07-08, pour US-05 uniquement. **Généraliser ce pattern à tout le backend est une refonte large, volontairement non faite** — à traiter dans un ticket dédié si le projet grandit, pas avant.
+- [ ] **Divergence Express** : le projet utilise **Express 4** (`^4.19.2`, `4.22.2` installé), pas Express 5 malgré une demande formulée en ce sens le 2026-07-08. Express 5 transmettrait nativement les rejets de promesse au middleware d'erreur (rendant `utils/asyncHandler.ts` inutile) ; migrer serait un changement de dépendance à part entière (breaking changes potentiels), non fait ici pour ne pas risquer de casser le reste de l'API.
 
 ## Fait ✅ (nettoyage dette technique, 2026-07-08)
 
@@ -44,6 +46,7 @@ Plus de test unitaire "de fond" à ajouter en dehors de ceux qui accompagnent ch
 - [x] Premier écran `SessionDashboard.tsx` : 3 colonnes + lecture des cartes (`npm run test` frontend : 11/11 passés, `npm run build` : succès) (2026-07-07)
 - [x] Formulaire d'ajout de carte (`RetroAddCardForm.tsx`, React Hook Form + Zod) dans chaque colonne — `npm run test` frontend : 14/14 passés, `npm run build` : succès (2026-07-07)
 - [x] `feature/auth-session` : correction `any` dans `create.controller.ts`, tests `create`/`join.controller.ts`, endpoint `GET /session` (US-05) + `SessionList.tsx` — backend 29/29, frontend 17/17, build et lint OK (2026-07-08)
+- [x] Refactor pilote `session/list.controller.ts` en `controller → service → model` + middleware d'erreur centralisé (`asyncHandler`/`errorHandler`) — backend 38/38, frontend 17/17, build et lint OK (2026-07-08)
 
 ## Fait ✅
 
