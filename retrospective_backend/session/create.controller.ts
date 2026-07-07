@@ -1,13 +1,13 @@
-import { Request, Response } from "express";
+import { Response } from "express";
 import { logger } from "../utils/logger";
 import db from "../db";
 import { ResultSetHeader, RowDataPacket } from "mysql2";
 import crypto from "crypto";
-import { SessionType } from "../types";
+import { AuthRequest, SessionType } from "../types";
 
 
-export const createSession = async (req: Request, res: Response) => {
-  const { userId } = (req as any).user;
+export const createSession = async (req: AuthRequest, res: Response) => {
+  const { userId } = req.user;
 
   if (!userId) {
     logger.error("❌ Données manquante : userId requis pour créer une session.");
@@ -20,7 +20,7 @@ export const createSession = async (req: Request, res: Response) => {
 
   const now_utc = new Date().toISOString();
 
-  const [result, field] = await db.execute<ResultSetHeader>(
+  const [result] = await db.execute<ResultSetHeader>(
     'update sessions set status = "closed" where owner_id = ? and expires_at <= ?',
     [userId, now_utc]
   )
@@ -56,8 +56,6 @@ export const createSession = async (req: Request, res: Response) => {
       'insert into sessions (code, owner_id, status, expires_at) values(?, ?, ?, ?)',
       [code, userId, 'open', expires_at_mysql]
     )
-
-    console.log("insert session", result)
 
     const sessionId = result.insertId;
 

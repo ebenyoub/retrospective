@@ -105,6 +105,30 @@
 
 ---
 
+## Sprint 5 — `feature/auth-session` : combler les trous auth/session
+
+**Objectif** : couvrir US-05 ("lister ses sessions"), combler les trous de tests sur les contrôleurs de session déjà en prod, corriger un `any` résiduel.
+
+**Période** : 2026-07-08
+
+| ID | Tâche | Statut | Notes |
+|---|---|---|---|
+| S5-01 | Correction `(req as any).user` → `AuthRequest` dans `create.controller.ts` | ✅ | Alignement avec le pattern déjà utilisé dans `join.controller.ts` |
+| S5-02 | Tests `create.controller.ts` / `join.controller.ts` | ✅ | Aucun test n'existait sur ces fichiers pourtant en prod |
+| S5-03 | Endpoint `GET /session` (US-05) | ✅ | `session/list.controller.ts` — UNION SQL owner/participant, rôle `facilitator`/`participant`, tri `created_at DESC` |
+| S5-04 | Page `SessionList.tsx` + lien depuis `Profile.tsx` | ✅ | Réutilise `Container`/`Button` existants |
+| S5-05 | Tests associés (backend + frontend) | ✅ | |
+
+**Décision d'architecture (validée avec l'utilisateur)** : la table `sessions` n'a pas de colonne `name` alors que le cahier des charges (F04/US-04) l'exige. Non traité dans ce ticket — dette documentée, voir section "Dette technique" plus bas.
+
+**Preuve de validation (2026-07-08)** :
+- Backend : `npm run test` → 29 passés (19 précédents + 10 nouveaux)
+- Frontend : `npm run test` → 17 passés (14 précédents + 3 nouveaux) ; `npm run build` → succès ; `npm run lint` → aucune erreur
+
+**Prochaine tâche proposée** : système de votes (backend puis frontend) — inchangé, cœur métier MVP restant.
+
+---
+
 ## Template sprint suivant
 
 ```markdown
