@@ -8,9 +8,10 @@ interface RetroColumnProps {
   cards: RetroCard[];
   emptyMessage: string;
   onAddCard: (content: string) => Promise<void> | void;
+  onVote: (cardId: number) => Promise<void> | void;
 }
 
-const RetroColumn = ({ title, dotClassName, accentClassName, cards, emptyMessage, onAddCard }: RetroColumnProps) => {
+const RetroColumn = ({ title, dotClassName, accentClassName, cards, emptyMessage, onAddCard, onVote }: RetroColumnProps) => {
   return (
     <div className="flex flex-col bg-slate-900 border border-white/10 rounded-xl overflow-hidden min-h-64">
       <div className="flex items-center gap-2 px-4 py-3 border-b border-white/10">
@@ -26,7 +27,7 @@ const RetroColumn = ({ title, dotClassName, accentClassName, cards, emptyMessage
           <p className="text-sm text-slate-500 text-center py-8">{emptyMessage}</p>
         ) : (
           cards.map((card) => (
-            <RetroCardItem key={card.id} card={card} accentClassName={accentClassName} />
+            <RetroCardItem key={card.id} card={card} accentClassName={accentClassName} onVote={onVote} />
           ))
         )}
       </div>
