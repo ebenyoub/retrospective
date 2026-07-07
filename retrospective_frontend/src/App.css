@@ -1,0 +1,71 @@
+@import '@csstools/normalize.css';
+@import "tailwindcss";
+@import "tw-animate-css";
+
+html {
+  height: 100vh;
+}
+
+body {
+  position: relative;
+  background-color: #111;
+  color: white;
+  height: 100%;
+}
+
+#codeSession {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+} 
+
+#overlay {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: #000;
+  opacity: 0.9;
+  z-index: 3;
+  display: none;
+}
+
+.spin-card {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  border-radius: 20px;
+}
+
+.spin-card::before {
+  content: "";
+  position: absolute;
+  width: 230%;
+  height: 20%;
+  background-image: 
+    linear-gradient(180deg, #ff00c8, cyan);
+  animation: animate 3s linear infinite;
+  transition: al .3s linear;
+  z-index: 0;
+}
+
+.spin-card::after {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  background: #141414;
+  border-radius: 15px;
+  z-index: 1;
+}
+
+@keyframes animate {
+  from {
+    transform: rotate(0deg);
+  }
+  
+  to {
+    transform: rotate(360deg);
+  }
+}
