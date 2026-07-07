@@ -57,8 +57,6 @@ export const createSession = async (req: Request, res: Response) => {
       [code, userId, 'open', expires_at_mysql]
     )
 
-    console.log("insert session", result)
-
     const sessionId = result.insertId;
 
     logger.info(`ℹ️sessionId : ${sessionId}`);

@@ -21,9 +21,16 @@
 - [ ] Compléter `docs/jury/REFERENTIEL_DWWM.md` avec les compétences couvertes
 - [ ] Commencer à collecter les preuves dans `docs/jury/PREUVES_A_COLLECTER.md`
 
-## À faire ensuite (mis à jour 2026-07-07)
+## À faire ensuite (mis à jour 2026-07-08)
 
 - [ ] Système de votes — pas commencé, prochaine tâche
+- [ ] Dette documentée : la table `sessions` n'a pas de colonne `name`, alors que le cahier des charges (F04/US-04) exige un nom de session obligatoire à la création. Décision prise le 2026-07-08 : hors périmètre de `feature/auth-session`, à traiter dans un ticket dédié si besoin.
+- [ ] Tests manquants restants côté auth : `forgot.controller.ts`, `code.controller.ts`, `reset.controller.ts`, `delete.controller.ts` (identifiés en review du 2026-07-08, non traités — hors périmètre de ce ticket)
+
+## Fait ✅ (nettoyage dette technique, 2026-07-08)
+
+- [x] `console.log` résiduel supprimé dans `create.controller.ts`
+- [x] `retrospective_backend/logs/all.log` et `logs/error.log` retirés du suivi Git (`git rm --cached`) — fichiers conservés en local, déjà couverts par la règle `.gitignore` racine (`logs`), aucune modification de `.gitignore` nécessaire
 
 ## Phase tests unitaires minimum — terminée (2026-07-07)
 
@@ -36,6 +43,7 @@ Plus de test unitaire "de fond" à ajouter en dehors de ceux qui accompagnent ch
 - [x] Endpoint `GET /session/:sessionId/cards` + tests (`npm run test` : 19/19 passés) (2026-07-07)
 - [x] Premier écran `SessionDashboard.tsx` : 3 colonnes + lecture des cartes (`npm run test` frontend : 11/11 passés, `npm run build` : succès) (2026-07-07)
 - [x] Formulaire d'ajout de carte (`RetroAddCardForm.tsx`, React Hook Form + Zod) dans chaque colonne — `npm run test` frontend : 14/14 passés, `npm run build` : succès (2026-07-07)
+- [x] `feature/auth-session` : correction `any` dans `create.controller.ts`, tests `create`/`join.controller.ts`, endpoint `GET /session` (US-05) + `SessionList.tsx` — backend 29/29, frontend 17/17, build et lint OK (2026-07-08)
 
 ## Fait ✅
 
