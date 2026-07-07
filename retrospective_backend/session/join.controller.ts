@@ -1,6 +1,6 @@
 import { ResultSetHeader } from "mysql2";
 import db from "../db";
-import { AuthRequest, JoinRow, SessionLookupRow } from "../types";
+import { AuthRequest, JoinRow, SessionLookupRow } from '../src/types';
 import { Response } from "express";
 import { logger } from "../utils/logger";
 

@@ -8,7 +8,7 @@ vi.mock("./session.service", () => ({
 
 import { getSessionsForUser } from "./session.service";
 import { listSessions } from "./list.controller";
-import type { AuthRequest } from "../types";
+import type { AuthRequest } from '../src/types';
 
 const mockGetSessionsForUser = getSessionsForUser as unknown as Mock;
 

@@ -1,7 +1,7 @@
 import { ResultSetHeader, RowDataPacket } from "mysql2";
 import { Response } from "express";
 import db from "../db";
-import { AuthRequest, SessionLookupRow } from "../types";
+import { AuthRequest, SessionLookupRow } from '../src/types';
 import { logger } from "../utils/logger";
 
 interface CardRow extends RowDataPacket {

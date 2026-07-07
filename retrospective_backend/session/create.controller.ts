@@ -3,7 +3,7 @@ import { logger } from "../utils/logger";
 import db from "../db";
 import { ResultSetHeader, RowDataPacket } from "mysql2";
 import crypto from "crypto";
-import { AuthRequest, SessionType } from "../types";
+import { AuthRequest, SessionType } from '../src/types';
 
 
 export const createSession = async (req: AuthRequest, res: Response) => {

@@ -8,7 +8,7 @@ vi.mock("../db", () => ({
 
 import db from "../db";
 import joinSession from "./join.controller";
-import type { AuthRequest } from "../types";
+import type { AuthRequest } from '../src/types';
 
 const mockExecute = db.execute as unknown as Mock;
 

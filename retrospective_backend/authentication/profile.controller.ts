@@ -1,5 +1,5 @@
 import { Response } from 'express';
-import { AuthRequest } from '../types';
+import { AuthRequest } from '../src/types';
 import { logger } from '../utils/logger';
 
 export const profile = (req: AuthRequest, res: Response) => {

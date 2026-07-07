@@ -2,7 +2,7 @@ import { ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import { Response } from 'express';
 import db from '../db';
 import { logger } from '../utils/logger';
-import { AuthRequest } from '../types';
+import { AuthRequest } from '../src/types';
 
 
 

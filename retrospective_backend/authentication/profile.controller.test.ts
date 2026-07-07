@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import type { Response } from "express";
 import { profile } from "./profile.controller";
-import type { AuthRequest } from "../types";
+import type { AuthRequest } from '../src/types';
 
 const createMockResponse = () => {
   const res = {
