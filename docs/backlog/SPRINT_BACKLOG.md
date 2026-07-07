@@ -1,0 +1,131 @@
+# Sprint Backlog
+
+> Tickets du sprint en cours. Un seul sprint actif à la fois.
+> Ne pas démarrer un nouveau ticket avant d'avoir terminé et testé le précédent.
+
+## Sprint actuel : Sprint 0 — Analyse et mise en place
+
+**Objectif** : Analyser l'existant, configurer l'environnement, définir le schéma BDD.
+
+**Période** : À définir
+
+| ID | Tâche | Statut | Notes |
+|---|---|---|---|
+| S0-01 | Analyser le code frontend existant | ⬜ | Lister ce qui est déjà développé |
+| S0-02 | Analyser le code backend existant | ⬜ | Lister les routes et contrôleurs existants |
+| S0-03 | Documenter l'architecture actuelle | ⬜ | Remplir `docs/technical/ARCHITECTURE.md` |
+| S0-04 | Documenter le schéma BDD actuel | ⬜ | Remplir `docs/technical/DATABASE.md` |
+| S0-05 | Vérifier que le projet démarre | ⬜ | Frontend + backend en dev |
+
+---
+
+## Sprint 1 — Boucle de travail + page d'accueil (frontend)
+
+**Objectif** : fiabiliser la boucle Backlog → tâche → code → test/build → review diff → docs → commit, et livrer la page Home depuis la maquette Figma.
+
+**Période** : 2026-07-07
+
+| ID | Tâche | Statut | Notes |
+|---|---|---|---|
+| S1-01 | Corriger les imports à casse invalide (build cassé) | ✅ | `main.tsx`, `ToastNotification.tsx` |
+| S1-02 | Créer `src/pages/home/` depuis `figma_make.zip` | ✅ | `home.tsx` + 3 composants dans `components/` |
+| S1-03 | Frontmatter YAML sur les 8 agents `.claude/agents/` | ✅ | Rend les agents réellement sélectionnables |
+| S1-04 | Règles "périmètre par tâche" + "review = diff seul" | ✅ | Ajoutées dans `CLAUDE.md` |
+| S1-05 | Installer Vitest + script `test` (frontend) | ✅ | `npm run test` → 4/4 passés |
+| S1-06 | Premier test sur `useFormValidation.ts` | ✅ | `src/hooks/useFormValidation.test.ts` |
+
+| S1-07 | Test Vitest sur `HomeTabsCard.tsx` | ✅ | Nécessité d'un alias `@` et d'un setup `cleanup()` dans `vitest.config.ts` |
+| S1-08 | Premier test backend sur `auth.middleware.ts` | ✅ | Vitest (pas Supertest — test unitaire direct de la fonction middleware, plus simple) |
+| S1-09 | Test backend sur `login.controller.ts` | ✅ | `db.execute` et `bcrypt.compare` mockés avec `vi.mock` |
+| S1-10 | Test backend sur `signup.controller.ts` | ✅ | `db.execute` et `bcrypt.hash` mockés ; doublon pseudo/email testé via le vrai statut du contrôleur (500, pas 409 — pas de vérif explicite dans le code) |
+| S1-11 | Test backend sur `profile.controller.ts` | ✅ | Fonction pure, aucun mock nécessaire |
+
+**Preuve de validation (2026-07-07)** :
+- Frontend : `npm run test` (8 passés, inchangé) et `npm run build` (succès)
+- Backend : `npm run test` (11 passés : 3 `auth.middleware` + 4 `login.controller` + 3 `signup.controller` + 1 `profile.controller`). Pas de script `build` dans `retrospective_backend/package.json`.
+
+**Phase "tests unitaires minimum" : terminée.** Les fonctions critiques (middleware d'auth, connexion, inscription, profil, formulaires clés du frontend) ont un filet de test. On arrête ici la boucle de tests unitaires — pas d'ajout supplémentaire tant qu'une nouvelle fonctionnalité produit ne l'exige.
+
+---
+
+## Sprint 2 — Tableau de rétrospective : ajout de carte (backend)
+
+**Objectif** : première brique du cœur métier — permettre d'ajouter une carte dans une session.
+
+**Période** : 2026-07-07
+
+| ID | Tâche | Statut | Notes |
+|---|---|---|---|
+| S2-01 | Table SQL `retro_cards` | ✅ | `retrospective_backend/sql/create_retro_cards.sql` — pas de système de migration existant, script simple à exécuter manuellement |
+| S2-02 | Endpoint `POST /session/:sessionId/cards` | ✅ | `session/card.controller.ts`, protégé par `auth`, colonnes `start/stop/continue` |
+| S2-03 | Tests du endpoint | ✅ | sans token (délègue à `auth.middleware`), contenu vide → 400, session inexistante → 404, création → 201 |
+| S2-04 | Endpoint `GET /session/:sessionId/cards` | ✅ | Tri `created_at ASC`, mapping snake_case → camelCase (`sessionId`, `authorId`, `columnType`, `createdAt`) |
+| S2-05 | Tests du endpoint GET | ✅ | sans token, session inexistante → 404, session sans carte → 200 + `[]`, session avec cartes → 200 + cartes mappées |
+
+**Preuve de validation** : `npm run test` (backend) → 19 passés (15 précédents + 4 nouveaux). Pas de script `build` backend.
+
+---
+
+## Sprint 3 — Tableau de rétrospective : premier écran (frontend)
+
+**Objectif** : afficher les 3 colonnes (start/stop/continue) et charger les cartes existantes sur `SessionDashboard.tsx`.
+
+**Période** : 2026-07-07
+
+| ID | Tâche | Statut | Notes |
+|---|---|---|---|
+| S3-01 | `RetroCardItem.tsx` + `RetroColumn.tsx` (`pages/private/components/`) | ✅ | Design repris de `WritingScreen.tsx` (figma_make.zip) : grille 3 colonnes, pastille couleur, compteur, bordure gauche colorée, état vide |
+| S3-02 | `SessionDashboard.tsx` : fetch `GET /session/:sessionId/cards` + répartition par colonne | ✅ | Fetch inline (pas de couche `services/`, cohérent avec le reste du projet qui n'en a pas) |
+| S3-03 | Tests du composant | ✅ | 3 colonnes affichées, état vide (3x), cartes reçues dans la bonne colonne |
+
+**Preuve de validation (2026-07-07)** :
+- Frontend : `npm run test` → 11 passés (8 précédents + 3 nouveaux) ; `npm run build` → succès
+- Backend : `npm run test` → 19 passés, inchangé (aucune modification backend dans ce sprint)
+
+---
+
+## Sprint 4 — Tableau de rétrospective : ajout de carte (frontend)
+
+**Objectif** : permettre d'écrire une carte depuis chaque colonne (start/stop/continue) de `SessionDashboard.tsx`.
+
+**Période** : 2026-07-07
+
+| ID | Tâche | Statut | Notes |
+|---|---|---|---|
+| S4-01 | `RetroAddCardForm.tsx` (`pages/private/components/`) | ✅ | Premier formulaire du projet avec React Hook Form + Zod (nouvelle convention pour tous les formulaires) ; `zod` et `@hookform/resolvers` ajoutés aux dépendances |
+| S4-02 | `RetroColumn.tsx` : intégration du formulaire par colonne | ✅ | Placement repris de `AddCardInput` dans `WritingScreen.tsx` (figma_make.zip) |
+| S4-03 | `SessionDashboard.tsx` : `handleAddCard` (POST + refetch) | ✅ | `fetchCards` extrait en fonction réutilisable (`useCallback`) ; pas de reconstruction locale de carte, on refetch après le POST (le backend ne renvoie que `cardId`) |
+| S4-04 | Tests du formulaire | ✅ | formulaire visible dans les 3 colonnes, contenu vide refusé par Zod (aucun appel réseau supplémentaire), ajout réussi affiché dans la bonne colonne |
+
+**Preuve de validation (2026-07-07)** :
+- Frontend : `npm run test` → 14 passés (11 précédents + 3 nouveaux) ; `npm run build` → succès
+- Backend : non concerné (aucune modification), dernière exécution connue 19/19 passés
+
+**Prochaine tâche proposée** : système de votes (backend puis frontend), dernière brique du cœur métier MVP avant les rôles facilitateur/participant.
+
+---
+
+## Template sprint suivant
+
+```markdown
+## Sprint X — [Nom du sprint]
+
+**Objectif** : [Ce qu'on veut avoir à la fin du sprint]
+
+**Période** : Du [date] au [date]
+
+| ID | Tâche | Statut | Notes |
+|---|---|---|---|
+| SX-01 | ... | ⬜ | ... |
+```
+
+---
+
+## Définition de "terminé"
+
+Un ticket est terminé quand :
+- [ ] La fonctionnalité fonctionne comme décrit dans la User Story
+- [ ] Le cas d'erreur principal est géré
+- [ ] Le code est relu (au moins une relecture rapide)
+- [ ] `docs/PROJECT_STATE.md` est mis à jour
+- [ ] `docs/CHANGELOG.md` a une entrée

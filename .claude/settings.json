@@ -1,0 +1,27 @@
+{
+  "project": {
+    "name": "retrospective-dwwm",
+    "type": "fullstack-web",
+    "level": "DWWM",
+    "language": "fr"
+  },
+  "style": {
+    "complexity": "simple",
+    "patterns": "mvc-like",
+    "explainability": "jury-ready"
+  },
+  "rules": {
+    "noAdvancedPatterns": true,
+    "noCleanArchitecture": true,
+    "updateProjectStateBeforeBigChanges": true,
+    "oneFeatureAtATime": true
+  },
+  "permissions": {
+    "allow": [
+      "Bash(find:*)",
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(grep:*)"
+    ]
+  }
+}
