@@ -11,6 +11,7 @@ import SessionCreate from './pages/private/SessionCreate.tsx'
 import Signup from './pages/auth/Signup.tsx'
 import Forgot from './pages/auth/Forgot.tsx'
 import SessionDashboard from './pages/private/SessionDashboard.tsx'
+import SessionList from './pages/private/SessionList.tsx'
 import { ToastProvider } from './context/toast/ToastContext.tsx'
 import Home from './pages/home/home.tsx'
 
@@ -27,6 +28,7 @@ createRoot(document.getElementById('root')!).render(
                             <Route path="/login" element={<Login />} />
                             <Route path="/signup" element={<Signup />} />
                             <Route path="/forgot" element={<Forgot />} />
+                            <Route path="/sessions" element={<SessionList />} />
                             <Route path="/session" element={<SessionCreate />} />
                             <Route path="/session/:id" element={<SessionDashboard />} />
                         </Routes>

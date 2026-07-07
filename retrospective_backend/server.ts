@@ -15,6 +15,7 @@ import { createSession } from './session/create.controller';
 import { logger } from './utils/logger';
 import joinSession from './session/join.controller';
 import { createCard, getCards } from './session/card.controller';
+import { listSessions } from './session/list.controller';
 
 dotenv.config();
 
@@ -33,6 +34,7 @@ app.post('/auth/forgot', forgot);
 app.post('/auth/verify-code', verifyCode);
 app.patch('/auth/reset-password', resetPassword);
 
+app.get("/session", auth, listSessions);
 app.post("/session/create-session", auth, createSession);
 app.post("/session/join", auth, joinSession);
 app.post("/session/:sessionId/cards", auth, createCard);

@@ -77,6 +77,7 @@ const Profile = () => {
           <div className="flex gap-5 mt-8">
             <Button onClick={() => setStep("CODE")}>Rejoindre un groupe</Button>
             <Button onClick={() => navigate("/session")}>Créer une rétrospective</Button>
+            <Button onClick={() => navigate("/sessions")}>Mes sessions</Button>
           </div>
         </Container>
       )}
