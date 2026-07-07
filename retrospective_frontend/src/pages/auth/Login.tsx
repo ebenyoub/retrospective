@@ -1,4 +1,5 @@
-import FormContainer, { FormTitle, Input } from '@/components/ui/FormContainer';
+import FormContainer, { FormTitle } from '@/components/ui/FormContainer';
+import FormField from '@/components/ui/FormField';
 import SpinContainer from '@/components/ui/SpinContainer';
 import Container from '@/components/ui/Container';
 import Button from '@/components/ui/Button';
@@ -40,21 +41,6 @@ const Login: React.FC = () => {
         loginValidationSchema
     )
 
-    const getInputClass = (fieldName: 'username' | 'password', value: string) => {
-        // 1. Le champ n'a pas été touché ou est vide : Gris par défaut
-        if (value.trim() === "") {
-            return 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500';
-        }
-
-        // 2. Le champ est valide : Vert
-        if (!errors[fieldName]) {
-            return 'border-green-500 focus:border-green-500 focus:ring-green-500';
-        }
-
-        // 3. Le champ est invalide : Rouge
-        return 'border-red-500 focus:border-red-500 focus:ring-red-500';
-    };
-
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
@@ -93,41 +79,34 @@ const Login: React.FC = () => {
             <SpinContainer onSpin={isLoading}>
                 <FormContainer onSubmit={handleSubmit}>
                     <FormTitle>Connexion</FormTitle>
-                    <div className='flex flex-col gap-4'>
-                        <label htmlFor="username">
-                            Pseudonyme
-                        </label>
-                        <Input
-                            id="username"
-                            name="username"
-                            type='text'
-                            value={values.username}
-                            placeholder="Albus Dumbledore"
-                            autoComplete="username"
-                            disabled={isLoading}
-                            onChange={handleInputChange}
-                            onBlur={handleInputChange}
-                            className={getInputClass('username', values.username)}
-                            aria-describedby="username-error"
-                        />
-                        {errors.username && <small className="text-red-500" id="username-error">{errors.username}</small>}
-                    </div>
+                    <FormField
+                        id="username"
+                        name="username"
+                        label="Pseudonyme"
+                        type="text"
+                        value={values.username}
+                        placeholder="Albus Dumbledore"
+                        autoComplete="username"
+                        disabled={isLoading}
+                        onChange={handleInputChange}
+                        onBlur={handleInputChange}
+                        error={errors.username}
+                        showValidState
+                    />
 
-                    <label htmlFor="username">
-                        Mot de passe
-                    </label>
-                    <Input
+                    <FormField
                         id="password"
                         name="password"
-                        type='password'
+                        label="Mot de passe"
+                        type="password"
+                        value={values.password}
                         autoComplete="new-password"
                         disabled={isLoading}
                         onChange={handleInputChange}
                         onBlur={handleInputChange}
-                        className={getInputClass('password', values.password)}
-                        aria-describedby="password-error"
+                        error={errors.password}
+                        showValidState
                     />
-                    {errors.password && <small className="text-red-500" id="password-error">{errors.password}</small>}
 
                     <Button type="submit">Se connecter</Button>
 

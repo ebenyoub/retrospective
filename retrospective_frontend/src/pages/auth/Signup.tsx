@@ -1,6 +1,7 @@
 import Button from '@/components/ui/Button';
 import Container from '@/components/ui/Container';
-import FormContainer, { FormGroup, FormTitle, Input } from '@/components/ui/FormContainer';
+import FormContainer, { FormTitle } from '@/components/ui/FormContainer';
+import FormField from '@/components/ui/FormField';
 import SpinContainer from '@/components/ui/SpinContainer';
 import { useAuth } from '@/context/auth/useAuth';
 import { useToast } from '@/context/toast/useToast';
@@ -60,21 +61,6 @@ const Signup: React.FC = () => {
         signupValidationSchema
     )
 
-    const getInputClass = (fieldName: 'username' | 'email' | 'password' | 'confirm' , value: string) => {
-        // 1. Le champ n'a pas été touché ou est vide : Gris par défaut
-        if (value.trim() === "") {
-            return 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500';
-        }
-
-        // 2. Le champ est valide : Vert
-        if (!errors[fieldName]) {
-            return 'border-green-500 focus:border-green-500 focus:ring-green-500';
-        }
-
-        // 3. Le champ est invalide : Rouge
-        return 'border-red-500 focus:border-red-500 focus:ring-red-500';
-    };
-
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
@@ -116,83 +102,63 @@ return (
             <FormContainer onSubmit={handleSubmit}>
                 <FormTitle>S'enregistrer</FormTitle>
 
-                <FormGroup>
-                    <label htmlFor="username">
-                        Pseudonyme
-                    </label>
-                    <Input
-                        id="username"
-                        name="username"
-                        type='text'
-                        placeholder="Minerva McGonagal"
-                        autoComplete="username"
-                        disabled={isLoading}
-                        value={values.username}
-                        className={getInputClass("username", values.username)}
-                        aria-describedby="username-error"
-                        onChange={handleInputChange}
-                        onBlur={handleInputChange}
-                    />
-                    {errors.username && <small className="text-red-500" id="username-error">{errors.username}</small>}
-                </FormGroup>
+                <FormField
+                    id="username"
+                    name="username"
+                    label="Pseudonyme"
+                    type="text"
+                    placeholder="Minerva McGonagal"
+                    autoComplete="username"
+                    disabled={isLoading}
+                    value={values.username}
+                    error={errors.username}
+                    onChange={handleInputChange}
+                    onBlur={handleInputChange}
+                    showValidState
+                />
 
-                <FormGroup>
-                    <label htmlFor="email">
-                        Email
-                    </label>
-                    <Input
-                        id="email"
-                        name="email"
-                        type='text'
-                        placeholder="rtc@example.com"
-                        autoComplete="email"
-                        disabled={isLoading}
-                        value={values.email}
-                        className={getInputClass("email", values.email)}
-                        aria-describedby="email-error"
-                        onChange={handleInputChange}
-                        onBlur={handleInputChange}
-                    />
-                    {errors.email && <small className="text-red-500" id="email-error">{errors.email}</small>}
-                </FormGroup>
+                <FormField
+                    id="email"
+                    name="email"
+                    label="Email"
+                    type="text"
+                    placeholder="rtc@example.com"
+                    autoComplete="email"
+                    disabled={isLoading}
+                    value={values.email}
+                    error={errors.email}
+                    onChange={handleInputChange}
+                    onBlur={handleInputChange}
+                    showValidState
+                />
 
-                <FormGroup>
-                    <label htmlFor="password">
-                        Mot de passe
-                    </label>
-                    <Input
-                        id="password"
-                        name="password"
-                        type='password'
-                        autoComplete="new-password"
-                        disabled={isLoading}
-                        value={values.password}
-                        className={getInputClass("password", values.password)}
-                        aria-describedby="password-error"
-                        onChange={handleInputChange}
-                        onBlur={handleInputChange}
-                    />
-                    {errors.password && <small className="text-red-500" id="password-error">{errors.password}</small>}
-                </FormGroup>
+                <FormField
+                    id="password"
+                    name="password"
+                    label="Mot de passe"
+                    type="password"
+                    autoComplete="new-password"
+                    disabled={isLoading}
+                    value={values.password}
+                    error={errors.password}
+                    onChange={handleInputChange}
+                    onBlur={handleInputChange}
+                    showValidState
+                />
 
-                <FormGroup>
-                    <label htmlFor="confirm">
-                        Confimation
-                    </label>
-                    <Input
-                        id="confirm"
-                        name="confirm"
-                        type='password'
-                        autoComplete="new-confirm"
-                        disabled={isLoading}
-                        value={values.confirm}
-                        className={getInputClass("confirm", values.confirm)}
-                        aria-describedby="confirm-error"
-                        onChange={handleInputChange}
-                        onBlur={handleInputChange}
-                    />
-                    {errors.confirm && <small className="text-red-500" id="confirm-error">{errors.confirm}</small>}
-                </FormGroup>
+                <FormField
+                    id="confirm"
+                    name="confirm"
+                    label="Confimation"
+                    type="password"
+                    autoComplete="new-confirm"
+                    disabled={isLoading}
+                    value={values.confirm}
+                    error={errors.confirm}
+                    onChange={handleInputChange}
+                    onBlur={handleInputChange}
+                    showValidState
+                />
 
                 <Button type="submit">S'inscrire</Button>
 
