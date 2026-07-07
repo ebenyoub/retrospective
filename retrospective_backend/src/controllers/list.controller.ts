@@ -1,6 +1,6 @@
 import { Response } from "express";
-import { AuthRequest } from '../src/types';
-import { getSessionsForUser } from "./session.service";
+import { AuthRequest } from '../types';
+import { getSessionsForUser } from '../../session/session.service';
 
 export const listSessions = async (req: AuthRequest, res: Response) => {
   const { userId } = req.user;

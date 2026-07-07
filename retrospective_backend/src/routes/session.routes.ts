@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import { auth } from '../middlewares/auth.middleware';
-import { createSession } from '../../session/create.controller';
-import joinSession from '../../session/join.controller';
-import { createCard, getCards } from '../../session/card.controller';
-import { listSessions } from '../../session/list.controller';
+import { createSession } from '../controllers/create.controller';
+import joinSession from '../controllers/join.controller';
+import { createCard, getCards } from '../controllers/card.controller';
+import { listSessions } from '../controllers/list.controller';
 import { asyncHandler } from '../utils/asyncHandler';
 
 const router = Router();

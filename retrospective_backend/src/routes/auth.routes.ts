@@ -1,12 +1,12 @@
 import { Router } from 'express';
 import { auth } from '../middlewares/auth.middleware';
-import { verifyCode } from '../../authentication/code.controller';
-import { deleteAccount } from '../../authentication/delete.controller';
-import { login } from '../../authentication/login.controller';
-import { signup } from '../../authentication/signup.controller';
-import { forgot } from '../../authentication/forgot.controller';
-import { profile } from '../../authentication/profile.controller';
-import { resetPassword } from '../../authentication/reset.controller';
+import { verifyCode } from '../controllers/code.controller';
+import { deleteAccount } from '../controllers/delete.controller';
+import { login } from '../controllers/login.controller';
+import { signup } from '../controllers/signup.controller';
+import { forgot } from '../controllers/forgot.controller';
+import { profile } from '../controllers/profile.controller';
+import { resetPassword } from '../controllers/reset.controller';
 
 const router = Router();
 

@@ -1,8 +1,8 @@
 import { RowDataPacket } from "mysql2";
 import { Request, Response } from 'express';
 import jwt from "jsonwebtoken";
-import db from "../db";
-import { logger } from "../src/utils/logger";
+import db from '../../db';
+import { logger } from '../utils/logger';
 
 export const verifyCode = async (req: Request, res: Response) => {
     const { email, code } = req.body;

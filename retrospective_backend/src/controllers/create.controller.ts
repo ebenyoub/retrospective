@@ -1,9 +1,9 @@
 import { Response } from "express";
-import { logger } from "../src/utils/logger";
-import db from "../db";
+import { logger } from '../utils/logger';
+import db from '../../db';
 import { ResultSetHeader, RowDataPacket } from "mysql2";
 import crypto from "crypto";
-import { AuthRequest, SessionType } from '../src/types';
+import { AuthRequest, SessionType } from '../types';
 
 
 export const createSession = async (req: AuthRequest, res: Response) => {

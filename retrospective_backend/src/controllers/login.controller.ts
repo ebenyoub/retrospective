@@ -2,8 +2,8 @@ import { RowDataPacket } from 'mysql2/promise';
 import jwt, { SignOptions } from "jsonwebtoken";
 import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
-import db from '../db';
-import { logger } from '../src/utils/logger';
+import db from '../../db';
+import { logger } from '../utils/logger';
 
 interface UserRow extends RowDataPacket {
   id: number;
