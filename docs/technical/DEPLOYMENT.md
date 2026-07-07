@@ -2,6 +2,10 @@
 
 > Document de référence pour déployer l'application. À compléter au fur et à mesure.
 
+## Déclenchement du déploiement
+
+Le déploiement ne se déclenche **que** depuis la branche `main` (production). `dev` et les branches `feature/*`/`fix/*` ne déclenchent jamais de déploiement — voir le workflow Git dans `docs/CONVENTIONS.md`.
+
 ## Environnements
 
 | Environnement | Usage | URL |
