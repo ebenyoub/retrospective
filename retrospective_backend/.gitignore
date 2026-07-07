@@ -1,0 +1,15 @@
+# Dossiers de dépendances
+/node_modules
+
+# Fichiers d'environnement (secrets de l'API, base de données)
+.env
+.env.local
+
+# Fichiers de log et temporaires
+npm-debug.log*
+yarn-error.log*
+*.log
+
+# Dossiers de build (si vous en utilisez)
+/dist
+/build

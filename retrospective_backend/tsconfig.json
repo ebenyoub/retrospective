@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    // On cible une version de JS récente, mais pas "trop" récente pour CJS
+    "target": "ES2020",
+    // LE CHANGEMENT MAJEUR : On repasse en CommonJS
+    "module": "commonjs",
+    // On utilise la résolution de module classique de Node
+    "moduleResolution": "node",
+
+    // TRÈS IMPORTANT : Ceci vous permet de GARDER la syntaxe 'import express from "express"'
+    // même si on compile en 'require'. TypeScript fait la traduction magique.
+    "esModuleInterop": true,
+
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "outDir": "./dist",
+    "rootDir": "./"
+  },
+  "include": ["./**/*.ts"],
+  "exclude": ["node_modules"]
+}
