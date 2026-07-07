@@ -1,10 +1,10 @@
 import Container from '@/components/ui/Container';
 import Button from '@/components/ui/Button';
+import Badge from '@/components/ui/Badge';
 import { useAuth } from '@/context/auth/useAuth';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-type SessionRole = 'facilitator' | 'participant';
+import { ROLE_LABEL, type SessionRole } from './sessionRole';
 
 interface SessionListItem {
   id: number;
@@ -14,11 +14,6 @@ interface SessionListItem {
   createdAt: string;
   role: SessionRole;
 }
-
-const ROLE_LABEL: Record<SessionRole, string> = {
-  facilitator: 'Facilitateur',
-  participant: 'Participant',
-};
 
 const SessionList = () => {
   const { token } = useAuth();
@@ -74,9 +69,7 @@ const SessionList = () => {
                   {ROLE_LABEL[session.role]} · {new Date(session.createdAt).toLocaleDateString('fr-FR')}
                 </span>
               </div>
-              <span className="text-xs font-mono text-slate-400 bg-white/5 rounded px-2 py-1">
-                {session.status}
-              </span>
+              <Badge>{session.status}</Badge>
             </button>
           ))}
         </div>

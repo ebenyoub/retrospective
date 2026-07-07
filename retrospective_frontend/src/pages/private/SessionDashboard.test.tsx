@@ -8,6 +8,41 @@ const emptyCardsResponse = {
   json: async () => ({ success: true, data: [] }),
 };
 
+const emptyRoleResponse = {
+  ok: true,
+  json: async () => ({ success: true, data: [] }),
+};
+
+// SessionDashboard fait deux fetch en parallèle au montage (cartes + rôle,
+// GET /session). On distingue par URL/méthode plutôt que par ordre d'appel,
+// pour ne pas dépendre de la course entre les deux effets.
+const createDashboardFetchMock = (options: {
+  cardsSequence: unknown[];
+  voteResponse?: unknown;
+  addCardResponse?: unknown;
+}) => {
+  const { cardsSequence, voteResponse, addCardResponse } = options;
+  let cardsCallIndex = 0;
+
+  return vi.fn().mockImplementation((url: string, init?: RequestInit) => {
+    const method = init?.method ?? 'GET';
+
+    if (url.endsWith('/session')) {
+      return Promise.resolve(emptyRoleResponse);
+    }
+    if (method === 'POST' && url.includes('/vote')) {
+      return Promise.resolve(voteResponse);
+    }
+    if (method === 'POST' && url.endsWith('/cards')) {
+      return Promise.resolve(addCardResponse);
+    }
+
+    const response = cardsSequence[Math.min(cardsCallIndex, cardsSequence.length - 1)];
+    cardsCallIndex += 1;
+    return Promise.resolve(response);
+  });
+};
+
 vi.mock('@/context/auth/useAuth', () => ({
   useAuth: () => ({
     isAuthenticated: true,
@@ -137,27 +172,29 @@ describe('SessionDashboard', () => {
   });
 
   it('ajoute une carte avec succès et l\'affiche dans la bonne colonne', async () => {
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValueOnce(emptyCardsResponse) // GET initial
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ success: true, data: { cardId: 1 } }) }) // POST
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          success: true,
-          data: [
-            {
-              id: 1,
-              sessionId: 1,
-              authorId: 1,
-              columnType: 'stop',
-              content: 'Le daily était trop long',
-              createdAt: '2026-07-07T10:01:00.000Z',
-              votesCount: 0,
-            },
-          ],
-        }),
-      }); // GET après ajout
+    const fetchMock = createDashboardFetchMock({
+      cardsSequence: [
+        emptyCardsResponse, // GET initial
+        {
+          ok: true,
+          json: async () => ({
+            success: true,
+            data: [
+              {
+                id: 1,
+                sessionId: 1,
+                authorId: 1,
+                columnType: 'stop',
+                content: 'Le daily était trop long',
+                createdAt: '2026-07-07T10:01:00.000Z',
+                votesCount: 0,
+              },
+            ],
+          }),
+        }, // GET après ajout
+      ],
+      addCardResponse: { ok: true, json: async () => ({ success: true, data: { cardId: 1 } }) },
+    });
     vi.stubGlobal('fetch', fetchMock);
 
     renderDashboard();
@@ -172,7 +209,6 @@ describe('SessionDashboard', () => {
     fireEvent.click(buttons[1]);
 
     expect(await screen.findByText('Le daily était trop long')).toBeTruthy();
-    expect(fetchMock).toHaveBeenCalledTimes(3);
   });
 
   it('affiche le nombre de votes et un bouton "Voter" sur chaque carte', async () => {
@@ -204,43 +240,45 @@ describe('SessionDashboard', () => {
   });
 
   it('vote avec succès et rafraîchit les cartes', async () => {
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          success: true,
-          data: [
-            {
-              id: 1,
-              sessionId: 1,
-              authorId: 1,
-              columnType: 'start',
-              content: 'Faire plus de pair programming',
-              createdAt: '2026-07-07T10:00:00.000Z',
-              votesCount: 0,
-            },
-          ],
-        }),
-      }) // GET initial
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ success: true, data: { voteId: 1 } }) }) // POST vote
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          success: true,
-          data: [
-            {
-              id: 1,
-              sessionId: 1,
-              authorId: 1,
-              columnType: 'start',
-              content: 'Faire plus de pair programming',
-              createdAt: '2026-07-07T10:00:00.000Z',
-              votesCount: 1,
-            },
-          ],
-        }),
-      }); // GET après vote
+    const fetchMock = createDashboardFetchMock({
+      cardsSequence: [
+        {
+          ok: true,
+          json: async () => ({
+            success: true,
+            data: [
+              {
+                id: 1,
+                sessionId: 1,
+                authorId: 1,
+                columnType: 'start',
+                content: 'Faire plus de pair programming',
+                createdAt: '2026-07-07T10:00:00.000Z',
+                votesCount: 0,
+              },
+            ],
+          }),
+        }, // GET initial
+        {
+          ok: true,
+          json: async () => ({
+            success: true,
+            data: [
+              {
+                id: 1,
+                sessionId: 1,
+                authorId: 1,
+                columnType: 'start',
+                content: 'Faire plus de pair programming',
+                createdAt: '2026-07-07T10:00:00.000Z',
+                votesCount: 1,
+              },
+            ],
+          }),
+        }, // GET après vote
+      ],
+      voteResponse: { ok: true, json: async () => ({ success: true, data: { voteId: 1 } }) },
+    });
     vi.stubGlobal('fetch', fetchMock);
 
     renderDashboard();
@@ -248,34 +286,35 @@ describe('SessionDashboard', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Voter' }));
 
     expect(await screen.findByText('1 vote')).toBeTruthy();
-    expect(fetchMock).toHaveBeenCalledTimes(3);
     expect(addToastMock).not.toHaveBeenCalled();
   });
 
   it("affiche un toast d'erreur si le vote échoue (ex: déjà voté)", async () => {
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          success: true,
-          data: [
-            {
-              id: 1,
-              sessionId: 1,
-              authorId: 1,
-              columnType: 'start',
-              content: 'Faire plus de pair programming',
-              createdAt: '2026-07-07T10:00:00.000Z',
-              votesCount: 1,
-            },
-          ],
-        }),
-      }) // GET initial
-      .mockResolvedValueOnce({
+    const fetchMock = createDashboardFetchMock({
+      cardsSequence: [
+        {
+          ok: true,
+          json: async () => ({
+            success: true,
+            data: [
+              {
+                id: 1,
+                sessionId: 1,
+                authorId: 1,
+                columnType: 'start',
+                content: 'Faire plus de pair programming',
+                createdAt: '2026-07-07T10:00:00.000Z',
+                votesCount: 1,
+              },
+            ],
+          }),
+        },
+      ],
+      voteResponse: {
         ok: false,
         json: async () => ({ success: false, message: 'Vous avez déjà voté pour cette carte' }),
-      }); // POST vote refusé
+      },
+    });
     vi.stubGlobal('fetch', fetchMock);
 
     renderDashboard();
@@ -285,7 +324,28 @@ describe('SessionDashboard', () => {
     await vi.waitFor(() => {
       expect(addToastMock).toHaveBeenCalledWith('error', 'Vous avez déjà voté pour cette carte');
     });
-    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('affiche le rôle de l\'utilisateur pour cette session', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockImplementation((url: string) => {
+        if (url.endsWith('/session')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({
+              success: true,
+              data: [{ id: 1, code: '1234', status: 'open', role: 'facilitator' }],
+            }),
+          });
+        }
+        return Promise.resolve(emptyCardsResponse);
+      })
+    );
+
+    renderDashboard();
+
+    expect(await screen.findByText('Facilitateur')).toBeTruthy();
   });
 
   it('bascule vers la vue résultats et trie les cartes par votes décroissant', async () => {

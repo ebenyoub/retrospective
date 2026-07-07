@@ -3,9 +3,11 @@ import { useToast } from '@/context/toast/useToast';
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Container from '@/components/ui/Container';
+import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import RetroColumn from './components/RetroColumn';
 import type { RetroCard } from './components/RetroCardItem';
+import { ROLE_LABEL, type SessionRole } from './sessionRole';
 
 type DashboardView = 'board' | 'results';
 
@@ -46,6 +48,7 @@ const SessionDashboard = () => {
   const navigate = useNavigate();
   const [cards, setCards] = useState<RetroCard[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [role, setRole] = useState<SessionRole | null>(null);
   const [view, setView] = useState<DashboardView>('board');
 
   useEffect(() => {
@@ -79,6 +82,31 @@ const SessionDashboard = () => {
   useEffect(() => {
     fetchCards();
   }, [fetchCards]);
+
+  useEffect(() => {
+    if (!id || !token) return;
+
+    const fetchRole = async () => {
+      try {
+        const response = await fetch('http://localhost:8000/session', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          const currentSession = (data.data as { id: number; role: SessionRole }[]).find(
+            (session) => String(session.id) === id
+          );
+          setRole(currentSession?.role ?? null);
+        }
+      } catch (error) {
+        console.error('Erreur lors de la récupération du rôle :', error);
+      }
+    };
+
+    fetchRole();
+  }, [id, token]);
 
   const handleAddCard = async (columnType: RetroCard['columnType'], content: string) => {
     if (!id || !token) return;
@@ -125,14 +153,17 @@ const SessionDashboard = () => {
 
   return (
     <Container className="flex flex-col gap-6">
-      <div className="flex items-center justify-between gap-4">
-        <h1 className="text-xl font-bold text-slate-50">
-          Tableau de rétrospective{id ? ` — session ${id}` : ''}
-        </h1>
-        <Button onClick={() => setView(view === 'board' ? 'results' : 'board')}>
-          {view === 'board' ? 'Voir les résultats' : 'Voir le tableau'}
-        </Button>
-      </div>
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <h1 className="text-xl font-bold text-slate-50">
+              Tableau de rétrospective{id ? ` — session ${id}` : ''}
+            </h1>
+            {role && <Badge>{ROLE_LABEL[role]}</Badge>}
+          </div>
+          <Button onClick={() => setView(view === 'board' ? 'results' : 'board')}>
+            {view === 'board' ? 'Voir les résultats' : 'Voir le tableau'}
+          </Button>
+        </div>
 
       {isLoading ? (
         <p className="text-sm text-slate-400">Chargement des cartes...</p>

@@ -1,5 +1,6 @@
 import RetroCardItem, { type RetroCard } from "./RetroCardItem";
 import RetroAddCardForm from "./RetroAddCardForm";
+import Badge from "@/components/ui/Badge";
 
 interface RetroColumnProps {
   title: string;
@@ -17,9 +18,7 @@ const RetroColumn = ({ title, dotClassName, accentClassName, cards, emptyMessage
       <div className="flex items-center gap-2 px-4 py-3 border-b border-white/10">
         <span className={`w-2.5 h-2.5 rounded-full ${dotClassName}`} />
         <span className="text-sm font-bold text-slate-200">{title}</span>
-        <span className="ml-auto text-xs font-mono text-slate-500 bg-white/5 rounded px-2 py-0.5">
-          {cards.length}
-        </span>
+        <Badge className="ml-auto text-slate-500 py-0.5">{cards.length}</Badge>
       </div>
 
       <div className="flex-1 flex flex-col gap-2 p-3 overflow-y-auto">
