@@ -1,5 +1,5 @@
 import type { Toast } from '@/context/toast/ToastContext';
-import { ToastStyled } from '../styleComonent/toastStyled';
+import { ToastStyled } from '../styleComonent/ToastStyled';
 import { cn } from '@/lib/utils';
 
 const ShowToast = ({ toast }: { toast: Toast }) => {

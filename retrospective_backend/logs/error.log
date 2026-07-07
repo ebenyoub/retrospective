@@ -251,3 +251,12 @@
 04-12-2025 17:31:56:3156 ERROR: ❌ Username, email et mot de passe requis.
 04-12-2025 17:31:57:3157 ERROR: ❌ Username, email et mot de passe requis.
 04-12-2025 17:32:00:320 ERROR: ❌ Username, email et mot de passe requis.
+07-07-2026 18:45:59:4559 ERROR: ❌ Erreur JWT: jwt malformed
+07-07-2026 18:45:59:4559 ERROR: ❌ Le pseudo et le mot de passe sont requis.
+07-07-2026 18:45:59:4559 ERROR: ❌ [signup] Utilisateur non trouvé.
+07-07-2026 18:45:59:4559 ERROR: ❌ Le mot de passe ne correspond pas au hash de la BDD.
+07-07-2026 18:45:59:4559 ERROR: ❌ Username, email et mot de passe requis.
+07-07-2026 18:45:59:4559 ERROR: ❌ Erreur SQL lors de la connexion/création: ER_DUP_ENTRY
+07-07-2026 18:45:59:4559 ERROR: ❌ Le contenu de la carte est requis.
+07-07-2026 18:45:59:4559 ERROR: ❌ Session introuvable : 1
+07-07-2026 18:45:59:4559 ERROR: ❌ Session introuvable : 1

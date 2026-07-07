@@ -14,6 +14,7 @@ import { resetPassword } from './authentication/reset.controller';
 import { createSession } from './session/create.controller';
 import { logger } from './utils/logger';
 import joinSession from './session/join.controller';
+import { createCard, getCards } from './session/card.controller';
 
 dotenv.config();
 
@@ -34,6 +35,8 @@ app.patch('/auth/reset-password', resetPassword);
 
 app.post("/session/create-session", auth, createSession);
 app.post("/session/join", auth, joinSession);
+app.post("/session/:sessionId/cards", auth, createCard);
+app.get("/session/:sessionId/cards", auth, getCards);
 
 app.listen(port, () => {
   logger.http(`Server API sur http://localhost:${port}`);
