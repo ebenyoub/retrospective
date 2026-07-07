@@ -4,6 +4,7 @@ import { createSession } from '../controllers/create.controller';
 import joinSession from '../controllers/join.controller';
 import { createCard, getCards } from '../controllers/card.controller';
 import { listSessions } from '../controllers/list.controller';
+import { voteForCard } from '../controllers/vote.controller';
 import { asyncHandler } from '../utils/asyncHandler';
 
 const router = Router();
@@ -13,5 +14,6 @@ router.post('/create-session', auth, createSession);
 router.post('/join', auth, joinSession);
 router.post('/:sessionId/cards', auth, createCard);
 router.get('/:sessionId/cards', auth, getCards);
+router.post('/:sessionId/cards/:cardId/vote', auth, asyncHandler(voteForCard));
 
 export default router;

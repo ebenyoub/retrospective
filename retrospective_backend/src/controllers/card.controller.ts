@@ -11,6 +11,7 @@ interface CardRow extends RowDataPacket {
   column_type: string;
   content: string;
   created_at: Date;
+  votes_count: number;
 }
 
 type ColumnType = "start" | "stop" | "continue";
@@ -95,7 +96,13 @@ export const getCards = async (req: AuthRequest, res: Response) => {
     }
 
     const [cards] = await db.execute<CardRow[]>(
-      "select id, session_id, author_id, column_type, content, created_at from retro_cards where session_id = ? order by created_at asc",
+      `select rc.id, rc.session_id, rc.author_id, rc.column_type, rc.content, rc.created_at,
+              count(v.id) as votes_count
+       from retro_cards rc
+       left join votes v on v.card_id = rc.id
+       where rc.session_id = ?
+       group by rc.id
+       order by rc.created_at asc`,
       [sessionId]
     );
 
@@ -105,7 +112,8 @@ export const getCards = async (req: AuthRequest, res: Response) => {
       authorId: card.author_id,
       columnType: card.column_type,
       content: card.content,
-      createdAt: card.created_at
+      createdAt: card.created_at,
+      votesCount: card.votes_count
     }));
 
     return res.status(200).json({
