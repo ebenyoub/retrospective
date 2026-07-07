@@ -1,7 +1,7 @@
 import { RowDataPacket } from "mysql2";
 import { Request, Response } from 'express';
 import jwt from "jsonwebtoken";
-import db from '../../db';
+import db from '../models/db';
 import { logger } from '../utils/logger';
 
 export const verifyCode = async (req: Request, res: Response) => {

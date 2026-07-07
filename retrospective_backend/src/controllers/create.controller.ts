@@ -1,6 +1,6 @@
 import { Response } from "express";
 import { logger } from '../utils/logger';
-import db from '../../db';
+import db from '../models/db';
 import { ResultSetHeader, RowDataPacket } from "mysql2";
 import crypto from "crypto";
 import { AuthRequest, SessionType } from '../types';
