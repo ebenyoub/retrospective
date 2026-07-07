@@ -8,7 +8,7 @@ interface RetroColumnProps {
   accentClassName: string;
   cards: RetroCard[];
   emptyMessage: string;
-  onAddCard: (content: string) => Promise<void> | void;
+  onAddCard?: (content: string) => Promise<void> | void;
   onVote: (cardId: number) => Promise<void> | void;
 }
 
@@ -31,7 +31,7 @@ const RetroColumn = ({ title, dotClassName, accentClassName, cards, emptyMessage
         )}
       </div>
 
-      <RetroAddCardForm onAddCard={onAddCard} />
+      {onAddCard && <RetroAddCardForm onAddCard={onAddCard} />}
     </div>
   );
 };

@@ -347,4 +347,59 @@ describe('SessionDashboard', () => {
 
     expect(await screen.findByText('Facilitateur')).toBeTruthy();
   });
+
+  it('bascule vers la vue résultats et trie les cartes par votes décroissant', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          success: true,
+          data: [
+            {
+              id: 1,
+              sessionId: 1,
+              authorId: 1,
+              columnType: 'start',
+              content: 'Carte peu votée',
+              createdAt: '2026-07-07T10:00:00.000Z',
+              votesCount: 1,
+            },
+            {
+              id: 2,
+              sessionId: 1,
+              authorId: 1,
+              columnType: 'stop',
+              content: 'Carte très votée',
+              createdAt: '2026-07-07T10:01:00.000Z',
+              votesCount: 5,
+            },
+          ],
+        }),
+      })
+    );
+
+    renderDashboard();
+
+    await screen.findByText('Start');
+    fireEvent.click(screen.getByRole('button', { name: 'Voir les résultats' }));
+
+    expect(await screen.findByText('Résultats')).toBeTruthy();
+
+    const cards = screen.getAllByText(/Carte (peu|très) votée/);
+    expect(cards[0].textContent).toBe('Carte très votée');
+    expect(cards[1].textContent).toBe('Carte peu votée');
+  });
+
+  it("n'affiche pas de formulaire d'ajout dans la vue résultats", async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(emptyCardsResponse));
+
+    renderDashboard();
+
+    await screen.findByText('Start');
+    fireEvent.click(screen.getByRole('button', { name: 'Voir les résultats' }));
+
+    await screen.findByText('Résultats');
+    expect(screen.queryByPlaceholderText('Nouvelle carte...')).toBeNull();
+  });
 });

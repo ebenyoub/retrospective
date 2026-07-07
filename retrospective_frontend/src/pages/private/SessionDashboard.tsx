@@ -4,9 +4,12 @@ import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Container from '@/components/ui/Container';
 import Badge from '@/components/ui/Badge';
+import Button from '@/components/ui/Button';
 import RetroColumn from './components/RetroColumn';
 import type { RetroCard } from './components/RetroCardItem';
 import { ROLE_LABEL, type SessionRole } from './sessionRole';
+
+type DashboardView = 'board' | 'results';
 
 const COLUMNS: {
   key: RetroCard['columnType'];
@@ -46,6 +49,7 @@ const SessionDashboard = () => {
   const [cards, setCards] = useState<RetroCard[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [role, setRole] = useState<SessionRole | null>(null);
+  const [view, setView] = useState<DashboardView>('board');
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -145,18 +149,25 @@ const SessionDashboard = () => {
     }
   };
 
+  const resultsCards = [...cards].sort((a, b) => b.votesCount - a.votesCount);
+
   return (
     <Container className="flex flex-col gap-6">
-      <div className="flex items-center gap-3">
-        <h1 className="text-xl font-bold text-slate-50">
-          Tableau de rétrospective{id ? ` — session ${id}` : ''}
-        </h1>
-        {role && <Badge>{ROLE_LABEL[role]}</Badge>}
-      </div>
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <h1 className="text-xl font-bold text-slate-50">
+              Tableau de rétrospective{id ? ` — session ${id}` : ''}
+            </h1>
+            {role && <Badge>{ROLE_LABEL[role]}</Badge>}
+          </div>
+          <Button onClick={() => setView(view === 'board' ? 'results' : 'board')}>
+            {view === 'board' ? 'Voir les résultats' : 'Voir le tableau'}
+          </Button>
+        </div>
 
       {isLoading ? (
         <p className="text-sm text-slate-400">Chargement des cartes...</p>
-      ) : (
+      ) : view === 'board' ? (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {COLUMNS.map((column) => (
             <RetroColumn
@@ -171,6 +182,15 @@ const SessionDashboard = () => {
             />
           ))}
         </div>
+      ) : (
+        <RetroColumn
+          title="Résultats"
+          dotClassName="bg-slate-400"
+          accentClassName="border-l-slate-400"
+          emptyMessage="Aucune carte pour l'instant."
+          cards={resultsCards}
+          onVote={handleVote}
+        />
       )}
     </Container>
   );
