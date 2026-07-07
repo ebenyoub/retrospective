@@ -1,4 +1,4 @@
-import { findSessionsForUser, type SessionRole } from "./session.model";
+import { findSessionsForUser, type SessionRole } from '../models/session.model';
 
 export interface SessionListItem {
   id: number;

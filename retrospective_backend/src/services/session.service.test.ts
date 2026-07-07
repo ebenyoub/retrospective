@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { Mock } from "vitest";
 
-vi.mock("./session.model", () => ({
+vi.mock("../models/session.model", () => ({
   findSessionsForUser: vi.fn(),
 }));
 
-import { findSessionsForUser } from "./session.model";
+import { findSessionsForUser } from '../models/session.model';
 import { getSessionsForUser } from "./session.service";
 
 const mockFindSessionsForUser = findSessionsForUser as unknown as Mock;

@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { Mock } from "vitest";
 
-vi.mock("../db", () => ({
+vi.mock("./db", () => ({
   default: { execute: vi.fn() },
 }));
 
-import db from "../db";
+import db from './db';
 import { findSessionsForUser } from "./session.model";
 
 const mockExecute = db.execute as unknown as Mock;

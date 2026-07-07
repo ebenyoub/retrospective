@@ -1,8 +1,8 @@
 import { ResultSetHeader } from "mysql2";
-import db from "../db";
-import { AuthRequest, JoinRow, SessionLookupRow } from "../types";
+import db from '../models/db';
+import { AuthRequest, JoinRow, SessionLookupRow } from '../types';
 import { Response } from "express";
-import { logger } from "../utils/logger";
+import { logger } from '../utils/logger';
 
 const joinSession = async (request: AuthRequest, response: Response) => {
   const { userId } = request.user;

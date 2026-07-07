@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import { RowDataPacket } from 'mysql2';
-import db from '../db'; // Ton fichier de config DB
+import db from '../models/db'; // Ton fichier de config DB
 import { logger } from '../utils/logger';
 
 

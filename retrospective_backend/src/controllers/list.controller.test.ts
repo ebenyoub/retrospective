@@ -2,13 +2,13 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { Response } from "express";
 import type { Mock } from "vitest";
 
-vi.mock("./session.service", () => ({
+vi.mock("../services/session.service", () => ({
   getSessionsForUser: vi.fn(),
 }));
 
-import { getSessionsForUser } from "./session.service";
+import { getSessionsForUser } from '../services/session.service';
 import { listSessions } from "./list.controller";
-import type { AuthRequest } from "../types";
+import type { AuthRequest } from '../types';
 
 const mockGetSessionsForUser = getSessionsForUser as unknown as Mock;
 

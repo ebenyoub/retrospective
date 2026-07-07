@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeAll, beforeEach } from "vitest";
 import type { Response } from "express";
 import type { Mock } from "vitest";
 
-vi.mock("../db", () => ({
+vi.mock("../models/db", () => ({
   default: { execute: vi.fn() },
 }));
 
@@ -10,7 +10,7 @@ vi.mock("bcrypt", () => ({
   default: { hash: vi.fn() },
 }));
 
-import db from "../db";
+import db from '../models/db';
 import bcrypt from "bcrypt";
 import { signup } from "./signup.controller";
 

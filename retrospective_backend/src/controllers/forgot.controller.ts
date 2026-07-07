@@ -1,8 +1,8 @@
 import { RowDataPacket } from 'mysql2/promise';
 import jwt, { SignOptions } from "jsonwebtoken";
 import { Request, Response } from 'express';
-import db from '../db';
-import { transporter } from './utils/transporter';
+import db from '../models/db';
+import { transporter } from '../../authentication/utils/transporter';
 import { logger } from '../utils/logger';
 
 interface UserRow extends RowDataPacket {

@@ -2,14 +2,14 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { Response, NextFunction } from "express";
 import type { Mock } from "vitest";
 
-vi.mock("../db", () => ({
+vi.mock("../models/db", () => ({
   default: { execute: vi.fn() },
 }));
 
-import db from "../db";
-import { auth } from "../authentication/auth.middleware";
+import db from '../models/db';
+import { auth } from '../middlewares/auth.middleware';
 import { createCard, getCards } from "./card.controller";
-import type { AuthRequest } from "../types";
+import type { AuthRequest } from '../types';
 
 const mockExecute = db.execute as unknown as Mock;
 

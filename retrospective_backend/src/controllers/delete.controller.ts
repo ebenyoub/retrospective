@@ -1,6 +1,6 @@
 import { ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import { Response } from 'express';
-import db from '../db';
+import db from '../models/db';
 import { logger } from '../utils/logger';
 import { AuthRequest } from '../types';
 
