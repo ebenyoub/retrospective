@@ -61,15 +61,15 @@ const SessionList = () => {
             <button
               key={session.id}
               onClick={() => navigate(`/session/${session.id}`)}
-              className="flex items-center justify-between gap-4 bg-slate-800 border border-white/10 rounded-lg p-4 text-left hover:bg-slate-700 cursor-pointer"
+              className="flex flex-col items-start justify-between gap-3 bg-slate-800 border border-white/10 rounded-lg p-4 text-left hover:bg-slate-700 cursor-pointer sm:flex-row sm:items-center sm:gap-4"
             >
-              <div className="flex flex-col gap-1">
+              <div className="flex min-w-0 flex-col gap-1">
                 <span className="text-sm font-semibold text-slate-100">Code {session.code}</span>
                 <span className="text-xs text-slate-400">
                   {ROLE_LABEL[session.role]} · {new Date(session.createdAt).toLocaleDateString('fr-FR')}
                 </span>
               </div>
-              <Badge>{session.status}</Badge>
+              <Badge className="shrink-0">{session.status}</Badge>
             </button>
           ))}
         </div>

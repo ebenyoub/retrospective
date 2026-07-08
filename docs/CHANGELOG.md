@@ -5,6 +5,21 @@ Format : `## [version ou date] — Description`
 
 ---
 
+## [2026-07-08] — Responsive basique MVP
+
+### Modifié
+- Formulaires auth/profil rendus fluides sur mobile (`w-full`, `max-w-md`, suppression du `min-w-md` bloquant).
+- Header et menu profil adaptés aux petits écrans avec retour à la ligne des actions.
+- Tableau de rétrospective ajusté en 1 colonne mobile, 2 colonnes tablette, 3 colonnes desktop.
+- Liste des sessions adaptée en empilement mobile.
+- Textes de cartes protégés contre les longues chaînes sans espaces.
+
+### Vérifié
+- Frontend : `npm run lint`, `npm run test` → 26/26, `npm run build` OK.
+- Captures locales : Home mobile 390px, Login mobile 390px, Home tablette 768px.
+
+---
+
 ## [2026-07-08] — Suppression de sa propre carte
 
 ### Ajouté

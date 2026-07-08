@@ -53,7 +53,7 @@
 
 | ID | Fonctionnalité | Complexité | Statut |
 |---|---|---|---|
-| B16 | Responsive design basique | Faible | ⬜ |
+| B16 | Responsive design basique | Faible | ✅ |
 | B17 | Messages d'erreur cohérents | Très faible | 🔵 Toasts + `AppError` en place, pas exhaustif partout |
 | B18 | États de chargement (loading) | Très faible | ✅ |
 

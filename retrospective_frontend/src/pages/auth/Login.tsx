@@ -75,8 +75,8 @@ const Login: React.FC = () => {
     }
 
     return (
-        <Container className='flex justify-center mt-20'>
-            <SpinContainer onSpin={isLoading}>
+        <Container className='flex justify-center mt-10 sm:mt-20'>
+            <SpinContainer onSpin={isLoading} className="w-full max-w-md">
                 <FormContainer onSubmit={handleSubmit}>
                     <FormTitle>Connexion</FormTitle>
                     <FormField

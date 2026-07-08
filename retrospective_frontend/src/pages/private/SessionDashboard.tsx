@@ -175,14 +175,14 @@ const SessionDashboard = () => {
 
   return (
     <Container className="flex flex-col gap-6">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <h1 className="text-xl font-bold text-slate-50">
+        <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center sm:gap-4">
+          <div className="flex min-w-0 flex-wrap items-center gap-3">
+            <h1 className="text-xl font-bold text-slate-50 break-words">
               Tableau de rétrospective{id ? ` — session ${id}` : ''}
             </h1>
             {role && <Badge>{ROLE_LABEL[role]}</Badge>}
           </div>
-          <Button onClick={() => setView(view === 'board' ? 'results' : 'board')}>
+          <Button onClick={() => setView(view === 'board' ? 'results' : 'board')} className="w-full sm:w-fit">
             {view === 'board' ? 'Voir les résultats' : 'Voir le tableau'}
           </Button>
         </div>
@@ -190,7 +190,7 @@ const SessionDashboard = () => {
       {isLoading ? (
         <p className="text-sm text-slate-400">Chargement des cartes...</p>
       ) : view === 'board' ? (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {COLUMNS.map((column) => (
             <RetroColumn
               key={column.key}

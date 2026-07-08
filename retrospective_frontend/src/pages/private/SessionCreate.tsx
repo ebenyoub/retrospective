@@ -58,7 +58,7 @@ const SessionCreate = () => {
 
   return (
 
-    <Container className="w-fit pt-3">
+    <Container className="w-full pt-3">
       <h1 className="text-center mt-0">Créer une session</h1>
       <p className="text-center mt-4">Votre code de session : <strong>{isLoading ? "Chargement..." : code}</strong></p>
       {globalError && (

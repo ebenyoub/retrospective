@@ -4,11 +4,11 @@
 
 ## Date de dernière mise à jour
 
-2026-07-08 (09:08 CEST)
+2026-07-08 (09:20 CEST)
 
 ## État global
 
-🟢 MVP cœur métier complet — sessions, cartes, suppression de sa propre carte, votes, résultats et rôles sont fonctionnels de bout en bout sur la branche `feature/delete-card`. Backend réorganisé sous `src/` (routes → controllers → services → models) et migré vers Express 5. Il reste du polish (responsive, modification de carte) et de la dette documentée, rien de bloquant pour le cœur métier.
+🟢 MVP quasi prêt soutenance — sessions, cartes, suppression de sa propre carte, votes, résultats, rôles et responsive basique sont fonctionnels. Backend réorganisé sous `src/` (routes → controllers → services → models) et migré vers Express 5. Il reste surtout la préparation de démo (`.env` backend à recréer) et de la dette documentée non bloquante.
 
 ## Fonctionnalités livrées
 
@@ -23,7 +23,8 @@
 | Système de votes (backend + bouton frontend) | ✅ Livré | 2026-07-08 |
 | Vue des résultats triée par votes (US-09) | ✅ Livré | 2026-07-08 |
 | Rôle affiché sur le tableau (Facilitateur/Participant) | ✅ Livré | 2026-07-08 |
-| Suppression de sa propre carte | ✅ Backend + frontend sur `feature/delete-card`, **PR non mergée** | 2026-07-08 |
+| Suppression de sa propre carte | ✅ Backend + frontend, PR #11 mergée dans `dev` | 2026-07-08 |
+| Responsive design basique | ✅ Livré sur `feature/responsive-mvp`, **PR à ouvrir** | 2026-07-08 |
 | Réorganisation backend sous `src/` (routes/controllers/services/models/middlewares/utils/types) | ✅ Livré (déplacement structurel) | 2026-07-08 |
 | Migration Express 4 → 5 | ✅ Livré, sans changement fonctionnel | 2026-07-08 |
 | Composants UI réutilisables (`FormField`, `Badge`) | ✅ Livré | 2026-07-08 |
@@ -40,8 +41,8 @@
 7. **#9** `feature/results-view` — vue "Résultats" triée par votes décroissant (US-09), réutilise `RetroColumn` (formulaire d'ajout rendu optionnel)
 8. **#10** `feature/session-role-badge` — badge de rôle sur le tableau, réutilise `GET /session` existant, introduit le composant `Badge`
 
-### PR ouverte / à mettre à jour, pas encore mergée
-- **`feature/delete-card`** — suppression complète de sa propre carte : endpoint `DELETE /session/:sessionId/cards/:cardId`, bouton frontend visible uniquement pour l'auteur, refetch après suppression, toast sur erreur backend. Backend : 58/58 tests verts. Frontend : 26/26 tests verts, build et lint propres.
+### Dernière PR mergée
+- **#11 `feature/delete-card`** — suppression complète de sa propre carte : endpoint `DELETE /session/:sessionId/cards/:cardId`, bouton frontend visible uniquement pour l'auteur, refetch après suppression, toast sur erreur backend. Backend : 58/58 tests verts. Frontend : 26/26 tests verts, build et lint propres.
 
 ### Décisions d'architecture prises aujourd'hui
 - Le pattern `controller → service → model` + `AppError`/`errorHandler` centralisé reste un **pilote volontairement limité** à `session/list` et `session/card.vote` (les nouveaux endpoints) — les anciens controllers (auth, create, join, card create/get/delete) restent en SQL inline pour ne pas faire un refactor métier hors périmètre.
@@ -63,13 +64,13 @@
 
 ## Ce qui est en cours
 
-- Pousser/mettre à jour la PR `feature/delete-card` avec le frontend de suppression, puis la faire relire. Ne pas merger tant que la revue n'est pas faite.
+- Ouvrir la PR `feature/responsive-mvp` pour le responsive basique du MVP. Ne pas merger tant que la revue n'est pas faite.
 
 ## Prochaine étape
 
-**Polish MVP recommandé : responsive design basique (B16).**
-- Vérifier le tableau sur mobile/tablette.
-- Corriger uniquement les problèmes de lisibilité ou débordement bloquants.
+**Préparation démo / soutenance recommandée.**
+- Recréer `retrospective_backend/.env` depuis `.env.example` avec de vraies valeurs locales.
+- Vérifier un parcours manuel complet devant jury : inscription/connexion, création session, ajout carte, vote, résultats, suppression.
 - Ne pas lancer la modification de carte (B11) sans arbitrage, car ce n'est pas dans la checklist stricte du MVP actuel.
 
 ## Dette technique restante
@@ -81,7 +82,7 @@
 - Tests manquants sur `forgot.controller.ts`, `code.controller.ts`, `reset.controller.ts`, `delete.controller.ts` (auth) — identifiés, non traités.
 - `mail.controller.ts` et `test_transporter.js` (racine backend) — code mort, jamais branché, à supprimer un jour.
 - Modification d'une carte existante (US-07/B11) — pas dans la checklist stricte du MVP, non commencée.
-- Responsive design — non vérifié explicitement sur mobile.
+- Responsive avancé — le responsive basique MVP est livré ; il peut rester du polish visuel fin hors périmètre.
 
 ### Potentiellement bloquant pour la soutenance (à ne pas oublier)
 - `retrospective_backend/.env` **n'existe plus sur le disque** (effet de bord d'une purge d'historique Git antérieure) — à recréer (`cp .env.example .env` + vraies valeurs) avant de pouvoir lancer le serveur en local pour une démo.

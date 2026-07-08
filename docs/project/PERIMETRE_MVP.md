@@ -29,7 +29,7 @@
 - [x] Page de connexion / inscription
 - [x] Page liste des sessions
 - [x] Page tableau de rétrospective (+ vue résultats triée par votes)
-- [ ] Responsive basique (lisible sur mobile) — jamais vérifié explicitement
+- [x] Responsive basique (lisible sur mobile)
 
 ## Ce qui est hors MVP (pour une V2)
 
@@ -50,4 +50,4 @@ Le MVP est considéré terminé quand :
 4. L'authentification est fonctionnelle et sécurisée — ✅ fait
 5. Le tout est démontrable en direct devant le jury — dépend de la préparation orale, pas un critère de code ; à vérifier : `.env` backend à recréer localement avant toute démo (voir `docs/TODO.md`)
 
-**État au 2026-07-08** : le cœur métier du MVP est complet au niveau du code sur la branche `feature/delete-card`. Il reste à merger la PR après review, vérifier le responsive basique et préparer l'environnement de démonstration (`.env` backend à recréer).
+**État au 2026-07-08** : le cœur métier et le responsive basique du MVP sont complets au niveau du code. Il reste à merger les PR après review et à préparer l'environnement de démonstration (`.env` backend à recréer).
