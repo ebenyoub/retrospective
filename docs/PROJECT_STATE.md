@@ -4,11 +4,11 @@
 
 ## Date de dernière mise à jour
 
-2026-07-08 (audit backend architecture)
+2026-07-08 (messages d'erreur cohérents)
 
 ## État global
 
-🟢 MVP quasi prêt soutenance — sessions, cartes (ajout, modification, suppression), votes, résultats, rôles et responsive basique sont fonctionnels. Un audit backend a rendu non négociable le pattern `controller → service → model → DB` et a listé les contrôleurs historiques non conformes. Il reste surtout la préparation de démo (`.env` backend à recréer) et de la dette backend à traiter par petits lots.
+🟢 MVP prêt côté fonctionnalités principales — sessions, cartes (ajout, modification, suppression), votes, résultats, rôles, responsive basique et messages d'erreur cohérents sont fonctionnels. Le backend est homogénéisé sur le pattern `controller → service → model → DB`. Il reste surtout la préparation de démo (`.env` backend à recréer).
 
 ## Fonctionnalités livrées
 
@@ -24,9 +24,11 @@
 | Vue des résultats triée par votes (US-09) | ✅ Livré | 2026-07-08 |
 | Rôle affiché sur le tableau (Facilitateur/Participant) | ✅ Livré | 2026-07-08 |
 | Suppression de sa propre carte | ✅ Backend + frontend, PR #11 mergée dans `dev` | 2026-07-08 |
-| Modification de sa propre carte | ✅ Backend + frontend sur `feature/edit-card`, PR #13 ouverte | 2026-07-08 |
+| Modification de sa propre carte | ✅ Backend + frontend, PR #13 mergée dans `dev` | 2026-07-08 |
 | Responsive design basique | ✅ Livré, PR #12 mergée dans `dev` | 2026-07-08 |
 | Réorganisation backend sous `src/` (routes/controllers/services/models/middlewares/utils/types) | ✅ Livré (déplacement structurel) | 2026-07-08 |
+| Homogénéisation backend `controller → service → model → DB` | ✅ Livré, PR #15 mergée dans `dev` | 2026-07-08 |
+| Messages d'erreur cohérents (B17) | ✅ Livré sur branche `polish/error-message-consistency` | 2026-07-08 |
 | Migration Express 4 → 5 | ✅ Livré, sans changement fonctionnel | 2026-07-08 |
 | Composants UI réutilisables (`FormField`, `Badge`) | ✅ Livré | 2026-07-08 |
 
@@ -43,14 +45,17 @@
 8. **#10** `feature/session-role-badge` — badge de rôle sur le tableau, réutilise `GET /session` existant, introduit le composant `Badge`
 9. **#11** `feature/delete-card` — suppression complète de sa propre carte (backend + frontend)
 10. **#12** `feature/responsive-mvp` — responsive basique du MVP
+11. **#13** `feature/edit-card` — modification de sa propre carte
+12. **#14** `refactor/backend-layer-audit` — règles backend non négociables + audit
+13. **#15** `refactor/backend-layer-homogenization` — homogénéisation backend en quatre lots
 
 ### Dernière PR mergée
-- **#12 `feature/responsive-mvp`** — responsive basique du MVP : formulaires fluides, header/menu adaptatifs, dashboard en 1/2/3 colonnes, liste de sessions mobile. Frontend : 26/26 tests verts, build et lint propres.
+- **#15 `refactor/backend-layer-homogenization`** — controllers backend homogènes, services métier, models SQL. Backend : 25 fichiers, 126 tests verts, TypeScript propre.
 
 ### Décisions d'architecture prises aujourd'hui
 - Le pattern `controller → service → model → DB` + `AppError`/`errorHandler` centralisé est désormais **obligatoire et non négociable** pour tout nouveau code backend.
 - Les contrôleurs ne doivent plus importer `db`, appeler `db.execute`, contenir du SQL brut, porter des validations métier/droits, utiliser `bcrypt`/`jwt`, générer des tokens, accéder au filesystem, appeler directement un provider externe, ou faire du `try/catch` manuel si `AppError` + `errorHandler` conviennent.
-- Audit du 2026-07-08 : routes conformes entièrement identifiées (`GET /session`, vote, modification de carte) ; controllers historiques non conformes listés dans `docs/technical/ARCHITECTURE.md` et `docs/TODO.md`.
+- Audit du 2026-07-08 : violations historiques corrigées par PR #15 ; les controllers applicatifs respectent maintenant le pattern cible.
 - Le backend est passé en **Express 5** (`^5.2.1`) — `asyncHandler` conservé volontairement (pas encore exploité pour son bénéfice natif Express 5, mais reste utile/cohérent).
 - Suppression de carte : les votes n'ont pas de suppression en cascade en base → suppression explicite des votes avant la carte dans le contrôleur (pas de transaction SQL formelle, cohérent avec la simplicité du projet).
 - Rôle affiché en réutilisant l'endpoint `GET /session` existant plutôt que de créer un nouvel endpoint dédié à une session — évite la sur-ingénierie.
@@ -63,13 +68,13 @@
 ## État du backend
 
 - **Framework** : Express **5.2.1** (migré depuis 4.22.2 aujourd'hui), `@types/express` 5.0.6.
-- **Architecture** : `retrospective_backend/src/{routes,controllers,services,models,middlewares,utils,types}` — voir `docs/technical/ARCHITECTURE.md` pour le détail et l'audit de conformité. La règle cible est stricte ; plusieurs controllers historiques restent à refactorer.
+- **Architecture** : `retrospective_backend/src/{routes,controllers,services,models,middlewares,utils,types}` — voir `docs/technical/ARCHITECTURE.md` pour le détail. La règle cible est stricte et appliquée aux controllers applicatifs.
 - **Gestion d'erreurs** : `AppError` + `errorHandler` centralisé + `asyncHandler`, utilisés sur les routes conformes récentes.
-- **Tests** : 58/58 passés (dernière exécution, ticket delete-card).
+- **Tests** : backend 126/126 passés après homogénéisation ; frontend 37/37 passés après B17.
 
 ## Ce qui est en cours
 
-- Branche `refactor/backend-layer-audit` : documentation de l'architecture backend non négociable + audit des violations. Pas de PR ouverte depuis cette branche pour l'instant.
+- Branche `polish/error-message-consistency` : harmonisation des messages d'erreur frontend (B17), PR à préparer.
 
 ## Prochaine étape
 
@@ -80,10 +85,8 @@
 ## Dette technique restante
 
 ### Non bloquant, peut attendre
-- Généraliser le pattern `controller → service → model → DB` aux controllers historiques non conformes — à faire par petits lots listés dans `docs/TODO.md`.
 - `validators/` (dossier prévu par l'architecture cible) jamais peuplé — aucune lib de validation backend (zod/joi/yup) ; décision à prendre si le besoin devient réel.
 - Colonne `name` manquante sur la table `sessions` alors que le cahier des charges l'exige (F04/US-04) — décision assumée de la reporter.
-- Tests manquants sur `forgot.controller.ts`, `code.controller.ts`, `reset.controller.ts`, `delete.controller.ts` (auth) — identifiés, non traités.
 - `mail.controller.ts` et `test_transporter.js` (racine backend) — code mort, jamais branché, à supprimer un jour.
 - Responsive avancé — le responsive basique MVP est livré ; il peut rester du polish visuel fin hors périmètre.
 

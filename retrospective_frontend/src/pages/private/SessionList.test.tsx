@@ -78,6 +78,20 @@ describe('SessionList', () => {
     expect(screen.getByText(/Participant/)).toBeTruthy();
   });
 
+  it("affiche le message d'erreur API si le chargement échoue", async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        json: async () => ({ success: false, message: 'Session introuvable.' }),
+      })
+    );
+
+    renderSessionList();
+
+    expect(await screen.findByText('Session introuvable.')).toBeTruthy();
+  });
+
   it('navigue vers le tableau de session au clic sur une session', async () => {
     vi.stubGlobal(
       'fetch',

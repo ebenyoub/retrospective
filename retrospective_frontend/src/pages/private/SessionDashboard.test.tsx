@@ -219,6 +219,30 @@ describe('SessionDashboard', () => {
     expect(await screen.findByText('Le daily était trop long')).toBeTruthy();
   });
 
+  it("affiche un toast d'erreur si l'ajout de carte est refusé par le backend", async () => {
+    const fetchMock = createDashboardFetchMock({
+      cardsSequence: [emptyCardsResponse],
+      addCardResponse: {
+        ok: false,
+        json: async () => ({ success: false, message: 'Le contenu de la carte est requis.' }),
+      },
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderDashboard();
+
+    await screen.findByText('Start');
+
+    fireEvent.change(screen.getAllByPlaceholderText('Nouvelle carte...')[0], {
+      target: { value: 'Carte refusée' },
+    });
+    fireEvent.click(screen.getAllByRole('button', { name: 'Ajouter' })[0]);
+
+    await vi.waitFor(() => {
+      expect(addToastMock).toHaveBeenCalledWith('error', 'Le contenu de la carte est requis.');
+    });
+  });
+
   it('affiche le nombre de votes et un bouton "Voter" sur chaque carte', async () => {
     vi.stubGlobal(
       'fetch',

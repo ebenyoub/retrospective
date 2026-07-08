@@ -3,11 +3,12 @@ import FormField from '@/components/ui/FormField';
 import SpinContainer from '@/components/ui/SpinContainer';
 import Container from '@/components/ui/Container';
 import Button from '@/components/ui/Button';
-import { useAuth } from '@/context/auth/useAuth';
+import { useAuth, type AuthLoginData } from '@/context/auth/useAuth';
 import { NavLink } from 'react-router-dom';
 import { useToast } from '@/context/toast/useToast';
 import type { ValidationSchema } from '@/hooks/useFormValidation';
 import useFormValidation from '@/hooks/useFormValidation';
+import { getApiErrorMessage, isApiSuccess, NETWORK_ERROR_MESSAGE, readJsonSafely } from '@/lib/apiError';
 
 interface LoginValues {
     username: string;
@@ -58,17 +59,17 @@ const Login: React.FC = () => {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(values)
             })
-            const data = await response.json();
+            const data = await readJsonSafely(response);
 
-            if (response.ok && data.success) {
+            if (response.ok && isApiSuccess<AuthLoginData>(data)) {
                 login(data.data)
                 addToast("success", "Vous êtes connectés.")
             } else {
-                addToast("error", data.message || "Erreur de connexion inconnue.");
+                addToast("error", getApiErrorMessage(data, "Connexion impossible."));
             }
         } catch (err) {
             console.log(err);
-            addToast("error", "Échec de la connexion au serveur (réseau).");
+            addToast("error", NETWORK_ERROR_MESSAGE);
         } finally {
             setIsLoading(false);
         }

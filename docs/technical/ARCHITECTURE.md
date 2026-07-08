@@ -29,7 +29,7 @@ retrospective/
 └── docs/              # Documentation
 ```
 
-**État réel (2026-07-08, audit backend)** : le pattern `controller → service → model` est maintenant une règle d'architecture **non négociable** pour tout nouveau code backend. Les routes conformes entièrement sont : `GET /session`, `POST /session/:sessionId/cards/:cardId/vote` et `PATCH /session/:sessionId/cards/:cardId`. Plusieurs contrôleurs historiques restent non conformes et sont listés dans `docs/TODO.md`.
+**État réel (2026-07-08, après PR #15)** : le pattern `controller → service → model` est une règle d'architecture **non négociable**. Les controllers applicatifs ne contiennent plus d'accès DB direct, de SQL, de `bcrypt`, de `jwt`, de génération de token ou d'appel direct à un provider externe.
 
 ## Frontend
 
@@ -92,12 +92,12 @@ Toute nouvelle route ou modification substantielle d'une route existante doit su
 
 ```ts
 router.get('/', auth, asyncHandler(listSessions));
-router.post('/create-session', auth, createSession);
-router.post('/join', auth, joinSession);
-router.post('/:sessionId/cards', auth, createCard);
-router.get('/:sessionId/cards', auth, getCards);
+router.post('/create-session', auth, asyncHandler(createSession));
+router.post('/join', auth, asyncHandler(joinSession));
+router.post('/:sessionId/cards', auth, asyncHandler(createCard));
+router.get('/:sessionId/cards', auth, asyncHandler(getCards));
 router.patch('/:sessionId/cards/:cardId', auth, asyncHandler(updateCard));
-router.delete('/:sessionId/cards/:cardId', auth, deleteCard);
+router.delete('/:sessionId/cards/:cardId', auth, asyncHandler(deleteCard));
 router.post('/:sessionId/cards/:cardId/vote', auth, asyncHandler(voteForCard));
 ```
 
@@ -115,38 +115,34 @@ Détail complet dans `docs/technical/API.md` (à vérifier/actualiser séparéme
 | `src/controllers/vote.controller.ts` | ✅ Conforme | Controller minimal, appelle `vote.service.ts` |
 | `src/services/vote.service.ts` | ✅ Conforme | Règles métier + `AppError`, appelle `vote.model.ts` |
 | `src/models/vote.model.ts` | ✅ Conforme | SQL uniquement dans le model |
-| `src/controllers/card.controller.ts` — `updateCard` | ✅ Conforme | Controller minimal pour `PATCH`, appelle `card.service.ts` |
-| `src/services/card.service.ts` — `updateCard` | ✅ Conforme | Validation contenu + auteur + `AppError` |
-| `src/models/card.model.ts` — `findCardOwner` / `updateCardContent` | ✅ Conforme | SQL uniquement dans le model |
+| `src/controllers/card.controller.ts` | ✅ Conforme | Controller minimal, appelle `card.service.ts` |
+| `src/services/card.service.ts` | ✅ Conforme | Validation contenu + auteur + mapping cartes + `AppError` |
+| `src/models/card.model.ts` | ✅ Conforme | SQL uniquement dans le model |
+| `src/controllers/create.controller.ts` / `join.controller.ts` | ✅ Conforme | Controllers minimaux, appellent `session.service.ts` |
+| `src/controllers/login.controller.ts` / `signup.controller.ts` / `delete.controller.ts` / `profile.controller.ts` | ✅ Conforme | Controllers minimaux, appellent `auth.service.ts` |
+| `src/services/auth.service.ts` | ✅ Conforme | Validation auth, `bcrypt`, JWT, profil, suppression compte |
+| `src/models/auth.model.ts` | ✅ Conforme | SQL utilisateur uniquement |
+| `src/controllers/forgot.controller.ts` / `code.controller.ts` / `reset.controller.ts` | ✅ Conforme | Controllers minimaux, appellent `passwordReset.service.ts` |
+| `src/services/passwordReset.service.ts` | ✅ Conforme | Token temporaire, email, bcrypt, validations reset |
+| `src/models/passwordReset.model.ts` | ✅ Conforme | SQL reset password uniquement |
 
 #### Non conforme
 
-| Fichier | Gravité | Violation | Correction proposée |
-|---|---|---|---|
-| `src/controllers/card.controller.ts` — `createCard`, `getCards`, `deleteCard` | Moyenne | Controller appelle directement `card.model.ts` et contient logique métier/try-catch | Créer `card.service.ts` pour create/list/delete, déplacer validations/droits/404 vers service, route avec `asyncHandler` |
-| `src/controllers/create.controller.ts` | Haute | Importe `db`, SQL inline, logique expiration/session ouverte dans controller | Créer `sessionCreate.service.ts` + `sessionCreate.model.ts`, lever `AppError` |
-| `src/controllers/join.controller.ts` | Haute | Importe `db`, SQL inline, logique métier join/doublon dans controller | Créer `joinSession.service.ts` + model dédié ou compléter `session.model.ts` |
-| `src/controllers/login.controller.ts` | Haute | Importe `db`, SQL inline, vérification `bcrypt`, génération `jwt`/token dans controller | Créer `auth.service.ts` + `auth.model.ts`; controller minimal |
-| `src/controllers/signup.controller.ts` | Haute | Importe `db`, SQL inline, hash `bcrypt`, génération `jwt`/token dans controller | Créer `auth.service.ts` + `auth.model.ts`; gérer doublons via `AppError` |
-| `src/controllers/profile.controller.ts` | Faible | Pas d'accès DB, mais pas de service dédié ; logique triviale dans controller | Option A : accepter comme exception documentée ; option B : créer `profile.service.ts` si la logique grossit |
-| `src/controllers/forgot.controller.ts` | Moyenne | Importe `db`, SQL inline, génération token/email et appel direct au provider mail dans controller | Créer `passwordReset.service.ts` + model; isoler transport email derrière service/adaptateur |
-| `src/controllers/code.controller.ts` | Moyenne | Importe `db`, SQL inline, vérification token/code et usage `jwt` dans controller | Déplacer lookup token + validation dans service |
-| `src/controllers/reset.controller.ts` | Moyenne | Importe `db`, SQL inline, hash `bcrypt`/reset/delete token dans controller | Déplacer reset password dans service/model |
-| `src/controllers/delete.controller.ts` | Moyenne | Importe `db`, SQL inline suppression utilisateur | Déplacer suppression compte dans service/model |
+Aucune violation connue dans les controllers applicatifs après PR #15.
 
-#### Lots de réparation recommandés
+#### Lots de réparation réalisés
 
-1. **Lot cartes** : finir `card.controller.ts` en déplaçant `createCard`, `getCards`, `deleteCard` vers `card.service.ts`. Petit à moyen, limité au domaine cartes.
-2. **Lot session create/join** : refactorer `create.controller.ts` et `join.controller.ts`. Moyen, logique métier session à tester séparément.
-3. **Lot auth login/signup/profile/delete** : refactorer l'auth de base. Moyen à large, sensible car JWT/bcrypt/génération de token.
-4. **Lot password reset** : refactorer `forgot/code/reset`. Moyen, sensible car email/token temporaire/provider mail.
+1. **Lot cartes** : `createCard`, `getCards`, `deleteCard` déplacés vers `card.service.ts`.
+2. **Lot session create/join** : `create.controller.ts` et `join.controller.ts` refactorés vers `session.service.ts` / `session.model.ts`.
+3. **Lot auth login/signup/profile/delete** : `auth.service.ts` et `auth.model.ts` ajoutés.
+4. **Lot password reset** : `passwordReset.service.ts` et `passwordReset.model.ts` ajoutés.
 
 #### Résultat des recherches d'audit
 
-- Imports directs de `db` dans `src/controllers` : `login`, `signup`, `forgot`, `code`, `reset`, `delete`, `create`, `join`.
-- `db.execute` dans `src/controllers` : mêmes fichiers que ci-dessus.
-- SQL brut dans `src/controllers` : mêmes fichiers que ci-dessus.
-- `card.controller.ts` : aucun import `db` et aucun `db.execute`, mais `create/get/delete` appellent encore le model directement au lieu d'un service.
+- Imports directs de `db` dans `src/controllers` : aucun détecté.
+- `db.execute` dans `src/controllers` : aucun détecté.
+- SQL brut dans `src/controllers` : aucun détecté.
+- `bcrypt`, `jwt`, génération de token ou provider externe direct dans `src/controllers` : aucun détecté.
 - `routes/` : pas d'accès DB détecté ; rôle limité au wiring route + middleware + controller.
 
 ## Base de données

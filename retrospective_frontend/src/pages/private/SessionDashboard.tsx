@@ -5,6 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import Container from '@/components/ui/Container';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
+import { getApiErrorMessage, isApiSuccess, NETWORK_ERROR_MESSAGE, readJsonSafely } from '@/lib/apiError';
 import RetroColumn from './components/RetroColumn';
 import type { RetroCard } from './components/RetroCardItem';
 import { ROLE_LABEL, type SessionRole } from './sessionRole';
@@ -67,17 +68,20 @@ const SessionDashboard = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      const data = await response.json();
+      const data = await readJsonSafely(response);
 
-      if (response.ok && data.success) {
+      if (response.ok && isApiSuccess<RetroCard[]>(data)) {
         setCards(data.data);
+      } else {
+        addToast('error', getApiErrorMessage(data, 'Impossible de charger les cartes.'));
       }
     } catch (error) {
       console.error('Erreur lors du chargement des cartes :', error);
+      addToast('error', NETWORK_ERROR_MESSAGE);
     } finally {
       setIsLoading(false);
     }
-  }, [id, token]);
+  }, [addToast, id, token]);
 
   useEffect(() => {
     fetchCards();
@@ -92,9 +96,9 @@ const SessionDashboard = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        const data = await response.json();
+        const data = await readJsonSafely(response);
 
-        if (response.ok && data.success) {
+        if (response.ok && isApiSuccess<{ id: number; role: SessionRole }[]>(data)) {
           const currentSession = (data.data as { id: number; role: SessionRole }[]).find(
             (session) => String(session.id) === id
           );
@@ -112,7 +116,7 @@ const SessionDashboard = () => {
     if (!id || !token) return;
 
     try {
-      await fetch(`http://localhost:8000/session/${id}/cards`, {
+      const response = await fetch(`http://localhost:8000/session/${id}/cards`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -121,9 +125,16 @@ const SessionDashboard = () => {
         body: JSON.stringify({ content, columnType }),
       });
 
-      await fetchCards();
+      const data = await readJsonSafely(response);
+
+      if (response.ok && isApiSuccess(data)) {
+        await fetchCards();
+      } else {
+        addToast('error', getApiErrorMessage(data, 'Impossible d\'ajouter la carte.'));
+      }
     } catch (error) {
       console.error("Erreur lors de l'ajout de la carte :", error);
+      addToast('error', NETWORK_ERROR_MESSAGE);
     }
   };
 
@@ -136,16 +147,16 @@ const SessionDashboard = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      const data = await response.json();
+      const data = await readJsonSafely(response);
 
-      if (response.ok && data.success) {
+      if (response.ok && isApiSuccess(data)) {
         await fetchCards();
       } else {
-        addToast('error', data.message || 'Impossible d\'enregistrer le vote.');
+        addToast('error', getApiErrorMessage(data, 'Impossible d\'enregistrer le vote.'));
       }
     } catch (error) {
       console.error('Erreur lors du vote :', error);
-      addToast('error', 'Erreur de connexion au serveur.');
+      addToast('error', NETWORK_ERROR_MESSAGE);
     }
   };
 
@@ -158,16 +169,16 @@ const SessionDashboard = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      const data = await response.json();
+      const data = await readJsonSafely(response);
 
-      if (response.ok && data.success) {
+      if (response.ok && isApiSuccess(data)) {
         await fetchCards();
       } else {
-        addToast('error', data.message || 'Impossible de supprimer la carte.');
+        addToast('error', getApiErrorMessage(data, 'Impossible de supprimer la carte.'));
       }
     } catch (error) {
       console.error('Erreur lors de la suppression de la carte :', error);
-      addToast('error', 'Erreur de connexion au serveur.');
+      addToast('error', NETWORK_ERROR_MESSAGE);
     }
   };
 
@@ -184,18 +195,18 @@ const SessionDashboard = () => {
         body: JSON.stringify({ content }),
       });
 
-      const data = await response.json();
+      const data = await readJsonSafely(response);
 
-      if (response.ok && data.success) {
+      if (response.ok && isApiSuccess(data)) {
         await fetchCards();
         return true;
       }
 
-      addToast('error', data.message || 'Impossible de modifier la carte.');
+      addToast('error', getApiErrorMessage(data, 'Impossible de modifier la carte.'));
       return false;
     } catch (error) {
       console.error('Erreur lors de la modification de la carte :', error);
-      addToast('error', 'Erreur de connexion au serveur.');
+      addToast('error', NETWORK_ERROR_MESSAGE);
       return false;
     }
   };

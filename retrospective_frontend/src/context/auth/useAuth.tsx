@@ -1,17 +1,19 @@
 import { createContext, useContext } from "react";
 
+export interface AuthLoginData {
+  token: string;
+  userId: number;
+  username: string;
+  email: string;
+}
+
 interface AuthContextType {
   isAuthenticated: boolean;
   userId: number | null;
   username: string;
   email: string;
   token: string;
-  login: (data: {
-    token: string;
-    userId: number;
-    username: string;
-    email: string;
-  }) => void;
+  login: (data: AuthLoginData) => void;
   logout: () => void;
 }
 
