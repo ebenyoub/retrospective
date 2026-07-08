@@ -1,18 +1,35 @@
 import { Request, Response, NextFunction } from "express";
-import { AnyZodObject, ZodError } from "zod";
+import { ZodError, type ZodTypeAny } from "zod";
 import { AppError } from "../utils/AppError";
 
-export const validate = (schema: AnyZodObject) => {
+interface ValidatedRequestParts {
+  body?: Request["body"];
+  query?: Request["query"];
+  params?: Request["params"];
+}
+
+export const validate = (schema: ZodTypeAny) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
       const parsed = await schema.parseAsync({
         body: req.body,
         query: req.query,
         params: req.params,
-      });
-      req.body = parsed.body;
-      req.query = parsed.query;
-      req.params = parsed.params;
+      }) as ValidatedRequestParts;
+      if (parsed.body !== undefined) {
+        req.body = parsed.body;
+      }
+      if (parsed.query !== undefined) {
+        Object.defineProperty(req, "query", {
+          value: parsed.query,
+          writable: true,
+          enumerable: true,
+          configurable: true,
+        });
+      }
+      if (parsed.params !== undefined) {
+        req.params = parsed.params;
+      }
       return next();
     } catch (error) {
       if (error instanceof ZodError) {
