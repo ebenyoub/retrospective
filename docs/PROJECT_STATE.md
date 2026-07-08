@@ -82,7 +82,9 @@
 ## Prochaine étape
 
 **Préparation démo / soutenance recommandée.**
-- Recréer `retrospective_backend/.env` depuis `.env.example` avec de vraies valeurs locales.
+- L'environnement local recommandé utilise Docker Compose pour lancer le backend
+  et MySQL ensemble, avec initialisation automatique depuis
+  `retrospective_backend/sql/schema.sql`.
 - Vérifier un parcours manuel complet devant jury : inscription/connexion, création session, ajout/modification/suppression de carte, vote, résultats.
 
 ## Dette technique restante
@@ -91,7 +93,10 @@
 - Responsive avancé — le responsive basique MVP est livré ; il peut rester du polish visuel fin hors périmètre.
 
 ### Potentiellement bloquant pour la soutenance (à ne pas oublier)
-- `retrospective_backend/.env` **n'existe plus sur le disque** (effet de bord d'une purge d'historique Git antérieure) — à recréer (`cp .env.example .env` + vraies valeurs) avant de pouvoir lancer le serveur en local pour une démo.
+- En mode Docker Compose, les variables backend locales sont fournies par
+  `docker-compose.yml` et la base est initialisée automatiquement. Pour un
+  lancement backend manuel hors Docker, recréer `retrospective_backend/.env`
+  depuis `.env.example` reste nécessaire.
 - Secrets (`JWT_SECRET`, `GMAIL_APP_PASSWORD`) à régénérer — ils ont existé en clair dans un historique Git local avant purge, à considérer comme compromis.
 - Protection de branche GitHub (`main`/`dev`) — commandes fournies précédemment, pas encore confirmées actives (à revérifier : `gh api repos/.../branches/main/protection`).
 

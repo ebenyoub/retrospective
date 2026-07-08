@@ -1,6 +1,9 @@
 -- Table des votes sur les cartes de rétrospective.
 -- À exécuter manuellement sur la base existante (le projet n'a pas encore
 -- de système de migration automatisé).
+--
+-- Note: pour une nouvelle base locale, ne pas exécuter ce fichier séparément.
+-- Utiliser schema.sql, qui crée déjà votes.
 
 CREATE TABLE IF NOT EXISTS votes (
   id INT AUTO_INCREMENT PRIMARY KEY,

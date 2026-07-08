@@ -1,0 +1,54 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: retrospective-db
+    restart: unless-stopped
+    command:
+      - --performance-schema=OFF
+      - --innodb-buffer-pool-size=64M
+      - --max-connections=50
+      - --table-open-cache=200
+    environment:
+      MYSQL_DATABASE: retrospective
+      MYSQL_USER: retrospective_user
+      MYSQL_PASSWORD: retrospective_password
+      MYSQL_ROOT_PASSWORD: root_password
+    ports:
+      - "3308:3306"
+    volumes:
+      - retrospective_mysql_data:/var/lib/mysql
+      - ./retrospective_backend/sql/schema.sql:/docker-entrypoint-initdb.d/001_schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u retrospective_user -pretrospective_password --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  backend:
+    build:
+      context: ./retrospective_backend
+    container_name: retrospective-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PORT: 8000
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: retrospective
+      DB_USER: retrospective_user
+      DB_PASSWORD: retrospective_password
+      JWT_SECRET: local_docker_jwt_secret_change_me
+      JWT_EXPIRES_IN: 24h
+      FRONTEND_ORIGIN: http://localhost:5173
+      GMAIL_USER: your_email@gmail.com
+      GMAIL_APP_PASSWORD: your_gmail_app_password
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./retrospective_backend:/app
+      - /app/node_modules
+
+volumes:
+  retrospective_mysql_data:

@@ -10,7 +10,7 @@ Le déploiement ne se déclenche **que** depuis la branche `main` (production). 
 
 | Environnement | Usage | URL |
 |---|---|---|
-| Development | Dev local | http://localhost:5173 (frontend), http://localhost:3000 (backend) |
+| Development | Dev local | http://localhost:5173 (frontend), http://localhost:8000 (backend) |
 | Production | À définir | À définir |
 
 ## Prérequis
@@ -18,19 +18,50 @@ Le déploiement ne se déclenche **que** depuis la branche `main` (production). 
 - Node.js >= 18
 - MySQL >= 8
 - npm >= 9
+- Docker Desktop ou Docker Engine avec Compose v2 pour l'environnement local conteneurisé
 
 ## Lancer en développement
 
+### Option recommandée : backend + MySQL avec Docker
+
+Depuis la racine du projet :
+
+```bash
+docker compose up --build
+```
+
+Services lancés :
+- Backend : `http://localhost:8000`
+- MySQL : port hôte `3308`, base `retrospective`
+
+Le schéma local est initialisé automatiquement depuis
+`retrospective_backend/sql/schema.sql` lors de la création initiale du volume
+Docker `retrospective_mysql_data`.
+
+Arrêter sans supprimer les données :
+
+```bash
+docker compose down
+```
+
+Réinitialiser volontairement la DB locale :
+
+```bash
+docker compose down -v
+docker compose up --build
+```
+
+### Option manuelle Node/MySQL
+
 ```bash
 # Backend
-cd backend
+cd retrospective_backend
 cp .env.example .env    # Configurer les variables
 npm install
-npm run dev             # Lance sur le port 3000
+npm run dev             # Lance sur le port 8000
 
 # Frontend (dans un autre terminal)
-cd frontend
-cp .env.example .env    # Configurer VITE_API_URL
+cd retrospective_frontend
 npm install
 npm run dev             # Lance sur le port 5173
 ```
@@ -41,10 +72,10 @@ npm run dev             # Lance sur le port 5173
 # Se connecter à MySQL
 mysql -u root -p
 
-# Créer la base et exécuter les migrations
+# Créer la base et exécuter le schéma initial
 CREATE DATABASE retrospective;
 USE retrospective;
-SOURCE backend/src/database/migrations/001_initial.sql;
+SOURCE retrospective_backend/sql/schema.sql;
 ```
 
 ## Variables d'environnement requises
@@ -52,10 +83,10 @@ SOURCE backend/src/database/migrations/001_initial.sql;
 ### Backend
 ```env
 DB_HOST=localhost
-DB_PORT=3306
+DB_PORT=3306 # 3308 si backend hors Docker + MySQL du docker-compose
 DB_NAME=retrospective
-DB_USER=root
-DB_PASSWORD=votre_mot_de_passe
+DB_USER=retrospective_user
+DB_PASSWORD=retrospective_password
 
 JWT_SECRET=une_chaine_secrete_longue_et_aleatoire
 JWT_EXPIRES_IN=24h
@@ -68,7 +99,7 @@ SMTP_PASS=mot_de_passe_smtp
 
 ### Frontend
 ```env
-VITE_API_URL=http://localhost:3000
+VITE_API_URL=http://localhost:8000
 ```
 
 ## Build pour la production
