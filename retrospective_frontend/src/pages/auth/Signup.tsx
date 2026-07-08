@@ -3,9 +3,10 @@ import Container from '@/components/ui/Container';
 import FormContainer, { FormTitle } from '@/components/ui/FormContainer';
 import FormField from '@/components/ui/FormField';
 import SpinContainer from '@/components/ui/SpinContainer';
-import { useAuth } from '@/context/auth/useAuth';
+import { useAuth, type AuthLoginData } from '@/context/auth/useAuth';
 import { useToast } from '@/context/toast/useToast';
 import useFormValidation, { type ValidationSchema } from '@/hooks/useFormValidation';
+import { getApiErrorMessage, isApiSuccess, NETWORK_ERROR_MESSAGE, readJsonSafely } from '@/lib/apiError';
 import React from 'react';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -64,7 +65,7 @@ const Signup: React.FC = () => {
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
-        if (!validateAll) {
+        if (!validateAll()) {
             setIsLoading(false);
             addToast("invalid", "Veuillez corriger les erreurs du formulaire.");
             return;
@@ -79,18 +80,18 @@ const Signup: React.FC = () => {
                 body: JSON.stringify(values)
             })
 
-            const data = await response.json();
+            const data = await readJsonSafely(response);
 
-            if (data.success) {
-                login(data.data)
-                addToast("success", data.message);
+            if (response.ok && isApiSuccess<Omit<AuthLoginData, "email"> & { email?: string }>(data)) {
+                login({ ...data.data, email: data.data.email ?? values.email })
+                addToast("success", getApiErrorMessage(data, "Compte créé."));
             } else {
-                addToast("error", data.message || "Erreur de connexion inconnue.");
+                addToast("error", getApiErrorMessage(data, "Inscription impossible."));
             }
 
         } catch (error) {
             console.log(error);
-            addToast("error", "Échec de la connexion au serveur (réseau).");
+            addToast("error", NETWORK_ERROR_MESSAGE);
 } finally {
     setIsLoading(false);
 }

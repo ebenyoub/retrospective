@@ -193,6 +193,21 @@
 
 ---
 
+## Sprint 9 — Polish messages d'erreur
+
+**Objectif** : rendre les messages d'erreur frontend cohérents et exploiter les messages API quand ils existent.
+
+**Période** : 2026-07-08
+
+| ID | Tâche | Statut | Notes |
+|---|---|---|
+| S9-01 | Helper `apiError` frontend | ✅ | Extraction du message API, fallback par défaut, fallback réseau |
+| S9-02 | Login/Signup/Forgot/Profile | ✅ | Messages réseau harmonisés, `Signup` appelle réellement `validateAll()` |
+| S9-03 | SessionList/SessionDashboard | ✅ | Erreurs API visibles pour chargement sessions et actions cartes |
+| S9-04 | Tests et validation | ✅ | Frontend 37/37, lint OK, build OK |
+
+---
+
 ## Template sprint suivant
 
 ```markdown

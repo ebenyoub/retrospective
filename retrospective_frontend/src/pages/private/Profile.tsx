@@ -4,6 +4,7 @@ import FormContainer, { FormTitle } from "@/components/ui/FormContainer";
 import FormField from "@/components/ui/FormField";
 import SpinContainer from "@/components/ui/SpinContainer";
 import { useAuth } from "@/context/auth/useAuth";
+import { getApiErrorMessage, isApiSuccess, NETWORK_ERROR_MESSAGE, readJsonSafely } from "@/lib/apiError";
 import { useState, type ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -43,9 +44,9 @@ const Profile = () => {
         body: JSON.stringify({ code })
       });
 
-      const data = await response.json();
+      const data = await readJsonSafely(response);
 
-      if (response.ok && data.success) {
+      if (response.ok && isApiSuccess<{ sessionId?: number }>(data)) {
         
         const { sessionId } = data.data;
         
@@ -56,11 +57,11 @@ const Profile = () => {
           setGlobalError("Jointure réussie, mais ID de session manquant.")
         }
       } else {
-        setGlobalError(data.message || "Code invalide.");
+        setGlobalError(getApiErrorMessage(data, "Code invalide."));
       }
     } catch (err) {
       console.log(err);
-      setGlobalError("Erreur de connexion.");
+      setGlobalError(NETWORK_ERROR_MESSAGE);
     } finally {
       setIsLoading(false);
     }

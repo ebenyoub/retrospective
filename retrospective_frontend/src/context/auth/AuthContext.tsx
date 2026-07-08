@@ -1,4 +1,4 @@
-import { AuthContext } from "@/context/auth/useAuth";
+import { AuthContext, type AuthLoginData } from "@/context/auth/useAuth";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -11,12 +11,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
 
 
-  const login = (data: {
-    token: string;
-    userId: number;
-    username: string;
-    email: string;
-  }) => {
+  const login = (data: AuthLoginData) => {
     localStorage.setItem('token', data.token);
     setToken(data.token);
     setIsAuthenticated(true);

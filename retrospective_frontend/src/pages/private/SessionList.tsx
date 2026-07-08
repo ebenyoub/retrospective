@@ -2,6 +2,7 @@ import Container from '@/components/ui/Container';
 import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
 import { useAuth } from '@/context/auth/useAuth';
+import { getApiErrorMessage, isApiSuccess, NETWORK_ERROR_MESSAGE, readJsonSafely } from '@/lib/apiError';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ROLE_LABEL, type SessionRole } from './sessionRole';
@@ -20,25 +21,30 @@ const SessionList = () => {
   const navigate = useNavigate();
   const [sessions, setSessions] = useState<SessionListItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     if (!token) return;
 
     const fetchSessions = async () => {
       setIsLoading(true);
+      setErrorMessage("");
 
       try {
         const response = await fetch('http://localhost:8000/session', {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        const data = await response.json();
+        const data = await readJsonSafely(response);
 
-        if (response.ok && data.success) {
+        if (response.ok && isApiSuccess<SessionListItem[]>(data)) {
           setSessions(data.data);
+        } else {
+          setErrorMessage(getApiErrorMessage(data, "Impossible de charger les sessions."));
         }
       } catch (error) {
         console.error('Erreur lors du chargement des sessions :', error);
+        setErrorMessage(NETWORK_ERROR_MESSAGE);
       } finally {
         setIsLoading(false);
       }
@@ -53,6 +59,8 @@ const SessionList = () => {
 
       {isLoading ? (
         <p className="text-sm text-slate-400">Chargement des sessions...</p>
+      ) : errorMessage ? (
+        <p className="rounded border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-200">{errorMessage}</p>
       ) : sessions.length === 0 ? (
         <p className="text-sm text-slate-500">Aucune session pour l'instant.</p>
       ) : (

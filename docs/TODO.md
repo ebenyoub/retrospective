@@ -23,19 +23,18 @@
 
 ## À faire maintenant (mis à jour 2026-07-08 fin de journée)
 
-- [ ] Relire puis merger la PR #13 `feature/edit-card` après review si ce n'est pas déjà fait (ne pas merger depuis cette branche).
 - [ ] Préparer la démo locale : recréer `retrospective_backend/.env` depuis `.env.example`.
 
 ## À faire ensuite (mis à jour 2026-07-08)
 
 - [ ] Dette documentée : la table `sessions` n'a pas de colonne `name`, alors que le cahier des charges (F04/US-04) exige un nom de session obligatoire à la création. Décision assumée de reporter.
-- [ ] Tests manquants restants côté auth : `forgot.controller.ts`, `code.controller.ts`, `reset.controller.ts`, `delete.controller.ts` (identifiés en review du 2026-07-08, non traités — hors périmètre de ce ticket)
-- [ ] **Dette d'architecture backend — audit 2026-07-08** : refactorer les controllers non conformes au pattern obligatoire `controller → service → model → DB`. Aucun controller ne doit importer `db`, appeler `db.execute`, contenir du SQL brut, porter la logique métier, utiliser `bcrypt`/`jwt`, générer des tokens, accéder au filesystem ou appeler directement un provider externe.
-- [ ] **Lot 1 cartes** : terminer `card.controller.ts` en déplaçant `createCard`, `getCards`, `deleteCard` vers `card.service.ts`. Gravité moyenne, périmètre limité.
-- [ ] **Lot 2 sessions** : refactorer `create.controller.ts` et `join.controller.ts` vers services/models. Gravité haute, car logique session/droits.
-- [ ] **Lot 3 auth de base** : refactorer `login.controller.ts`, `signup.controller.ts`, `delete.controller.ts` vers services/models. Gravité haute, car JWT/bcrypt/génération de token/compte utilisateur.
-- [ ] **Décision mineure profile** : `profile.controller.ts` est sans DB et quasi pur, mais ne passe pas par un service. Décider si exception acceptée ou mini-service ajouté.
-- [ ] **Lot 4 reset password** : refactorer `forgot.controller.ts`, `code.controller.ts`, `reset.controller.ts` vers services/models. Gravité moyenne, car email/token temporaire/provider mail.
+- [x] **Dette d'architecture backend — audit 2026-07-08** : refactor backend homogène livré via PR #15 ; controllers sans `db`/SQL/`bcrypt`/`jwt`/provider direct, services pour logique métier, models pour SQL.
+- [x] Tests manquants côté auth/reset : `forgot.controller.ts`, `code.controller.ts`, `reset.controller.ts`, `delete.controller.ts` couverts via PR #15.
+- [x] **Lot 1 cartes** : `createCard`, `getCards`, `deleteCard` déplacés vers `card.service.ts` (PR #15).
+- [x] **Lot 2 sessions** : `create.controller.ts` et `join.controller.ts` refactorés vers services/models (PR #15).
+- [x] **Lot 3 auth de base** : `login.controller.ts`, `signup.controller.ts`, `delete.controller.ts` refactorés vers services/models ; `profile` passe par service (PR #15).
+- [x] **Lot 4 reset password** : `forgot.controller.ts`, `code.controller.ts`, `reset.controller.ts` refactorés vers services/models (PR #15).
+- [x] **B17 Messages d'erreur cohérents** : helper frontend `apiError`, fallbacks réseau cohérents, erreurs API affichées sur les écrans clés.
 - [ ] `validators/` (dossier prévu dans l'architecture cible) n'a jamais été créé — aucune librairie de validation (zod/joi/yup) côté backend.
 - [x] Modification d'une carte existante (US-07, B11) — `PATCH /session/:sessionId/cards/:cardId`, bouton auteur uniquement, édition inline, refetch après succès, toast sur erreur.
 - [x] Responsive design basique (B16) — formulaires fluides, header/menu qui wrap, dashboard en 1/2/3 colonnes selon largeur, captures mobile/tablette vérifiées.

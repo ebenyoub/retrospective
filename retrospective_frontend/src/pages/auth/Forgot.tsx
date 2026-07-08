@@ -3,6 +3,7 @@ import Container from "@/components/ui/Container";
 import FormContainer, { FormTitle } from "@/components/ui/FormContainer";
 import FormField from "@/components/ui/FormField";
 import SpinContainer from "@/components/ui/SpinContainer";
+import { getApiErrorMessage, isApiSuccess, NETWORK_ERROR_MESSAGE, readJsonSafely } from "@/lib/apiError";
 import React, { useState, type ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -45,15 +46,15 @@ const Forgot = () => {
         body: JSON.stringify({ email })
       });
 
-      const data = await response.json();
+      const data = await readJsonSafely(response);
 
-      if (response.ok && data.success) {
+      if (response.ok && isApiSuccess(data)) {
         setStep('CODE');
       } else {
-        setGlobalError(data.message || "Une erreur est survenue.");
+        setGlobalError(getApiErrorMessage(data, "Impossible d'envoyer le code."));
       }
     } catch (err) {
-      setGlobalError("Impossible de contacter le serveur.");
+      setGlobalError(NETWORK_ERROR_MESSAGE);
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -79,16 +80,16 @@ const Forgot = () => {
         body: JSON.stringify({ email, code })
       });
 
-      const data = await response.json();
+      const data = await readJsonSafely(response);
 
-      if (response.ok && data.success) {
+      if (response.ok && isApiSuccess(data)) {
         setStep('NEW_PASSWORD');
       } else {
-        setGlobalError(data.message || "Code invalide.");
+        setGlobalError(getApiErrorMessage(data, "Code invalide."));
       }
     } catch (err) {
       console.log(err);
-      setGlobalError("Erreur de connexion.");
+      setGlobalError(NETWORK_ERROR_MESSAGE);
     } finally {
       setIsLoading(false);
     }
@@ -126,17 +127,17 @@ const Forgot = () => {
         body: JSON.stringify({ email, newPassword, code })
       })
 
-      const data = await response.json();
+      const data = await readJsonSafely(response);
 
-      if (response.ok && data.success) {
+      if (response.ok && isApiSuccess(data)) {
         console.log("Mot de passe modifié avec succès !");
         navigate("/login");
       } else {
-        setGlobalError(data.message || "Erreur lors du changement de mot de passe.");
+        setGlobalError(getApiErrorMessage(data, "Erreur lors du changement de mot de passe."));
       }
     } catch (error) {
       console.log(error);
-      setGlobalError("Erreur de connexion au serveur.");
+      setGlobalError(NETWORK_ERROR_MESSAGE);
     } finally {
       setIsLoading(false);
     }

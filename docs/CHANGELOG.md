@@ -5,6 +5,19 @@ Format : `## [version ou date] — Description`
 
 ---
 
+## [2026-07-08] — Messages d'erreur cohérents
+
+### Modifié
+- Ajout d'un helper frontend `apiError` pour extraire les messages API et harmoniser les fallbacks réseau.
+- Utilisation cohérente des messages backend sur Login, Signup, Forgot, Profile, SessionList et SessionDashboard.
+- Affichage d'une erreur explicite si le chargement des sessions échoue.
+- Correction de la validation Signup (`validateAll()` réellement appelée avant l'envoi).
+
+### Vérifié
+- Frontend : `npm run test` → 37/37, `npm run lint` OK, `npm run build` OK.
+
+---
+
 ## [2026-07-08] — Modification de sa propre carte
 
 ### Ajouté

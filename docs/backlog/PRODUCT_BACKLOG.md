@@ -54,7 +54,7 @@
 | ID | Fonctionnalité | Complexité | Statut |
 |---|---|---|---|
 | B16 | Responsive design basique | Faible | ✅ |
-| B17 | Messages d'erreur cohérents | Très faible | 🔵 Toasts + `AppError` en place, pas exhaustif partout |
+| B17 | Messages d'erreur cohérents | Très faible | ✅ |
 | B18 | États de chargement (loading) | Très faible | ✅ |
 
 ## Hors scope V1
