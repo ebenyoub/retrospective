@@ -2,6 +2,39 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+@theme {
+  --color-navy: #0f172a;
+  --color-navy-mid: #1e293b;
+  --color-navy-light: #334155;
+  --color-navy-border: rgba(255,255,255,0.08);
+  --color-navy-border-med: rgba(255,255,255,0.13);
+  --color-navy-surface: rgba(255,255,255,0.05);
+  --color-navy-surface-med: rgba(255,255,255,0.08);
+
+  --color-green-figma: #16a34a;
+  --color-green-light: #dcfce7;
+  --color-green-mid: #bbf7d0;
+  --color-green-border: #15803d;
+  --color-green-text: #14532d;
+
+  --color-red-figma: #dc2626;
+  --color-red-light: #fee2e2;
+  --color-red-mid: #fca5a5;
+  --color-red-border: #b91c1c;
+  --color-red-text: #7f1d1d;
+
+  --color-yellow-figma: #d97706;
+  --color-yellow-light: #fef3c7;
+  --color-yellow-mid: #fde68a;
+  --color-yellow-border: #b45309;
+  --color-yellow-text: #78350f;
+
+  --radius-figma-sm: 8px;
+  --radius-figma-md: 10px;
+  --radius-figma-lg: 12px;
+  --radius-figma-xl: 16px;
+}
+
 html {
   height: 100vh;
 }

@@ -251,27 +251,27 @@ const SessionDashboard = () => {
 
   if (step === 'waiting') {
     return (
-      <Container className="flex flex-col items-center justify-center min-h-[50vh] text-center gap-6">
-        <div className="bg-slate-800 border border-white/10 p-8 rounded-xl max-w-md w-full shadow-lg">
+      <Container className="flex flex-col items-center justify-center min-h-[50vh] text-center gap-6 mt-10">
+        <div className="bg-navy-mid border border-navy-border p-8 rounded-figma-xl max-w-md w-full shadow-[0_8px_32px_rgba(0,0,0,0.25)]">
           <h2 className="text-2xl font-bold text-slate-50 mb-2">Salle d'attente</h2>
           <p className="text-sm text-slate-400 mb-6">
             Partagez le code ou l'accès à cette session avec vos collaborateurs.
           </p>
           <div className="flex flex-col gap-4">
-            <div className="bg-slate-900 border border-white/5 p-4 rounded-lg">
-              <span className="text-xs text-slate-500 uppercase block mb-1">Session</span>
-              <span className="text-xl font-extrabold text-green-500 tracking-wider block">{sessionName || '...'}</span>
-              <span className="text-xs text-slate-500 uppercase block mt-2 mb-1">Code de session</span>
+            <div className="bg-navy-surface border border-navy-border-med p-4 rounded-lg">
+              <span className="text-xs text-slate-500 uppercase tracking-wider block mb-1">Session</span>
+              <span className="text-lg font-bold text-green-figma tracking-wider block mb-3">{sessionName || '...'}</span>
+              <span className="text-xs text-slate-500 uppercase tracking-wider block mb-1">Code de session</span>
               <span className="text-3xl font-extrabold text-white font-mono tracking-widest">
-                {id ? cards[0]?.sessionId || id : '...'}
+                {id ? id : '...'}
               </span>
             </div>
             {role === 'facilitator' ? (
-              <Button onClick={() => handleTransitionStep('writing')} className="w-full mt-4 py-3 bg-green-600 hover:bg-green-500 text-white font-semibold">
+              <Button variant="success" size="lg" onClick={() => handleTransitionStep('writing')} className="w-full mt-4">
                 Démarrer la session →
               </Button>
             ) : (
-              <p className="text-sm text-yellow-500 font-medium animate-pulse mt-4">
+              <p className="text-sm text-yellow-figma font-medium animate-pulse mt-4">
                 En attente du lancement par le facilitateur...
               </p>
             )}
@@ -283,7 +283,7 @@ const SessionDashboard = () => {
 
   return (
     <Container className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-center justify-between w-full bg-slate-800/50 border border-white/10 p-4 rounded-xl gap-4">
+      <div className="flex flex-wrap items-center justify-between w-full bg-navy-mid/50 border border-navy-border p-[10px_20px] rounded-figma-md gap-4">
         <div className="flex min-w-0 flex-wrap items-center gap-3">
           <h1 className="text-xl font-bold text-slate-50 break-words">
             {sessionName ? sessionName : `Tableau de rétrospective — session ${id}`}
@@ -296,17 +296,17 @@ const SessionDashboard = () => {
         {role === 'facilitator' && (
           <div className="flex items-center gap-2">
             {step === 'writing' && (
-              <Button onClick={() => handleTransitionStep('voting')} className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold px-4 py-2">
+              <Button variant="primary" size="sm" onClick={() => handleTransitionStep('voting')}>
                 Passer au vote →
               </Button>
             )}
             {step === 'voting' && (
-              <Button onClick={() => handleTransitionStep('results')} className="bg-green-600 hover:bg-green-500 text-white text-sm font-semibold px-4 py-2">
+              <Button variant="success" size="sm" onClick={() => handleTransitionStep('results')}>
                 Voir les résultats →
               </Button>
             )}
             {step === 'results' && (
-              <Button onClick={() => navigate('/profile')} className="bg-slate-700 hover:bg-slate-600 text-white text-sm font-semibold px-4 py-2">
+              <Button variant="secondary" size="sm" onClick={() => navigate('/profile')}>
                 Quitter la session
               </Button>
             )}
