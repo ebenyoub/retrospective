@@ -35,7 +35,7 @@
 - [x] **Lot 3 auth de base** : `login.controller.ts`, `signup.controller.ts`, `delete.controller.ts` refactorés vers services/models ; `profile` passe par service (PR #15).
 - [x] **Lot 4 reset password** : `forgot.controller.ts`, `code.controller.ts`, `reset.controller.ts` refactorés vers services/models (PR #15).
 - [x] **B17 Messages d'erreur cohérents** : helper frontend `apiError`, fallbacks réseau cohérents, erreurs API affichées sur les écrans clés.
-- [ ] `validators/` (dossier prévu dans l'architecture cible) n'a jamais été créé — aucune librairie de validation (zod/joi/yup) côté backend.
+- [x] `validators/` (dossier prévu dans l'architecture cible) mis en place avec Zod pour valider les requêtes API (Résolu le 2026-07-08).
 - [x] Modification d'une carte existante (US-07, B11) — `PATCH /session/:sessionId/cards/:cardId`, bouton auteur uniquement, édition inline, refetch après succès, toast sur erreur.
 - [x] Responsive design basique (B16) — formulaires fluides, header/menu qui wrap, dashboard en 1/2/3 colonnes selon largeur, captures mobile/tablette vérifiées.
 - [ ] `mail.controller.ts` et `test_transporter.js` (racine backend) — code mort, jamais branché à une route, à supprimer un jour.
