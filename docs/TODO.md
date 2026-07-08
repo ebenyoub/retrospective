@@ -23,7 +23,7 @@
 
 ## À faire maintenant (mis à jour 2026-07-08 fin de journée)
 
-- [ ] Préparer la démo locale : recréer `retrospective_backend/.env` depuis `.env.example`.
+- [ ] Préparer la démo locale : utiliser `docker compose up --build` pour lancer backend + MySQL avec schéma initial, ou recréer `retrospective_backend/.env` depuis `.env.example` seulement si le backend est lancé hors Docker.
 
 ## À faire ensuite (mis à jour 2026-07-08)
 
@@ -39,7 +39,7 @@
 - [x] Modification d'une carte existante (US-07, B11) — `PATCH /session/:sessionId/cards/:cardId`, bouton auteur uniquement, édition inline, refetch après succès, toast sur erreur.
 - [x] Responsive design basique (B16) — formulaires fluides, header/menu qui wrap, dashboard en 1/2/3 colonnes selon largeur, captures mobile/tablette vérifiées.
 - [x] `mail.controller.ts` et `test_transporter.js` (racine backend) — code mort supprimé (Résolu le 2026-07-08).
-- [ ] **`.env` backend manquant sur le disque** (effet de bord d'une purge d'historique Git antérieure) — à recréer depuis `.env.example` avec de vraies valeurs avant de pouvoir démarrer le serveur en local. Potentiellement bloquant pour une démo/soutenance.
+- [ ] **Mode backend hors Docker** — recréer `retrospective_backend/.env` depuis `.env.example` avec de vraies valeurs avant de démarrer le serveur manuellement. En mode Docker Compose, les variables locales sont fournies par `docker-compose.yml`.
 - [ ] Secrets (`JWT_SECRET`, `GMAIL_APP_PASSWORD`) à régénérer — exposés en clair dans un historique Git local avant purge.
 
 ## Fait ✅ (2026-07-08, suite de journée — votes, résultats, rôles, delete-card, Express 5, UI)

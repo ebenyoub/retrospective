@@ -27,16 +27,42 @@ Projet réalisé dans le cadre du titre professionnel **Développeur Web et Web 
 
 ## Lancer le projet
 
-### Backend
+### Backend + base de données avec Docker
+
+Depuis la racine du projet :
+
 ```bash
-cd backend
+docker compose up --build
+```
+
+Le backend écoute sur `http://localhost:8000`.
+MySQL est initialisé automatiquement avec `retrospective_backend/sql/schema.sql`
+et conserve ses données dans le volume Docker `retrospective_mysql_data`.
+
+Arrêter sans supprimer les données :
+
+```bash
+docker compose down
+```
+
+Réinitialiser volontairement la base :
+
+```bash
+docker compose down -v
+docker compose up --build
+```
+
+### Backend sans Docker
+
+```bash
+cd retrospective_backend
 npm install
 npm run dev
 ```
 
 ### Frontend
 ```bash
-cd frontend
+cd retrospective_frontend
 npm install
 npm run dev
 ```

@@ -1,6 +1,9 @@
 -- Table des cartes de rétrospective (colonnes start / stop / continue).
 -- À exécuter manuellement sur la base existante (le projet n'a pas encore
 -- de système de migration automatisé).
+--
+-- Note: pour une nouvelle base locale, ne pas exécuter ce fichier séparément.
+-- Utiliser schema.sql, qui crée déjà retro_cards.
 
 CREATE TABLE IF NOT EXISTS retro_cards (
   id INT AUTO_INCREMENT PRIMARY KEY,
