@@ -38,7 +38,7 @@
 - [x] `validators/` (dossier prévu dans l'architecture cible) mis en place avec Zod pour valider les requêtes API (Résolu le 2026-07-08).
 - [x] Modification d'une carte existante (US-07, B11) — `PATCH /session/:sessionId/cards/:cardId`, bouton auteur uniquement, édition inline, refetch après succès, toast sur erreur.
 - [x] Responsive design basique (B16) — formulaires fluides, header/menu qui wrap, dashboard en 1/2/3 colonnes selon largeur, captures mobile/tablette vérifiées.
-- [ ] `mail.controller.ts` et `test_transporter.js` (racine backend) — code mort, jamais branché à une route, à supprimer un jour.
+- [x] `mail.controller.ts` et `test_transporter.js` (racine backend) — code mort supprimé (Résolu le 2026-07-08).
 - [ ] **`.env` backend manquant sur le disque** (effet de bord d'une purge d'historique Git antérieure) — à recréer depuis `.env.example` avec de vraies valeurs avant de pouvoir démarrer le serveur en local. Potentiellement bloquant pour une démo/soutenance.
 - [ ] Secrets (`JWT_SECRET`, `GMAIL_APP_PASSWORD`) à régénérer — exposés en clair dans un historique Git local avant purge.
 
