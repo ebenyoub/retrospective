@@ -49,7 +49,7 @@
 
 ### Décisions d'architecture prises aujourd'hui
 - Le pattern `controller → service → model → DB` + `AppError`/`errorHandler` centralisé est désormais **obligatoire et non négociable** pour tout nouveau code backend.
-- Les contrôleurs ne doivent plus importer `db`, appeler `db.execute`, contenir du SQL brut, porter des validations métier/droits, ou faire du `try/catch` manuel si `AppError` + `errorHandler` conviennent.
+- Les contrôleurs ne doivent plus importer `db`, appeler `db.execute`, contenir du SQL brut, porter des validations métier/droits, utiliser `bcrypt`/`jwt`, générer des tokens, accéder au filesystem, appeler directement un provider externe, ou faire du `try/catch` manuel si `AppError` + `errorHandler` conviennent.
 - Audit du 2026-07-08 : routes conformes entièrement identifiées (`GET /session`, vote, modification de carte) ; controllers historiques non conformes listés dans `docs/technical/ARCHITECTURE.md` et `docs/TODO.md`.
 - Le backend est passé en **Express 5** (`^5.2.1`) — `asyncHandler` conservé volontairement (pas encore exploité pour son bénéfice natif Express 5, mais reste utile/cohérent).
 - Suppression de carte : les votes n'ont pas de suppression en cascade en base → suppression explicite des votes avant la carte dans le contrôleur (pas de transaction SQL formelle, cohérent avec la simplicité du projet).
