@@ -38,7 +38,7 @@
 | ID | Fonctionnalité | Complexité | Statut | US liée |
 |---|---|---|---|---|
 | B10 | Ajouter une carte | Faible | ✅ | US-07 |
-| B11 | Modifier sa carte | Faible | ⬜ | US-07 |
+| B11 | Modifier sa carte | Faible | ✅ | US-07 |
 | B12 | Supprimer sa carte | Très faible | ✅ | US-07 |
 | B13 | Voir les cartes des autres | Faible | ✅ | US-07 |
 

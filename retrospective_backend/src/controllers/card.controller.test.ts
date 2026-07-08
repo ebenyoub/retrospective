@@ -8,7 +8,7 @@ vi.mock("../models/db", () => ({
 
 import db from '../models/db';
 import { auth } from '../middlewares/auth.middleware';
-import { createCard, getCards, deleteCard } from "./card.controller";
+import { createCard, getCards, updateCard, deleteCard } from "./card.controller";
 import type { AuthRequest } from '../types';
 
 const mockExecute = db.execute as unknown as Mock;
@@ -172,6 +172,56 @@ describe("card.controller", () => {
 
     expect(res.statusCode).toBe(401);
     expect(next).not.toHaveBeenCalled();
+  });
+
+  it("PATCH : renvoie 400 si le contenu est vide", async () => {
+    const req = createMockRequest({ content: "   " }, { sessionId: "1", cardId: "5" });
+    const res = createMockResponse();
+
+    await updateCard(req, res as unknown as Response);
+
+    expect(res.statusCode).toBe(400);
+  });
+
+  it("PATCH : renvoie 404 si la carte n'existe pas dans cette session", async () => {
+    mockExecute.mockResolvedValueOnce([[]]);
+
+    const req = createMockRequest({ content: "Texte modifié" }, { sessionId: "1", cardId: "5" });
+    const res = createMockResponse();
+
+    await updateCard(req, res as unknown as Response);
+
+    expect(res.statusCode).toBe(404);
+  });
+
+  it("PATCH : renvoie 403 si l'utilisateur n'est pas l'auteur de la carte", async () => {
+    mockExecute.mockResolvedValueOnce([[{ id: 5, author_id: 2 }]]);
+
+    const req = createMockRequest({ content: "Texte modifié" }, { sessionId: "1", cardId: "5" });
+    const res = createMockResponse();
+
+    await updateCard(req, res as unknown as Response);
+
+    expect(res.statusCode).toBe(403);
+  });
+
+  it("PATCH : modifie la carte si l'utilisateur en est l'auteur", async () => {
+    mockExecute.mockResolvedValueOnce([[{ id: 5, author_id: 1 }]]);
+    mockExecute.mockResolvedValueOnce([{ affectedRows: 1 }]);
+
+    const req = createMockRequest({ content: " Texte modifié " }, { sessionId: "1", cardId: "5" });
+    const res = createMockResponse();
+
+    await updateCard(req, res as unknown as Response);
+
+    expect(res.statusCode).toBe(200);
+    const body = res.body as { success: boolean };
+    expect(body.success).toBe(true);
+    expect(mockExecute).toHaveBeenNthCalledWith(
+      2,
+      expect.stringContaining("update retro_cards set content = ?"),
+      ["Texte modifié", "5", "1"]
+    );
   });
 
   it("DELETE : renvoie 404 si la carte n'existe pas", async () => {

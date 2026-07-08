@@ -19,7 +19,8 @@
 ### Rétrospective (CCP1 + CCP2)
 - [x] Ajouter une carte dans une colonne
 - [x] Voir les cartes des autres participants
-- [x] Supprimer sa propre carte — backend + frontend livrés sur `feature/delete-card`, PR non mergée
+- [x] Modifier sa propre carte
+- [x] Supprimer sa propre carte
 
 ### Votes (CCP1 + CCP2)
 - [x] Voter pour une carte (1 vote par carte, limite de 5 votes par session)
