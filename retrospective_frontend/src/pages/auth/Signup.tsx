@@ -8,6 +8,7 @@ import { useToast } from '@/context/toast/useToast';
 import useFormValidation, { type ValidationSchema } from '@/hooks/useFormValidation';
 import { getApiErrorMessage, isApiSuccess, NETWORK_ERROR_MESSAGE, readJsonSafely } from '@/lib/apiError';
 import React from 'react';
+import { NavLink } from 'react-router-dom';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -106,7 +107,7 @@ return (
                 <FormField
                     id="username"
                     name="username"
-                    label="Pseudonyme"
+                    label="Pseudonyme (Nom d'utilisateur)"
                     type="text"
                     placeholder="Minerva McGonagal"
                     autoComplete="username"
@@ -121,7 +122,7 @@ return (
                 <FormField
                     id="email"
                     name="email"
-                    label="Email"
+                    label="Adresse e-mail"
                     type="text"
                     placeholder="rtc@example.com"
                     autoComplete="email"
@@ -150,7 +151,7 @@ return (
                 <FormField
                     id="confirm"
                     name="confirm"
-                    label="Confimation"
+                    label="Confirmation du mot de passe"
                     type="password"
                     autoComplete="new-confirm"
                     disabled={isLoading}
@@ -162,6 +163,15 @@ return (
                 />
 
                 <Button type="submit">S'inscrire</Button>
+
+                <div className="flex flex-col gap-2 mt-4 text-center text-sm">
+                    <NavLink to="/login" className="text-blue-400 hover:underline">
+                        Déjà un compte ? Se connecter
+                    </NavLink>
+                    <NavLink to="/" className="text-gray-400 hover:underline">
+                        Retour à l'accueil
+                    </NavLink>
+                </div>
 
             </FormContainer>
         </SpinContainer>
