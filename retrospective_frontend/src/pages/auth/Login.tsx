@@ -68,7 +68,7 @@ const Login: React.FC = () => {
                 addToast("error", getApiErrorMessage(data, "Connexion impossible."));
             }
         } catch (err) {
-            console.log(err);
+            console.error(err);
             addToast("error", NETWORK_ERROR_MESSAGE);
         } finally {
             setIsLoading(false);

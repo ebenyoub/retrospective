@@ -40,7 +40,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(({ className
         type={isPassword ? (show ? 'text' : 'password') : type}
         className={cn(
           className,
-          'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
+          'flex h-10 w-full rounded-figma-md border border-navy-border-med bg-navy-surface px-3 py-2 text-sm text-slate-50 placeholder:text-slate-500 focus:border-white/30 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 transition-colors'
         )}
         ref={ref}
       />
@@ -52,7 +52,7 @@ Input.displayName = 'Input';
 
 export const FormTitle = ({ children, className, ...props }: { children: React.ReactNode; className?: string }) => {
   return (
-    <h1 className={cn('text-center', className)} {...props}>
+    <h1 className={cn('text-center text-xl font-bold text-slate-50 font-sans tracking-tight', className)} {...props}>
       {children}
     </h1>
   );
@@ -62,7 +62,7 @@ const FormContainer = React.forwardRef<HTMLFormElement, FormContainerProps>(({ c
   return (
     <form
       ref={ref}
-      className={cn('bg-card text-card-foreground flex w-full max-w-md min-w-0 flex-col gap-6 rounded-xl border p-4 shadow-sm sm:p-6', className)}
+      className={cn('bg-navy-mid text-slate-200 flex w-full max-w-md min-w-0 flex-col gap-6 rounded-figma-xl border border-navy-border p-4 shadow-[0_8px_32px_rgba(0,0,0,0.25)] sm:p-6', className)}
       {...props}
     >
       {children}

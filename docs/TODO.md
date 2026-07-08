@@ -58,6 +58,12 @@
 - [x] `console.log` résiduel supprimé dans `create.controller.ts`
 - [x] `retrospective_backend/logs/all.log` et `logs/error.log` retirés du suivi Git (`git rm --cached`) — fichiers conservés en local, déjà couverts par la règle `.gitignore` racine (`logs`), aucune modification de `.gitignore` nécessaire
 
+## Dette technique backend TypeScript
+
+- [ ] Rendre `retrospective_backend` compatible avec `npx tsc --noEmit` sans erreur.
+- [ ] Corriger les dettes TypeScript existantes : configuration TypeScript, compatibilité Zod, `esModuleInterop`, imports de modules CommonJS, etc.
+- [ ] Ces erreurs TypeScript sont antérieures à la PR d'alignement UI/CORS et ne sont pas introduites par les changements UI ou CORS de cette PR.
+
 ## Phase tests unitaires minimum — terminée (2026-07-07)
 
 Plus de test unitaire "de fond" à ajouter en dehors de ceux qui accompagnent chaque nouvelle fonctionnalité produit.

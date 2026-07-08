@@ -7,6 +7,8 @@ import {
   findSessionUserJoin,
   insertSession,
   insertSessionUserJoin,
+  findSessionById,
+  updateSessionStep,
   type SessionRole,
 } from '../models/session.model';
 import { AppError } from "../utils/AppError";
@@ -15,8 +17,10 @@ import { SessionType } from "../types";
 
 export interface SessionListItem {
   id: number;
+  name: string;
   code: string;
   status: string;
+  step: "waiting" | "writing" | "voting" | "results";
   expiresAt: Date;
   createdAt: Date;
   role: SessionRole;
@@ -57,8 +61,10 @@ export const getSessionsForUser = async (userId: number): Promise<SessionListIte
 
   return rows.map((row) => ({
     id: row.id,
+    name: row.name,
     code: row.code,
     status: row.status,
+    step: row.step,
     expiresAt: row.expires_at,
     createdAt: row.created_at,
     role: row.role,
@@ -165,4 +171,58 @@ export const joinSessionForUser = async ({ userId, code }: JoinSessionInput): Pr
     message: "Session jointe avec succès.",
     data: { joinId: insertResult.insertId, sessionId },
   };
+};
+
+export interface SessionDetails {
+  id: number;
+  name: string;
+  code: string;
+  status: string;
+  step: "waiting" | "writing" | "voting" | "results";
+  ownerId: number;
+  expiresAt: Date;
+  createdAt: Date;
+}
+
+export const getSessionDetails = async (sessionId: number): Promise<SessionDetails> => {
+  const session = await findSessionById(sessionId);
+
+  if (!session) {
+    throw new AppError(404, "Session non trouvée.", "SESSION_NOT_FOUND");
+  }
+
+  return {
+    id: session.id,
+    name: session.name,
+    code: session.code,
+    status: session.status,
+    step: session.step,
+    ownerId: session.owner_id,
+    expiresAt: session.expires_at,
+    createdAt: session.created_at,
+  };
+};
+
+export const updateSessionStepService = async (
+  sessionId: number,
+  userId: number,
+  step: "waiting" | "writing" | "voting" | "results"
+): Promise<boolean> => {
+  const session = await findSessionById(sessionId);
+
+  if (!session) {
+    throw new AppError(404, "Session non trouvée.", "SESSION_NOT_FOUND");
+  }
+
+  if (session.owner_id !== userId) {
+    throw new AppError(403, "Seul le facilitateur peut modifier l'étape de la session.", "FORBIDDEN");
+  }
+
+  const updated = await updateSessionStep(sessionId, step);
+
+  if (!updated) {
+    throw new AppError(500, "Impossible de mettre à jour l'étape de la session.", "SESSION_STEP_UPDATE_FAILED");
+  }
+
+  return true;
 };

@@ -88,7 +88,7 @@ const Forgot = () => {
         setGlobalError(getApiErrorMessage(data, "Code invalide."));
       }
     } catch (err) {
-      console.log(err);
+      console.error(err);
       setGlobalError(NETWORK_ERROR_MESSAGE);
     } finally {
       setIsLoading(false);
@@ -130,13 +130,12 @@ const Forgot = () => {
       const data = await readJsonSafely(response);
 
       if (response.ok && isApiSuccess(data)) {
-        console.log("Mot de passe modifié avec succès !");
         navigate("/login");
       } else {
         setGlobalError(getApiErrorMessage(data, "Erreur lors du changement de mot de passe."));
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
       setGlobalError(NETWORK_ERROR_MESSAGE);
     } finally {
       setIsLoading(false);

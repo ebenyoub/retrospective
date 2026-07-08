@@ -7,6 +7,7 @@ export interface SessionType {
   code: string;
   owner_id: number;
   status: string;
+  step: "waiting" | "writing" | "voting" | "results";
   created_at: Date;
   expires_at: Date;
 }

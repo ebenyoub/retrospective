@@ -25,7 +25,7 @@ const FormField = ({ id, label, error, showValidState, className, value, ...prop
 
   return (
     <FormGroup>
-      <label htmlFor={id} className="block text-sm mb-1">
+      <label htmlFor={id} className="block font-sans text-xs font-semibold text-slate-400 tracking-wider uppercase mb-1">
         {label}
       </label>
       <Input

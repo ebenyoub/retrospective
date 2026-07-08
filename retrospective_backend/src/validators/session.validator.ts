@@ -38,3 +38,12 @@ export const updateCardSchema = z.object({
       .max(280, "La carte ne peut pas dépasser 280 caractères.")
   })
 });
+
+export const updateSessionStepSchema = z.object({
+  body: z.object({
+    step: z.enum(["waiting", "writing", "voting", "results"], {
+      errorMap: () => ({ message: "L'étape de session doit être 'waiting', 'writing', 'voting' ou 'results'." })
+    })
+  })
+});
+

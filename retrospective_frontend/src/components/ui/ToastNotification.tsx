@@ -28,8 +28,6 @@ const ShowToast = ({ toast }: { toast: Toast }) => {
 }
 
 const ToastNotification = ({ list }: { list: Toast[] }) => {
-    console.log(list);
-
     return (
         <ToastStyled id='toastBox'>
             {list.map(toast => <ShowToast key={toast.id} toast={toast} />)}

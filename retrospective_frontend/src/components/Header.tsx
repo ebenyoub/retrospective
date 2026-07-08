@@ -29,9 +29,9 @@ const Header = () => {
     // }
 
     return (
-        <header className="flex h-14 w-full items-center bg-slate-800 border-b border-white/10 px-2 sm:px-4">
+        <header className="flex min-h-14 w-full items-center bg-navy-mid border-b border-navy-border px-2 py-2 sm:h-14 sm:px-5 sm:py-0">
             <Container className="flex flex-wrap items-center justify-between gap-3 py-0">
-                <NavLink to="/" className="shrink-0 font-extrabold text-green-600 tracking-tight text-lg">
+                <NavLink to="/" className="shrink-0 font-extrabold text-green-figma tracking-tight text-[15px] font-sans">
                     Range ta chambre
                 </NavLink>
                 <nav className="flex flex-wrap justify-end gap-2">

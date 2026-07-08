@@ -22,13 +22,30 @@ const createDashboardFetchMock = (options: {
   addCardResponse?: unknown;
   updateCardResponse?: unknown;
   deleteCardResponse?: unknown;
+  step?: 'waiting' | 'writing' | 'voting' | 'results';
 }) => {
-  const { cardsSequence, voteResponse, addCardResponse, updateCardResponse, deleteCardResponse } = options;
+  const { cardsSequence, voteResponse, addCardResponse, updateCardResponse, deleteCardResponse, step = 'writing' } = options;
   let cardsCallIndex = 0;
 
   return vi.fn().mockImplementation((url: string, init?: RequestInit) => {
     const method = init?.method ?? 'GET';
 
+    if (url.endsWith('/session/1')) {
+      return Promise.resolve({
+        ok: true,
+        json: async () => ({
+          success: true,
+          data: {
+            id: 1,
+            name: 'Tableau de rétrospective — session 1',
+            code: '1234',
+            status: 'open',
+            step: step,
+            ownerId: 1,
+          },
+        }),
+      });
+    }
     if (url.endsWith('/session')) {
       return Promise.resolve(emptyRoleResponse);
     }
@@ -89,25 +106,41 @@ describe('SessionDashboard', () => {
   it('affiche les 3 colonnes start / stop / continue', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue({
-        ok: true,
-        json: async () => ({ success: true, data: [] }),
+      vi.fn().mockImplementation((url) => {
+        if (url.endsWith('/session/1')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({ success: true, data: { id: 1, name: 'Tableau de rétrospective — session 1', step: 'writing', ownerId: 1 } }),
+          });
+        }
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ success: true, data: [] }),
+        });
       })
     );
 
     renderDashboard();
 
-    expect(await screen.findByText('Start')).toBeTruthy();
-    expect(screen.getByText('Stop')).toBeTruthy();
-    expect(screen.getByText('Continue')).toBeTruthy();
+    expect(await screen.findByText('Idées')).toBeTruthy();
+    expect(screen.getByText('Négatif')).toBeTruthy();
+    expect(screen.getByText('Positif')).toBeTruthy();
   });
 
   it('affiche un état vide si aucune carte', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue({
-        ok: true,
-        json: async () => ({ success: true, data: [] }),
+      vi.fn().mockImplementation((url) => {
+        if (url.endsWith('/session/1')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({ success: true, data: { id: 1, name: 'Tableau de rétrospective — session 1', step: 'writing', ownerId: 1 } }),
+          });
+        }
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ success: true, data: [] }),
+        });
       })
     );
 
@@ -154,23 +187,39 @@ describe('SessionDashboard', () => {
   });
 
   it("affiche un formulaire d'ajout dans chaque colonne", async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(emptyCardsResponse));
+    vi.stubGlobal('fetch', vi.fn().mockImplementation((url) => {
+      if (url.endsWith('/session/1')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ success: true, data: { id: 1, name: 'Tableau de rétrospective — session 1', step: 'writing', ownerId: 1 } }),
+        });
+      }
+      return Promise.resolve(emptyCardsResponse);
+    }));
 
     renderDashboard();
 
-    await screen.findByText('Start');
+    await screen.findByText('Idées');
 
     expect(screen.getAllByPlaceholderText('Nouvelle carte...')).toHaveLength(3);
     expect(screen.getAllByRole('button', { name: 'Ajouter' })).toHaveLength(3);
   });
 
   it('refuse un contenu vide (validation Zod, aucun appel réseau supplémentaire)', async () => {
-    const fetchMock = vi.fn().mockResolvedValue(emptyCardsResponse);
+    const fetchMock = vi.fn().mockImplementation((url) => {
+      if (url.endsWith('/session/1')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ success: true, data: { id: 1, name: 'Tableau de rétrospective — session 1', step: 'writing', ownerId: 1 } }),
+        });
+      }
+      return Promise.resolve(emptyCardsResponse);
+    });
     vi.stubGlobal('fetch', fetchMock);
 
     renderDashboard();
 
-    await screen.findByText('Start');
+    await screen.findByText('Idées');
     const callsBeforeSubmit = fetchMock.mock.calls.length;
 
     fireEvent.click(screen.getAllByRole('button', { name: 'Ajouter' })[0]);
@@ -207,7 +256,7 @@ describe('SessionDashboard', () => {
 
     renderDashboard();
 
-    await screen.findByText('Start');
+    await screen.findByText('Idées');
 
     const textareas = screen.getAllByPlaceholderText('Nouvelle carte...');
     const buttons = screen.getAllByRole('button', { name: 'Ajouter' });
@@ -231,7 +280,7 @@ describe('SessionDashboard', () => {
 
     renderDashboard();
 
-    await screen.findByText('Start');
+    await screen.findByText('Idées');
 
     fireEvent.change(screen.getAllByPlaceholderText('Nouvelle carte...')[0], {
       target: { value: 'Carte refusée' },
@@ -246,22 +295,40 @@ describe('SessionDashboard', () => {
   it('affiche le nombre de votes et un bouton "Voter" sur chaque carte', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue({
-        ok: true,
-        json: async () => ({
-          success: true,
-          data: [
-            {
-              id: 1,
-              sessionId: 1,
-              authorId: 1,
-              columnType: 'start',
-              content: 'Faire plus de pair programming',
-              createdAt: '2026-07-07T10:00:00.000Z',
-              votesCount: 3,
-            },
-          ],
-        }),
+      vi.fn().mockImplementation((url: string) => {
+        if (url.endsWith('/session/1')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({
+              success: true,
+              data: {
+                id: 1,
+                name: 'Tableau de rétrospective — session 1',
+                code: '1234',
+                status: 'open',
+                step: 'voting',
+                ownerId: 1,
+              },
+            }),
+          });
+        }
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            success: true,
+            data: [
+              {
+                id: 1,
+                sessionId: 1,
+                authorId: 1,
+                columnType: 'start',
+                content: 'Faire plus de pair programming',
+                createdAt: '2026-07-07T10:00:00.000Z',
+                votesCount: 3,
+              },
+            ],
+          }),
+        });
       })
     );
 
@@ -273,6 +340,7 @@ describe('SessionDashboard', () => {
 
   it('vote avec succès et rafraîchit les cartes', async () => {
     const fetchMock = createDashboardFetchMock({
+      step: 'voting',
       cardsSequence: [
         {
           ok: true,
@@ -323,6 +391,7 @@ describe('SessionDashboard', () => {
 
   it("affiche un toast d'erreur si le vote échoue (ex: déjà voté)", async () => {
     const fetchMock = createDashboardFetchMock({
+      step: 'voting',
       cardsSequence: [
         {
           ok: true,
@@ -678,12 +747,12 @@ describe('SessionDashboard', () => {
     vi.stubGlobal(
       'fetch',
       vi.fn().mockImplementation((url: string) => {
-        if (url.endsWith('/session')) {
+        if (url.endsWith('/session/1')) {
           return Promise.resolve({
             ok: true,
             json: async () => ({
               success: true,
-              data: [{ id: 1, code: '1234', status: 'open', role: 'facilitator' }],
+              data: { id: 1, name: 'Tableau de rétrospective — session 1', step: 'writing', ownerId: 1 },
             }),
           });
         }
@@ -699,40 +768,55 @@ describe('SessionDashboard', () => {
   it('bascule vers la vue résultats et trie les cartes par votes décroissant', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue({
-        ok: true,
-        json: async () => ({
-          success: true,
-          data: [
-            {
-              id: 1,
-              sessionId: 1,
-              authorId: 1,
-              columnType: 'start',
-              content: 'Carte peu votée',
-              createdAt: '2026-07-07T10:00:00.000Z',
-              votesCount: 1,
-            },
-            {
-              id: 2,
-              sessionId: 1,
-              authorId: 1,
-              columnType: 'stop',
-              content: 'Carte très votée',
-              createdAt: '2026-07-07T10:01:00.000Z',
-              votesCount: 5,
-            },
-          ],
-        }),
+      vi.fn().mockImplementation((url: string) => {
+        if (url.endsWith('/session/1')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({
+              success: true,
+              data: {
+                id: 1,
+                name: 'Tableau de rétrospective — session 1',
+                code: '1234',
+                status: 'open',
+                step: 'results',
+                ownerId: 1,
+              },
+            }),
+          });
+        }
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            success: true,
+            data: [
+              {
+                id: 1,
+                sessionId: 1,
+                authorId: 1,
+                columnType: 'start',
+                content: 'Carte peu votée',
+                createdAt: '2026-07-07T10:00:00.000Z',
+                votesCount: 1,
+              },
+              {
+                id: 2,
+                sessionId: 1,
+                authorId: 1,
+                columnType: 'stop',
+                content: 'Carte très votée',
+                createdAt: '2026-07-07T10:01:00.000Z',
+                votesCount: 5,
+              },
+            ],
+          }),
+        });
       })
     );
 
     renderDashboard();
 
-    await screen.findByText('Start');
-    fireEvent.click(screen.getByRole('button', { name: 'Voir les résultats' }));
-
-    expect(await screen.findByText('Résultats')).toBeTruthy();
+    expect(await screen.findByText('Quitter la session')).toBeTruthy();
 
     const cards = screen.getAllByText(/Carte (peu|très) votée/);
     expect(cards[0].textContent).toBe('Carte très votée');
@@ -740,14 +824,19 @@ describe('SessionDashboard', () => {
   });
 
   it("n'affiche pas de formulaire d'ajout dans la vue résultats", async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(emptyCardsResponse));
+    vi.stubGlobal('fetch', vi.fn().mockImplementation((url) => {
+      if (url.endsWith('/session/1')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ success: true, data: { id: 1, name: 'Tableau de rétrospective — session 1', step: 'results', ownerId: 1 } }),
+        });
+      }
+      return Promise.resolve(emptyCardsResponse);
+    }));
 
     renderDashboard();
 
-    await screen.findByText('Start');
-    fireEvent.click(screen.getByRole('button', { name: 'Voir les résultats' }));
-
-    await screen.findByText('Résultats');
+    await screen.findByText('Quitter la session');
     expect(screen.queryByPlaceholderText('Nouvelle carte...')).toBeNull();
   });
 });

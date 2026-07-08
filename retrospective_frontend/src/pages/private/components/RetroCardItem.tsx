@@ -18,14 +18,16 @@ interface RetroCardItemProps {
   onVote: (cardId: number) => Promise<void> | void;
   onUpdateCard?: (cardId: number, content: string) => Promise<boolean> | boolean;
   onDeleteCard?: (cardId: number) => Promise<void> | void;
+  canVote?: boolean;
+  canEdit?: boolean;
 }
 
-const RetroCardItem = ({ card, accentClassName, currentUserId, onVote, onUpdateCard, onDeleteCard }: RetroCardItemProps) => {
+const RetroCardItem = ({ card, accentClassName, currentUserId, onVote, onUpdateCard, onDeleteCard, canVote = true, canEdit = true }: RetroCardItemProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [draftContent, setDraftContent] = useState(card.content);
   const isAuthor = currentUserId === card.authorId;
-  const canUpdate = onUpdateCard && isAuthor;
-  const canDelete = onDeleteCard && isAuthor;
+  const canUpdate = onUpdateCard && isAuthor && canEdit;
+  const canDelete = onDeleteCard && isAuthor && canEdit;
 
   const handleEditSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -50,7 +52,7 @@ const RetroCardItem = ({ card, accentClassName, currentUserId, onVote, onUpdateC
   };
 
   return (
-    <div className={`bg-slate-800 border border-white/10 border-l-4 ${accentClassName} rounded-lg p-3`}>
+    <div className={`bg-navy-mid border border-navy-border border-l-3 ${accentClassName} rounded-[10px] p-[10px_12px]`}>
       {isEditing ? (
         <form onSubmit={handleEditSubmit} className="flex flex-col gap-2">
           <textarea
@@ -58,7 +60,7 @@ const RetroCardItem = ({ card, accentClassName, currentUserId, onVote, onUpdateC
             value={draftContent}
             onChange={(event) => setDraftContent(event.target.value)}
             rows={3}
-            className="w-full resize-none rounded-md border border-white/10 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none focus:border-white/30"
+            className="w-full resize-none rounded-figma-md border border-navy-border-med bg-navy-surface px-3 py-2 text-sm text-slate-100 outline-none focus:border-white/30"
           />
           <div className="flex flex-wrap justify-end gap-2">
             <Button
@@ -78,7 +80,7 @@ const RetroCardItem = ({ card, accentClassName, currentUserId, onVote, onUpdateC
           </div>
         </form>
       ) : (
-        <p className="text-sm text-slate-100 leading-relaxed break-words">{card.content}</p>
+        <p className="text-sm text-slate-100 font-sans leading-[1.55] break-words">{card.content}</p>
       )}
       <div className="flex items-center justify-end gap-2 mt-2 flex-wrap">
         <span className="text-xs font-mono text-slate-400">
@@ -103,7 +105,7 @@ const RetroCardItem = ({ card, accentClassName, currentUserId, onVote, onUpdateC
             Supprimer
           </Button>
         )}
-        {!isEditing && (
+        {!isEditing && canVote && (
           <Button
             type="button"
             onClick={() => onVote(card.id)}

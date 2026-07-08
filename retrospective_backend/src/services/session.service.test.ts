@@ -9,6 +9,8 @@ vi.mock("../models/session.model", () => ({
   findSessionUserJoin: vi.fn(),
   insertSession: vi.fn(),
   insertSessionUserJoin: vi.fn(),
+  findSessionById: vi.fn(),
+  updateSessionStep: vi.fn(),
 }));
 
 import {
@@ -19,8 +21,10 @@ import {
   findSessionUserJoin,
   insertSession,
   insertSessionUserJoin,
+  findSessionById,
+  updateSessionStep,
 } from '../models/session.model';
-import { createSessionForUser, getSessionsForUser, joinSessionForUser } from "./session.service";
+import { createSessionForUser, getSessionsForUser, joinSessionForUser, getSessionDetails, updateSessionStepService } from "./session.service";
 import { AppError } from "../utils/AppError";
 
 const mockCloseExpiredSessionsForOwner = closeExpiredSessionsForOwner as unknown as Mock;
@@ -30,6 +34,8 @@ const mockFindSessionsForUser = findSessionsForUser as unknown as Mock;
 const mockFindSessionUserJoin = findSessionUserJoin as unknown as Mock;
 const mockInsertSession = insertSession as unknown as Mock;
 const mockInsertSessionUserJoin = insertSessionUserJoin as unknown as Mock;
+const mockFindSessionById = findSessionById as unknown as Mock;
+const mockUpdateSessionStep = updateSessionStep as unknown as Mock;
 
 describe("session.service", () => {
   beforeEach(() => {
@@ -40,6 +46,8 @@ describe("session.service", () => {
     mockFindSessionUserJoin.mockReset();
     mockInsertSession.mockReset();
     mockInsertSessionUserJoin.mockReset();
+    mockFindSessionById.mockReset();
+    mockUpdateSessionStep.mockReset();
   });
 
   it("renvoie un tableau vide si le modèle ne renvoie aucune session", async () => {
@@ -196,5 +204,44 @@ describe("session.service", () => {
       statusCode: 500,
       code: "SESSION_JOIN_CREATE_FAILED",
     } satisfies Partial<AppError>);
+  });
+
+  describe("getSessionDetails", () => {
+    it("lève une AppError 404 si la session n'existe pas", async () => {
+      mockFindSessionById.mockResolvedValueOnce(null);
+      await expect(getSessionDetails(999)).rejects.toMatchObject({
+        statusCode: 404,
+        code: "SESSION_NOT_FOUND",
+      });
+    });
+
+    it("renvoie les détails de la session si elle existe", async () => {
+      const mockSession = { id: 7, name: "S1", code: "1234", status: "open", step: "waiting", owner_id: 1, expires_at: new Date(), created_at: new Date() };
+      mockFindSessionById.mockResolvedValueOnce(mockSession);
+
+      const result = await getSessionDetails(7);
+      expect(result).toMatchObject({ id: 7, name: "S1", step: "waiting" });
+    });
+  });
+
+  describe("updateSessionStepService", () => {
+    it("lève une AppError 403 si l'utilisateur n'est pas le facilitateur", async () => {
+      const mockSession = { id: 7, owner_id: 2 };
+      mockFindSessionById.mockResolvedValueOnce(mockSession);
+
+      await expect(updateSessionStepService(7, 1, "writing")).rejects.toMatchObject({
+        statusCode: 403,
+        code: "FORBIDDEN",
+      });
+    });
+
+    it("met à jour l'étape avec succès si l'utilisateur est le facilitateur", async () => {
+      const mockSession = { id: 7, owner_id: 1 };
+      mockFindSessionById.mockResolvedValueOnce(mockSession);
+      mockUpdateSessionStep.mockResolvedValueOnce(true);
+
+      const result = await updateSessionStepService(7, 1, "writing");
+      expect(result).toBe(true);
+    });
   });
 });

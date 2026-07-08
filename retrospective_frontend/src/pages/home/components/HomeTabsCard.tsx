@@ -29,13 +29,16 @@ const HomeTabsCard = ({ onCreateSession, onJoinSession }: HomeTabsCardProps) => 
   };
 
   return (
-    <div className="w-full max-w-md mx-auto rounded-2xl border border-white/10 bg-slate-800 overflow-hidden shadow-xl">
-      <div className="flex border-b border-white/10">
+    <div className="w-full max-w-md mx-auto rounded-figma-xl border border-navy-border bg-navy-mid overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.25)]">
+      <div className="flex border-b border-navy-border">
         <button
           type="button"
           onClick={() => setTab("create")}
-          className={`flex-1 py-3 text-sm font-semibold border-b-2 transition-colors cursor-pointer ${
-            tab === "create" ? "text-slate-50 border-slate-50" : "text-slate-500 border-transparent"
+          style={{
+            borderBottom: `2px solid ${tab === "create" ? "var(--color-slate-50)" : "transparent"}`
+          }}
+          className={`flex-1 py-3 text-xs font-semibold transition-colors cursor-pointer ${
+            tab === "create" ? "text-slate-50" : "text-slate-500"
           }`}
         >
           Créer une rétro
@@ -43,8 +46,11 @@ const HomeTabsCard = ({ onCreateSession, onJoinSession }: HomeTabsCardProps) => 
         <button
           type="button"
           onClick={() => setTab("join")}
-          className={`flex-1 py-3 text-sm font-semibold border-b-2 transition-colors cursor-pointer ${
-            tab === "join" ? "text-slate-50 border-slate-50" : "text-slate-500 border-transparent"
+          style={{
+            borderBottom: `2px solid ${tab === "join" ? "var(--color-slate-50)" : "transparent"}`
+          }}
+          className={`flex-1 py-3 text-xs font-semibold transition-colors cursor-pointer ${
+            tab === "join" ? "text-slate-50" : "text-slate-500"
           }`}
         >
           Rejoindre
@@ -54,45 +60,53 @@ const HomeTabsCard = ({ onCreateSession, onJoinSession }: HomeTabsCardProps) => 
       <div className="p-6 flex flex-col gap-4">
         {tab === "create" ? (
           <>
-            <label className="flex flex-col gap-1 text-sm text-slate-300">
-              Nom de la rétro
+            <div className="flex flex-col gap-1.5">
+              <span className="block font-sans text-xs font-semibold text-slate-400 tracking-wider uppercase">
+                Nom de la rétro
+              </span>
               <Input
                 value={retroName}
                 onChange={(event) => setRetroName(event.target.value)}
                 placeholder="Sprint 42 – Revue"
               />
-            </label>
+            </div>
 
-            <label className="flex flex-col gap-1 text-sm text-slate-300">
-              Votre prénom
+            <div className="flex flex-col gap-1.5">
+              <span className="block font-sans text-xs font-semibold text-slate-400 tracking-wider uppercase">
+                Votre prénom
+              </span>
               <Input
                 value={userName}
                 onChange={(event) => setUserName(event.target.value)}
                 placeholder="Ex : Elyas"
               />
-            </label>
+            </div>
 
-            <label className="flex flex-col gap-1 text-sm text-slate-300">
-              Mot de passe
+            <div className="flex flex-col gap-1.5">
+              <span className="block font-sans text-xs font-semibold text-slate-400 tracking-wider uppercase">
+                Mot de passe
+              </span>
+              <span className="text-[11px] text-slate-500 -mt-1 leading-normal">
+                Pour revenir sur la session si vous êtes déconnecté.
+              </span>
               <Input
                 type="password"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 placeholder="••••••"
               />
-              <span className="text-xs text-slate-500">
-                Pour revenir sur la session si vous êtes déconnecté.
-              </span>
-            </label>
+            </div>
 
-            <Button className="w-full mt-1" onClick={handleCreate}>
+            <Button variant="primary" size="lg" className="w-full mt-2" onClick={handleCreate}>
               Lancer la rétro →
             </Button>
           </>
         ) : (
           <>
-            <label className="flex flex-col gap-1 text-sm text-slate-300">
-              Code de la session
+            <div className="flex flex-col gap-1.5">
+              <span className="block font-sans text-xs font-semibold text-slate-400 tracking-wider uppercase">
+                Code de la session
+              </span>
               <Input
                 value={code}
                 onChange={handleCodeChange}
@@ -101,9 +115,9 @@ const HomeTabsCard = ({ onCreateSession, onJoinSession }: HomeTabsCardProps) => 
                 maxLength={4}
                 className="text-center tracking-widest text-lg"
               />
-            </label>
+            </div>
 
-            <Button className="w-full mt-1" onClick={handleJoin}>
+            <Button variant="success" size="lg" className="w-full mt-2" onClick={handleJoin}>
               Rejoindre →
             </Button>
           </>
