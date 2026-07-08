@@ -24,7 +24,7 @@
 | Vue des résultats triée par votes (US-09) | ✅ Livré | 2026-07-08 |
 | Rôle affiché sur le tableau (Facilitateur/Participant) | ✅ Livré | 2026-07-08 |
 | Suppression de sa propre carte | ✅ Backend + frontend, PR #11 mergée dans `dev` | 2026-07-08 |
-| Modification de sa propre carte | ✅ Backend + frontend sur `feature/edit-card`, **PR à ouvrir** | 2026-07-08 |
+| Modification de sa propre carte | ✅ Backend + frontend sur `feature/edit-card`, PR #13 ouverte | 2026-07-08 |
 | Responsive design basique | ✅ Livré, PR #12 mergée dans `dev` | 2026-07-08 |
 | Réorganisation backend sous `src/` (routes/controllers/services/models/middlewares/utils/types) | ✅ Livré (déplacement structurel) | 2026-07-08 |
 | Migration Express 4 → 5 | ✅ Livré, sans changement fonctionnel | 2026-07-08 |
@@ -67,7 +67,7 @@
 
 ## Ce qui est en cours
 
-- Ouvrir la PR `feature/edit-card` pour la modification de carte. Ne pas merger tant que la revue n'est pas faite.
+- PR #13 `feature/edit-card` ouverte pour la modification de carte. Ne pas merger tant que la revue n'est pas faite.
 
 ## Prochaine étape
 
