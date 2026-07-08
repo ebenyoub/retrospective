@@ -3,6 +3,7 @@ import { Request } from 'express';
 
 export interface SessionType {
   id: number;
+  name: string;
   code: string;
   owner_id: number;
   status: string;

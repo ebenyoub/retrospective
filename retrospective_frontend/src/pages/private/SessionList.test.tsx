@@ -51,6 +51,7 @@ describe('SessionList', () => {
           data: [
             {
               id: 1,
+              name: 'Rétro Sprint 1',
               code: '1234',
               status: 'open',
               expiresAt: '2026-07-08T10:00:00.000Z',
@@ -59,6 +60,7 @@ describe('SessionList', () => {
             },
             {
               id: 2,
+              name: 'Rétro Sprint 2',
               code: '5678',
               status: 'closed',
               expiresAt: '2026-07-08T10:00:00.000Z',
@@ -72,8 +74,10 @@ describe('SessionList', () => {
 
     renderSessionList();
 
-    expect(await screen.findByText('Code 1234')).toBeTruthy();
-    expect(screen.getByText('Code 5678')).toBeTruthy();
+    expect(await screen.findByText('Rétro Sprint 1')).toBeTruthy();
+    expect(screen.getByText('Rétro Sprint 2')).toBeTruthy();
+    expect(screen.getByText(/Code : 1234/)).toBeTruthy();
+    expect(screen.getByText(/Code : 5678/)).toBeTruthy();
     expect(screen.getByText(/Facilitateur/)).toBeTruthy();
     expect(screen.getByText(/Participant/)).toBeTruthy();
   });
@@ -102,6 +106,7 @@ describe('SessionList', () => {
           data: [
             {
               id: 1,
+              name: 'Rétro Sprint 1',
               code: '1234',
               status: 'open',
               expiresAt: '2026-07-08T10:00:00.000Z',
@@ -115,7 +120,7 @@ describe('SessionList', () => {
 
     renderSessionList();
 
-    fireEvent.click(await screen.findByText('Code 1234'));
+    fireEvent.click(await screen.findByText('Rétro Sprint 1'));
 
     expect(await screen.findByText('Dashboard de session')).toBeTruthy();
   });

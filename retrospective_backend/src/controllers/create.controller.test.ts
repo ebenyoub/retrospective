@@ -32,8 +32,11 @@ const createMockResponse = () => {
   return res;
 };
 
-const createMockRequest = (userId?: number): AuthRequest =>
-  ({ user: userId ? { userId, username: "Elyas" } : {} }) as unknown as AuthRequest;
+const createMockRequest = (userId?: number, body?: any): AuthRequest =>
+  ({
+    user: userId ? { userId, username: "Elyas" } : {},
+    body: body || {}
+  }) as unknown as AuthRequest;
 
 describe("create.controller", () => {
   beforeEach(() => {
@@ -46,7 +49,7 @@ describe("create.controller", () => {
       message: "Session créée.",
       data: { sessionId: 7, code: "1234", expiresAt: "2026-07-08T11:00:00.000Z" },
     });
-    const req = createMockRequest(undefined);
+    const req = createMockRequest(undefined, { name: "Ma Super Session" });
     const res = createMockResponse();
 
     await createSession(req, res as unknown as Response);
@@ -57,7 +60,7 @@ describe("create.controller", () => {
       message: "Session créée.",
       data: { sessionId: 7, code: "1234", expiresAt: "2026-07-08T11:00:00.000Z" },
     });
-    expect(mockCreateSessionForUser).toHaveBeenCalledWith({ userId: undefined });
+    expect(mockCreateSessionForUser).toHaveBeenCalledWith({ userId: undefined, name: "Ma Super Session" });
   });
 
   it("ne capture pas les erreurs du service", async () => {

@@ -4,8 +4,9 @@ import { AuthRequest } from '../types';
 
 export const createSession = async (req: AuthRequest, res: Response) => {
   const { userId } = req.user;
+  const { name } = req.body;
 
-  const result = await createSessionForUser({ userId });
+  const result = await createSessionForUser({ userId, name });
 
   return res.status(result.statusCode).json({
     success: true,
