@@ -4,11 +4,11 @@
 
 ## Date de dernière mise à jour
 
-2026-07-08 (09:30 CEST)
+2026-07-08 (audit backend architecture)
 
 ## État global
 
-🟢 MVP quasi prêt soutenance — sessions, cartes (ajout, modification, suppression), votes, résultats, rôles et responsive basique sont fonctionnels. Backend réorganisé sous `src/` (routes → controllers → services → models) et migré vers Express 5. Il reste surtout la préparation de démo (`.env` backend à recréer) et de la dette documentée non bloquante.
+🟢 MVP quasi prêt soutenance — sessions, cartes (ajout, modification, suppression), votes, résultats, rôles et responsive basique sont fonctionnels. Un audit backend a rendu non négociable le pattern `controller → service → model → DB` et a listé les contrôleurs historiques non conformes. Il reste surtout la préparation de démo (`.env` backend à recréer) et de la dette backend à traiter par petits lots.
 
 ## Fonctionnalités livrées
 
@@ -48,7 +48,9 @@
 - **#12 `feature/responsive-mvp`** — responsive basique du MVP : formulaires fluides, header/menu adaptatifs, dashboard en 1/2/3 colonnes, liste de sessions mobile. Frontend : 26/26 tests verts, build et lint propres.
 
 ### Décisions d'architecture prises aujourd'hui
-- Le pattern `controller → service → model` + `AppError`/`errorHandler` centralisé reste un **pilote volontairement limité** à `session/list` et `session/card.vote` (les nouveaux endpoints) — les anciens controllers (auth, create, join, card create/get/delete) restent en SQL inline pour ne pas faire un refactor métier hors périmètre.
+- Le pattern `controller → service → model → DB` + `AppError`/`errorHandler` centralisé est désormais **obligatoire et non négociable** pour tout nouveau code backend.
+- Les contrôleurs ne doivent plus importer `db`, appeler `db.execute`, contenir du SQL brut, porter des validations métier/droits, ou faire du `try/catch` manuel si `AppError` + `errorHandler` conviennent.
+- Audit du 2026-07-08 : routes conformes entièrement identifiées (`GET /session`, vote, modification de carte) ; controllers historiques non conformes listés dans `docs/technical/ARCHITECTURE.md` et `docs/TODO.md`.
 - Le backend est passé en **Express 5** (`^5.2.1`) — `asyncHandler` conservé volontairement (pas encore exploité pour son bénéfice natif Express 5, mais reste utile/cohérent).
 - Suppression de carte : les votes n'ont pas de suppression en cascade en base → suppression explicite des votes avant la carte dans le contrôleur (pas de transaction SQL formelle, cohérent avec la simplicité du projet).
 - Rôle affiché en réutilisant l'endpoint `GET /session` existant plutôt que de créer un nouvel endpoint dédié à une session — évite la sur-ingénierie.
@@ -61,13 +63,13 @@
 ## État du backend
 
 - **Framework** : Express **5.2.1** (migré depuis 4.22.2 aujourd'hui), `@types/express` 5.0.6.
-- **Architecture** : `retrospective_backend/src/{routes,controllers,services,models,middlewares,utils,types}` — voir `docs/technical/ARCHITECTURE.md` pour le détail. Réorganisation structurelle terminée ; seul `session/list` et le vote suivent le pattern complet `controller→service→model`.
-- **Gestion d'erreurs** : `AppError` + `errorHandler` centralisé + `asyncHandler`, utilisés sur les routes `GET /session` et `POST .../vote`.
+- **Architecture** : `retrospective_backend/src/{routes,controllers,services,models,middlewares,utils,types}` — voir `docs/technical/ARCHITECTURE.md` pour le détail et l'audit de conformité. La règle cible est stricte ; plusieurs controllers historiques restent à refactorer.
+- **Gestion d'erreurs** : `AppError` + `errorHandler` centralisé + `asyncHandler`, utilisés sur les routes conformes récentes.
 - **Tests** : 58/58 passés (dernière exécution, ticket delete-card).
 
 ## Ce qui est en cours
 
-- PR #13 `feature/edit-card` ouverte pour la modification de carte. Ne pas merger tant que la revue n'est pas faite.
+- Branche `refactor/backend-layer-audit` : documentation de l'architecture backend non négociable + audit des violations. Pas de PR ouverte depuis cette branche pour l'instant.
 
 ## Prochaine étape
 
@@ -78,7 +80,7 @@
 ## Dette technique restante
 
 ### Non bloquant, peut attendre
-- Généraliser le pattern `service/model` aux controllers `auth`/`create`/`join`/`card` restants — refonte large, volontaire, pas de calendrier fixé.
+- Généraliser le pattern `controller → service → model → DB` aux controllers historiques non conformes — à faire par petits lots listés dans `docs/TODO.md`.
 - `validators/` (dossier prévu par l'architecture cible) jamais peuplé — aucune lib de validation backend (zod/joi/yup) ; décision à prendre si le besoin devient réel.
 - Colonne `name` manquante sur la table `sessions` alors que le cahier des charges l'exige (F04/US-04) — décision assumée de la reporter.
 - Tests manquants sur `forgot.controller.ts`, `code.controller.ts`, `reset.controller.ts`, `delete.controller.ts` (auth) — identifiés, non traités.
