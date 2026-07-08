@@ -50,6 +50,7 @@ const SessionDashboard = () => {
   const [cards, setCards] = useState<RetroCard[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [role, setRole] = useState<SessionRole | null>(null);
+  const [sessionName, setSessionName] = useState<string>('');
   const [view, setView] = useState<DashboardView>('board');
 
   useEffect(() => {
@@ -98,11 +99,14 @@ const SessionDashboard = () => {
 
         const data = await readJsonSafely(response);
 
-        if (response.ok && isApiSuccess<{ id: number; role: SessionRole }[]>(data)) {
-          const currentSession = (data.data as { id: number; role: SessionRole }[]).find(
+        if (response.ok && isApiSuccess<{ id: number; name: string; role: SessionRole }[]>(data)) {
+          const currentSession = (data.data as { id: number; name: string; role: SessionRole }[]).find(
             (session) => String(session.id) === id
           );
           setRole(currentSession?.role ?? null);
+          if (currentSession?.name) {
+            setSessionName(currentSession.name);
+          }
         }
       } catch (error) {
         console.error('Erreur lors de la récupération du rôle :', error);
@@ -218,7 +222,7 @@ const SessionDashboard = () => {
         <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center sm:gap-4">
           <div className="flex min-w-0 flex-wrap items-center gap-3">
             <h1 className="text-xl font-bold text-slate-50 break-words">
-              Tableau de rétrospective{id ? ` — session ${id}` : ''}
+              {sessionName ? sessionName : `Tableau de rétrospective — session ${id}`}
             </h1>
             {role && <Badge>{ROLE_LABEL[role]}</Badge>}
           </div>

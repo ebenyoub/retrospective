@@ -27,7 +27,7 @@
 
 ## À faire ensuite (mis à jour 2026-07-08)
 
-- [ ] Dette documentée : la table `sessions` n'a pas de colonne `name`, alors que le cahier des charges (F04/US-04) exige un nom de session obligatoire à la création. Décision assumée de reporter.
+- [x] Dette documentée : la table `sessions` n'a pas de colonne `name`, alors que le cahier des charges (F04/US-04) exige un nom de session obligatoire à la création (Résolu le 2026-07-08).
 - [x] **Dette d'architecture backend — audit 2026-07-08** : refactor backend homogène livré via PR #15 ; controllers sans `db`/SQL/`bcrypt`/`jwt`/provider direct, services pour logique métier, models pour SQL.
 - [x] Tests manquants côté auth/reset : `forgot.controller.ts`, `code.controller.ts`, `reset.controller.ts`, `delete.controller.ts` couverts via PR #15.
 - [x] **Lot 1 cartes** : `createCard`, `getCards`, `deleteCard` déplacés vers `card.service.ts` (PR #15).

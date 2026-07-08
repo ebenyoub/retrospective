@@ -24,6 +24,7 @@ export interface SessionListItem {
 
 interface CreateSessionInput {
   userId?: number;
+  name?: unknown;
 }
 
 interface CreatedSessionResult {
@@ -31,6 +32,7 @@ interface CreatedSessionResult {
   message: string;
   data: SessionType | {
     sessionId: number;
+    name: string;
     code: string;
     expiresAt: string;
   };
@@ -68,9 +70,13 @@ const toMysqlDateTime = (value: string): string =>
     .replace('T', ' ')
     .replace(/\.\d{3}Z$/, '');
 
-export const createSessionForUser = async ({ userId }: CreateSessionInput): Promise<CreatedSessionResult> => {
+export const createSessionForUser = async ({ userId, name }: CreateSessionInput): Promise<CreatedSessionResult> => {
   if (!userId) {
     throw new AppError(401, "Impossible de créer la session : utilisateur non identifié", "USER_NOT_IDENTIFIED");
+  }
+
+  if (!name || typeof name !== "string" || name.trim() === "") {
+    throw new AppError(400, "Le nom de session est obligatoire.", "SESSION_NAME_REQUIRED");
   }
 
   const nowUtc = new Date().toISOString();
@@ -96,7 +102,7 @@ export const createSessionForUser = async ({ userId }: CreateSessionInput): Prom
 
   try {
     const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
-    const sessionId = await insertSession(code, userId, toMysqlDateTime(expiresAt));
+    const sessionId = await insertSession(name.trim(), code, userId, toMysqlDateTime(expiresAt));
 
     logger.info(`ℹ️sessionId : ${sessionId}`);
 
@@ -105,6 +111,7 @@ export const createSessionForUser = async ({ userId }: CreateSessionInput): Prom
       message: "Session créée.",
       data: {
         sessionId,
+        name: name.trim(),
         code,
         expiresAt,
       },

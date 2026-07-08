@@ -6,6 +6,7 @@ export type SessionRole = "facilitator" | "participant";
 
 export interface SessionRow extends RowDataPacket {
   id: number;
+  name: string;
   code: string;
   status: string;
   expires_at: Date;
@@ -20,11 +21,11 @@ export interface ExpiredSessionsResult {
 
 export const findSessionsForUser = async (userId: number): Promise<SessionRow[]> => {
   const [sessions] = await db.execute<SessionRow[]>(
-    `select id, code, status, expires_at, created_at, 'facilitator' as role
+    `select id, name, code, status, expires_at, created_at, 'facilitator' as role
      from sessions
      where owner_id = ?
      union
-     select s.id, s.code, s.status, s.expires_at, s.created_at, 'participant' as role
+     select s.id, s.name, s.code, s.status, s.expires_at, s.created_at, 'participant' as role
      from sessions s
      inner join session_user su on su.session_id = s.id
      where su.user_id = ? and s.owner_id != ?
@@ -63,13 +64,14 @@ export const findActiveSessionForOwner = async (
 };
 
 export const insertSession = async (
+  name: string,
   code: string,
   userId: number,
   expiresAtMysql: string
 ): Promise<number> => {
   const [result] = await db.execute<ResultSetHeader>(
-    'insert into sessions (code, owner_id, status, expires_at) values(?, ?, ?, ?)',
-    [code, userId, 'open', expiresAtMysql]
+    'insert into sessions (name, code, owner_id, status, expires_at) values(?, ?, ?, ?, ?)',
+    [name, code, userId, 'open', expiresAtMysql]
   );
 
   return result.insertId;

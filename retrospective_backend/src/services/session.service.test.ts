@@ -88,9 +88,26 @@ describe("session.service", () => {
   });
 
   it("createSessionForUser lève une AppError 401 sans userId", async () => {
-    await expect(createSessionForUser({ userId: undefined })).rejects.toMatchObject({
+    await expect(createSessionForUser({ userId: undefined, name: "Test" })).rejects.toMatchObject({
       statusCode: 401,
       code: "USER_NOT_IDENTIFIED",
+    } satisfies Partial<AppError>);
+  });
+
+  it("createSessionForUser lève une AppError 400 sans nom de session", async () => {
+    await expect(createSessionForUser({ userId: 1, name: "" })).rejects.toMatchObject({
+      statusCode: 400,
+      code: "SESSION_NAME_REQUIRED",
+    } satisfies Partial<AppError>);
+
+    await expect(createSessionForUser({ userId: 1, name: "   " })).rejects.toMatchObject({
+      statusCode: 400,
+      code: "SESSION_NAME_REQUIRED",
+    } satisfies Partial<AppError>);
+
+    await expect(createSessionForUser({ userId: 1, name: undefined })).rejects.toMatchObject({
+      statusCode: 400,
+      code: "SESSION_NAME_REQUIRED",
     } satisfies Partial<AppError>);
   });
 
@@ -99,7 +116,7 @@ describe("session.service", () => {
     mockCloseExpiredSessionsForOwner.mockResolvedValueOnce({ changedRows: 0, affectedRows: 0 });
     mockFindActiveSessionForOwner.mockResolvedValueOnce(activeSession);
 
-    await expect(createSessionForUser({ userId: 1 })).resolves.toEqual({
+    await expect(createSessionForUser({ userId: 1, name: "Active Session" })).resolves.toEqual({
       statusCode: 200,
       message: "Session active récupérée.",
       data: activeSession,
@@ -111,11 +128,11 @@ describe("session.service", () => {
     mockFindActiveSessionForOwner.mockResolvedValueOnce(null);
     mockInsertSession.mockResolvedValueOnce(7);
 
-    const result = await createSessionForUser({ userId: 1 });
+    const result = await createSessionForUser({ userId: 1, name: "Nouvelle Session" });
 
     expect(result.statusCode).toBe(201);
     expect(result.message).toBe("Session créée.");
-    expect(result.data).toMatchObject({ sessionId: 7 });
+    expect(result.data).toMatchObject({ sessionId: 7, name: "Nouvelle Session" });
     expect((result.data as { code: string }).code).toMatch(/^\d{4}$/);
     expect((result.data as { expiresAt: string }).expiresAt).toEqual(expect.any(String));
   });
@@ -125,7 +142,7 @@ describe("session.service", () => {
     mockFindActiveSessionForOwner.mockResolvedValueOnce(null);
     mockInsertSession.mockRejectedValueOnce(new Error("boom"));
 
-    await expect(createSessionForUser({ userId: 1 })).rejects.toMatchObject({
+    await expect(createSessionForUser({ userId: 1, name: "Nouvelle Session" })).rejects.toMatchObject({
       statusCode: 500,
       code: "SESSION_CREATE_FAILED",
     } satisfies Partial<AppError>);

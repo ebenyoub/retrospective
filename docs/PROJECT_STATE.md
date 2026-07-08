@@ -31,6 +31,7 @@
 | Messages d'erreur cohérents (B17) | ✅ Livré sur branche `polish/error-message-consistency` | 2026-07-08 |
 | Migration Express 4 → 5 | ✅ Livré, sans changement fonctionnel | 2026-07-08 |
 | Composants UI réutilisables (`FormField`, `Badge`) | ✅ Livré | 2026-07-08 |
+| Nom de session obligatoire (F04/US-04) | ✅ BDD + backend (validation) + frontend (création, liste, dashboard) | 2026-07-08 |
 
 ## Récapitulatif de la journée du 2026-07-08
 
@@ -86,7 +87,6 @@
 
 ### Non bloquant, peut attendre
 - `validators/` (dossier prévu par l'architecture cible) jamais peuplé — aucune lib de validation backend (zod/joi/yup) ; décision à prendre si le besoin devient réel.
-- Colonne `name` manquante sur la table `sessions` alors que le cahier des charges l'exige (F04/US-04) — décision assumée de la reporter.
 - `mail.controller.ts` et `test_transporter.js` (racine backend) — code mort, jamais branché, à supprimer un jour.
 - Responsive avancé — le responsive basique MVP est livré ; il peut rester du polish visuel fin hors périmètre.
 
