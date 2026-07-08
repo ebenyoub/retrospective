@@ -15,8 +15,8 @@ router.get('/profile', auth, profile);
 router.post('/login', asyncHandler(login));
 router.post('/signup', asyncHandler(signup));
 router.delete('/delete', auth, asyncHandler(deleteAccount));
-router.post('/forgot', forgot);
-router.post('/verify-code', verifyCode);
-router.patch('/reset-password', resetPassword);
+router.post('/forgot', asyncHandler(forgot));
+router.post('/verify-code', asyncHandler(verifyCode));
+router.patch('/reset-password', asyncHandler(resetPassword));
 
 export default router;
