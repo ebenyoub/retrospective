@@ -10,8 +10,8 @@ import { asyncHandler } from '../utils/asyncHandler';
 const router = Router();
 
 router.get('/', auth, asyncHandler(listSessions));
-router.post('/create-session', auth, createSession);
-router.post('/join', auth, joinSession);
+router.post('/create-session', auth, asyncHandler(createSession));
+router.post('/join', auth, asyncHandler(joinSession));
 router.post('/:sessionId/cards', auth, asyncHandler(createCard));
 router.get('/:sessionId/cards', auth, asyncHandler(getCards));
 router.patch('/:sessionId/cards/:cardId', auth, asyncHandler(updateCard));

@@ -1,5 +1,6 @@
-import { RowDataPacket } from "mysql2";
+import { ResultSetHeader, RowDataPacket } from "mysql2";
 import db from './db';
+import { JoinRow, SessionLookupRow, SessionType } from "../types";
 
 export type SessionRole = "facilitator" | "participant";
 
@@ -10,6 +11,11 @@ export interface SessionRow extends RowDataPacket {
   expires_at: Date;
   created_at: Date;
   role: SessionRole;
+}
+
+export interface ExpiredSessionsResult {
+  affectedRows: number;
+  changedRows: number;
 }
 
 export const findSessionsForUser = async (userId: number): Promise<SessionRow[]> => {
@@ -27,4 +33,80 @@ export const findSessionsForUser = async (userId: number): Promise<SessionRow[]>
   );
 
   return sessions;
+};
+
+export const closeExpiredSessionsForOwner = async (
+  userId: number,
+  nowUtc: string
+): Promise<ExpiredSessionsResult> => {
+  const [result] = await db.execute<ResultSetHeader>(
+    'update sessions set status = "closed" where owner_id = ? and expires_at <= ?',
+    [userId, nowUtc]
+  );
+
+  return {
+    affectedRows: result.affectedRows,
+    changedRows: result.changedRows,
+  };
+};
+
+export const findActiveSessionForOwner = async (
+  userId: number,
+  nowUtc: string
+): Promise<(RowDataPacket & SessionType) | null> => {
+  const [session] = await db.execute<(RowDataPacket & SessionType)[]>(
+    'select * from sessions where owner_id = ? and status = "open" and expires_at > ?',
+    [userId, nowUtc]
+  );
+
+  return session[0] ?? null;
+};
+
+export const insertSession = async (
+  code: string,
+  userId: number,
+  expiresAtMysql: string
+): Promise<number> => {
+  const [result] = await db.execute<ResultSetHeader>(
+    'insert into sessions (code, owner_id, status, expires_at) values(?, ?, ?, ?)',
+    [code, userId, 'open', expiresAtMysql]
+  );
+
+  return result.insertId;
+};
+
+export const findSessionByCode = async (code: string): Promise<SessionLookupRow | null> => {
+  const [sessionRows] = await db.execute<SessionLookupRow[]>(
+    'select id from sessions where code = ?',
+    [code]
+  );
+
+  return sessionRows[0] ?? null;
+};
+
+export const findSessionUserJoin = async (
+  userId: number,
+  sessionId: number
+): Promise<JoinRow | null> => {
+  const [jointure] = await db.execute<JoinRow[]>(
+    'select * from session_user where user_id = ? and session_id = ?',
+    [userId, sessionId]
+  );
+
+  return jointure[0] ?? null;
+};
+
+export const insertSessionUserJoin = async (
+  userId: number,
+  sessionId: number
+): Promise<{ affectedRows: number; insertId: number }> => {
+  const [insertResult] = await db.execute<ResultSetHeader>(
+    'insert into session_user (user_id, session_id) values(?, ?)',
+    [userId, sessionId]
+  );
+
+  return {
+    affectedRows: insertResult.affectedRows,
+    insertId: insertResult.insertId,
+  };
 };
