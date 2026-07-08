@@ -83,7 +83,7 @@ const Login: React.FC = () => {
                     <FormField
                         id="username"
                         name="username"
-                        label="Pseudonyme"
+                        label="Pseudonyme (Nom d'utilisateur)"
                         type="text"
                         value={values.username}
                         placeholder="Albus Dumbledore"
@@ -111,7 +111,16 @@ const Login: React.FC = () => {
 
                     <Button type="submit">Se connecter</Button>
 
-                    <NavLink to="/forgot">Mot de pass oublié</NavLink>
+                    <div className="flex flex-col gap-2 mt-4 text-center text-sm">
+                        <NavLink to="/signup" className="text-blue-400 hover:underline">
+                            Pas encore de compte ? S'inscrire
+                        </NavLink>
+                        <NavLink to="/" className="text-gray-400 hover:underline">
+                            Retour à l'accueil
+                        </NavLink>
+                    </div>
+
+                    <NavLink to="/forgot">Mot de passe oublié ?</NavLink>
                 </FormContainer>
             </SpinContainer>
         </Container>
