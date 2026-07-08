@@ -5,6 +5,20 @@ Format : `## [version ou date] — Description`
 
 ---
 
+## [2026-07-08] — Suppression de sa propre carte
+
+### Ajouté
+- Bouton "Supprimer" sur les cartes de rétrospective, visible uniquement pour l'auteur connecté.
+- Appel frontend `DELETE /session/:sessionId/cards/:cardId` avec rafraîchissement des cartes après succès.
+- Toast d'erreur en cas de refus backend ou d'erreur réseau.
+- Tests frontend couvrant l'affichage conditionnel, la suppression réussie et l'erreur de suppression.
+
+### Vérifié
+- Frontend : `npm run test` → 26/26, `npm run build` OK, `npm run lint` OK.
+- Backend : `npm run test` → 58/58, `npx tsc --noEmit` OK.
+
+---
+
 ## [2026-06-26] — Fondation documentaire
 
 ### Ajouté

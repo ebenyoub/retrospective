@@ -21,14 +21,33 @@
 - [ ] Compléter `docs/jury/REFERENTIEL_DWWM.md` avec les compétences couvertes
 - [ ] Commencer à collecter les preuves dans `docs/jury/PREUVES_A_COLLECTER.md`
 
+## À faire maintenant (mis à jour 2026-07-08 fin de journée)
+
+- [ ] Mettre à jour / ouvrir la PR `feature/delete-card` avec la suppression frontend + backend, puis attendre review.
+- [ ] Merger la PR ouverte `feature/delete-card` après review (ne pas merger maintenant).
+
 ## À faire ensuite (mis à jour 2026-07-08)
 
-- [ ] Système de votes — pas commencé, prochaine tâche
-- [ ] Dette documentée : la table `sessions` n'a pas de colonne `name`, alors que le cahier des charges (F04/US-04) exige un nom de session obligatoire à la création. Décision prise le 2026-07-08 : hors périmètre de `feature/auth-session`, à traiter dans un ticket dédié si besoin.
+- [ ] Dette documentée : la table `sessions` n'a pas de colonne `name`, alors que le cahier des charges (F04/US-04) exige un nom de session obligatoire à la création. Décision assumée de reporter.
 - [ ] Tests manquants restants côté auth : `forgot.controller.ts`, `code.controller.ts`, `reset.controller.ts`, `delete.controller.ts` (identifiés en review du 2026-07-08, non traités — hors périmètre de ce ticket)
-- [ ] **Dette d'architecture backend (importante, mise à jour 2026-07-08)** : tous les fichiers backend ont été déplacés sous `retrospective_backend/src/{routes,controllers,services,models,middlewares,utils,types}` (`refactor/backend-architecture`, 7 commits) — **mais c'est un déplacement physique, pas un refactor de logique**. Seul `src/controllers/list.controller.ts` (route `GET /session`) suit réellement le pattern `controller → service → model`. Tous les autres controllers (`login`, `signup`, `forgot`, `code`, `reset`, `delete`, `profile`, `create`, `join`, `card`) ont juste changé d'adresse : ils font toujours du SQL inline, sans service/model ni middleware d'erreur centralisé. **Généraliser le pattern est une refonte large, volontairement non faite** — à traiter dans un ticket dédié si le projet grandit, pas avant.
-- [ ] `validators/` (dossier prévu dans l'architecture cible) n'a jamais été créé — aucune librairie de validation (zod/joi/yup) côté backend. Décision à prendre séparément : introduire une lib, ou garder les validations manuelles actuelles dans les controllers.
-- [ ] **Divergence Express** : le projet utilise **Express 4** (`^4.19.2`, `4.22.2` installé), pas Express 5 malgré une demande formulée en ce sens le 2026-07-08. Express 5 transmettrait nativement les rejets de promesse au middleware d'erreur (rendant `utils/asyncHandler.ts` inutile) ; migrer serait un changement de dépendance à part entière (breaking changes potentiels), non fait ici pour ne pas risquer de casser le reste de l'API.
+- [ ] **Dette d'architecture backend** : seuls `src/controllers/list.controller.ts` (`GET /session`) et `src/controllers/vote.controller.ts` (`POST .../vote`) suivent le pattern complet `controller → service → model`. Tous les autres controllers (`login`, `signup`, `forgot`, `code`, `reset`, `delete`, `profile`, `create`, `join`, `card`) font toujours du SQL inline. Généraliser le pattern est une refonte large, volontairement non faite.
+- [ ] `validators/` (dossier prévu dans l'architecture cible) n'a jamais été créé — aucune librairie de validation (zod/joi/yup) côté backend.
+- [ ] Modification d'une carte existante (US-07, B11) — jamais commencée, pas dans la checklist stricte du MVP.
+- [ ] Responsive design (B16) — jamais vérifié explicitement sur mobile.
+- [ ] `mail.controller.ts` et `test_transporter.js` (racine backend) — code mort, jamais branché à une route, à supprimer un jour.
+- [ ] **`.env` backend manquant sur le disque** (effet de bord d'une purge d'historique Git antérieure) — à recréer depuis `.env.example` avec de vraies valeurs avant de pouvoir démarrer le serveur en local. Potentiellement bloquant pour une démo/soutenance.
+- [ ] Secrets (`JWT_SECRET`, `GMAIL_APP_PASSWORD`) à régénérer — exposés en clair dans un historique Git local avant purge.
+
+## Fait ✅ (2026-07-08, suite de journée — votes, résultats, rôles, delete-card, Express 5, UI)
+
+- [x] Migration Express 4.22.2 → 5.2.1 (`refactor/express5`), zéro changement de code, vérifié par tests + démarrage serveur réel avec vraies requêtes HTTP
+- [x] Système de votes backend (`POST /session/:sessionId/cards/:cardId/vote`, `refactor/voting-backend`) — pattern `controller → service → model`, 1 vote/carte/utilisateur, limite 5 votes/session
+- [x] Bouton "Voter" + compteur frontend (`feature/vote-ui`) sur `RetroCardItem.tsx`
+- [x] Composant `FormField` (`refactor/frontend-ui-components`) — déduplique 12 blocs JSX sur Login/Signup/Forgot/Profile, corrige un bug d'input non contrôlé sur `Login.tsx`
+- [x] Vue "Résultats" triée par votes (`feature/results-view`, US-09) — réutilise `RetroColumn` avec formulaire d'ajout rendu optionnel
+- [x] Badge de rôle facilitateur/participant sur le tableau (`feature/session-role-badge`) — composant `Badge` créé, réutilisé sur `RetroColumn` et `SessionList`
+- [x] Suppression de carte, **backend uniquement** (`feature/delete-card`) — `DELETE /session/:sessionId/cards/:cardId`, 403 si pas l'auteur, votes supprimés avant la carte (pas de cascade en base). PR ouverte, pas mergée.
+- [x] Suppression de carte côté frontend (`feature/delete-card`) — bouton "Supprimer" visible uniquement pour l'auteur (`card.authorId === userId`), appel `DELETE /session/:sessionId/cards/:cardId`, refetch après succès, toast sur erreur. Frontend 26/26, build et lint OK.
 
 ## Fait ✅ (nettoyage dette technique, 2026-07-08)
 

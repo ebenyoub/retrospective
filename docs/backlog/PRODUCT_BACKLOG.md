@@ -18,44 +18,44 @@
 
 | ID | Fonctionnalité | Complexité | Statut | US liée |
 |---|---|---|---|---|
-| B01 | Inscription utilisateur | Faible | ⬜ | US-01 |
-| B02 | Connexion + JWT | Faible | ⬜ | US-02 |
-| B03 | Déconnexion | Très faible | ⬜ | US-03 |
-| B04 | Middleware auth (routes protégées) | Faible | ⬜ | — |
-| B05 | Schéma BDD initial (users, sessions, cards, votes) | Moyenne | ⬜ | — |
+| B01 | Inscription utilisateur | Faible | ✅ | US-01 |
+| B02 | Connexion + JWT | Faible | ✅ | US-02 |
+| B03 | Déconnexion | Très faible | ✅ | US-03 |
+| B04 | Middleware auth (routes protégées) | Faible | ✅ | — |
+| B05 | Schéma BDD initial (users, sessions, cards, votes) | Moyenne | ✅ | — |
 
 ## Priorité 2 — Sessions (CCP1 + CCP2)
 
 | ID | Fonctionnalité | Complexité | Statut | US liée |
 |---|---|---|---|---|
-| B06 | Créer une session | Faible | ⬜ | US-04 |
-| B07 | Lister ses sessions | Faible | ⬜ | US-05 |
-| B08 | Rejoindre une session | Moyenne | ⬜ | US-06 |
-| B09 | Vue détail d'une session | Faible | ⬜ | — |
+| B06 | Créer une session | Faible | ✅ | US-04 |
+| B07 | Lister ses sessions | Faible | ✅ | US-05 |
+| B08 | Rejoindre une session | Moyenne | ✅ | US-06 |
+| B09 | Vue détail d'une session | Faible | ✅ | — |
 
 ## Priorité 3 — Rétrospective (CCP1 + CCP2)
 
 | ID | Fonctionnalité | Complexité | Statut | US liée |
 |---|---|---|---|---|
-| B10 | Ajouter une carte | Faible | ⬜ | US-07 |
+| B10 | Ajouter une carte | Faible | ✅ | US-07 |
 | B11 | Modifier sa carte | Faible | ⬜ | US-07 |
-| B12 | Supprimer sa carte | Très faible | ⬜ | US-07 |
-| B13 | Voir les cartes des autres | Faible | ⬜ | US-07 |
+| B12 | Supprimer sa carte | Très faible | ✅ | US-07 |
+| B13 | Voir les cartes des autres | Faible | ✅ | US-07 |
 
 ## Priorité 4 — Votes (CCP1 + CCP2)
 
 | ID | Fonctionnalité | Complexité | Statut | US liée |
 |---|---|---|---|---|
-| B14 | Voter pour une carte | Moyenne | ⬜ | US-08 |
-| B15 | Vue résultats triés par votes | Faible | ⬜ | US-09 |
+| B14 | Voter pour une carte | Moyenne | ✅ | US-08 |
+| B15 | Vue résultats triés par votes | Faible | ✅ | US-09 |
 
 ## Priorité 5 — Polish MVP
 
 | ID | Fonctionnalité | Complexité | Statut |
 |---|---|---|---|
 | B16 | Responsive design basique | Faible | ⬜ |
-| B17 | Messages d'erreur cohérents | Très faible | ⬜ |
-| B18 | États de chargement (loading) | Très faible | ⬜ |
+| B17 | Messages d'erreur cohérents | Très faible | 🔵 Toasts + `AppError` en place, pas exhaustif partout |
+| B18 | États de chargement (loading) | Très faible | ✅ |
 
 ## Hors scope V1
 
