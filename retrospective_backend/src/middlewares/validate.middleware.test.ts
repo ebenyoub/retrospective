@@ -22,6 +22,22 @@ describe("validate middleware", () => {
     expect(next).toHaveBeenCalledWith();
   });
 
+  it("ne réassigne pas req.query si le schéma ne valide pas query", async () => {
+    const middleware = validate(schema);
+    const req = { body: { username: "Elyas" } } as unknown as Request;
+    Object.defineProperty(req, "query", {
+      get: () => ({}),
+      enumerable: true,
+      configurable: true,
+    });
+    const res = {} as Response;
+    const next = vi.fn();
+
+    await middleware(req, res, next);
+
+    expect(next).toHaveBeenCalledWith();
+  });
+
   it("appelle next() avec une AppError si la validation échoue", async () => {
     const middleware = validate(schema);
     const req = { body: { username: "El" } } as unknown as Request;
