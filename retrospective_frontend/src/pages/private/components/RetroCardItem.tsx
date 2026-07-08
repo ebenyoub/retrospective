@@ -18,14 +18,16 @@ interface RetroCardItemProps {
   onVote: (cardId: number) => Promise<void> | void;
   onUpdateCard?: (cardId: number, content: string) => Promise<boolean> | boolean;
   onDeleteCard?: (cardId: number) => Promise<void> | void;
+  canVote?: boolean;
+  canEdit?: boolean;
 }
 
-const RetroCardItem = ({ card, accentClassName, currentUserId, onVote, onUpdateCard, onDeleteCard }: RetroCardItemProps) => {
+const RetroCardItem = ({ card, accentClassName, currentUserId, onVote, onUpdateCard, onDeleteCard, canVote = true, canEdit = true }: RetroCardItemProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [draftContent, setDraftContent] = useState(card.content);
   const isAuthor = currentUserId === card.authorId;
-  const canUpdate = onUpdateCard && isAuthor;
-  const canDelete = onDeleteCard && isAuthor;
+  const canUpdate = onUpdateCard && isAuthor && canEdit;
+  const canDelete = onDeleteCard && isAuthor && canEdit;
 
   const handleEditSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -103,7 +105,7 @@ const RetroCardItem = ({ card, accentClassName, currentUserId, onVote, onUpdateC
             Supprimer
           </Button>
         )}
-        {!isEditing && (
+        {!isEditing && canVote && (
           <Button
             type="button"
             onClick={() => onVote(card.id)}
