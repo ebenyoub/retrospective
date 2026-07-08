@@ -129,6 +129,33 @@
 
 ---
 
+## Sprint 6 — Cœur métier MVP : votes, résultats, rôles, delete-card, Express 5
+
+**Objectif** : livrer les dernières briques du cœur métier (votes, vue résultats, rôle affiché), migrer Express 5, déduplicater l'UI frontend, démarrer la suppression de carte.
+
+**Période** : 2026-07-08
+
+| ID | Tâche | Statut | Notes |
+|---|---|---|---|
+| S6-01 | Amélioration middleware d'erreur (`AppError`, `errorHandler`) | ✅ | PR #3, `refactor/session-service-model` |
+| S6-02 | Réorganisation backend sous `src/` (7 étapes) | ✅ | PR #4, `refactor/backend-architecture` |
+| S6-03 | Migration Express 4 → 5 | ✅ | PR #5, `refactor/express5`, zéro changement fonctionnel |
+| S6-04 | Système de votes — backend | ✅ | PR #6, `feature/voting-backend`, pattern controller→service→model, limite 5 votes/session |
+| S6-05 | Système de votes — frontend | ✅ | PR #7, `feature/vote-ui`, bouton + compteur sur `RetroCardItem.tsx` |
+| S6-06 | Composant `FormField` (dédup formulaires) | ✅ | PR #8, `refactor/frontend-ui-components` |
+| S6-07 | Vue résultats triée par votes (US-09) | ✅ | PR #9, `feature/results-view` |
+| S6-08 | Badge de rôle facilitateur/participant | ✅ | PR #10, `feature/session-role-badge`, composant `Badge` créé |
+| S6-09 | Suppression de carte — backend | ✅ | `feature/delete-card`, `DELETE /session/:sessionId/cards/:cardId`, PR **non mergée** |
+| S6-10 | Suppression de carte — frontend | ✅ | Bouton auteur uniquement, `DELETE`, refetch, toast erreur |
+
+**Preuve de validation (2026-07-08)** :
+- Backend : 58/58 tests passés (dernière exécution, ticket delete-card), `npx tsc --noEmit` propre à chaque étape
+- Frontend : 26/26 tests passés (après suppression frontend), `npm run build` et `npm run lint` propres
+
+**Prochaine tâche proposée** : B16, responsive design basique du tableau, après revue/merge de `feature/delete-card`.
+
+---
+
 ## Template sprint suivant
 
 ```markdown

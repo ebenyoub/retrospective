@@ -43,7 +43,7 @@ const COLUMNS: {
 
 const SessionDashboard = () => {
   const { id } = useParams();
-  const { isAuthenticated, token } = useAuth();
+  const { isAuthenticated, token, userId } = useAuth();
   const { addToast } = useToast();
   const navigate = useNavigate();
   const [cards, setCards] = useState<RetroCard[]>([]);
@@ -149,6 +149,28 @@ const SessionDashboard = () => {
     }
   };
 
+  const handleDeleteCard = async (cardId: number) => {
+    if (!id || !token) return;
+
+    try {
+      const response = await fetch(`http://localhost:8000/session/${id}/cards/${cardId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        await fetchCards();
+      } else {
+        addToast('error', data.message || 'Impossible de supprimer la carte.');
+      }
+    } catch (error) {
+      console.error('Erreur lors de la suppression de la carte :', error);
+      addToast('error', 'Erreur de connexion au serveur.');
+    }
+  };
+
   const resultsCards = [...cards].sort((a, b) => b.votesCount - a.votesCount);
 
   return (
@@ -177,8 +199,10 @@ const SessionDashboard = () => {
               accentClassName={column.accentClassName}
               emptyMessage={column.emptyMessage}
               cards={cards.filter((card) => card.columnType === column.key)}
+              currentUserId={userId}
               onAddCard={(content) => handleAddCard(column.key, content)}
               onVote={handleVote}
+              onDeleteCard={handleDeleteCard}
             />
           ))}
         </div>
@@ -189,7 +213,9 @@ const SessionDashboard = () => {
           accentClassName="border-l-slate-400"
           emptyMessage="Aucune carte pour l'instant."
           cards={resultsCards}
+          currentUserId={userId}
           onVote={handleVote}
+          onDeleteCard={handleDeleteCard}
         />
       )}
     </Container>

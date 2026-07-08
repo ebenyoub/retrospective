@@ -14,6 +14,11 @@ interface CardRow extends RowDataPacket {
   votes_count: number;
 }
 
+interface CardOwnerRow extends RowDataPacket {
+  id: number;
+  author_id: number;
+}
+
 type ColumnType = "start" | "stop" | "continue";
 
 const VALID_COLUMN_TYPES: ColumnType[] = ["start", "stop", "continue"];
@@ -126,6 +131,53 @@ export const getCards = async (req: AuthRequest, res: Response) => {
     return res.status(500).json({
       success: false,
       message: "Une erreur est survenue lors de la récupération des cartes."
+    });
+  }
+};
+
+export const deleteCard = async (req: AuthRequest, res: Response) => {
+  const { userId } = req.user;
+  const { cardId } = req.params;
+
+  try {
+    const [cardRows] = await db.execute<CardOwnerRow[]>(
+      "select id, author_id from retro_cards where id = ?",
+      [cardId]
+    );
+
+    if (!cardRows.length) {
+      logger.error(`❌ Carte introuvable : ${cardId}`);
+      return res.status(404).json({
+        success: false,
+        message: "Carte introuvable."
+      });
+    }
+
+    if (cardRows[0].author_id !== userId) {
+      logger.error(`❌ L'utilisateur ${userId} n'est pas l'auteur de la carte ${cardId}`);
+      return res.status(403).json({
+        success: false,
+        message: "Vous ne pouvez supprimer que vos propres cartes."
+      });
+    }
+
+    // Les votes n'ont pas de suppression en cascade en base : on les retire
+    // explicitement avant de supprimer la carte (sinon contrainte de clé étrangère).
+    await db.execute("delete from votes where card_id = ?", [cardId]);
+    await db.execute("delete from retro_cards where id = ?", [cardId]);
+
+    logger.info(`✅ Carte supprimée : ${cardId}`);
+
+    return res.status(200).json({
+      success: true,
+      message: "Carte supprimée."
+    });
+
+  } catch (error) {
+    logger.error(`❌ Erreur lors de la suppression de la carte : ${error}`);
+    return res.status(500).json({
+      success: false,
+      message: "Une erreur est survenue lors de la suppression de la carte."
     });
   }
 };

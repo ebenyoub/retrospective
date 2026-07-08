@@ -8,11 +8,23 @@ interface RetroColumnProps {
   accentClassName: string;
   cards: RetroCard[];
   emptyMessage: string;
+  currentUserId: number | null;
   onAddCard?: (content: string) => Promise<void> | void;
   onVote: (cardId: number) => Promise<void> | void;
+  onDeleteCard?: (cardId: number) => Promise<void> | void;
 }
 
-const RetroColumn = ({ title, dotClassName, accentClassName, cards, emptyMessage, onAddCard, onVote }: RetroColumnProps) => {
+const RetroColumn = ({
+  title,
+  dotClassName,
+  accentClassName,
+  cards,
+  emptyMessage,
+  currentUserId,
+  onAddCard,
+  onVote,
+  onDeleteCard,
+}: RetroColumnProps) => {
   return (
     <div className="flex flex-col bg-slate-900 border border-white/10 rounded-xl overflow-hidden min-h-64">
       <div className="flex items-center gap-2 px-4 py-3 border-b border-white/10">
@@ -26,7 +38,14 @@ const RetroColumn = ({ title, dotClassName, accentClassName, cards, emptyMessage
           <p className="text-sm text-slate-500 text-center py-8">{emptyMessage}</p>
         ) : (
           cards.map((card) => (
-            <RetroCardItem key={card.id} card={card} accentClassName={accentClassName} onVote={onVote} />
+            <RetroCardItem
+              key={card.id}
+              card={card}
+              accentClassName={accentClassName}
+              currentUserId={currentUserId}
+              onVote={onVote}
+              onDeleteCard={onDeleteCard}
+            />
           ))
         )}
       </div>

@@ -20,8 +20,9 @@ const createDashboardFetchMock = (options: {
   cardsSequence: unknown[];
   voteResponse?: unknown;
   addCardResponse?: unknown;
+  deleteCardResponse?: unknown;
 }) => {
-  const { cardsSequence, voteResponse, addCardResponse } = options;
+  const { cardsSequence, voteResponse, addCardResponse, deleteCardResponse } = options;
   let cardsCallIndex = 0;
 
   return vi.fn().mockImplementation((url: string, init?: RequestInit) => {
@@ -35,6 +36,9 @@ const createDashboardFetchMock = (options: {
     }
     if (method === 'POST' && url.endsWith('/cards')) {
       return Promise.resolve(addCardResponse);
+    }
+    if (method === 'DELETE') {
+      return Promise.resolve(deleteCardResponse);
     }
 
     const response = cardsSequence[Math.min(cardsCallIndex, cardsSequence.length - 1)];
@@ -323,6 +327,117 @@ describe('SessionDashboard', () => {
 
     await vi.waitFor(() => {
       expect(addToastMock).toHaveBeenCalledWith('error', 'Vous avez déjà voté pour cette carte');
+    });
+  });
+
+  it("affiche le bouton de suppression uniquement sur les cartes de l'utilisateur connecté", async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          success: true,
+          data: [
+            {
+              id: 1,
+              sessionId: 1,
+              authorId: 1,
+              columnType: 'start',
+              content: 'Ma carte',
+              createdAt: '2026-07-07T10:00:00.000Z',
+              votesCount: 0,
+            },
+            {
+              id: 2,
+              sessionId: 1,
+              authorId: 2,
+              columnType: 'stop',
+              content: "Carte d'un autre participant",
+              createdAt: '2026-07-07T10:01:00.000Z',
+              votesCount: 0,
+            },
+          ],
+        }),
+      })
+    );
+
+    renderDashboard();
+
+    expect(await screen.findByText('Ma carte')).toBeTruthy();
+    expect(screen.getByText("Carte d'un autre participant")).toBeTruthy();
+    expect(screen.getAllByRole('button', { name: 'Supprimer' })).toHaveLength(1);
+  });
+
+  it('supprime une carte avec succès et rafraîchit les cartes', async () => {
+    const fetchMock = createDashboardFetchMock({
+      cardsSequence: [
+        {
+          ok: true,
+          json: async () => ({
+            success: true,
+            data: [
+              {
+                id: 1,
+                sessionId: 1,
+                authorId: 1,
+                columnType: 'start',
+                content: 'Carte à supprimer',
+                createdAt: '2026-07-07T10:00:00.000Z',
+                votesCount: 0,
+              },
+            ],
+          }),
+        },
+        emptyCardsResponse,
+      ],
+      deleteCardResponse: { ok: true, json: async () => ({ success: true, message: 'Carte supprimée.' }) },
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderDashboard();
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Supprimer' }));
+
+    await vi.waitFor(() => {
+      expect(screen.queryByText('Carte à supprimer')).toBeNull();
+    });
+    expect(addToastMock).not.toHaveBeenCalled();
+  });
+
+  it("affiche un toast d'erreur si la suppression est refusée par le backend", async () => {
+    const fetchMock = createDashboardFetchMock({
+      cardsSequence: [
+        {
+          ok: true,
+          json: async () => ({
+            success: true,
+            data: [
+              {
+                id: 1,
+                sessionId: 1,
+                authorId: 1,
+                columnType: 'start',
+                content: 'Carte à supprimer',
+                createdAt: '2026-07-07T10:00:00.000Z',
+                votesCount: 0,
+              },
+            ],
+          }),
+        },
+      ],
+      deleteCardResponse: {
+        ok: false,
+        json: async () => ({ success: false, message: 'Vous ne pouvez supprimer que vos propres cartes.' }),
+      },
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderDashboard();
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Supprimer' }));
+
+    await vi.waitFor(() => {
+      expect(addToastMock).toHaveBeenCalledWith('error', 'Vous ne pouvez supprimer que vos propres cartes.');
     });
   });
 

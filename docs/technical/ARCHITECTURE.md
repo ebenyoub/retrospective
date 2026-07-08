@@ -29,7 +29,9 @@ retrospective/
 └── docs/              # Documentation
 ```
 
-**État réel (2026-07-08)** : seul le domaine `session` a été entièrement migré vers le pattern `controller → service → model` (route `GET /session`). Tous les autres controllers (`auth`, `create`, `join`, `card`) ont été **déplacés physiquement** sous `src/controllers/` mais **contiennent toujours du SQL inline** — le déplacement de fichiers (ce ticket) et le refactor de logique (futur ticket) sont deux choses distinctes. Voir `docs/TODO.md` pour la dette restante.
+**État réel (2026-07-08, fin de journée)** : deux routes suivent entièrement le pattern `controller → service → model` : `GET /session` (liste) et `POST /session/:sessionId/cards/:cardId/vote` (vote). Tous les autres controllers (`auth`, `create`, `join`, `card` create/get/delete) sont **déplacés physiquement** sous `src/controllers/` mais **contiennent toujours du SQL inline** — le déplacement de fichiers et le refactor de logique sont deux choses distinctes, volontairement séparées. Voir `docs/TODO.md` pour la dette restante.
+
+Le endpoint `DELETE /session/:sessionId/cards/:cardId` (suppression de carte, `card.controller.ts`) est livré côté backend sur `feature/delete-card`. Le frontend consomme cet endpoint depuis `SessionDashboard.tsx` avec un bouton visible uniquement pour l'auteur de la carte.
 
 ## Frontend
 
@@ -54,7 +56,7 @@ Page → Hook custom → Fetch API → Backend
 ## Backend
 
 **Runtime** : Node.js
-**Framework** : Express **4** (`^4.19.2`) — pas Express 5, malgré des demandes formulées en ce sens ; voir `docs/TODO.md`
+**Framework** : Express **5** (`^5.2.1`, migré depuis 4.22.2 le 2026-07-08, `refactor/express5`) — zéro changement de code applicatif, `asyncHandler` conservé volontairement pour cohérence
 **Auth** : JWT (jsonwebtoken)
 **Hachage** : bcrypt
 **Email** : nodemailer
@@ -64,19 +66,31 @@ Page → Hook custom → Fetch API → Backend
 
 ```
 Client → server.ts → src/routes/*.routes.ts → src/middlewares/auth.middleware.ts
-   → src/controllers/*.controller.ts → (session uniquement) src/services/session.service.ts
+   → src/controllers/*.controller.ts → (session/list et vote uniquement) src/services/*.service.ts
    → src/models/*.ts → MySQL → réponse JSON
 ```
 
-Pour tous les domaines sauf `session` (lecture des sessions), le contrôleur fait encore directement l'accès SQL — le schéma ci-dessus représente la cible, pas encore la réalité partout.
+Pour tous les domaines sauf `session/list` et `vote`, le contrôleur fait encore directement l'accès SQL — le schéma ci-dessus représente la cible, pas encore la réalité partout.
 
 ### Gestion des erreurs
 
-`src/utils/errorHandler.ts` (middleware centralisé) + `src/utils/asyncHandler.ts` (wrapper Express 4 pour transmettre les rejets de promesse) + `src/utils/AppError.ts` (erreur typée avec `statusCode`/`code`/`details`). Uniquement branché sur `GET /session` pour l'instant.
+`src/utils/errorHandler.ts` (middleware centralisé) + `src/utils/asyncHandler.ts` (wrapper pour transmettre les rejets de promesse au middleware d'erreur, conservé après la migration Express 5 par cohérence) + `src/utils/AppError.ts` (erreur typée avec `statusCode`/`code`/`details`). Branché sur `GET /session` et `POST .../vote`.
 
 ### Routes principales
 
-`src/routes/auth.routes.ts` (montée sur `/auth`) et `src/routes/session.routes.ts` (montée sur `/session`). Détail des routes dans `docs/technical/API.md` (à vérifier/actualiser séparément).
+`src/routes/auth.routes.ts` (montée sur `/auth`, 7 routes) et `src/routes/session.routes.ts` (montée sur `/session`) :
+
+```ts
+router.get('/', auth, asyncHandler(listSessions));
+router.post('/create-session', auth, createSession);
+router.post('/join', auth, joinSession);
+router.post('/:sessionId/cards', auth, createCard);
+router.get('/:sessionId/cards', auth, getCards);
+router.delete('/:sessionId/cards/:cardId', auth, deleteCard);
+router.post('/:sessionId/cards/:cardId/vote', auth, asyncHandler(voteForCard));
+```
+
+Détail complet dans `docs/technical/API.md` (à vérifier/actualiser séparément).
 
 ## Base de données
 
