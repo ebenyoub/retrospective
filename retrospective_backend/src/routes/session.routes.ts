@@ -14,7 +14,7 @@ router.post('/create-session', auth, createSession);
 router.post('/join', auth, joinSession);
 router.post('/:sessionId/cards', auth, createCard);
 router.get('/:sessionId/cards', auth, getCards);
-router.patch('/:sessionId/cards/:cardId', auth, updateCard);
+router.patch('/:sessionId/cards/:cardId', auth, asyncHandler(updateCard));
 router.delete('/:sessionId/cards/:cardId', auth, deleteCard);
 router.post('/:sessionId/cards/:cardId/vote', auth, asyncHandler(voteForCard));
 

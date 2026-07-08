@@ -3,6 +3,7 @@ import { Response } from "express";
 import db from '../models/db';
 import { AuthRequest, SessionLookupRow } from '../types';
 import { logger } from '../utils/logger';
+import { updateOwnCard } from "../services/card.service";
 
 interface CardRow extends RowDataPacket {
   id: number;
@@ -140,55 +141,12 @@ export const updateCard = async (req: AuthRequest, res: Response) => {
   const { sessionId, cardId } = req.params;
   const { content } = req.body;
 
-  if (!content || typeof content !== "string" || content.trim() === "") {
-    logger.error("❌ Le contenu de la carte est requis.");
-    return res.status(400).json({
-      success: false,
-      message: "Le contenu de la carte est requis."
-    });
-  }
+  await updateOwnCard(userId, Number(sessionId), Number(cardId), content);
 
-  try {
-    const [cardRows] = await db.execute<CardOwnerRow[]>(
-      "select id, author_id from retro_cards where id = ? and session_id = ?",
-      [cardId, sessionId]
-    );
-
-    if (!cardRows.length) {
-      logger.error(`❌ Carte introuvable : ${cardId}`);
-      return res.status(404).json({
-        success: false,
-        message: "Carte introuvable."
-      });
-    }
-
-    if (cardRows[0].author_id !== userId) {
-      logger.error(`❌ L'utilisateur ${userId} n'est pas l'auteur de la carte ${cardId}`);
-      return res.status(403).json({
-        success: false,
-        message: "Vous ne pouvez modifier que vos propres cartes."
-      });
-    }
-
-    await db.execute(
-      "update retro_cards set content = ? where id = ? and session_id = ?",
-      [content.trim(), cardId, sessionId]
-    );
-
-    logger.info(`✅ Carte modifiée : ${cardId}`);
-
-    return res.status(200).json({
-      success: true,
-      message: "Carte modifiée."
-    });
-
-  } catch (error) {
-    logger.error(`❌ Erreur lors de la modification de la carte : ${error}`);
-    return res.status(500).json({
-      success: false,
-      message: "Une erreur est survenue lors de la modification de la carte."
-    });
-  }
+  return res.status(200).json({
+    success: true,
+    message: "Carte modifiée."
+  });
 };
 
 export const deleteCard = async (req: AuthRequest, res: Response) => {

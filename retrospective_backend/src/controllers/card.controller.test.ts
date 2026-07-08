@@ -6,12 +6,18 @@ vi.mock("../models/db", () => ({
   default: { execute: vi.fn() },
 }));
 
+vi.mock("../services/card.service", () => ({
+  updateOwnCard: vi.fn(),
+}));
+
 import db from '../models/db';
 import { auth } from '../middlewares/auth.middleware';
 import { createCard, getCards, updateCard, deleteCard } from "./card.controller";
+import { updateOwnCard } from "../services/card.service";
 import type { AuthRequest } from '../types';
 
 const mockExecute = db.execute as unknown as Mock;
+const mockUpdateOwnCard = updateOwnCard as unknown as Mock;
 
 const createMockResponse = () => {
   const res = {
@@ -42,6 +48,7 @@ const createMockRequest = (
 describe("card.controller", () => {
   beforeEach(() => {
     mockExecute.mockReset();
+    mockUpdateOwnCard.mockReset();
   });
 
   it("refuse sans token (protection déléguée à auth.middleware, déjà testé unitairement)", () => {
@@ -174,41 +181,8 @@ describe("card.controller", () => {
     expect(next).not.toHaveBeenCalled();
   });
 
-  it("PATCH : renvoie 400 si le contenu est vide", async () => {
-    const req = createMockRequest({ content: "   " }, { sessionId: "1", cardId: "5" });
-    const res = createMockResponse();
-
-    await updateCard(req, res as unknown as Response);
-
-    expect(res.statusCode).toBe(400);
-  });
-
-  it("PATCH : renvoie 404 si la carte n'existe pas dans cette session", async () => {
-    mockExecute.mockResolvedValueOnce([[]]);
-
-    const req = createMockRequest({ content: "Texte modifié" }, { sessionId: "1", cardId: "5" });
-    const res = createMockResponse();
-
-    await updateCard(req, res as unknown as Response);
-
-    expect(res.statusCode).toBe(404);
-  });
-
-  it("PATCH : renvoie 403 si l'utilisateur n'est pas l'auteur de la carte", async () => {
-    mockExecute.mockResolvedValueOnce([[{ id: 5, author_id: 2 }]]);
-
-    const req = createMockRequest({ content: "Texte modifié" }, { sessionId: "1", cardId: "5" });
-    const res = createMockResponse();
-
-    await updateCard(req, res as unknown as Response);
-
-    expect(res.statusCode).toBe(403);
-  });
-
-  it("PATCH : modifie la carte si l'utilisateur en est l'auteur", async () => {
-    mockExecute.mockResolvedValueOnce([[{ id: 5, author_id: 1 }]]);
-    mockExecute.mockResolvedValueOnce([{ affectedRows: 1 }]);
-
+  it("PATCH : appelle le service puis renvoie 200", async () => {
+    mockUpdateOwnCard.mockResolvedValueOnce(undefined);
     const req = createMockRequest({ content: " Texte modifié " }, { sessionId: "1", cardId: "5" });
     const res = createMockResponse();
 
@@ -217,11 +191,15 @@ describe("card.controller", () => {
     expect(res.statusCode).toBe(200);
     const body = res.body as { success: boolean };
     expect(body.success).toBe(true);
-    expect(mockExecute).toHaveBeenNthCalledWith(
-      2,
-      expect.stringContaining("update retro_cards set content = ?"),
-      ["Texte modifié", "5", "1"]
-    );
+    expect(mockUpdateOwnCard).toHaveBeenCalledWith(1, 1, 5, " Texte modifié ");
+  });
+
+  it("PATCH : ne capture pas les erreurs du service (remontée au middleware d'erreur)", async () => {
+    mockUpdateOwnCard.mockRejectedValueOnce(new Error("boom"));
+    const req = createMockRequest({ content: "Texte modifié" }, { sessionId: "1", cardId: "5" });
+    const res = createMockResponse();
+
+    await expect(updateCard(req, res as unknown as Response)).rejects.toThrow("boom");
   });
 
   it("DELETE : renvoie 404 si la carte n'existe pas", async () => {
