@@ -23,7 +23,7 @@ const RetroCardItem = ({ card, accentClassName, currentUserId, onVote, onDeleteC
 
   return (
     <div className={`bg-slate-800 border border-white/10 border-l-4 ${accentClassName} rounded-lg p-3`}>
-      <p className="text-sm text-slate-100 leading-relaxed">{card.content}</p>
+      <p className="text-sm text-slate-100 leading-relaxed break-words">{card.content}</p>
       <div className="flex items-center justify-end gap-2 mt-2 flex-wrap">
         <span className="text-xs font-mono text-slate-400">
           {card.votesCount} vote{card.votesCount !== 1 ? "s" : ""}

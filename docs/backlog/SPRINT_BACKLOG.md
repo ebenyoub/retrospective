@@ -156,6 +156,25 @@
 
 ---
 
+## Sprint 7 — Polish MVP responsive
+
+**Objectif** : rendre les vues MVP lisibles sur mobile/tablette sans refonte visuelle.
+
+**Période** : 2026-07-08
+
+| ID | Tâche | Statut | Notes |
+|---|---|---|---|
+| S7-01 | Formulaires auth/profil fluides sur mobile | ✅ | `FormContainer` passe en `w-full max-w-md min-w-0`, `SpinContainer` borné |
+| S7-02 | Header et menu profil adaptatifs | ✅ | wrap des boutons, espacements réduits sur mobile |
+| S7-03 | Dashboard responsive | ✅ | en-tête empilé sur mobile, bouton plein largeur, grille 1/2/3 colonnes |
+| S7-04 | Liste de sessions responsive | ✅ | cartes empilées sur mobile, badge conservé sans débordement |
+
+**Preuve de validation (2026-07-08)** :
+- Frontend : `npm run lint`, `npm run test` (26/26), `npm run build`
+- Vérification locale : serveur Vite + captures Playwright CLI sur Home mobile 390px, Login mobile 390px, Home tablette 768px
+
+---
+
 ## Template sprint suivant
 
 ```markdown

@@ -146,7 +146,7 @@ const Forgot = () => {
   // --- RENDER ---
   return (
     <Container className="flex justify-center items-center min-h-[60vh]">
-      <SpinContainer onSpin={isLoading}>
+      <SpinContainer onSpin={isLoading} className="w-full max-w-md">
 
         {globalError && (
           <div className="mb-4 p-3 bg-red-500/20 border border-red-500 text-red-200 rounded text-center text-sm">

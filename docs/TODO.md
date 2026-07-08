@@ -23,8 +23,8 @@
 
 ## À faire maintenant (mis à jour 2026-07-08 fin de journée)
 
-- [ ] Mettre à jour / ouvrir la PR `feature/delete-card` avec la suppression frontend + backend, puis attendre review.
-- [ ] Merger la PR ouverte `feature/delete-card` après review (ne pas merger maintenant).
+- [ ] Relire puis merger la PR #12 `feature/responsive-mvp` après review (ne pas merger maintenant).
+- [ ] Préparer la démo locale : recréer `retrospective_backend/.env` depuis `.env.example`.
 
 ## À faire ensuite (mis à jour 2026-07-08)
 
@@ -33,7 +33,7 @@
 - [ ] **Dette d'architecture backend** : seuls `src/controllers/list.controller.ts` (`GET /session`) et `src/controllers/vote.controller.ts` (`POST .../vote`) suivent le pattern complet `controller → service → model`. Tous les autres controllers (`login`, `signup`, `forgot`, `code`, `reset`, `delete`, `profile`, `create`, `join`, `card`) font toujours du SQL inline. Généraliser le pattern est une refonte large, volontairement non faite.
 - [ ] `validators/` (dossier prévu dans l'architecture cible) n'a jamais été créé — aucune librairie de validation (zod/joi/yup) côté backend.
 - [ ] Modification d'une carte existante (US-07, B11) — jamais commencée, pas dans la checklist stricte du MVP.
-- [ ] Responsive design (B16) — jamais vérifié explicitement sur mobile.
+- [x] Responsive design basique (B16) — formulaires fluides, header/menu qui wrap, dashboard en 1/2/3 colonnes selon largeur, captures mobile/tablette vérifiées.
 - [ ] `mail.controller.ts` et `test_transporter.js` (racine backend) — code mort, jamais branché à une route, à supprimer un jour.
 - [ ] **`.env` backend manquant sur le disque** (effet de bord d'une purge d'historique Git antérieure) — à recréer depuis `.env.example` avec de vraies valeurs avant de pouvoir démarrer le serveur en local. Potentiellement bloquant pour une démo/soutenance.
 - [ ] Secrets (`JWT_SECRET`, `GMAIL_APP_PASSWORD`) à régénérer — exposés en clair dans un historique Git local avant purge.

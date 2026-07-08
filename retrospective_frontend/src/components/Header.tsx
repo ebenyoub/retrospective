@@ -29,10 +29,10 @@ const Header = () => {
     // }
 
     return (
-        <header className="flex justify-between items-center h-16 w-full px-4 bg-background shadow-sm shadow-white">
-            <Container className="flex justify-between items-center">
-                <NavLink to="/"><h1 className="uppercase">rtc</h1></NavLink>
-                <nav className="flex gap-4">
+        <header className="flex w-full items-center bg-background px-2 py-2 shadow-sm shadow-white sm:px-4">
+            <Container className="flex flex-wrap items-center justify-between gap-3 py-0">
+                <NavLink to="/" className="shrink-0"><h1 className="uppercase">rtc</h1></NavLink>
+                <nav className="flex flex-wrap justify-end gap-2">
                     {!isAuthenticated ? (
                         <>
                             <NavLink to={"/signup"}><Button>S'inscrire</Button></NavLink>

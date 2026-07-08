@@ -70,12 +70,12 @@ const Profile = () => {
   return (
     <>
       {step === 'MENU' && (
-        <Container>
-          <div className="flex justify-between align-items">
-            <h1>Profile</h1>
+        <Container className="flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <h1 className="text-xl font-bold">Profile</h1>
           </div>
-          <h2>Bienvenue {username}</h2>
-          <div className="flex gap-5 mt-8">
+          <h2 className="text-slate-200">Bienvenue {username}</h2>
+          <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <Button onClick={() => setStep("CODE")}>Rejoindre un groupe</Button>
             <Button onClick={() => navigate("/session")}>Créer une rétrospective</Button>
             <Button onClick={() => navigate("/sessions")}>Mes sessions</Button>
@@ -85,7 +85,7 @@ const Profile = () => {
 
       {step === 'CODE' && (
         <Container className="flex justify-center items-center min-h-[60vh]">
-          <SpinContainer onSpin>
+          <SpinContainer onSpin className="w-full max-w-md">
             <FormContainer onSubmit={handleCodeSubmit}>
               <FormTitle>Code de la rétrospective</FormTitle>
 

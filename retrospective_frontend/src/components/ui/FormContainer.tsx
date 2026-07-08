@@ -62,7 +62,7 @@ const FormContainer = React.forwardRef<HTMLFormElement, FormContainerProps>(({ c
   return (
     <form
       ref={ref}
-      className={cn('bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm min-w-md w-fit p-6', className)}
+      className={cn('bg-card text-card-foreground flex w-full max-w-md min-w-0 flex-col gap-6 rounded-xl border p-4 shadow-sm sm:p-6', className)}
       {...props}
     >
       {children}
