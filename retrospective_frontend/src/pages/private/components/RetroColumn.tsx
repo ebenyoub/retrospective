@@ -13,6 +13,8 @@ interface RetroColumnProps {
   onVote: (cardId: number) => Promise<void> | void;
   onUpdateCard?: (cardId: number, content: string) => Promise<boolean> | boolean;
   onDeleteCard?: (cardId: number) => Promise<void> | void;
+  canVote?: boolean;
+  canEdit?: boolean;
 }
 
 const RetroColumn = ({
@@ -26,6 +28,8 @@ const RetroColumn = ({
   onVote,
   onUpdateCard,
   onDeleteCard,
+  canVote = true,
+  canEdit = true,
 }: RetroColumnProps) => {
   return (
     <div className="flex flex-col bg-slate-900 border border-white/10 rounded-xl overflow-hidden min-h-64">
@@ -48,6 +52,8 @@ const RetroColumn = ({
               onVote={onVote}
               onUpdateCard={onUpdateCard}
               onDeleteCard={onDeleteCard}
+              canVote={canVote}
+              canEdit={canEdit}
             />
           ))
         )}
