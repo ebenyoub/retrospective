@@ -5,7 +5,7 @@ import FormField from "@/components/ui/FormField";
 import SpinContainer from "@/components/ui/SpinContainer";
 import { getApiErrorMessage, isApiSuccess, NETWORK_ERROR_MESSAGE, readJsonSafely } from "@/lib/apiError";
 import React, { useState, type ChangeEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, NavLink } from "react-router-dom";
 
 type Step = 'EMAIL' | 'CODE' | 'NEW_PASSWORD';
 
@@ -161,9 +161,10 @@ const Forgot = () => {
             <FormTitle>Récupération du mot de passe</FormTitle>
             <FormField
               id="email"
-              label="Entrez votre email"
-              type="email"
+              label="Adresse e-mail"
+              type="text"
               value={email}
+              autoComplete="email"
               autoFocus
               disabled={isLoading}
               onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
@@ -173,6 +174,12 @@ const Forgot = () => {
             <Button disabled={isLoading}>
               {isLoading ? "Envoi..." : "Recevoir un code"}
             </Button>
+
+            <div className="flex flex-col gap-2 mt-4 text-center text-sm">
+                <NavLink to="/login" className="text-blue-400 hover:underline">
+                    Retour à la connexion
+                </NavLink>
+            </div>
           </FormContainer>
         )}
 
@@ -230,7 +237,7 @@ const Forgot = () => {
             />
             <FormField
               id="confirm"
-              label="confirmez le mot de passe"
+              label="Confirmation du nouveau mot de passe"
               type="password"
               value={confirmation}
               autoComplete="confirm"

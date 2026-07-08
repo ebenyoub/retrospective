@@ -29,9 +29,11 @@ const Header = () => {
     // }
 
     return (
-        <header className="flex w-full items-center bg-background px-2 py-2 shadow-sm shadow-white sm:px-4">
+        <header className="flex h-14 w-full items-center bg-slate-800 border-b border-white/10 px-2 sm:px-4">
             <Container className="flex flex-wrap items-center justify-between gap-3 py-0">
-                <NavLink to="/" className="shrink-0"><h1 className="uppercase">rtc</h1></NavLink>
+                <NavLink to="/" className="shrink-0 font-extrabold text-green-600 tracking-tight text-lg">
+                    Range ta chambre
+                </NavLink>
                 <nav className="flex flex-wrap justify-end gap-2">
                     {!isAuthenticated ? (
                         <>
