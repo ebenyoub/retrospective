@@ -1,6 +1,12 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import type { Response } from "express";
+
+vi.mock("../services/auth.service", () => ({
+  getProfile: vi.fn(({ userId, username }) => ({ userId, username })),
+}));
+
 import { profile } from "./profile.controller";
+import { getProfile } from "../services/auth.service";
 import type { AuthRequest } from '../types';
 
 const createMockResponse = () => {
@@ -22,5 +28,6 @@ describe("profile.controller", () => {
     profile(req, res as unknown as Response);
 
     expect(res.body).toEqual({ userId: 1, username: "Elyas" });
+    expect(getProfile).toHaveBeenCalledWith({ userId: 1, username: "Elyas" });
   });
 });

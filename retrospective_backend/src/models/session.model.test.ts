@@ -6,7 +6,15 @@ vi.mock("./db", () => ({
 }));
 
 import db from './db';
-import { findSessionsForUser } from "./session.model";
+import {
+  closeExpiredSessionsForOwner,
+  findActiveSessionForOwner,
+  findSessionByCode,
+  findSessionsForUser,
+  findSessionUserJoin,
+  insertSession,
+  insertSessionUserJoin,
+} from "./session.model";
 
 const mockExecute = db.execute as unknown as Mock;
 
@@ -45,5 +53,62 @@ describe("session.model", () => {
     const rows = await findSessionsForUser(1);
 
     expect(rows).toEqual([row]);
+  });
+
+  it("closeExpiredSessionsForOwner retourne affectedRows et changedRows", async () => {
+    mockExecute.mockResolvedValueOnce([{ affectedRows: 2, changedRows: 1 }]);
+
+    await expect(closeExpiredSessionsForOwner(1, "now")).resolves.toEqual({
+      affectedRows: 2,
+      changedRows: 1,
+    });
+  });
+
+  it("findActiveSessionForOwner retourne la première session active ou null", async () => {
+    const row = { id: 1, code: "1234" };
+    mockExecute.mockResolvedValueOnce([[row]]);
+
+    await expect(findActiveSessionForOwner(1, "now")).resolves.toBe(row);
+
+    mockExecute.mockResolvedValueOnce([[]]);
+
+    await expect(findActiveSessionForOwner(1, "now")).resolves.toBeNull();
+  });
+
+  it("insertSession retourne l'id inséré", async () => {
+    mockExecute.mockResolvedValueOnce([{ insertId: 7 }]);
+
+    await expect(insertSession("1234", 1, "2026-07-08 11:00:00")).resolves.toBe(7);
+  });
+
+  it("findSessionByCode retourne la première session ou null", async () => {
+    const row = { id: 1 };
+    mockExecute.mockResolvedValueOnce([[row]]);
+
+    await expect(findSessionByCode("1234")).resolves.toBe(row);
+
+    mockExecute.mockResolvedValueOnce([[]]);
+
+    await expect(findSessionByCode("9999")).resolves.toBeNull();
+  });
+
+  it("findSessionUserJoin retourne la première jointure ou null", async () => {
+    const row = { id: 5, user_id: 1, session_id: 1 };
+    mockExecute.mockResolvedValueOnce([[row]]);
+
+    await expect(findSessionUserJoin(1, 1)).resolves.toBe(row);
+
+    mockExecute.mockResolvedValueOnce([[]]);
+
+    await expect(findSessionUserJoin(1, 1)).resolves.toBeNull();
+  });
+
+  it("insertSessionUserJoin retourne affectedRows et insertId", async () => {
+    mockExecute.mockResolvedValueOnce([{ affectedRows: 1, insertId: 9 }]);
+
+    await expect(insertSessionUserJoin(1, 1)).resolves.toEqual({
+      affectedRows: 1,
+      insertId: 9,
+    });
   });
 });
