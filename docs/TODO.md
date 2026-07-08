@@ -23,7 +23,7 @@
 
 ## À faire maintenant (mis à jour 2026-07-08 fin de journée)
 
-- [ ] Ouvrir la PR `feature/responsive-mvp` avec les corrections responsive basiques, puis attendre review.
+- [ ] Relire puis merger la PR #12 `feature/responsive-mvp` après review (ne pas merger maintenant).
 - [ ] Préparer la démo locale : recréer `retrospective_backend/.env` depuis `.env.example`.
 
 ## À faire ensuite (mis à jour 2026-07-08)
