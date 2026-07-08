@@ -171,6 +171,35 @@ const SessionDashboard = () => {
     }
   };
 
+  const handleUpdateCard = async (cardId: number, content: string) => {
+    if (!id || !token) return false;
+
+    try {
+      const response = await fetch(`http://localhost:8000/session/${id}/cards/${cardId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ content }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        await fetchCards();
+        return true;
+      }
+
+      addToast('error', data.message || 'Impossible de modifier la carte.');
+      return false;
+    } catch (error) {
+      console.error('Erreur lors de la modification de la carte :', error);
+      addToast('error', 'Erreur de connexion au serveur.');
+      return false;
+    }
+  };
+
   const resultsCards = [...cards].sort((a, b) => b.votesCount - a.votesCount);
 
   return (
@@ -202,6 +231,7 @@ const SessionDashboard = () => {
               currentUserId={userId}
               onAddCard={(content) => handleAddCard(column.key, content)}
               onVote={handleVote}
+              onUpdateCard={handleUpdateCard}
               onDeleteCard={handleDeleteCard}
             />
           ))}
@@ -215,6 +245,7 @@ const SessionDashboard = () => {
           cards={resultsCards}
           currentUserId={userId}
           onVote={handleVote}
+          onUpdateCard={handleUpdateCard}
           onDeleteCard={handleDeleteCard}
         />
       )}

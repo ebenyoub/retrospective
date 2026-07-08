@@ -5,6 +5,20 @@ Format : `## [version ou date] — Description`
 
 ---
 
+## [2026-07-08] — Modification de sa propre carte
+
+### Ajouté
+- Endpoint `PATCH /session/:sessionId/cards/:cardId` pour modifier le contenu d'une carte.
+- Contrôle backend : seul l'auteur peut modifier sa carte, contenu non vide obligatoire.
+- Mode édition inline côté frontend, visible uniquement pour l'auteur de la carte.
+- Toast d'erreur si le backend refuse la modification.
+
+### Vérifié
+- Backend : `npm run test` → 62/62, `npx tsc --noEmit` OK.
+- Frontend : `npm run test` → 31/31, `npm run build` OK, `npm run lint` OK.
+
+---
+
 ## [2026-07-08] — Responsive basique MVP
 
 ### Modifié

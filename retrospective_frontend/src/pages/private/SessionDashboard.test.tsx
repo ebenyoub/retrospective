@@ -20,9 +20,10 @@ const createDashboardFetchMock = (options: {
   cardsSequence: unknown[];
   voteResponse?: unknown;
   addCardResponse?: unknown;
+  updateCardResponse?: unknown;
   deleteCardResponse?: unknown;
 }) => {
-  const { cardsSequence, voteResponse, addCardResponse, deleteCardResponse } = options;
+  const { cardsSequence, voteResponse, addCardResponse, updateCardResponse, deleteCardResponse } = options;
   let cardsCallIndex = 0;
 
   return vi.fn().mockImplementation((url: string, init?: RequestInit) => {
@@ -36,6 +37,9 @@ const createDashboardFetchMock = (options: {
     }
     if (method === 'POST' && url.endsWith('/cards')) {
       return Promise.resolve(addCardResponse);
+    }
+    if (method === 'PATCH') {
+      return Promise.resolve(updateCardResponse);
     }
     if (method === 'DELETE') {
       return Promise.resolve(deleteCardResponse);
@@ -366,6 +370,211 @@ describe('SessionDashboard', () => {
     expect(await screen.findByText('Ma carte')).toBeTruthy();
     expect(screen.getByText("Carte d'un autre participant")).toBeTruthy();
     expect(screen.getAllByRole('button', { name: 'Supprimer' })).toHaveLength(1);
+  });
+
+  it("affiche le bouton de modification uniquement sur les cartes de l'utilisateur connecté", async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          success: true,
+          data: [
+            {
+              id: 1,
+              sessionId: 1,
+              authorId: 1,
+              columnType: 'start',
+              content: 'Ma carte',
+              createdAt: '2026-07-07T10:00:00.000Z',
+              votesCount: 0,
+            },
+            {
+              id: 2,
+              sessionId: 1,
+              authorId: 2,
+              columnType: 'stop',
+              content: "Carte d'un autre participant",
+              createdAt: '2026-07-07T10:01:00.000Z',
+              votesCount: 0,
+            },
+          ],
+        }),
+      })
+    );
+
+    renderDashboard();
+
+    expect(await screen.findByText('Ma carte')).toBeTruthy();
+    expect(screen.getByText("Carte d'un autre participant")).toBeTruthy();
+    expect(screen.getAllByRole('button', { name: 'Modifier' })).toHaveLength(1);
+  });
+
+  it('modifie une carte avec succès et rafraîchit les cartes', async () => {
+    const fetchMock = createDashboardFetchMock({
+      cardsSequence: [
+        {
+          ok: true,
+          json: async () => ({
+            success: true,
+            data: [
+              {
+                id: 1,
+                sessionId: 1,
+                authorId: 1,
+                columnType: 'start',
+                content: 'Ancien contenu',
+                createdAt: '2026-07-07T10:00:00.000Z',
+                votesCount: 0,
+              },
+            ],
+          }),
+        },
+        {
+          ok: true,
+          json: async () => ({
+            success: true,
+            data: [
+              {
+                id: 1,
+                sessionId: 1,
+                authorId: 1,
+                columnType: 'start',
+                content: 'Nouveau contenu',
+                createdAt: '2026-07-07T10:00:00.000Z',
+                votesCount: 0,
+              },
+            ],
+          }),
+        },
+      ],
+      updateCardResponse: { ok: true, json: async () => ({ success: true, message: 'Carte modifiée.' }) },
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderDashboard();
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Modifier' }));
+    fireEvent.change(screen.getByLabelText('Modifier le contenu de la carte'), {
+      target: { value: 'Nouveau contenu' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Enregistrer' }));
+
+    expect(await screen.findByText('Nouveau contenu')).toBeTruthy();
+    expect(screen.queryByText('Ancien contenu')).toBeNull();
+    expect(addToastMock).not.toHaveBeenCalled();
+  });
+
+  it("n'envoie pas la modification si le contenu devient vide", async () => {
+    const fetchMock = createDashboardFetchMock({
+      cardsSequence: [
+        {
+          ok: true,
+          json: async () => ({
+            success: true,
+            data: [
+              {
+                id: 1,
+                sessionId: 1,
+                authorId: 1,
+                columnType: 'start',
+                content: 'Carte à modifier',
+                createdAt: '2026-07-07T10:00:00.000Z',
+                votesCount: 0,
+              },
+            ],
+          }),
+        },
+      ],
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderDashboard();
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Modifier' }));
+    fireEvent.change(screen.getByLabelText('Modifier le contenu de la carte'), {
+      target: { value: '   ' },
+    });
+
+    expect((screen.getByRole('button', { name: 'Enregistrer' }) as HTMLButtonElement).disabled).toBe(true);
+    expect(fetchMock.mock.calls.some(([, init]) => init?.method === 'PATCH')).toBe(false);
+  });
+
+  it("annule la modification d'une carte sans appel réseau", async () => {
+    const fetchMock = createDashboardFetchMock({
+      cardsSequence: [
+        {
+          ok: true,
+          json: async () => ({
+            success: true,
+            data: [
+              {
+                id: 1,
+                sessionId: 1,
+                authorId: 1,
+                columnType: 'start',
+                content: 'Carte à modifier',
+                createdAt: '2026-07-07T10:00:00.000Z',
+                votesCount: 0,
+              },
+            ],
+          }),
+        },
+      ],
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderDashboard();
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Modifier' }));
+    fireEvent.change(screen.getByLabelText('Modifier le contenu de la carte'), {
+      target: { value: 'Texte ignoré' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Annuler' }));
+
+    expect(screen.getByText('Carte à modifier')).toBeTruthy();
+    expect(fetchMock.mock.calls.some(([, init]) => init?.method === 'PATCH')).toBe(false);
+  });
+
+  it("affiche un toast d'erreur si la modification est refusée par le backend", async () => {
+    const fetchMock = createDashboardFetchMock({
+      cardsSequence: [
+        {
+          ok: true,
+          json: async () => ({
+            success: true,
+            data: [
+              {
+                id: 1,
+                sessionId: 1,
+                authorId: 1,
+                columnType: 'start',
+                content: 'Carte à modifier',
+                createdAt: '2026-07-07T10:00:00.000Z',
+                votesCount: 0,
+              },
+            ],
+          }),
+        },
+      ],
+      updateCardResponse: {
+        ok: false,
+        json: async () => ({ success: false, message: 'Vous ne pouvez modifier que vos propres cartes.' }),
+      },
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderDashboard();
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Modifier' }));
+    fireEvent.change(screen.getByLabelText('Modifier le contenu de la carte'), {
+      target: { value: 'Nouveau contenu' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Enregistrer' }));
+
+    await vi.waitFor(() => {
+      expect(addToastMock).toHaveBeenCalledWith('error', 'Vous ne pouvez modifier que vos propres cartes.');
+    });
   });
 
   it('supprime une carte avec succès et rafraîchit les cartes', async () => {

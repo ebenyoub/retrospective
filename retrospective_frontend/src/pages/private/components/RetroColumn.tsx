@@ -11,6 +11,7 @@ interface RetroColumnProps {
   currentUserId: number | null;
   onAddCard?: (content: string) => Promise<void> | void;
   onVote: (cardId: number) => Promise<void> | void;
+  onUpdateCard?: (cardId: number, content: string) => Promise<boolean> | boolean;
   onDeleteCard?: (cardId: number) => Promise<void> | void;
 }
 
@@ -23,6 +24,7 @@ const RetroColumn = ({
   currentUserId,
   onAddCard,
   onVote,
+  onUpdateCard,
   onDeleteCard,
 }: RetroColumnProps) => {
   return (
@@ -44,6 +46,7 @@ const RetroColumn = ({
               accentClassName={accentClassName}
               currentUserId={currentUserId}
               onVote={onVote}
+              onUpdateCard={onUpdateCard}
               onDeleteCard={onDeleteCard}
             />
           ))

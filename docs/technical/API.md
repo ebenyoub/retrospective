@@ -165,6 +165,31 @@ Supprimer sa propre carte.
 
 ---
 
+### PATCH /session/:sessionId/cards/:cardId
+Modifier sa propre carte.
+
+**Body**
+```json
+{
+  "content": "Contenu modifié"
+}
+```
+
+**Réponse 200**
+```json
+{
+  "success": true,
+  "message": "Carte modifiée."
+}
+```
+
+**Réponses d'erreur**
+- `400` — Contenu vide
+- `403` — L'utilisateur n'est pas l'auteur de la carte
+- `404` — Carte introuvable
+
+---
+
 ## Votes
 
 > Routes protégées — token requis.

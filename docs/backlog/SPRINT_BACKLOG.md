@@ -175,6 +175,24 @@
 
 ---
 
+## Sprint 8 — Modification de carte
+
+**Objectif** : permettre à l'auteur de modifier le contenu de sa propre carte.
+
+**Période** : 2026-07-08
+
+| ID | Tâche | Statut | Notes |
+|---|---|---|---|
+| S8-01 | Endpoint backend `PATCH /session/:sessionId/cards/:cardId` | ✅ | 400 contenu vide, 404 carte introuvable, 403 si pas auteur |
+| S8-02 | Mode édition frontend auteur uniquement | ✅ | bouton "Modifier", textarea inline, annulation sans appel réseau |
+| S8-03 | Tests backend/frontend | ✅ | backend 62/62, frontend 31/31 |
+
+**Preuve de validation (2026-07-08)** :
+- Backend : `npm run test`, `npx tsc --noEmit`
+- Frontend : `npm run test`, `npm run build`, `npm run lint`
+
+---
+
 ## Template sprint suivant
 
 ```markdown
