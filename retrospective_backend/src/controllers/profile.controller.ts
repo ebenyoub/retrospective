@@ -1,11 +1,12 @@
 import { Response } from 'express';
 import { AuthRequest } from '../types';
-import { logger } from '../utils/logger';
+import { getProfile } from "../services/auth.service";
 
 export const profile = (req: AuthRequest, res: Response) => {
-  // logger.info("ℹ️ Récupération de l'id de l'utilisateur.");
-  return res.json({
+  const data = getProfile({
     userId: req.user.userId,
-    username: req.user.username
+    username: req.user.username,
   });
-}
+
+  return res.json(data);
+};
