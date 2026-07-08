@@ -51,7 +51,6 @@ const Profile = () => {
         const { sessionId } = data.data;
         
         if (sessionId) {
-          console.log("Redirection vers la session");
           navigate(`/session/${sessionId}`);
         } else {
           setGlobalError("Jointure réussie, mais ID de session manquant.")
@@ -60,7 +59,7 @@ const Profile = () => {
         setGlobalError(getApiErrorMessage(data, "Code invalide."));
       }
     } catch (err) {
-      console.log(err);
+      console.error(err);
       setGlobalError(NETWORK_ERROR_MESSAGE);
     } finally {
       setIsLoading(false);

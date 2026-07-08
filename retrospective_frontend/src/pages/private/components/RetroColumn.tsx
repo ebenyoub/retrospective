@@ -1,8 +1,9 @@
 import RetroCardItem, { type RetroCard } from "./RetroCardItem";
 import RetroAddCardForm from "./RetroAddCardForm";
-import Badge from "@/components/ui/Badge";
+import { cn } from "@/lib/utils";
 
 interface RetroColumnProps {
+  className?: string;
   title: string;
   dotClassName: string;
   accentClassName: string;
@@ -18,6 +19,7 @@ interface RetroColumnProps {
 }
 
 const RetroColumn = ({
+  className,
   title,
   dotClassName,
   accentClassName,
@@ -32,7 +34,7 @@ const RetroColumn = ({
   canEdit = true,
 }: RetroColumnProps) => {
   return (
-    <div className="flex flex-col bg-navy border border-navy-border rounded-figma-xl overflow-hidden min-h-64">
+    <div className={cn("flex flex-col bg-navy border border-navy-border rounded-figma-xl overflow-hidden min-h-64", className)}>
       <div className="flex items-center gap-2 px-4 py-3 border-b border-navy-border h-[44px]">
         <span className={`w-2.5 h-2.5 rounded-full ${dotClassName} shrink-0`} />
         <span className="text-xs font-bold text-slate-200 font-sans">{title}</span>

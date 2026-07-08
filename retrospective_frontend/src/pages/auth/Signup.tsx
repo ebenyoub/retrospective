@@ -91,7 +91,7 @@ const Signup: React.FC = () => {
             }
 
         } catch (error) {
-            console.log(error);
+            console.error(error);
             addToast("error", NETWORK_ERROR_MESSAGE);
 } finally {
     setIsLoading(false);

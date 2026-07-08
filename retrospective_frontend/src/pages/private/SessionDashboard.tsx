@@ -10,13 +10,19 @@ import RetroColumn from './components/RetroColumn';
 import type { RetroCard } from './components/RetroCardItem';
 import { ROLE_LABEL, type SessionRole } from './sessionRole';
 
-type DashboardView = 'board' | 'results';
+interface SessionDetails {
+  id: number;
+  name: string;
+  step?: 'waiting' | 'writing' | 'voting' | 'results';
+  ownerId: number;
+}
 
 const COLUMNS: {
   key: RetroCard['columnType'];
   title: string;
   dotClassName: string;
   accentClassName: string;
+  tabActiveClassName: string;
   emptyMessage: string;
 }[] = [
   {
@@ -24,6 +30,7 @@ const COLUMNS: {
     title: 'Positif',
     dotClassName: 'bg-green-500',
     accentClassName: 'border-l-green-500',
+    tabActiveClassName: 'border-green-500',
     emptyMessage: "Aucun retour positif pour l'instant.",
   },
   {
@@ -31,6 +38,7 @@ const COLUMNS: {
     title: 'Négatif',
     dotClassName: 'bg-red-500',
     accentClassName: 'border-l-red-500',
+    tabActiveClassName: 'border-red-500',
     emptyMessage: "Aucun retour négatif pour l'instant.",
   },
   {
@@ -38,6 +46,7 @@ const COLUMNS: {
     title: 'Idées',
     dotClassName: 'bg-yellow-500',
     accentClassName: 'border-l-yellow-500',
+    tabActiveClassName: 'border-yellow-500',
     emptyMessage: "Aucune idée pour l'instant.",
   },
 ];
@@ -48,11 +57,16 @@ const SessionDashboard = () => {
   const { addToast } = useToast();
   const navigate = useNavigate();
   const [cards, setCards] = useState<RetroCard[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [role, setRole] = useState<SessionRole | null>(null);
   const [sessionName, setSessionName] = useState<string>('');
   const [step, setStep] = useState<'waiting' | 'writing' | 'voting' | 'results'>('waiting');
-  const [view, setView] = useState<DashboardView>('board');
+  const [activeMobileColumn, setActiveMobileColumn] = useState<RetroCard['columnType']>('continue');
+  const [isMobileViewport, setIsMobileViewport] = useState(() => (
+    typeof window !== 'undefined'
+    && typeof window.matchMedia === 'function'
+    && window.matchMedia('(max-width: 767px)').matches
+  ));
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -91,7 +105,7 @@ const SessionDashboard = () => {
 
       const data = await readJsonSafely(response);
 
-      if (response.ok && isApiSuccess<any>(data)) {
+      if (response.ok && isApiSuccess<SessionDetails>(data)) {
         setSessionName(data.data.name);
         setStep(data.data.step || 'writing');
         setRole(data.data.ownerId === userId ? 'facilitator' : 'participant');
@@ -102,16 +116,38 @@ const SessionDashboard = () => {
   }, [id, token, userId]);
 
   useEffect(() => {
-    setIsLoading(true);
-    Promise.all([fetchSessionDetails(), fetchCards()]).finally(() => setIsLoading(false));
+    let isActive = true;
+
+    const loadSession = async () => {
+      await Promise.all([fetchSessionDetails(), fetchCards()]);
+
+      if (isActive) {
+        setIsLoading(false);
+      }
+    };
+
+    void loadSession();
 
     const interval = setInterval(() => {
       fetchSessionDetails();
       fetchCards();
     }, 4000);
 
-    return () => clearInterval(interval);
+    return () => {
+      isActive = false;
+      clearInterval(interval);
+    };
   }, [fetchSessionDetails, fetchCards]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
+
+    const mediaQuery = window.matchMedia('(max-width: 767px)');
+    const handleChange = () => setIsMobileViewport(mediaQuery.matches);
+
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
 
   const handleAddCard = async (columnType: RetroCard['columnType'], content: string) => {
     if (!id || !token) return;
@@ -329,25 +365,60 @@ const SessionDashboard = () => {
           canEdit={false}
         />
       ) : (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {COLUMNS.map((column) => (
-            <RetroColumn
-              key={column.key}
-              title={column.title}
-              dotClassName={column.dotClassName}
-              accentClassName={column.accentClassName}
-              emptyMessage={column.emptyMessage}
-              cards={cards.filter((card) => card.columnType === column.key)}
-              currentUserId={userId}
-              onAddCard={step === 'writing' ? (content) => handleAddCard(column.key, content) : undefined}
-              onVote={handleVote}
-              onUpdateCard={handleUpdateCard}
-              onDeleteCard={handleDeleteCard}
-              canVote={step === 'voting'}
-              canEdit={step === 'writing'}
-            />
-          ))}
-        </div>
+        <>
+          {isMobileViewport && (
+            <div className="flex border-b border-navy-border px-1">
+              {COLUMNS.map((column) => {
+                const isActive = activeMobileColumn === column.key;
+                const count = cards.filter((card) => card.columnType === column.key).length;
+
+                return (
+                  <button
+                    key={column.key}
+                    type="button"
+                    onClick={() => setActiveMobileColumn(column.key)}
+                    className={`flex flex-1 items-center justify-center gap-1.5 border-b-2 px-1 py-2 text-xs font-semibold transition-colors ${
+                      isActive
+                        ? `${column.tabActiveClassName} text-slate-50`
+                        : 'border-transparent text-slate-500 hover:text-slate-300'
+                    }`}
+                  >
+                    <span className={`h-2 w-2 rounded-full ${column.dotClassName}`} />
+                    <span>{column.title}</span>
+                    <span
+                      className={`rounded-md px-1.5 py-0 font-mono text-[10px] ${
+                        isActive ? 'bg-navy-surface-med text-slate-200' : 'bg-navy-surface text-slate-600'
+                      }`}
+                    >
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {COLUMNS.map((column) => (
+              <RetroColumn
+                key={column.key}
+                className={activeMobileColumn === column.key ? '' : 'hidden md:flex'}
+                title={column.title}
+                dotClassName={column.dotClassName}
+                accentClassName={column.accentClassName}
+                emptyMessage={column.emptyMessage}
+                cards={cards.filter((card) => card.columnType === column.key)}
+                currentUserId={userId}
+                onAddCard={step === 'writing' ? (content) => handleAddCard(column.key, content) : undefined}
+                onVote={handleVote}
+                onUpdateCard={handleUpdateCard}
+                onDeleteCard={handleDeleteCard}
+                canVote={step === 'voting'}
+                canEdit={step === 'writing'}
+              />
+            ))}
+          </div>
+        </>
       )}
     </Container>
   );

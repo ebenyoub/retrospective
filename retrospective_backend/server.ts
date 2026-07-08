@@ -12,8 +12,19 @@ dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
+const frontendOrigin = process.env.FRONTEND_ORIGIN || 'http://localhost:5173';
+const localViteOrigin = /^http:\/\/(localhost|127\.0\.0\.1):517[3-9]$/;
 
-app.use(cors({ origin: 'http://localhost:5173' }));
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || origin === frontendOrigin || (process.env.NODE_ENV !== 'production' && localViteOrigin.test(origin))) {
+      callback(null, true);
+      return;
+    }
+
+    callback(new Error('Not allowed by CORS'));
+  },
+}));
 app.use(express.json());
 app.use(morgan('dev'));
 
