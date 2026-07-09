@@ -26,7 +26,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const logout = useCallback(() => {
     localStorage.removeItem('token');
+    setToken("");
     setIsAuthenticated(false);
+    setUserId(null);
+    setUsername("");
+    setEmail("");
     navigate("/", { replace: true });
   }, [navigate])
 

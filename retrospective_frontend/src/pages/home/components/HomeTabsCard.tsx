@@ -100,6 +100,9 @@ const HomeTabsCard = ({ onCreateSession, onJoinSession }: HomeTabsCardProps) => 
             <Button variant="primary" size="lg" className="w-full mt-2" onClick={handleCreate}>
               Lancer la rétro →
             </Button>
+            <p className="text-[11px] text-slate-500 text-center mt-1">
+              Un compte est requis pour créer une session.
+            </p>
           </>
         ) : (
           <>

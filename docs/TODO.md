@@ -26,6 +26,20 @@
 - [x] Préparer la démo locale : `docker compose up --build` vérifié le 2026-07-09 (backend + MySQL démarrent, schéma initialisé automatiquement).
 - [x] Parcours utilisateur complet vérifié en conditions réelles (Playwright, 2 utilisateurs) le 2026-07-09 : inscription, connexion, création/join de session, workflow d'étapes, CRUD cartes, limite de 5 votes, résultats triés, déconnexion, responsive 390px.
 
+## Tickets issus de l'audit MVP final — soutenance (2026-07-09)
+
+### Bugs corrigés dans cette session
+- [x] **B-SIGNUP-01 — Validator mot de passe incohérent** : règle `<= 6` avec message "3 caractères" → corrigé en `< 6` + message "6 caractères minimum" (`Signup.tsx`).
+- [x] **B-AUTH-01 — Logout incomplet** : `token`, `userId`, `username`, `email` pas remis à zéro dans le state React lors du logout → nettoyage complet dans `logout()` (`AuthContext.tsx`).
+- [x] **UX-HOME-01 — Champs décoratifs sans indication** : le formulaire "Créer une rétro" de la home page utilise des champs non fonctionnels → ajout d'une note "Un compte est requis" sous le bouton (`HomeTabsCard.tsx`).
+
+### Tickets créés (non bloquants — à faire après soutenance)
+- [ ] **TODO-HOME-01 — Compteur "7 participants" en dur** : remplacer `CONNECTED_PARTICIPANTS = 7` par une vraie donnée temps réel ou supprimer l'indicateur. Risque : question du jury sur cette valeur fixe.
+- [ ] **TODO-HOME-02 — Formulaire "quick start" home page** : les champs Nom/Prénom/MDP sont visuellement présents mais non connectés au backend. Décision à prendre : les supprimer ou les relier au vrai flux de création de session.
+- [ ] **TODO-URL-01 — API base URL en dur (`http://localhost:8000`)** : toutes les pages font des `fetch` hardcodés. À externaliser dans une variable `VITE_API_URL` pour permettre un déploiement propre (hors périmètre DWWM mais bonne pratique à mentionner à l'oral).
+- [ ] **TODO-AUTH-02 — Pas de redirection post-login vers la page d'origine** : après `RequireAuth` redirect vers `/login`, l'utilisateur est envoyé sur `/profile` et non sur la page demandée. Amélioration UX post-soutenance.
+- [ ] **TODO-DOCS-01 — Régénérer secrets** : `JWT_SECRET` et `GMAIL_APP_PASSWORD` du `docker-compose.yml` sont des valeurs placeholder. À documenter dans les slides jury et à régénérer en prod.
+
 ## Tickets issus de l'audit styles Tailwind/Figma du 2026-07-09
 
 - [ ] **Toast en styled-components avec fond blanc** (`ToastStyled.tsx` + icônes Font Awesome via CDN dans `index.html`) : seul composant hors Tailwind, style clair qui détonne sur le thème sombre Figma. Décider : réécrire le toast en Tailwind avec les tokens du thème (et retirer `styled-components` + le CDN Font Awesome), ou l'assumer tel quel devant le jury.

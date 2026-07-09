@@ -37,8 +37,8 @@ const signupValidationSchema: ValidationSchema<SignupValues> = {
         (value) => !EMAIL_REGEX.test(value) ? "Le format de l'adresse e-mail est invalide." : undefined
     ],
     password: [
-        (value) => value.trim().length <= 6 ? "Le mot de passe doit contenir au moins 3 caractères." : undefined,
         (value) => value.trim() === "" ? "Le mot de passe est requis." : undefined,
+        (value) => value.trim().length < 6 ? "Le mot de passe doit contenir au moins 6 caractères." : undefined,
         validateConfirmPassword
     ],
     confirm: [
