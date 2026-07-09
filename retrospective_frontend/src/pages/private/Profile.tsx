@@ -85,7 +85,7 @@ const Profile = () => {
 
       {step === 'CODE' && (
         <Container className="flex justify-center items-center min-h-[60vh]">
-          <SpinContainer onSpin className="w-full max-w-md">
+          <SpinContainer onSpin={isLoading} className="w-full max-w-md">
             <FormContainer onSubmit={handleCodeSubmit}>
               <FormTitle>Code de la rétrospective</FormTitle>
 

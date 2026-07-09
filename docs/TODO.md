@@ -21,9 +21,22 @@
 - [ ] Compléter `docs/jury/REFERENTIEL_DWWM.md` avec les compétences couvertes
 - [ ] Commencer à collecter les preuves dans `docs/jury/PREUVES_A_COLLECTER.md`
 
-## À faire maintenant (mis à jour 2026-07-08 fin de journée)
+## À faire maintenant (mis à jour 2026-07-09 — phase de stabilisation)
 
-- [ ] Préparer la démo locale : utiliser `docker compose up --build` pour lancer backend + MySQL avec schéma initial, ou recréer `retrospective_backend/.env` depuis `.env.example` seulement si le backend est lancé hors Docker.
+- [x] Préparer la démo locale : `docker compose up --build` vérifié le 2026-07-09 (backend + MySQL démarrent, schéma initialisé automatiquement).
+- [x] Parcours utilisateur complet vérifié en conditions réelles (Playwright, 2 utilisateurs) le 2026-07-09 : inscription, connexion, création/join de session, workflow d'étapes, CRUD cartes, limite de 5 votes, résultats triés, déconnexion, responsive 390px.
+
+## Tickets issus de l'audit styles Tailwind/Figma du 2026-07-09
+
+- [ ] **Toast en styled-components avec fond blanc** (`ToastStyled.tsx` + icônes Font Awesome via CDN dans `index.html`) : seul composant hors Tailwind, style clair qui détonne sur le thème sombre Figma. Décider : réécrire le toast en Tailwind avec les tokens du thème (et retirer `styled-components` + le CDN Font Awesome), ou l'assumer tel quel devant le jury.
+- [ ] **Compteur de votes restants absent** : la maquette Figma affiche "5 votes restants" pendant la phase de vote ; l'application n'informe l'utilisateur qu'au moment du refus du 6e vote. Amélioration UX à chiffrer.
+- [ ] **Éléments maquette hors périmètre MVP** (à assumer à l'oral, pas à corriger) : chat "Discussion", liste des participants avec avatars, timer d'étape, commentaires sur cartes, lien d'invitation `retroflow.app/join/...`, code à 6 caractères (le MVP utilise 4 chiffres).
+
+## Tickets issus des tests manuels du 2026-07-09
+
+- [ ] **Formulaire "Créer une rétro" de la page d'accueil partiellement décoratif** : les champs "Votre prénom" et "Mot de passe" de la maquette Figma correspondent à un démarrage rapide anonyme non implémenté. Aujourd'hui le bouton redirige vers le vrai parcours (inscription ou `/session`). Décider : implémenter le démarrage anonyme, ou simplifier le formulaire pour ne garder que le nom.
+- [ ] **Compteur "7 participants connectés" en dur** sur la page d'accueil (`home.tsx`, commentaire existant) — à brancher sur une vraie donnée ou à retirer avant la soutenance pour éviter une question piège du jury.
+- [ ] **Rafraîchissement du tableau par polling (4 s)** : les changements d'étape/cartes des autres participants apparaissent avec un léger délai. Acceptable pour le MVP, à savoir expliquer à l'oral (alternative : WebSocket, hors périmètre DWWM).
 
 ## À faire ensuite (mis à jour 2026-07-08)
 
@@ -60,9 +73,7 @@
 
 ## Dette technique backend TypeScript
 
-- [ ] Rendre `retrospective_backend` compatible avec `npx tsc --noEmit` sans erreur.
-- [ ] Corriger les dettes TypeScript existantes : configuration TypeScript, compatibilité Zod, `esModuleInterop`, imports de modules CommonJS, etc.
-- [ ] Ces erreurs TypeScript sont antérieures à la PR d'alignement UI/CORS et ne sont pas introduites par les changements UI ou CORS de cette PR.
+- [x] Rendre `retrospective_backend` compatible avec `npx tsc --noEmit` sans erreur (Résolu le 2026-07-09 : validateurs migrés vers la syntaxe Zod v4 `error`, tests des messages ajoutés).
 
 ## Phase tests unitaires minimum — terminée (2026-07-07)
 

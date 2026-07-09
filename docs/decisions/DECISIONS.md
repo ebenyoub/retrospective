@@ -54,4 +54,28 @@
 
 ---
 
+## 2026-07-09 — Syntaxe Zod v4 pour les validateurs
+
+**Décision** : Migrer les validateurs backend (`src/validators/`) de la syntaxe Zod v3 (`required_error`, `errorMap`) vers le paramètre unifié `error` de Zod v4.
+
+**Pourquoi** : Le projet installe Zod 4.4.3 mais les validateurs utilisaient la syntaxe v3, ce qui provoquait 17 erreurs `npx tsc --noEmit`. La syntaxe v4 est plus simple (un seul paramètre `error`) et supprime toute la dette TypeScript backend. Les messages en français sont conservés à l'identique et couverts par des tests.
+
+**Alternatives considérées** :
+- Rétrograder vers Zod 3 → rejeté (retour en arrière, dépendance vieillissante)
+- Ignorer les erreurs tsc → rejeté (dette potentiellement bloquante pour la soutenance, tsc doit rester une vérification fiable)
+
+---
+
+## 2026-07-09 — Protection des routes privées avec un composant `RequireAuth`
+
+**Décision** : Les routes privées (`/profile`, `/sessions`, `/session`, `/session/:id`) sont enveloppées dans un composant `RequireAuth` qui redirige vers `/login` si l'utilisateur n'est pas connecté.
+
+**Pourquoi** : Les tests manuels du 2026-07-09 ont montré que `/profile` restait accessible (vide) après déconnexion. Un composant de garde unique est la solution React Router standard, simple à expliquer au jury : « si pas connecté, on redirige ».
+
+**Alternatives considérées** :
+- Redirection dans un `useEffect` de chaque page (existant sur `SessionDashboard`) → rejeté comme solution générale (duplication sur chaque page, la page s'affiche brièvement avant la redirection)
+- Layout route parent avec `<Outlet />` → équivalent, mais le wrapper par route est plus explicite à l'oral
+
+---
+
 > Ajouter une entrée à chaque fois qu'une décision technique importante est prise.

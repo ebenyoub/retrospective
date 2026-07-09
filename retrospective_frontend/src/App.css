@@ -46,23 +46,6 @@ body {
   height: 100%;
 }
 
-#codeSession {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-} 
-
-#overlay {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: #000;
-  opacity: 0.9;
-  z-index: 3;
-  display: none;
-}
-
 .spin-card {
   position: relative;
   display: flex;
@@ -77,10 +60,9 @@ body {
   position: absolute;
   width: 230%;
   height: 20%;
-  background-image: 
-    linear-gradient(180deg, #ff00c8, cyan);
+  background-image:
+    linear-gradient(180deg, var(--color-green-figma), var(--color-navy-mid));
   animation: animate 3s linear infinite;
-  transition: al .3s linear;
   z-index: 0;
 }
 
@@ -88,7 +70,7 @@ body {
   content: "";
   position: absolute;
   inset: 5px;
-  background: #141414;
+  background: var(--color-navy-mid);
   border-radius: 15px;
   z-index: 1;
 }

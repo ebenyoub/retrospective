@@ -4,11 +4,11 @@
 
 ## Date de dernière mise à jour
 
-2026-07-08 (messages d'erreur cohérents)
+2026-07-09 (stabilisation : parcours complet vérifié + 3 bugs corrigés)
 
 ## État global
 
-🟢 MVP prêt côté fonctionnalités principales — sessions, cartes (ajout, modification, suppression), votes, résultats, rôles, responsive basique et messages d'erreur cohérents sont fonctionnels. Le backend est homogénéisé sur le pattern `controller → service → model → DB`. Il reste surtout la préparation de démo (`.env` backend à recréer).
+🟢 MVP prêt côté fonctionnalités principales — sessions, cartes (ajout, modification, suppression), votes, résultats, rôles, workflow d'étapes de session, responsive basique et messages d'erreur cohérents sont fonctionnels. L'UI est alignée sur la maquette Figma Make. Le backend est homogénéisé sur le pattern `controller → service → model → DB`, compile sans erreur TypeScript (`npx tsc --noEmit`) et se lance avec MySQL via Docker Compose. Il reste surtout la préparation de démo/soutenance.
 
 ## Fonctionnalités livrées
 
@@ -34,6 +34,19 @@
 | Nom de session obligatoire (F04/US-04) | ✅ BDD + backend (validation) + frontend (création, liste, dashboard) | 2026-07-08 |
 | Validation des données backend (Zod) | ✅ Middlware et validateurs appliqués aux routes d'authentification, de sessions et de cartes | 2026-07-08 |
 | Nettoyage de code mort backend | ✅ Fichiers `mail.controller.ts` et `test_transporter.js` supprimés | 2026-07-08 |
+| Messages d'erreur cohérents (B17) | ✅ PR #16 mergée dans `dev` | 2026-07-08 |
+| Fix bugs signup/UX (labels, bouton œil, erreur réseau) | ✅ PR #20 mergée dans `dev` | 2026-07-08 |
+| Documentation de référence Figma Make (UI/UX) | ✅ PR #21 mergée dans `dev` | 2026-07-08 |
+| Workflow d'étapes de session (waiting/writing/voting/results) + UI | ✅ Livré via PR #21 (`a189f3e`) | 2026-07-08 |
+| Alignement UI sur les styles Figma Make | ✅ PR #22 mergée dans `dev` | 2026-07-08 |
+| Réparation du middleware de validation backend | ✅ PR #23 mergée dans `dev` | 2026-07-08 |
+| Docker Compose backend + MySQL (init auto `schema.sql`) | ✅ PR #24 mergée dans `dev` | 2026-07-08 |
+| Dette TypeScript backend (`npx tsc --noEmit` sans erreur) | ✅ Validateurs migrés vers la syntaxe Zod v4 (`error`) + tests messages | 2026-07-09 |
+| Parcours utilisateur complet vérifié en conditions réelles (Docker + Playwright, 2 utilisateurs) | ✅ Inscription → session → cartes → votes (limite) → résultats → déconnexion | 2026-07-09 |
+| Protection des routes privées (`RequireAuth`) | ✅ `/profile`, `/sessions`, `/session`, `/session/:id` redirigent vers `/login` si non connecté | 2026-07-09 |
+| Salle d'attente : affichage du vrai code à 4 chiffres (au lieu de l'id) | ✅ Corrigé dans `SessionDashboard.tsx` | 2026-07-09 |
+| Boutons de la page d'accueil branchés (création/rejoindre) | ✅ Redirigent vers les vrais parcours selon l'état de connexion | 2026-07-09 |
+| Audit styles Tailwind/Figma | ✅ Tailwind v4 confirmé partout (tokens `@theme`), CSS mort supprimé, spin-card re-thémé aux couleurs Figma et limité au chargement, lien "Mot de passe oublié ?" aligné | 2026-07-09 |
 
 ## Récapitulatif de la journée du 2026-07-08
 
@@ -73,19 +86,17 @@
 - **Framework** : Express **5.2.1** (migré depuis 4.22.2 aujourd'hui), `@types/express` 5.0.6.
 - **Architecture** : `retrospective_backend/src/{routes,controllers,services,models,middlewares,utils,types}` — voir `docs/technical/ARCHITECTURE.md` pour le détail. La règle cible est stricte et appliquée aux controllers applicatifs.
 - **Gestion d'erreurs** : `AppError` + `errorHandler` centralisé + `asyncHandler`, utilisés sur les routes conformes récentes.
-- **Tests** : backend 126/126 passés après homogénéisation ; frontend 37/37 passés après B17.
+- **Tests** : backend 140/140 passés (2026-07-09), `npx tsc --noEmit` sans erreur ; frontend 37/37 passés, build Vite OK.
 
 ## Ce qui est en cours
 
-- Branche `polish/error-message-consistency` : harmonisation des messages d'erreur frontend (B17), PR à préparer.
+- Rien en cours — arbre de travail propre sur `dev`, toutes les PR (#3 à #24) sont mergées.
 
 ## Prochaine étape
 
-**Préparation démo / soutenance recommandée.**
-- L'environnement local recommandé utilise Docker Compose pour lancer le backend
-  et MySQL ensemble, avec initialisation automatique depuis
-  `retrospective_backend/sql/schema.sql`.
-- Vérifier un parcours manuel complet devant jury : inscription/connexion, création session, ajout/modification/suppression de carte, vote, résultats.
+**Finalisation soutenance.**
+- Le parcours complet a été vérifié en conditions réelles le 2026-07-09 (Docker Compose + navigateur, 2 utilisateurs) : tout le flux fonctionne.
+- Restent : décision sur le formulaire "quick start" de la page d'accueil (champs prénom/mot de passe décoratifs), compteur "7 participants" en dur, régénération des secrets, documents jury (`docs/jury/`).
 
 ## Dette technique restante
 

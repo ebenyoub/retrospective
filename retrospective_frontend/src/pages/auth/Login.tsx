@@ -115,12 +115,13 @@ const Login: React.FC = () => {
                         <NavLink to="/signup" className="text-blue-400 hover:underline">
                             Pas encore de compte ? S'inscrire
                         </NavLink>
+                        <NavLink to="/forgot" className="text-blue-400 hover:underline">
+                            Mot de passe oublié ?
+                        </NavLink>
                         <NavLink to="/" className="text-gray-400 hover:underline">
                             Retour à l'accueil
                         </NavLink>
                     </div>
-
-                    <NavLink to="/forgot">Mot de passe oublié ?</NavLink>
                 </FormContainer>
             </SpinContainer>
         </Container>

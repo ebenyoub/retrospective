@@ -13,6 +13,7 @@ import { ROLE_LABEL, type SessionRole } from './sessionRole';
 interface SessionDetails {
   id: number;
   name: string;
+  code: string;
   step?: 'waiting' | 'writing' | 'voting' | 'results';
   ownerId: number;
 }
@@ -60,6 +61,7 @@ const SessionDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [role, setRole] = useState<SessionRole | null>(null);
   const [sessionName, setSessionName] = useState<string>('');
+  const [sessionCode, setSessionCode] = useState<string>('');
   const [step, setStep] = useState<'waiting' | 'writing' | 'voting' | 'results'>('waiting');
   const [activeMobileColumn, setActiveMobileColumn] = useState<RetroCard['columnType']>('continue');
   const [isMobileViewport, setIsMobileViewport] = useState(() => (
@@ -107,6 +109,7 @@ const SessionDashboard = () => {
 
       if (response.ok && isApiSuccess<SessionDetails>(data)) {
         setSessionName(data.data.name);
+        setSessionCode(data.data.code);
         setStep(data.data.step || 'writing');
         setRole(data.data.ownerId === userId ? 'facilitator' : 'participant');
       }
@@ -299,7 +302,7 @@ const SessionDashboard = () => {
               <span className="text-lg font-bold text-green-figma tracking-wider block mb-3">{sessionName || '...'}</span>
               <span className="text-xs text-slate-500 uppercase tracking-wider block mb-1">Code de session</span>
               <span className="text-3xl font-extrabold text-white font-mono tracking-widest">
-                {id ? id : '...'}
+                {sessionCode || '...'}
               </span>
             </div>
             {role === 'facilitator' ? (

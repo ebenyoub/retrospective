@@ -7,7 +7,7 @@ export interface AuthLoginData {
   email: string;
 }
 
-interface AuthContextType {
+export interface AuthContextType {
   isAuthenticated: boolean;
   userId: number | null;
   username: string;

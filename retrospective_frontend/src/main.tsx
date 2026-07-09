@@ -14,6 +14,7 @@ import SessionDashboard from './pages/private/SessionDashboard.tsx'
 import SessionList from './pages/private/SessionList.tsx'
 import { ToastProvider } from './context/toast/ToastContext.tsx'
 import Home from './pages/home/home.tsx'
+import RequireAuth from './components/RequireAuth.tsx'
 
 createRoot(document.getElementById('root')!).render(
     <StrictMode>
@@ -24,13 +25,13 @@ createRoot(document.getElementById('root')!).render(
                     <main>
                         <Routes>
                             <Route path="/" element={<Home />} />
-                            <Route path="/profile" element={<Profile />} />
+                            <Route path="/profile" element={<RequireAuth><Profile /></RequireAuth>} />
                             <Route path="/login" element={<Login />} />
                             <Route path="/signup" element={<Signup />} />
                             <Route path="/forgot" element={<Forgot />} />
-                            <Route path="/sessions" element={<SessionList />} />
-                            <Route path="/session" element={<SessionCreate />} />
-                            <Route path="/session/:id" element={<SessionDashboard />} />
+                            <Route path="/sessions" element={<RequireAuth><SessionList /></RequireAuth>} />
+                            <Route path="/session" element={<RequireAuth><SessionCreate /></RequireAuth>} />
+                            <Route path="/session/:id" element={<RequireAuth><SessionDashboard /></RequireAuth>} />
                         </Routes>
                     </main>
                 </ToastProvider>
