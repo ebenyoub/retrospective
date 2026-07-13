@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import Avatar from "./Avatar";
 
 export interface RetroCard {
   id: number;
@@ -21,43 +22,6 @@ interface RetroCardItemProps {
   canVote?: boolean;
   canEdit?: boolean;
 }
-
-// Générateur de couleur déterministe pour l'avatar basé sur l'authorId
-const getAvatarColor = (id: number) => {
-  const colors = [
-    '#3b82f6', // bleu
-    '#ef4444', // rouge
-    '#10b981', // vert
-    '#f59e0b', // orange
-    '#8b5cf6', // violet
-    '#ec4899', // rose
-    '#14b8a6', // turquoise
-    '#6366f1', // indigo
-  ];
-  return colors[id % colors.length];
-};
-
-const Avatar = ({ name, color, size = 18 }: { name: string; color: string; size?: number }) => {
-  const initials = name
-    .split(' ')
-    .map((p) => p[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase() || 'P';
-  return (
-    <div
-      className="flex-shrink-0 flex items-center justify-center rounded-full font-sans font-bold text-white select-none"
-      style={{
-        width: size,
-        height: size,
-        background: color,
-        fontSize: size * 0.45,
-      }}
-    >
-      {initials}
-    </div>
-  );
-};
 
 const RetroCardItem = ({ card, accentClassName, currentUserId, onVote, onUpdateCard, onDeleteCard, canVote = true, canEdit = true }: RetroCardItemProps) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -95,7 +59,7 @@ const RetroCardItem = ({ card, accentClassName, currentUserId, onVote, onUpdateC
       {/* Top Section: Avatar + Author Name */}
       {!isEditing && (
         <div className="flex items-center gap-1.5 flex-shrink-0">
-          <Avatar name={card.authorName} color={getAvatarColor(card.authorId)} size={18} />
+          <Avatar name={card.authorName} id={card.authorId} size={18} />
           <span className="font-sans text-[12px] text-slate-400 font-medium select-none">{card.authorName}</span>
         </div>
       )}

@@ -1058,7 +1058,8 @@ describe('SessionDashboard', () => {
     await vi.waitFor(() => {
       expect(screen.getAllByText('Résultats').length).toBeGreaterThan(0);
     });
-    expect(screen.getByText('Carte à voter')).toBeTruthy();
+    // La carte apparaît à la fois dans le Top 3 et dans sa colonne de catégorie.
+    expect(screen.getAllByText('Carte à voter').length).toBeGreaterThan(0);
   });
 
   it("propose de rejoindre avec un pseudo si le visiteur ouvre le lien d'invitation sans guestToken (jamais de redirection)", async () => {

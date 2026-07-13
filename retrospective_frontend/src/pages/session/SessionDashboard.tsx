@@ -7,6 +7,7 @@ import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import { getApiErrorMessage, isApiSuccess, NETWORK_ERROR_MESSAGE, readJsonSafely } from '@/lib/apiError';
 import RetroColumn from './components/RetroColumn';
+import SessionResults from './components/SessionResults';
 import type { RetroCard } from './components/RetroCardItem';
 import { ROLE_LABEL, type SessionRole } from './sessionRole';
 import { WaitingScreen } from './components/WaitingScreen';
@@ -428,8 +429,6 @@ const SessionDashboard = () => {
     }
   };
 
-  const resultsCards = [...cards].sort((a, b) => b.votesCount - a.votesCount);
-
   const handleTransitionStep = async (nextStep: SessionStep) => {
     if (!sessionId || !token) return;
 
@@ -557,23 +556,8 @@ const SessionDashboard = () => {
       </div>
 
       {step === 'results' ? (
-        /* Vue résultats : colonne unique scrollable centrée */
-        <div className="flex-1 overflow-y-auto px-4 py-4">
-          <RetroColumn
-            title="Résultats"
-            dotClassName="bg-slate-400"
-            accentClassName="border-l-slate-400"
-            color="#94a3b8"
-            emptyMessage="Aucune carte pour l'instant."
-            cards={resultsCards}
-            currentUserId={selfParticipantId}
-            onVote={handleVote}
-            onUpdateCard={handleUpdateCard}
-            onDeleteCard={handleDeleteCard}
-            canVote={false}
-            canEdit={false}
-          />
-        </div>
+        /* Vue résultats : stats, Top 3 et colonnes par catégorie (fidèle Figma) */
+        <SessionResults cards={cards} isDesktop={!isMobileViewport} />
       ) : (
         <>
           {/* Onglets mobiles */}

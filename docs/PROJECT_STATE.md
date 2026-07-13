@@ -4,6 +4,8 @@
 
 ## Date de dernière mise à jour
 
+2026-07-13 (passe de fidélité visuelle — page de RÉSULTATS refaite d'après le prototype Figma `ResultsScreen` : bande de statistiques, Top 3 avec médailles + barres de votes, 3 colonnes par catégorie avec cartes compactes ; **en attente de validation visuelle**)
+
 2026-07-13 (revue d'architecture : alignement complet sur les skills DWWM — frontend par page, contrôleurs backend 1 fichier/ressource, URL API centralisée, suppression du `any`)
 
 ## État global
@@ -22,6 +24,7 @@
 | Tableau de rétrospective — 3 colonnes, ajout/modification de carte | ✅ Livré | 2026-07-08 |
 | Système de votes (backend + bouton frontend) | ✅ Livré | 2026-07-08 |
 | Vue des résultats triée par votes (US-09) | ✅ Livré | 2026-07-08 |
+| Fidélité visuelle page résultats (Top 3, stats, 3 colonnes catégories, cartes compactes) | 🟡 Développé, en attente de validation visuelle | 2026-07-13 |
 | Rôle affiché sur le tableau (Facilitateur/Participant) | ✅ Livré | 2026-07-08 |
 | Suppression de sa propre carte | ✅ Backend + frontend, PR #11 mergée dans `dev` | 2026-07-08 |
 | Modification de sa propre carte | ✅ Backend + frontend, PR #13 mergée dans `dev` | 2026-07-08 |
