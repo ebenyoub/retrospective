@@ -69,6 +69,15 @@
 - [x] **TODO-UX-02 — Compteur de votes restants en continu** : afficher le nombre de votes restants pendant la phase de vote au lieu de ne lever l'erreur qu'au 6e vote (Priorité P0 / MVP).
 - [ ] **TODO-UI-02 — Refonte du système de Toast en Tailwind** : supprimer styled-components et le CDN Font Awesome pour unifier le design avec les tokens Figma (Priorité P2 / Évolution).
 
+## Découpage navbar de session sous le header principal (2026-07-13)
+
+- [x] **T-SESSION-BAR-01 — SessionContextBar** : terminé et validé utilisateur. Première barre sous le header principal : retour, breadcrumb, nom de session, `StepIndicator`, code, déclencheurs Participants/Discussion. Aucun compteur, timer ou bouton principal dans cette barre.
+- [ ] **T-SESSION-BAR-02 — SessionActionBar** : seconde barre uniquement après validation de `SessionContextBar` : compteur total de cartes ou votes restants, timer, bouton principal, sans troisième barre.
+- [ ] **T-SESSION-BAR-03 — ParticipantsDrawer** : panneau Participants déclenché depuis `SessionContextBar`, avec vraies données.
+- [ ] **T-SESSION-BAR-04 — DiscussionDrawer** : panneau Discussion déclenché depuis `SessionContextBar`, périmètre données à valider avant backend.
+- [ ] **T-SESSION-BAR-05 — Commentaires des cartes** : à traiter uniquement si le périmètre commentaires est confirmé par les sources projet.
+- [ ] **T-SESSION-BAR-06 — Revue UI finale écran Écriture** : comparaison globale au prototype après validation des composants précédents.
+
 ## Tickets issus de l'audit de conformité skills (2026-07-13)
 
 - [x] **AUDIT-01 — Validateur invité orphelin** : `leaveParticipantSchema` (Zod) existait mais n'était branché sur aucune route — `DELETE /:sessionId/participants/:participantId` n'avait aucune validation d'entrée. Corrigé : `validate(leaveParticipantSchema)` ajouté sur la route.

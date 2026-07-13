@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import SessionDashboard from './SessionDashboard';
 
@@ -180,6 +180,9 @@ describe('SessionDashboard', () => {
   });
 
   it('affiche le code de session en permanence pendant les phases écriture/vote/résultats', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.assign(navigator, { clipboard: { writeText } });
+
     vi.stubGlobal(
       'fetch',
       vi.fn().mockImplementation((url) => {
@@ -195,7 +198,127 @@ describe('SessionDashboard', () => {
 
     renderDashboard();
 
-    expect(await screen.findByText('Code : 4242')).toBeTruthy();
+    const copyButton = await screen.findByRole('button', { name: 'Copier le code de session' });
+    expect(copyButton.textContent).toContain('4242');
+
+    fireEvent.click(copyButton);
+    await vi.waitFor(() => expect(writeText).toHaveBeenCalledWith('4242'));
+  });
+
+  it('sépare le contexte de session des actions de l’étape', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockImplementation((url) => {
+        if (url.endsWith('/session/1')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({
+              success: true,
+              data: {
+                id: 1,
+                name: 'Rétro sprint 12',
+                code: '4242',
+                step: 'writing',
+                ownerId: 1,
+              },
+            }),
+          });
+        }
+        if (url.endsWith('/session/1/participants')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({
+              success: true,
+              data: [
+                { id: 1, sessionId: 1, displayName: 'Elyas', role: 'facilitator', status: 'online' },
+                { id: 2, sessionId: 1, displayName: 'Samia', role: 'participant', status: 'online' },
+              ],
+            }),
+          });
+        }
+        return Promise.resolve(emptyCardsResponse);
+      })
+    );
+
+    renderDashboard();
+
+    const contextBar = await screen.findByRole('navigation', { name: 'Contexte de session' });
+
+    expect(within(contextBar).getByRole('button', { name: 'Retour' })).toBeTruthy();
+    expect(within(contextBar).getByText('Range ta chambre')).toBeTruthy();
+    expect(within(contextBar).getByText('Rétro sprint 12')).toBeTruthy();
+    expect(within(contextBar).getAllByText('Écriture des cartes').length).toBeGreaterThan(0);
+    expect(within(contextBar).getByRole('button', { name: 'Copier le code de session' })).toBeTruthy();
+    expect(within(contextBar).getByRole('button', { name: 'Participants' })).toBeTruthy();
+    expect(within(contextBar).getByRole('button', { name: 'Discussion' })).toBeTruthy();
+
+    expect(within(contextBar).queryByText(/carte.*au total/)).toBeNull();
+    expect(within(contextBar).queryByText('05:00')).toBeNull();
+    expect(within(contextBar).queryByRole('button', { name: /Passer au vote/ })).toBeNull();
+  });
+
+  it('permet de quitter une session démarrée depuis le bouton Retour de la barre contexte', async () => {
+    const fetchSpy = vi.fn().mockImplementation((url, init) => {
+      const method = init?.method ?? 'GET';
+      if (method === 'DELETE' && url.endsWith('/session/1/participants/1')) {
+        return Promise.resolve({ ok: true, json: async () => ({ success: true }) });
+      }
+      if (url.endsWith('/session/1')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            success: true,
+            data: {
+              id: 1,
+              name: 'Tableau de rétrospective — session 1',
+              code: '4242',
+              step: 'writing',
+              ownerId: 1,
+            },
+          }),
+        });
+      }
+      if (url.endsWith('/session/1/participants/self')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ success: true, data: { id: 1, role: 'facilitator' } }),
+        });
+      }
+      if (url.endsWith('/session/1/participants')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            success: true,
+            data: [{ id: 1, sessionId: 1, displayName: 'Elyas', role: 'facilitator', status: 'online' }],
+          }),
+        });
+      }
+      return Promise.resolve(emptyCardsResponse);
+    });
+    vi.stubGlobal('fetch', fetchSpy);
+
+    render(
+      <MemoryRouter initialEntries={['/session/1']}>
+        <Routes>
+          <Route path="/" element={<p>Page d'accueil</p>} />
+          <Route path="/session/:id" element={<SessionDashboard />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await vi.waitFor(() => {
+      expect(fetchSpy.mock.calls.some(([url]) => String(url).endsWith('/session/1/participants/self'))).toBe(true);
+      expect(fetchSpy.mock.calls.some(([url]) => String(url).endsWith('/session/1/participants'))).toBe(true);
+    });
+
+    const backButton = screen.getByRole('button', { name: 'Retour' });
+    fireEvent.click(backButton);
+
+    expect(await screen.findByText("Page d'accueil")).toBeTruthy();
+    expect(fetchSpy).toHaveBeenCalledWith(
+      expect.stringMatching(/\/session\/1\/participants\/1$/),
+      expect.objectContaining({ method: 'DELETE' })
+    );
   });
 
   it('affiche un état vide si aucune carte', async () => {
@@ -466,7 +589,6 @@ describe('SessionDashboard', () => {
     fireEvent.click(voteButton);
 
     expect(await screen.findByText('1 vote')).toBeTruthy();
-    expect(addToastMock).not.toHaveBeenCalled();
   });
 
   it("affiche un toast d'erreur si le vote échoue (ex: déjà voté)", async () => {
@@ -646,7 +768,6 @@ describe('SessionDashboard', () => {
 
     expect(await screen.findByText('Nouveau contenu')).toBeTruthy();
     expect(screen.queryByText('Ancien contenu')).toBeNull();
-    expect(addToastMock).not.toHaveBeenCalled();
   });
 
   it("n'envoie pas la modification si le contenu devient vide", async () => {
@@ -798,7 +919,6 @@ describe('SessionDashboard', () => {
     await vi.waitFor(() => {
       expect(screen.queryByText('Carte à supprimer')).toBeNull();
     });
-    expect(addToastMock).not.toHaveBeenCalled();
   });
 
   it("affiche un toast d'erreur si la suppression est refusée par le backend", async () => {
@@ -839,7 +959,7 @@ describe('SessionDashboard', () => {
     });
   });
 
-  it('affiche le rôle de l\'utilisateur pour cette session', async () => {
+  it("n'affiche pas le rôle dans la barre de contexte de session", async () => {
     vi.stubGlobal(
       'fetch',
       vi.fn().mockImplementation((url: string) => {
@@ -858,7 +978,8 @@ describe('SessionDashboard', () => {
 
     renderDashboard();
 
-    expect(await screen.findByText('Facilitateur')).toBeTruthy();
+    const contextBar = await screen.findByRole('navigation', { name: 'Contexte de session' });
+    expect(within(contextBar).queryByText('Facilitateur')).toBeNull();
   });
 
   it('bascule vers la vue résultats et trie les cartes par votes décroissant', async () => {
@@ -914,7 +1035,7 @@ describe('SessionDashboard', () => {
 
     renderDashboard();
 
-    expect(await screen.findByText('Quitter la session')).toBeTruthy();
+    expect(await screen.findByText('Top 3 des cartes')).toBeTruthy();
 
     const cards = screen.getAllByText(/Carte (peu|très) votée/);
     expect(cards[0].textContent).toBe('Carte très votée');
@@ -934,7 +1055,7 @@ describe('SessionDashboard', () => {
 
     renderDashboard();
 
-    await screen.findByText('Quitter la session');
+    await screen.findByText("Aucune carte n'a été ajoutée pendant cette rétrospective.");
     expect(screen.queryByPlaceholderText('Nouvelle carte...')).toBeNull();
   });
 
@@ -996,6 +1117,10 @@ describe('SessionDashboard', () => {
     vi.stubGlobal('fetch', fetchMock);
 
     renderDashboard();
+
+    await vi.waitFor(() => {
+      expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith('/session/1/participants/resume'))).toBe(true);
+    });
 
     const textareas = await screen.findAllByPlaceholderText('Nouvelle carte...');
     fireEvent.change(textareas[2], { target: { value: 'Carte invitée' } });

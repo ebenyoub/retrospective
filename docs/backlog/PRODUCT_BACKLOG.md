@@ -37,6 +37,101 @@ Fonctionnalités explicitement justifiées par le cahier des charges, les User S
 | **T-UX-01** | Affichage du quota de votes restants | Figma (`VoteScreen.tsx` : pastilles + texte) | **Indispensable** pour permettre au participant de piloter la consommation de ses 5 votes au cours de la phase. | ✅ Terminé |
 | **T-DOC-02**| Finalisation docs techniques (`API.md`/`DATABASE.md`) | Référentiel jury DWWM (Livrables académiques obligatoires) | Indispensable pour la validation du titre professionnel. | ✅ Terminé |
 
+### Chantier prioritaire — Écran Écriture : zone sous le header principal
+
+> Découpage validé le 2026-07-13 à partir du prototype Figma Make (`Shell.tsx`, `WritingScreen.tsx`, `VoteScreen.tsx`, `DiscussionPanel.tsx`, `CommentsModal.tsx`), de l'état réel du code et des documents de suivi.
+> Le prototype contient deux barres sous le header principal : une barre de contexte de session puis une barre d'actions d'étape. Aucune de ces barres n'est validée comme terminée à ce stade.
+
+#### **T-SESSION-BAR-01 — SessionContextBar**
+
+| Champ | Valeur |
+| :--- | :--- |
+| Identifiant | **T-SESSION-BAR-01** |
+| Titre | SessionContextBar fidèle au prototype |
+| Priorité | P0 |
+| Statut | ✅ Terminé — validé utilisateur |
+| Objectif | Obtenir la première barre sous le header principal : contexte de session uniquement, sans compteur de cartes, timer ni bouton principal. |
+| Critères d'acceptation | Le bouton Retour est visible et fonctionnel ; le breadcrumb reprend la structure du prototype (`Range ta chambre / session / étape`) ; le nom de session a une taille et une troncature conformes ; le `StepIndicator` est centré sur desktop ; le code de session, Participants et Discussion sont positionnés à droite ; la barre reste lisible en responsive ; aucun élément de `SessionActionBar` n'est rendu dans cette barre. |
+| Fichiers probablement concernés | `retrospective_frontend/src/pages/session/SessionDashboard.tsx`, `retrospective_frontend/src/pages/session/components/SessionContextBar.tsx`, `retrospective_frontend/src/pages/session/components/StepIndicator.tsx`, `retrospective_frontend/src/pages/session/sessionStep.ts`, `retrospective_frontend/src/pages/session/SessionDashboard.test.tsx` |
+| Dépendances | Aucune tâche fonctionnelle ; doit reprendre l'état non commité actuel sans considérer la barre comme validée. |
+| Tests attendus | Tests React sur le rendu de la barre, le bouton Retour, le code de session, le placement logique des déclencheurs Participants/Discussion et l'absence du compteur/timer/bouton principal dans cette barre ; vérification visuelle Figma desktop/mobile. |
+| Source justifiant la tâche | Figma (`figma_make/src/app/components/Shell.tsx` — `NavBar`) ; cahier des charges (interface claire et simple) ; backlog initial via `T-NAV-01` pour la navigation de retour ; évolution ultérieure : aucun nouveau comportement hors Figma. |
+
+#### **T-SESSION-BAR-02 — SessionActionBar**
+
+| Champ | Valeur |
+| :--- | :--- |
+| Identifiant | **T-SESSION-BAR-02** |
+| Titre | SessionActionBar fidèle au prototype |
+| Priorité | P0 |
+| Statut | ⬜ À faire |
+| Objectif | Obtenir la seconde barre sous le header principal : actions d'étape uniquement. |
+| Critères d'acceptation | Le compteur total de cartes est rendu dans cette barre en étape écriture ; l'indicateur de votes restants reste rendu dans cette barre en étape vote ; le timer est rendu dans cette barre ; le bouton principal facilitateur est rendu dans cette barre ; aucune troisième ligne ou troisième navbar n'apparaît ; la barre reproduit la sub-toolbar Figma des écrans `WritingScreen` et `VoteScreen` ; aucun élément de contexte de session n'y est déplacé. |
+| Fichiers probablement concernés | `retrospective_frontend/src/pages/session/SessionDashboard.tsx`, `retrospective_frontend/src/pages/session/components/SessionActionBar.tsx`, `retrospective_frontend/src/pages/session/components/TimerChip.tsx`, `retrospective_frontend/src/pages/session/SessionDashboard.test.tsx` |
+| Dépendances | **T-SESSION-BAR-01** validée pour éviter de redéplacer des éléments entre les deux barres. |
+| Tests attendus | Tests React sur compteur, votes restants, timer, bouton principal selon l'étape et le rôle ; test d'absence de troisième barre ; vérification visuelle Figma desktop/mobile. |
+| Source justifiant la tâche | Figma (`WritingScreen.tsx` et `VoteScreen.tsx` — sub-toolbar) ; User Stories `US-07`, `US-08`, `US-10` ; cahier des charges (ajout de cartes, vote, démarrage/clôture de session) ; backlog initial via tâches Figma timer/quota. |
+
+#### **T-SESSION-BAR-03 — ParticipantsDrawer**
+
+| Champ | Valeur |
+| :--- | :--- |
+| Identifiant | **T-SESSION-BAR-03** |
+| Titre | Panneau Participants depuis le déclencheur |
+| Priorité | P1 |
+| Statut | ⬜ À faire |
+| Objectif | Ouvrir un panneau Participants depuis le déclencheur de `SessionContextBar` et afficher les vraies données de session. |
+| Critères d'acceptation | Le déclencheur Participants ouvre/ferme le panneau ; le panneau affiche les vrais participants issus de `useSessionParticipants`/API, avec nom, rôle et statut disponibles ; desktop et mobile respectent le prototype ; fermeture accessible au clic et au clavier ; aucune donnée mockée n'est affichée comme réelle. |
+| Fichiers probablement concernés | `retrospective_frontend/src/pages/session/components/SessionContextBar.tsx`, nouveau composant probable `ParticipantsDrawer.tsx`, `retrospective_frontend/src/pages/session/hooks/useSessionParticipants.ts`, `retrospective_frontend/src/pages/session/SessionDashboard.tsx`, tests associés. |
+| Dépendances | **T-SESSION-BAR-01** validée ; données participants existantes déjà disponibles côté application. |
+| Tests attendus | Tests React ouverture/fermeture, comptage, rendu des vrais participants, accessibilité du déclencheur et du panneau ; vérification visuelle Figma desktop/mobile. |
+| Source justifiant la tâche | Figma (`Shell.tsx` — `ParticipantsSidebar`) ; cahier des charges (participants rejoignent une session) ; User Story `US-06` ; backlog initial `TODO-SESSION-01` déjà livré côté données mais pas sous forme de drawer Figma. |
+
+#### **T-SESSION-BAR-04 — DiscussionDrawer**
+
+| Champ | Valeur |
+| :--- | :--- |
+| Identifiant | **T-SESSION-BAR-04** |
+| Titre | Panneau Discussion depuis le déclencheur |
+| Priorité | P2 |
+| Statut | ⬜ À faire |
+| Objectif | Ouvrir le fil de discussion depuis le déclencheur de `SessionContextBar` et préparer l'intégration des messages/commentaires. |
+| Critères d'acceptation | Le déclencheur Discussion ouvre/ferme un panneau conforme au prototype ; le panneau distingue clairement état vide, liste de messages et zone de saisie selon le périmètre validé ; le ticket ne crée pas encore les commentaires de cartes ; aucune donnée mockée n'est présentée comme réelle ; le comportement à implémenter est borné avant développement si une route backend manque. |
+| Fichiers probablement concernés | `retrospective_frontend/src/pages/session/components/SessionContextBar.tsx`, nouveau composant probable `DiscussionDrawer.tsx`, `retrospective_frontend/src/pages/session/SessionDashboard.tsx`, tests associés ; backend uniquement si une décision produit valide la persistance des messages. |
+| Dépendances | **T-SESSION-BAR-01** validée ; décision de périmètre sur données réelles de discussion si nécessaire. |
+| Tests attendus | Tests React ouverture/fermeture, état vide, accessibilité, absence de mélange avec Participants ; tests API/backend seulement si persistance validée. |
+| Source justifiant la tâche | Figma (`DiscussionPanel.tsx`) ; Product Backlog évolution `US-11` / backlog d'origine `B20` hors scope MVP ; évolution ultérieure validable après les deux barres. |
+
+#### **T-SESSION-BAR-05 — Commentaires des cartes**
+
+| Champ | Valeur |
+| :--- | :--- |
+| Identifiant | **T-SESSION-BAR-05** |
+| Titre | Connexion des cartes au fil de discussion/commentaires |
+| Priorité | P2 |
+| Statut | ⬜ À faire |
+| Objectif | Connecter les cartes au fil de discussion ou à un modal de commentaires uniquement si cette fonctionnalité est confirmée par les sources projet. |
+| Critères d'acceptation | Le ticket commence par confirmer le périmètre exact : commentaires par carte, discussion globale, ou lien entre les deux ; les cartes affichent un compteur réel seulement si une source de données existe ; l'ouverture depuis une carte respecte le prototype ; aucune table/route n'est ajoutée sans validation du périmètre ; aucun comportement de vote/édition/suppression existant ne régresse. |
+| Fichiers probablement concernés | `retrospective_frontend/src/pages/session/components/RetroCardItem.tsx`, `RetroColumn.tsx`, `SessionDashboard.tsx`, nouveau composant probable de commentaires, tests associés ; backend et SQL uniquement si validés. |
+| Dépendances | **T-SESSION-BAR-04** ou décision produit explicite sur les commentaires ; ne pas démarrer avant confirmation du périmètre. |
+| Tests attendus | Tests React compteur/ouverture/fermeture, non-régression cartes ; tests backend/API seulement si données persistées ; vérification visuelle Figma. |
+| Source justifiant la tâche | Figma (`CommentsModal.tsx`, `commentCount` dans `WritingScreen.tsx`/`VoteScreen.tsx`) ; Product Backlog évolution `US-12` ; évolution ultérieure, non MVP par défaut. |
+
+#### **T-SESSION-BAR-06 — Revue UI finale de l'écran Écriture**
+
+| Champ | Valeur |
+| :--- | :--- |
+| Identifiant | **T-SESSION-BAR-06** |
+| Titre | Revue UI finale de l'écran Écriture |
+| Priorité | P1 |
+| Statut | ⬜ À faire |
+| Objectif | Comparer l'écran complet au prototype après validation des composants précédents et corriger uniquement les derniers écarts démontrés. |
+| Critères d'acceptation | L'écran complet est comparé au prototype sur desktop et mobile ; seules les divergences restantes de l'écran Écriture sont corrigées ; les tâches validées précédentes ne sont pas modifiées sauf régression démontrée ; aucun nouveau regroupement fonctionnel n'est introduit ; la revue vérifie l'absence de troisième barre et la non-régression des cartes, colonnes, votes et résultats. |
+| Fichiers probablement concernés | `retrospective_frontend/src/pages/session/SessionDashboard.tsx`, composants sous `retrospective_frontend/src/pages/session/components/`, tests de non-régression, documentation de suivi. |
+| Dépendances | **T-SESSION-BAR-01** et **T-SESSION-BAR-02** validées ; **T-SESSION-BAR-03/04/05** selon périmètre retenu. |
+| Tests attendus | Tests frontend ciblés ; build/lint frontend ; vérification visuelle Figma desktop/mobile ; revue du diff uniquement. |
+| Source justifiant la tâche | Figma (`Shell.tsx`, `WritingScreen.tsx`, `VoteScreen.tsx`) ; cahier des charges (interface claire et responsive) ; évolution ultérieure de stabilisation visuelle. |
+
 ---
 
 ## 2. Évolutions (Hors MVP / Après la soutenance)

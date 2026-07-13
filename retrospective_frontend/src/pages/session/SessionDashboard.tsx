@@ -3,23 +3,21 @@ import { useToast } from '@/context/toast/useToast';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import Badge from '@/components/ui/Badge';
-import Button from '@/components/ui/Button';
 import { getApiErrorMessage, isApiSuccess, NETWORK_ERROR_MESSAGE, readJsonSafely } from '@/lib/apiError';
 import RetroColumn from './components/RetroColumn';
+import SessionActionBar from './components/SessionActionBar';
+import SessionContextBar from './components/SessionContextBar';
 import SessionResults from './components/SessionResults';
 import type { RetroCard } from './components/RetroCardItem';
-import { ROLE_LABEL, type SessionRole } from './sessionRole';
+import type { SessionRole } from './sessionRole';
 import { WaitingScreen } from './components/WaitingScreen';
 import CustomFormatModal from './components/CustomFormatModal';
 import JoinSessionModal, { type GuestJoinResponse } from './components/JoinSessionModal';
 import { useGuestParticipant } from './hooks/useGuestParticipant';
 import { useSessionParticipants, type SelfIdentity } from './hooks/useSessionParticipants';
-import TimerChip from './components/TimerChip';
+import type { SessionStep } from './sessionStep';
 
 import { API_BASE } from '@/lib/api';
-
-type SessionStep = 'waiting' | 'writing' | 'voting' | 'results';
 
 interface SessionDetails {
   id: number;
@@ -105,7 +103,7 @@ const SessionDashboard = () => {
   const { identity: guestIdentity, setIdentity: setGuestIdentity, clearIdentity: clearGuestIdentity } = useGuestParticipant(sessionId);
   const [selfParticipantId, setSelfParticipantId] = useState<number | null>(null);
   const [isCustomFormatModalOpen, setIsCustomFormatModalOpen] = useState(false);
-  const [isActionsMenuOpen, setIsActionsMenuOpen] = useState(false);
+  const [isSessionCodeCopied, setIsSessionCodeCopied] = useState(false);
 
   const votesUsed = useMemo(() => cards.filter((card) => card.votedByMe).length, [cards]);
   const votesLeft = useMemo(() => Math.max(0, 5 - votesUsed), [votesUsed]);
@@ -491,6 +489,18 @@ const SessionDashboard = () => {
     setRole(result.role);
   };
 
+  const handleCopySessionCode = async () => {
+    if (!sessionCode) return;
+
+    try {
+      await navigator.clipboard.writeText(sessionCode);
+      setIsSessionCodeCopied(true);
+      setTimeout(() => setIsSessionCodeCopied(false), 1800);
+    } catch (error) {
+      console.error('Échec de la copie du code', error);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex flex-1 items-center justify-center">
@@ -547,115 +557,23 @@ const SessionDashboard = () => {
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
-      {/* Sub-toolbar — collé sous le header global, aligné Figma Make */}
-      <div className="flex flex-shrink-0 flex-wrap items-center justify-between w-full bg-navy-mid border-b border-navy-border px-5 py-2.5 gap-3">
-        <div className="flex min-w-0 flex-wrap items-center gap-3">
-          <h1 className="text-sm font-bold text-slate-50 break-words truncate">
-            {sessionName ? sessionName : `Session ${sessionId}`}
-          </h1>
-          {role && <Badge>{ROLE_LABEL[role]}</Badge>}
-          <span className="text-xs font-semibold text-green-figma uppercase bg-green-figma/10 px-2 py-0.5 rounded">
-            {step === 'writing' ? 'Écriture' : step === 'voting' ? 'Vote' : 'Résultats'}
-          </span>
-          {sessionCode && (
-            <span className="text-xs font-mono font-semibold text-slate-400 tracking-wider">
-              Code : {sessionCode}
-            </span>
-          )}
-          {step === 'writing' && (
-            <span className="text-xs text-slate-400 font-sans hidden sm:inline select-none">
-              {cards.length} carte{cards.length !== 1 ? 's' : ''} au total
-            </span>
-          )}
-          {step === 'voting' && (
-            <div
-              role="status"
-              aria-label={`${votesLeft} votes restants sur 5`}
-              className="flex items-center gap-2 bg-navy-surface border border-navy-border-med rounded-lg px-3 py-1 flex-shrink-0"
-            >
-              <span className="font-sans text-[13px] font-bold text-slate-200 select-none">
-                {votesLeft} vote{votesLeft !== 1 ? 's' : ''} restant{votesLeft !== 1 ? 's' : ''}
-              </span>
-              <div className="flex gap-1" aria-hidden="true">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className={`w-2.5 h-2.5 rounded-full transition-colors duration-200 ${
-                      i < votesLeft ? 'bg-amber-400' : 'bg-navy-border-med'
-                    }`}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-        <div className="flex items-center gap-2 relative">
-          {step === 'writing' && <TimerChip value="05:00" />}
-          {step === 'voting' && <TimerChip value="04:30" />}
-
-          {role === 'facilitator' && (
-            <>
-              {step === 'writing' && (
-                <Button variant="primary" size="sm" onClick={() => handleTransitionStep('voting')}>
-                  Passer au vote →
-                </Button>
-              )}
-              {step === 'voting' && (
-                <Button variant="success" size="sm" onClick={() => handleTransitionStep('results')}>
-                  Voir les résultats →
-                </Button>
-              )}
-            </>
-          )}
-
-          {step === 'results' && (
-            <Button variant="secondary" size="sm" onClick={handleLeaveSession}>
-              Quitter la session
-            </Button>
-          )}
-
-          {/* Bouton de menu à trois points (menu `…`) visible uniquement à l'écriture et au vote */}
-          {step !== 'results' && (
-            <>
-              <button
-                type="button"
-                onClick={() => setIsActionsMenuOpen(!isActionsMenuOpen)}
-                aria-label="Actions de session"
-                aria-expanded={isActionsMenuOpen}
-                className="flex items-center justify-center w-8 h-8 rounded-lg bg-navy-surface-med border border-navy-border-med text-slate-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer select-none"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="1" />
-                  <circle cx="19" cy="12" r="1" />
-                  <circle cx="5" cy="12" r="1" />
-                </svg>
-              </button>
-
-              {/* Dropdown Menu pour les actions */}
-              {isActionsMenuOpen && (
-                <>
-                  <div 
-                    className="fixed inset-0 z-40" 
-                    onClick={() => setIsActionsMenuOpen(false)} 
-                  />
-                  <div className="absolute right-0 top-full mt-1.5 w-44 rounded-lg bg-navy-mid border border-navy-border shadow-lg py-1 z-50 animate-fade-in">
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        setIsActionsMenuOpen(false);
-                        await handleLeaveSession();
-                      }}
-                      className="w-full text-left font-sans text-xs font-semibold text-red-400 hover:text-red-300 hover:bg-red-500/10 px-3 py-2 transition-all cursor-pointer border-none bg-transparent"
-                    >
-                      Quitter la session
-                    </button>
-                  </div>
-                </>
-              )}
-            </>
-          )}
-        </div>
-      </div>
+      <SessionContextBar
+        sessionName={sessionName}
+        sessionId={sessionId}
+        sessionCode={sessionCode}
+        step={step}
+        participantCount={participants.filter((participant) => participant.status === 'online').length}
+        isSessionCodeCopied={isSessionCodeCopied}
+        onBack={handleLeaveSession}
+        onCopySessionCode={handleCopySessionCode}
+      />
+      <SessionActionBar
+        step={step}
+        cardsCount={cards.length}
+        votesLeft={votesLeft}
+        isFacilitator={role === 'facilitator'}
+        onTransitionStep={handleTransitionStep}
+      />
 
       {step === 'results' ? (
         /* Vue résultats : stats, Top 3 et colonnes par catégorie (fidèle Figma) */

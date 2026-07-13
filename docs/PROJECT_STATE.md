@@ -4,6 +4,10 @@
 
 ## Date de dernière mise à jour
 
+2026-07-13 (`T-SESSION-BAR-01 — SessionContextBar` terminé et validé utilisateur : barre de contexte isolée sous le header principal, déclencheurs Participants/Discussion rendus comme boutons accessibles, retrait du rôle de cette barre, tests ciblés 33/33, lint et build frontend OK ; validation visuelle confirmée)
+
+2026-07-13 (recadrage backlog — arrêt des modifications directes de la navbar de session ; découpage du chantier sous le header principal en 6 tickets indépendants : `SessionContextBar`, `SessionActionBar`, `ParticipantsDrawer`, `DiscussionDrawer`, commentaires des cartes, revue UI finale. La navbar n'est pas validée comme terminée.)
+
 2026-07-13 (passe de fidélité visuelle — affichage dynamique du quota de votes restants en continu sous forme de texte et de 5 pastilles dynamiques colorées/grisées d'après le prototype Figma, avec jointure SQL au chargement des cartes pour savoir si le participant connecté a déjà voté pour chaque carte)
 
 2026-07-13 (passe de fidélité visuelle — page d'ÉCRITURE alignée sur le prototype Figma `WritingScreen` : layout sans hauteur fixe, EmptyState par colonne avec emojis, onglets mobiles, compteur de cartes global, intégration du `TimerChip` statique et du menu d'actions `…` ; correction du bouton de retour de `SessionList` pour casser la boucle de redirection automatique sur l'accueil)
@@ -115,9 +119,17 @@
 
 ## Ce qui est en cours
 
-- Rien en cours. Revue d'architecture (conformité skills DWWM) terminée le 2026-07-13, à comportement constant, vérifiée en conditions réelles (Docker Compose + Playwright : signup → session → jointure invité → lancement → écriture → carte, plus vérification API des endpoints auth/session). Tests, lint, build (frontend + backend) verts. Pas encore commité (attente de validation).
+- Chantier "zone sous le header principal" recadré dans le Product Backlog officiel. Le prototype Figma contient exactement deux barres sous le header principal :
+  - `SessionContextBar` : retour, breadcrumb, nom de session, `StepIndicator`, code de session, déclencheurs Participants et Discussion.
+  - `SessionActionBar` : compteur total de cartes ou votes restants, timer, bouton principal de l'étape.
+- `T-SESSION-BAR-01 — SessionContextBar` est terminé et validé utilisateur.
+- Les modifications frontend non commitées restantes sur `SessionActionBar` et `TimerChip` ne sont pas validées par cette tâche et restent à reprendre dans `T-SESSION-BAR-02`.
+- Régression/risque identifié : l'état global peut encore donner l'impression d'une troisième barre selon le placement de la sub-toolbar et des onglets mobiles. À traiter uniquement dans `T-SESSION-BAR-02` ou la revue UI finale.
 
 ## Prochaine étape
+
+**Reprendre le Product Backlog à partir de `T-SESSION-BAR-02 — SessionActionBar` uniquement après validation explicite de lancement.**
+- Ne pas commencer `SessionActionBar`, ParticipantsDrawer, DiscussionDrawer ou commentaires dans la clôture de `T-SESSION-BAR-01`.
 
 **Finalisation soutenance.**
 - Parcours facilitateur + participant invité vérifié en conditions réelles le 2026-07-13 (Docker Compose + Playwright, 2 contextes navigateur), **y compris l'ouverture directe du lien d'invitation** (sans passer par l'accueil) : création de compte + rétro, invitation, jointure sans compte, synchronisation temps réel, écriture de carte, lancement de la rétro synchronisé, code de session visible en permanence.
