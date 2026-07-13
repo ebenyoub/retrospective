@@ -57,23 +57,23 @@ describe("card.model", () => {
   });
 
   it("findCardOwner renvoie la carte et son auteur", async () => {
-    mockExecute.mockResolvedValueOnce([[{ id: 5, author_id: 1 }]]);
+    mockExecute.mockResolvedValueOnce([[{ id: 5, author_participant_id: 1 }]]);
 
     const card = await findCardOwner(1, 5);
 
-    expect(card).toEqual({ id: 5, author_id: 1 });
+    expect(card).toEqual({ id: 5, author_participant_id: 1 });
     expect(mockExecute).toHaveBeenCalledWith(
-      "select id, author_id from retro_cards where id = ? and session_id = ?",
+      "select id, author_participant_id from retro_cards where id = ? and session_id = ?",
       [5, 1]
     );
   });
 
   it("findCardOwnerById renvoie la carte et son auteur", async () => {
-    mockExecute.mockResolvedValueOnce([[{ id: 5, author_id: 1 }]]);
+    mockExecute.mockResolvedValueOnce([[{ id: 5, author_participant_id: 1 }]]);
 
     const card = await findCardOwnerById(5);
 
-    expect(card).toEqual({ id: 5, author_id: 1 });
+    expect(card).toEqual({ id: 5, author_participant_id: 1 });
   });
 
   it("updateCardContent met à jour le contenu de la carte dans la session", async () => {

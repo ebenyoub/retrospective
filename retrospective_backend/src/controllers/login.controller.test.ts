@@ -42,7 +42,7 @@ describe("login.controller", () => {
       username: "Elyas",
       email: "e@test.com",
     });
-    const req = createMockRequest({ username: "Elyas", password: "TEST_PASSWORD_VALUE" });
+    const req = createMockRequest({ email: "e@test.com", password: "TEST_PASSWORD_VALUE" });
     const res = createMockResponse();
 
     await login(req, res as unknown as Response);
@@ -52,14 +52,14 @@ describe("login.controller", () => {
     expect(body.success).toBe(true);
     expect(body.data.token).toBe("token");
     expect(mockLoginUser).toHaveBeenCalledWith({
-      username: "Elyas",
+      email: "e@test.com",
       password: "TEST_PASSWORD_VALUE",
     });
   });
 
   it("ne capture pas les erreurs du service", async () => {
     mockLoginUser.mockRejectedValueOnce(new Error("boom"));
-    const req = createMockRequest({ username: "", password: "" });
+    const req = createMockRequest({ email: "", password: "" });
     const res = createMockResponse();
 
     await expect(login(req, res as unknown as Response)).rejects.toThrow("boom");

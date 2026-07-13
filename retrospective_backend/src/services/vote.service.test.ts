@@ -4,12 +4,12 @@ import type { Mock } from "vitest";
 vi.mock("../models/vote.model", () => ({
   findCardSessionId: vi.fn(),
   findExistingVote: vi.fn(),
-  countVotesByUserInSession: vi.fn(),
+  countVotesByParticipantInSession: vi.fn(),
   insertVote: vi.fn(),
 }));
 
 import {
-  countVotesByUserInSession,
+  countVotesByParticipantInSession,
   findCardSessionId,
   findExistingVote,
   insertVote,
@@ -19,7 +19,7 @@ import { AppError } from "../utils/AppError";
 
 const mockFindCardSessionId = findCardSessionId as unknown as Mock;
 const mockFindExistingVote = findExistingVote as unknown as Mock;
-const mockCountVotes = countVotesByUserInSession as unknown as Mock;
+const mockCountVotes = countVotesByParticipantInSession as unknown as Mock;
 const mockInsertVote = insertVote as unknown as Mock;
 
 describe("vote.service", () => {

@@ -47,7 +47,7 @@ describe("card.service", () => {
   });
 
   it("createCard lève une AppError 400 si le contenu est vide", async () => {
-    await expect(createCard({ userId: 1, sessionId: "1", content: " ", columnType: "start" })).rejects.toMatchObject({
+    await expect(createCard({ participantId: 1, sessionId: "1", content: " ", columnType: "start" })).rejects.toMatchObject({
       statusCode: 400,
       code: "CARD_CONTENT_REQUIRED",
     } satisfies Partial<AppError>);
@@ -56,7 +56,7 @@ describe("card.service", () => {
   });
 
   it("createCard lève une AppError 400 si la colonne est invalide", async () => {
-    await expect(createCard({ userId: 1, sessionId: "1", content: "Texte", columnType: "bad" })).rejects.toMatchObject({
+    await expect(createCard({ participantId: 1, sessionId: "1", content: "Texte", columnType: "bad" })).rejects.toMatchObject({
       statusCode: 400,
       code: "CARD_COLUMN_INVALID",
     } satisfies Partial<AppError>);
@@ -65,7 +65,7 @@ describe("card.service", () => {
   it("createCard lève une AppError 404 si la session n'existe pas", async () => {
     mockFindSessionById.mockResolvedValueOnce(null);
 
-    await expect(createCard({ userId: 1, sessionId: "1", content: "Texte", columnType: "start" })).rejects.toMatchObject({
+    await expect(createCard({ participantId: 1, sessionId: "1", content: "Texte", columnType: "start" })).rejects.toMatchObject({
       statusCode: 404,
       code: "SESSION_NOT_FOUND",
     } satisfies Partial<AppError>);
@@ -75,7 +75,7 @@ describe("card.service", () => {
     mockFindSessionById.mockResolvedValueOnce({ id: 1 });
     mockInsertCard.mockResolvedValueOnce(10);
 
-    await expect(createCard({ userId: 1, sessionId: "1", content: "Texte", columnType: "start" })).resolves.toBe(10);
+    await expect(createCard({ participantId: 1, sessionId: "1", content: "Texte", columnType: "start" })).resolves.toBe(10);
 
     expect(mockInsertCard).toHaveBeenCalledWith("1", 1, "start", "Texte");
   });
@@ -96,7 +96,8 @@ describe("card.service", () => {
       {
         id: 5,
         session_id: 1,
-        author_id: 2,
+        author_participant_id: 2,
+        author_name: "Sarah",
         column_type: "start",
         content: "Texte",
         created_at: createdAt,
@@ -109,6 +110,7 @@ describe("card.service", () => {
         id: 5,
         sessionId: 1,
         authorId: 2,
+        authorName: "Sarah",
         columnType: "start",
         content: "Texte",
         createdAt,
@@ -118,7 +120,7 @@ describe("card.service", () => {
   });
 
   it("lève une AppError 400 si le contenu est vide", async () => {
-    await expect(updateCard({ userId: 1, sessionId: 1, cardId: 5, content: "   " })).rejects.toMatchObject({
+    await expect(updateCard({ participantId: 1, sessionId: 1, cardId: 5, content: "   " })).rejects.toMatchObject({
       statusCode: 400,
       code: "CARD_CONTENT_REQUIRED",
     } satisfies Partial<AppError>);
@@ -129,16 +131,16 @@ describe("card.service", () => {
   it("lève une AppError 404 si la carte n'existe pas dans cette session", async () => {
     mockFindCardOwner.mockResolvedValueOnce(null);
 
-    await expect(updateCard({ userId: 1, sessionId: 1, cardId: 5, content: "Texte modifié" })).rejects.toMatchObject({
+    await expect(updateCard({ participantId: 1, sessionId: 1, cardId: 5, content: "Texte modifié" })).rejects.toMatchObject({
       statusCode: 404,
       code: "CARD_NOT_FOUND",
     } satisfies Partial<AppError>);
   });
 
   it("lève une AppError 403 si l'utilisateur n'est pas l'auteur", async () => {
-    mockFindCardOwner.mockResolvedValueOnce({ id: 5, author_id: 2 });
+    mockFindCardOwner.mockResolvedValueOnce({ id: 5, author_participant_id: 2 });
 
-    await expect(updateCard({ userId: 1, sessionId: 1, cardId: 5, content: "Texte modifié" })).rejects.toMatchObject({
+    await expect(updateCard({ participantId: 1, sessionId: 1, cardId: 5, content: "Texte modifié" })).rejects.toMatchObject({
       statusCode: 403,
       code: "CARD_FORBIDDEN",
     } satisfies Partial<AppError>);
@@ -147,9 +149,9 @@ describe("card.service", () => {
   });
 
   it("modifie la carte avec le contenu trimé si l'utilisateur en est l'auteur", async () => {
-    mockFindCardOwner.mockResolvedValueOnce({ id: 5, author_id: 1 });
+    mockFindCardOwner.mockResolvedValueOnce({ id: 5, author_participant_id: 1 });
 
-    await updateCard({ userId: 1, sessionId: 1, cardId: 5, content: " Texte modifié " });
+    await updateCard({ participantId: 1, sessionId: 1, cardId: 5, content: " Texte modifié " });
 
     expect(mockUpdateCardContent).toHaveBeenCalledWith(1, 5, "Texte modifié");
   });
@@ -157,16 +159,16 @@ describe("card.service", () => {
   it("deleteCard lève une AppError 404 si la carte n'existe pas", async () => {
     mockFindCardOwnerById.mockResolvedValueOnce(null);
 
-    await expect(deleteCard({ userId: 1, cardId: "5" })).rejects.toMatchObject({
+    await expect(deleteCard({ participantId: 1, cardId: "5" })).rejects.toMatchObject({
       statusCode: 404,
       code: "CARD_NOT_FOUND",
     } satisfies Partial<AppError>);
   });
 
   it("deleteCard lève une AppError 403 si l'utilisateur n'est pas l'auteur", async () => {
-    mockFindCardOwnerById.mockResolvedValueOnce({ id: 5, author_id: 2 });
+    mockFindCardOwnerById.mockResolvedValueOnce({ id: 5, author_participant_id: 2 });
 
-    await expect(deleteCard({ userId: 1, cardId: "5" })).rejects.toMatchObject({
+    await expect(deleteCard({ participantId: 1, cardId: "5" })).rejects.toMatchObject({
       statusCode: 403,
       code: "CARD_FORBIDDEN",
     } satisfies Partial<AppError>);
@@ -175,9 +177,9 @@ describe("card.service", () => {
   });
 
   it("deleteCard supprime les votes puis la carte", async () => {
-    mockFindCardOwnerById.mockResolvedValueOnce({ id: 5, author_id: 1 });
+    mockFindCardOwnerById.mockResolvedValueOnce({ id: 5, author_participant_id: 1 });
 
-    await deleteCard({ userId: 1, cardId: "5" });
+    await deleteCard({ participantId: 1, cardId: "5" });
 
     expect(mockDeleteVotesByCardId).toHaveBeenCalledWith("5");
     expect(mockDeleteCardById).toHaveBeenCalledWith("5");

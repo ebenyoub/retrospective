@@ -8,10 +8,10 @@ export interface AuthUserRow extends RowDataPacket {
   email: string;
 }
 
-export const findUserByUsername = async (username: string): Promise<AuthUserRow | null> => {
+export const findUserByEmail = async (email: string): Promise<AuthUserRow | null> => {
   const [users] = await db.execute<AuthUserRow[]>(
-    'SELECT id, username, hash_password, email FROM users WHERE username = ?',
-    [username]
+    'SELECT id, username, hash_password, email FROM users WHERE email = ?',
+    [email]
   );
 
   return users[0] ?? null;

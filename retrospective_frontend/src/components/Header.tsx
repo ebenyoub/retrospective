@@ -1,53 +1,51 @@
-
-import { NavLink } from "react-router-dom";
-import Container from "./ui/Container";
+import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/auth/useAuth";
-import Button from "./ui/Button";
+import ProfileMenu from "./ProfileMenu";
 
 const Header = () => {
-    const { isAuthenticated, logout } = useAuth();
-    // const navigate = useNavigate();
-    // const handleQuit = (event: React.MouseEvent<HTMLButtonElement>) => {
-    //     event.preventDefault();
+    const { isAuthenticated } = useAuth();
+    const { pathname } = useLocation();
 
-    //     fetch("http://localhost:8000/auth/delete", {
-    //         method: "delete",
-    //         headers: {
-    //             "Content-Type": "application/json",
-    //             "Authorization": "Bearer " + token
-    //         },
-    //     })
-    //         .then(response => response.json())
-    //         .then(result => {
-    //             if (result.success) {
-    //                 localStorage.removeItem("token");
-    //                 logout();
-    //                 navigate("/login");
-    //             }
-    //         })
-    //         .catch(error => console.error(error));
-    // }
+    // Sur l'accueil, la carte principale contient déjà le formulaire de
+    // connexion/inscription : les boutons de la navbar y seraient redondants.
+    const isHomePage = pathname === "/";
+    const isSessionPage = pathname.startsWith("/session/");
 
     return (
-        <header className="flex min-h-14 w-full items-center bg-navy-mid border-b border-navy-border px-2 py-2 sm:h-14 sm:px-5 sm:py-0">
-            <Container className="flex flex-wrap items-center justify-between gap-3 py-0">
-                <NavLink to="/" className="shrink-0 font-extrabold text-green-figma tracking-tight text-[15px] font-sans">
+        <header className="sticky top-0 z-40 flex-shrink-0 flex w-full items-center bg-navy-mid border-b border-navy-border h-[52px] md:h-[56px] px-3 md:px-5">
+            <div className="flex w-full items-center justify-between gap-3">
+                {/* Logo / Nom de l'app */}
+                <NavLink
+                    to="/"
+                    className="shrink-0 font-extrabold text-[15px] text-green-figma tracking-[-0.4px] font-sans transition-opacity hover:opacity-90 select-none"
+                >
                     Range ta chambre
                 </NavLink>
-                <nav className="flex flex-wrap justify-end gap-2">
+
+                {/* Navigation / Actions */}
+                <nav className="flex items-center gap-2">
                     {!isAuthenticated ? (
-                        <>
-                            <NavLink to={"/signup"}><Button>S'inscrire</Button></NavLink>
-                            <NavLink to={"/login"}><Button>Connexion</Button></NavLink>
-                        </>
+                        !isHomePage && !isSessionPage && (
+                            <>
+                                <NavLink
+                                    to="/signup"
+                                    className="hidden sm:inline-flex items-center justify-center font-sans text-xs font-semibold text-navy bg-slate-50 hover:bg-slate-200 rounded-[8px] h-[30px] px-3.5 transition-all select-none"
+                                >
+                                    S'inscrire
+                                </NavLink>
+                                <NavLink
+                                    to="/login"
+                                    className="inline-flex items-center justify-center font-sans text-xs font-semibold text-slate-200 bg-navy-surface-med border border-navy-border-med hover:bg-white/10 rounded-[8px] h-[30px] px-3.5 transition-all select-none"
+                                >
+                                    Connexion
+                                </NavLink>
+                            </>
+                        )
                     ) : (
-                        <>
-                            <Button><NavLink to="/profile">Profile</NavLink></Button>
-                            <Button variant="destructive" onClick={() => logout()}>Déconnexion</Button>
-                        </>
+                        <ProfileMenu />
                     )}
                 </nav>
-            </Container>
+            </div>
         </header>
     );
 };

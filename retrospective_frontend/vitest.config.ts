@@ -13,6 +13,11 @@ export default defineConfig({
   },
   test: {
     environment: 'jsdom',
+    // jsdom désactive localStorage/sessionStorage tant qu'aucune origine
+    // http(s) n'est définie (sécurité par défaut sur "about:blank").
+    environmentOptions: {
+      jsdom: { url: 'http://localhost/' },
+    },
     setupFiles: ['./src/test/setup.ts'],
   },
 })

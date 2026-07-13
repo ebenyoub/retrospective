@@ -84,7 +84,7 @@ const SessionList = () => {
         </div>
       )}
 
-      <Button onClick={() => navigate('/profile')} className="w-fit">
+      <Button onClick={() => navigate('/')} className="w-fit">
         Retour
       </Button>
     </Container>

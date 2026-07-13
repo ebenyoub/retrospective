@@ -11,6 +11,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
 
 
+  // Ne navigue pas : chaque page appelante décide où rediriger après connexion
+  // (session active, liste des sessions, accueil...).
   const login = (data: AuthLoginData) => {
     localStorage.setItem('token', data.token);
     setToken(data.token);
@@ -18,10 +20,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setUserId(data.userId);
     setUsername(data.username);
     setEmail(data.email);
-
-    navigate('/profile', {
-      replace: true,
-    });
   }
 
   const logout = useCallback(() => {

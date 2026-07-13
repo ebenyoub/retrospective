@@ -4,31 +4,34 @@ import SpinContainer from '@/components/ui/SpinContainer';
 import Container from '@/components/ui/Container';
 import Button from '@/components/ui/Button';
 import { useAuth, type AuthLoginData } from '@/context/auth/useAuth';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useToast } from '@/context/toast/useToast';
 import type { ValidationSchema } from '@/hooks/useFormValidation';
 import useFormValidation from '@/hooks/useFormValidation';
 import { getApiErrorMessage, isApiSuccess, NETWORK_ERROR_MESSAGE, readJsonSafely } from '@/lib/apiError';
+import { resolveLandingRoute } from '@/lib/sessionLanding';
 
 interface LoginValues {
-    username: string;
+    email: string;
     password: string;
 }
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 const loginValidationSchema: ValidationSchema<LoginValues> = {
-    username: [
-        (value) => value.trim() === "" ? "Le pseudo est requis." : undefined,
-        (value) => value.trim().length < 4 ? "Doit contenir au moins 4 caractères." : undefined,
+    email: [
+        (value) => value.trim() === "" ? "L'adresse e-mail est requise." : undefined,
+        (value) => !EMAIL_REGEX.test(value) ? "Le format de l'adresse e-mail est invalide." : undefined,
     ],
     password: [
         (value) => value.trim() === "" ? "Le mot de passe est requis." : undefined,
-        (value) => value.trim().length < 4 ? "Doit contenir au moins 4 caractères." : undefined,
     ]
 };
 
 const Login: React.FC = () => {
     const { login } = useAuth();
     const { addToast } = useToast();
+    const navigate = useNavigate();
 
     const {
         values,
@@ -38,7 +41,7 @@ const Login: React.FC = () => {
         validateAll,
         setIsLoading
     } = useFormValidation<LoginValues>(
-        { username: "", password: "" },
+        { email: "", password: "" },
         loginValidationSchema
     )
 
@@ -64,6 +67,11 @@ const Login: React.FC = () => {
             if (response.ok && isApiSuccess<AuthLoginData>(data)) {
                 login(data.data)
                 addToast("success", "Vous êtes connectés.")
+
+                // Redirection selon les sessions actives du facilitateur :
+                // une seule → dedans, plusieurs → "Mes sessions", aucune → accueil.
+                const landingRoute = await resolveLandingRoute(data.data.token);
+                navigate(landingRoute, { replace: true });
             } else {
                 addToast("error", getApiErrorMessage(data, "Connexion impossible."));
             }
@@ -76,22 +84,22 @@ const Login: React.FC = () => {
     }
 
     return (
-        <Container className='flex justify-center mt-10 sm:mt-20'>
+        <Container className='flex justify-center items-center min-h-[60vh]'>
             <SpinContainer onSpin={isLoading} className="w-full max-w-md">
                 <FormContainer onSubmit={handleSubmit}>
                     <FormTitle>Connexion</FormTitle>
                     <FormField
-                        id="username"
-                        name="username"
-                        label="Pseudonyme (Nom d'utilisateur)"
+                        id="email"
+                        name="email"
+                        label="Adresse e-mail"
                         type="text"
-                        value={values.username}
-                        placeholder="Albus Dumbledore"
-                        autoComplete="username"
+                        value={values.email}
+                        placeholder="rtc@example.com"
+                        autoComplete="email"
                         disabled={isLoading}
                         onChange={handleInputChange}
                         onBlur={handleInputChange}
-                        error={errors.username}
+                        error={errors.email}
                         showValidState
                     />
 
@@ -101,7 +109,7 @@ const Login: React.FC = () => {
                         label="Mot de passe"
                         type="password"
                         value={values.password}
-                        autoComplete="new-password"
+                        autoComplete="current-password"
                         disabled={isLoading}
                         onChange={handleInputChange}
                         onBlur={handleInputChange}

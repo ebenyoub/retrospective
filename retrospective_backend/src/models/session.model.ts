@@ -134,3 +134,16 @@ export const updateSessionStep = async (
 
   return result.affectedRows > 0;
 };
+
+export const updateSessionFormat = async (
+  sessionId: number,
+  formatName: string,
+  formatColumns: string[]
+): Promise<boolean> => {
+  const [result] = await db.execute<ResultSetHeader>(
+    'update sessions set format_name = ?, format_columns = ? where id = ?',
+    [formatName, JSON.stringify(formatColumns), sessionId]
+  );
+
+  return result.affectedRows > 0;
+};

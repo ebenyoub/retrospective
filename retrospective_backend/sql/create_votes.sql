@@ -8,11 +8,12 @@
 CREATE TABLE IF NOT EXISTS votes (
   id INT AUTO_INCREMENT PRIMARY KEY,
   card_id INT NOT NULL,
-  user_id INT NOT NULL,
+  participant_id INT NOT NULL,
   created_at DATETIME DEFAULT NOW(),
   FOREIGN KEY (card_id) REFERENCES retro_cards(id),
-  FOREIGN KEY (user_id) REFERENCES users(id),
-  UNIQUE KEY unique_vote (card_id, user_id)
+  FOREIGN KEY (participant_id) REFERENCES session_participants(id),
+  UNIQUE KEY unique_vote (card_id, participant_id)
 );
 
 CREATE INDEX idx_votes_card ON votes(card_id);
+CREATE INDEX idx_votes_participant ON votes(participant_id);

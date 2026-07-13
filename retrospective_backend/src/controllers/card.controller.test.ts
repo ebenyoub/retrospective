@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import type { Response, NextFunction } from "express";
+import type { Response } from "express";
 import type { Mock } from "vitest";
 
 vi.mock("../services/card.service", () => ({
@@ -9,7 +9,10 @@ vi.mock("../services/card.service", () => ({
   updateCard: vi.fn(),
 }));
 
-import { auth } from '../middlewares/auth.middleware';
+vi.mock("../utils/sessionActor", () => ({
+  resolveSessionActor: vi.fn(),
+}));
+
 import { createCard, getCards, updateCard, deleteCard } from "./card.controller";
 import {
   createCard as createCardService,
@@ -17,12 +20,14 @@ import {
   getCards as getCardsService,
   updateCard as updateCardService,
 } from "../services/card.service";
+import { resolveSessionActor } from "../utils/sessionActor";
 import type { AuthRequest } from '../types';
 
 const mockCreateCardService = createCardService as unknown as Mock;
 const mockDeleteCardService = deleteCardService as unknown as Mock;
 const mockGetCardsService = getCardsService as unknown as Mock;
 const mockUpdateCardService = updateCardService as unknown as Mock;
+const mockResolveSessionActor = resolveSessionActor as unknown as Mock;
 
 const createMockResponse = () => {
   const res = {
@@ -56,17 +61,8 @@ describe("card.controller", () => {
     mockDeleteCardService.mockReset();
     mockGetCardsService.mockReset();
     mockUpdateCardService.mockReset();
-  });
-
-  it("refuse sans token (protection déléguée à auth.middleware, déjà testé unitairement)", () => {
-    const req = { headers: {} } as unknown as AuthRequest;
-    const res = createMockResponse();
-    const next = vi.fn() as unknown as NextFunction;
-
-    auth(req, res as unknown as Response, next);
-
-    expect(res.statusCode).toBe(401);
-    expect(next).not.toHaveBeenCalled();
+    mockResolveSessionActor.mockReset();
+    mockResolveSessionActor.mockResolvedValue({ participantId: 9, displayName: "Sarah", role: "participant" });
   });
 
   it("POST : appelle le service puis renvoie 201", async () => {
@@ -81,11 +77,12 @@ describe("card.controller", () => {
     expect(body.success).toBe(true);
     expect(body.data.cardId).toBe(10);
     expect(mockCreateCardService).toHaveBeenCalledWith({
-      userId: 1,
+      participantId: 9,
       sessionId: "1",
       content: "Le daily était trop long",
       columnType: "stop",
     });
+    expect(mockResolveSessionActor).toHaveBeenCalledWith(req, 1);
   });
 
   it("POST : ne capture pas les erreurs du service", async () => {
@@ -94,17 +91,6 @@ describe("card.controller", () => {
     const res = createMockResponse();
 
     await expect(createCard(req, res as unknown as Response)).rejects.toThrow("boom");
-  });
-
-  it("GET : refuse sans token (protection déléguée à auth.middleware, déjà testé unitairement)", () => {
-    const req = { headers: {} } as unknown as AuthRequest;
-    const res = createMockResponse();
-    const next = vi.fn() as unknown as NextFunction;
-
-    auth(req, res as unknown as Response, next);
-
-    expect(res.statusCode).toBe(401);
-    expect(next).not.toHaveBeenCalled();
   });
 
   it("GET : renvoie 200 et un tableau vide si la session n'a pas de carte", async () => {
@@ -127,6 +113,7 @@ describe("card.controller", () => {
         id: 5,
         sessionId: 1,
         authorId: 2,
+        authorName: "Sarah",
         columnType: "start",
         content: "Faire plus de pair programming",
         createdAt,
@@ -146,23 +133,13 @@ describe("card.controller", () => {
         id: 5,
         sessionId: 1,
         authorId: 2,
+        authorName: "Sarah",
         columnType: "start",
         content: "Faire plus de pair programming",
         createdAt,
         votesCount: 3,
       },
     ]);
-  });
-
-  it("DELETE : refuse sans token (protection déléguée à auth.middleware, déjà testé unitairement)", () => {
-    const req = { headers: {} } as unknown as AuthRequest;
-    const res = createMockResponse();
-    const next = vi.fn() as unknown as NextFunction;
-
-    auth(req, res as unknown as Response, next);
-
-    expect(res.statusCode).toBe(401);
-    expect(next).not.toHaveBeenCalled();
   });
 
   it("PATCH : appelle le service puis renvoie 200", async () => {
@@ -176,7 +153,7 @@ describe("card.controller", () => {
     const body = res.body as { success: boolean };
     expect(body.success).toBe(true);
     expect(mockUpdateCardService).toHaveBeenCalledWith({
-      userId: 1,
+      participantId: 9,
       sessionId: 1,
       cardId: 5,
       content: " Texte modifié ",
@@ -202,7 +179,7 @@ describe("card.controller", () => {
     const body = res.body as { success: boolean };
     expect(body.success).toBe(true);
     expect(mockDeleteCardService).toHaveBeenCalledWith({
-      userId: 1,
+      participantId: 9,
       cardId: "5",
     });
   });

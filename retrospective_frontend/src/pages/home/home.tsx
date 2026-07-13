@@ -1,35 +1,46 @@
-import { useNavigate } from "react-router-dom";
-import Container from "@/components/ui/Container";
+import { useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/auth/useAuth";
+import { resolveLandingRoute } from "@/lib/sessionLanding";
 import HomeHero from "./components/HomeHero";
 import HomeTabsCard from "./components/HomeTabsCard";
-import HomeFeatureSection from "./components/HomeFeatureSection";
 
-// Valeur d'attente en dur : sera remplacée par le nombre réel de participants
-// quand la page sera branchée au backend (hors périmètre de ce ticket).
-const CONNECTED_PARTICIPANTS = 7;
+interface HomeLocationState {
+  tab?: "create" | "join";
+}
 
 const Home = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, token } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const state = location.state as HomeLocationState | null;
+  const hasExplicitIntent = Boolean(state?.tab);
 
-  // La création et la jointure de session nécessitent un compte :
-  // connecté → vers le vrai formulaire ; sinon → vers l'inscription/connexion.
-  const handleCreateSession = () => {
-    navigate(isAuthenticated ? "/session" : "/signup");
-  };
+  // Retour d'un facilitateur (ou participant) déjà connecté sur l'accueil :
+  // s'il a une session active, on l'y renvoie directement — sauf s'il vient
+  // du menu Profil avec une intention explicite (ex. "Créer une rétrospective").
+  useEffect(() => {
+    if (!isAuthenticated || !token || hasExplicitIntent) return;
 
-  const handleJoinSession = () => {
-    navigate(isAuthenticated ? "/profile" : "/login");
-  };
+    let isActive = true;
+
+    resolveLandingRoute(token).then((route) => {
+      if (isActive && route !== "/") {
+        navigate(route, { replace: true });
+      }
+    });
+
+    return () => {
+      isActive = false;
+    };
+  }, [isAuthenticated, token, navigate, hasExplicitIntent]);
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-slate-900 flex items-center justify-center py-12">
-      <Container className="flex flex-col items-center">
-        <HomeHero connectedCount={CONNECTED_PARTICIPANTS} />
-        <HomeTabsCard onCreateSession={handleCreateSession} onJoinSession={handleJoinSession} />
-        <HomeFeatureSection />
-      </Container>
+    <div className="flex-1 flex items-center justify-center py-8 px-5">
+      <div className="w-full max-w-[480px]">
+        <HomeHero />
+        <HomeTabsCard initialTab={state?.tab} />
+      </div>
     </div>
   );
 };

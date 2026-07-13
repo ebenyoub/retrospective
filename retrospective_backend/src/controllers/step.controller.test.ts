@@ -9,14 +9,22 @@ vi.mock("../models/db", () => ({
 vi.mock("../services/session.service", () => ({
   getSessionDetails: vi.fn(),
   updateSessionStepService: vi.fn(),
+  updateSessionFormatService: vi.fn(),
 }));
 
-import { getSession, updateSessionStep } from "./step.controller";
-import { getSessionDetails, updateSessionStepService } from "../services/session.service";
+vi.mock("../realtime/socket", () => ({
+  emitSessionStarted: vi.fn(),
+}));
+
+import { getSession, updateSessionStep, updateSessionFormat } from "./step.controller";
+import { getSessionDetails, updateSessionStepService, updateSessionFormatService } from "../services/session.service";
+import { emitSessionStarted } from "../realtime/socket";
 import type { AuthRequest } from '../types';
 
 const mockGetSessionDetails = getSessionDetails as unknown as Mock;
 const mockUpdateSessionStepService = updateSessionStepService as unknown as Mock;
+const mockUpdateSessionFormatService = updateSessionFormatService as unknown as Mock;
+const mockEmitSessionStarted = emitSessionStarted as unknown as Mock;
 
 const createMockResponse = () => {
   const res = {
@@ -45,6 +53,8 @@ describe("step.controller", () => {
   beforeEach(() => {
     mockGetSessionDetails.mockReset();
     mockUpdateSessionStepService.mockReset();
+    mockUpdateSessionFormatService.mockReset();
+    mockEmitSessionStarted.mockReset();
   });
 
   describe("getSession", () => {
@@ -82,6 +92,27 @@ describe("step.controller", () => {
         data: { step: "writing" },
       });
       expect(mockUpdateSessionStepService).toHaveBeenCalledWith(7, 1, "writing");
+      expect(mockEmitSessionStarted).toHaveBeenCalledWith(7, "writing");
+    });
+  });
+
+  describe("updateSessionFormat", () => {
+    it("met à jour le format et renvoie 200", async () => {
+      const updatedSession = { id: 7, formatName: "Mad/Sad/Glad", formatColumns: ["Mad", "Sad", "Glad"] };
+      mockUpdateSessionFormatService.mockResolvedValueOnce(updatedSession);
+
+      const req = createMockRequest(1, { sessionId: "7" }, { formatName: "Mad/Sad/Glad", formatColumns: ["Mad", "Sad", "Glad"] });
+      const res = createMockResponse();
+
+      await updateSessionFormat(req, res as unknown as Response);
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body).toEqual({
+        success: true,
+        message: "Format de la session mis à jour.",
+        data: updatedSession,
+      });
+      expect(mockUpdateSessionFormatService).toHaveBeenCalledWith(7, 1, "Mad/Sad/Glad", ["Mad", "Sad", "Glad"]);
     });
   });
 });

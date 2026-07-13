@@ -8,7 +8,7 @@ import { useToast } from '@/context/toast/useToast';
 import useFormValidation, { type ValidationSchema } from '@/hooks/useFormValidation';
 import { getApiErrorMessage, isApiSuccess, NETWORK_ERROR_MESSAGE, readJsonSafely } from '@/lib/apiError';
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -50,6 +50,7 @@ const signupValidationSchema: ValidationSchema<SignupValues> = {
 const Signup: React.FC = () => {
     const { login } = useAuth();
     const { addToast } = useToast();
+    const navigate = useNavigate();
 
     const {
         values,
@@ -86,6 +87,7 @@ const Signup: React.FC = () => {
             if (response.ok && isApiSuccess<Omit<AuthLoginData, "email"> & { email?: string }>(data)) {
                 login({ ...data.data, email: data.data.email ?? values.email })
                 addToast("success", getApiErrorMessage(data, "Compte créé."));
+                navigate('/', { replace: true });
             } else {
                 addToast("error", getApiErrorMessage(data, "Inscription impossible."));
             }
@@ -99,7 +101,7 @@ const Signup: React.FC = () => {
     }
 
 return (
-    <Container className='flex justify-center mt-10 sm:mt-20'>
+    <Container className='flex justify-center items-center min-h-[60vh]'>
         <SpinContainer onSpin={isLoading} className="w-full max-w-md">
             <FormContainer onSubmit={handleSubmit}>
                 <FormTitle>S'enregistrer</FormTitle>

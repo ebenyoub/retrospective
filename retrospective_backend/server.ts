@@ -1,10 +1,13 @@
 import express from 'express';
+import { createServer } from 'http';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import morgan from 'morgan';
 
 import { logger } from './src/utils/logger';
 import { errorHandler } from './src/utils/errorHandler';
+import { isOriginAllowed } from './src/utils/corsOrigin';
+import { initSocket } from './src/realtime/socket';
 import authRoutes from './src/routes/auth.routes';
 import sessionRoutes from './src/routes/session.routes';
 
@@ -13,11 +16,10 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 3000;
 const frontendOrigin = process.env.FRONTEND_ORIGIN || 'http://localhost:5173';
-const localViteOrigin = /^http:\/\/(localhost|127\.0\.0\.1):517[3-9]$/;
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || origin === frontendOrigin || (process.env.NODE_ENV !== 'production' && localViteOrigin.test(origin))) {
+    if (isOriginAllowed(origin, frontendOrigin)) {
       callback(null, true);
       return;
     }
@@ -35,6 +37,11 @@ app.use('/session', sessionRoutes);
 // N'est atteint que par les routes passées à asyncHandler (voir src/utils/asyncHandler.ts).
 app.use(errorHandler);
 
-app.listen(port, () => {
+// http.createServer (au lieu de app.listen) : Express et Socket.IO
+// partagent le même serveur HTTP et donc le même port.
+const httpServer = createServer(app);
+initSocket(httpServer, (origin) => isOriginAllowed(origin, frontendOrigin));
+
+httpServer.listen(port, () => {
   logger.http(`Server API sur http://localhost:${port}`);
 });

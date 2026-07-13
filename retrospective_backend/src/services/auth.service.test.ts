@@ -16,7 +16,7 @@ vi.mock("jsonwebtoken", () => ({
 
 vi.mock("../models/auth.model", () => ({
   deleteUserById: vi.fn(),
-  findUserByUsername: vi.fn(),
+  findUserByEmail: vi.fn(),
   findUsersByUsernameOrEmail: vi.fn(),
   insertUser: vi.fn(),
 }));
@@ -25,7 +25,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import {
   deleteUserById,
-  findUserByUsername,
+  findUserByEmail,
   findUsersByUsernameOrEmail,
   insertUser,
 } from "../models/auth.model";
@@ -41,7 +41,7 @@ const mockCompare = bcrypt.compare as unknown as Mock;
 const mockHash = bcrypt.hash as unknown as Mock;
 const mockSign = jwt.sign as unknown as Mock;
 const mockDeleteUserById = deleteUserById as unknown as Mock;
-const mockFindUserByUsername = findUserByUsername as unknown as Mock;
+const mockFindUserByEmail = findUserByEmail as unknown as Mock;
 const mockFindUsersByUsernameOrEmail = findUsersByUsernameOrEmail as unknown as Mock;
 const mockInsertUser = insertUser as unknown as Mock;
 
@@ -55,42 +55,42 @@ describe("auth.service", () => {
     mockHash.mockReset();
     mockSign.mockReset();
     mockDeleteUserById.mockReset();
-    mockFindUserByUsername.mockReset();
+    mockFindUserByEmail.mockReset();
     mockFindUsersByUsernameOrEmail.mockReset();
     mockInsertUser.mockReset();
   });
 
   it("loginUser lève une AppError 400 si un champ est manquant", async () => {
-    await expect(loginUser({ username: "", password: "" })).rejects.toMatchObject({
+    await expect(loginUser({ email: "", password: "" })).rejects.toMatchObject({
       statusCode: 400,
     } satisfies Partial<AppError>);
   });
 
-  it("loginUser lève une AppError 401 si le pseudo est inconnu", async () => {
-    mockFindUserByUsername.mockResolvedValueOnce(null);
+  it("loginUser lève une AppError 401 si l'email est inconnu", async () => {
+    mockFindUserByEmail.mockResolvedValueOnce(null);
 
-    await expect(loginUser({ username: "inconnu", password: "TEST_PASSWORD_VALUE" })).rejects.toMatchObject({
+    await expect(loginUser({ email: "inconnu@test.com", password: "TEST_PASSWORD_VALUE" })).rejects.toMatchObject({
       statusCode: 401,
-      message: "Pseudo inconnu.",
+      message: "Email inconnu.",
     } satisfies Partial<AppError>);
   });
 
   it("loginUser lève une AppError 401 si le mot de passe est incorrect", async () => {
-    mockFindUserByUsername.mockResolvedValueOnce({ id: 1, username: "Elyas", hash_password: "hash", email: "e@test.com" });
+    mockFindUserByEmail.mockResolvedValueOnce({ id: 1, username: "Elyas", hash_password: "hash", email: "e@test.com" });
     mockCompare.mockResolvedValueOnce(false);
 
-    await expect(loginUser({ username: "Elyas", password: "TEST_PASSWORD_VALUE" })).rejects.toMatchObject({
+    await expect(loginUser({ email: "e@test.com", password: "TEST_PASSWORD_VALUE" })).rejects.toMatchObject({
       statusCode: 401,
       message: "Identifiants invalides.",
     } satisfies Partial<AppError>);
   });
 
   it("loginUser retourne un token si les identifiants sont corrects", async () => {
-    mockFindUserByUsername.mockResolvedValueOnce({ id: 1, username: "Elyas", hash_password: "hash", email: "e@test.com" });
+    mockFindUserByEmail.mockResolvedValueOnce({ id: 1, username: "Elyas", hash_password: "hash", email: "e@test.com" });
     mockCompare.mockResolvedValueOnce(true);
     mockSign.mockReturnValueOnce("token");
 
-    await expect(loginUser({ username: "Elyas", password: " TEST_PASSWORD_VALUE " })).resolves.toEqual({
+    await expect(loginUser({ email: "e@test.com", password: " TEST_PASSWORD_VALUE " })).resolves.toEqual({
       token: "token",
       userId: 1,
       username: "Elyas",
@@ -128,6 +128,16 @@ describe("auth.service", () => {
     await expect(signupUser({ username: "Elyas", email: "elyas@test.com", password: "TEST_PASSWORD_VALUE" })).rejects.toMatchObject({
       statusCode: 500,
     } satisfies Partial<AppError>);
+  });
+
+  it("signupUser lève une AppError 409 si le pseudo ou l'email existe déjà", async () => {
+    mockFindUsersByUsernameOrEmail.mockResolvedValueOnce([{ id: 1, username: "Elyas", email: "elyas@test.com" }]);
+
+    await expect(signupUser({ username: "Elyas", email: "elyas@test.com", password: "TEST_PASSWORD_VALUE" })).rejects.toMatchObject({
+      statusCode: 409,
+      message: "Ce pseudo ou cet email est déjà utilisé.",
+    } satisfies Partial<AppError>);
+    expect(mockInsertUser).not.toHaveBeenCalled();
   });
 
   it("deleteAccountForUser lève une AppError 400 sans userId", async () => {

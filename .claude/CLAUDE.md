@@ -1,5 +1,14 @@
 # CLAUDE.md — Projet Rétrospective DWWM
 
+## Base pédagogique
+
+Avant toute tâche :
+
+- Identifier les skills concernés dans `.claude/skills`.
+- Les lire avant de proposer une solution.
+- Les considérer comme la référence du projet.
+- Si une technique n'est pas enseignée dans les skills, le signaler avant de l'utiliser.
+
 ## Contexte du projet
 
 Application web de rétrospective agile, présentée au titre professionnel DWWM.

@@ -2,7 +2,7 @@ import bcrypt from "bcrypt";
 import jwt, { SignOptions } from "jsonwebtoken";
 import {
   deleteUserById,
-  findUserByUsername,
+  findUserByEmail,
   findUsersByUsernameOrEmail,
   insertUser,
 } from "../models/auth.model";
@@ -10,7 +10,7 @@ import { AppError } from "../utils/AppError";
 import { logger } from "../utils/logger";
 
 interface LoginInput {
-  username: unknown;
+  email: unknown;
   password: unknown;
 }
 
@@ -37,7 +37,7 @@ interface AuthResult {
   email?: string;
 }
 
-const signAuthToken = (userId: number, username: string): string => {
+export const signAuthToken = (userId: number, username: string): string => {
   const jwtSecret = process.env.JWT_SECRET as string;
   const jwtExpiresIn = (process.env.JWT_EXPIRES_IN ?? "1h") as SignOptions["expiresIn"];
   const signOptions: jwt.SignOptions = { expiresIn: jwtExpiresIn };
@@ -45,17 +45,17 @@ const signAuthToken = (userId: number, username: string): string => {
   return jwt.sign({ userId, username }, jwtSecret, signOptions);
 };
 
-export const loginUser = async ({ username, password }: LoginInput): Promise<AuthResult> => {
-  if (!username || !password || typeof username !== "string" || typeof password !== "string") {
-    throw new AppError(400, "Le pseudo et le mot de passe sont requis.");
+export const loginUser = async ({ email, password }: LoginInput): Promise<AuthResult> => {
+  if (!email || !password || typeof email !== "string" || typeof password !== "string") {
+    throw new AppError(400, "L'email et le mot de passe sont requis.");
   }
 
   try {
-    const user = await findUserByUsername(username);
+    const user = await findUserByEmail(email);
 
     if (!user) {
-      logger.error('❌ [signup] Utilisateur non trouvé.');
-      throw new AppError(401, "Pseudo inconnu.");
+      logger.error('❌ [login] Utilisateur non trouvé.');
+      throw new AppError(401, "Email inconnu.");
     }
 
     const passwordMatch = await bcrypt.compare(password.trim(), user.hash_password);
@@ -65,14 +65,14 @@ export const loginUser = async ({ username, password }: LoginInput): Promise<Aut
       throw new AppError(401, "Identifiants invalides.");
     }
 
-    const token = signAuthToken(user.id, username);
+    const token = signAuthToken(user.id, user.username);
 
-    logger.info(`✅ Connexion réussie, bienvenue ${username}`);
+    logger.info(`✅ Connexion réussie, bienvenue ${user.username}`);
 
     return {
       token,
       userId: user.id,
-      username,
+      username: user.username,
       email: user.email,
     };
   } catch (error) {
@@ -80,8 +80,8 @@ export const loginUser = async ({ username, password }: LoginInput): Promise<Aut
       throw error;
     }
 
-    logger.error('❌ Erreur SQL lors de la connexion/création:', error);
-    throw new AppError(500, "Erreur interne du serveur. Le pseudo est peut-être déjà pris.");
+    logger.error('❌ Erreur SQL lors de la connexion:', error);
+    throw new AppError(500, "Erreur interne du serveur.");
   }
 };
 
@@ -90,9 +90,13 @@ export const signupUser = async ({ username, email, password }: SignupInput): Pr
     throw new AppError(400, "Des champs sont requis.");
   }
 
-  try {
-    await findUsersByUsernameOrEmail(username, email);
+  const existingUsers = await findUsersByUsernameOrEmail(username, email);
 
+  if (existingUsers.length > 0) {
+    throw new AppError(409, "Ce pseudo ou cet email est déjà utilisé.");
+  }
+
+  try {
     const hashedPassword = await bcrypt.hash(password, 10);
     const userId = await insertUser(username, email, hashedPassword);
 
@@ -108,8 +112,8 @@ export const signupUser = async ({ username, email, password }: SignupInput): Pr
       username,
     };
   } catch (error) {
-    logger.error('❌ Erreur SQL lors de la connexion/création:', error);
-    throw new AppError(500, "Erreur interne du serveur. Le pseudo est peut-être déjà pris.");
+    logger.error('❌ Erreur SQL lors de la création du compte:', error);
+    throw new AppError(500, "Erreur interne du serveur.");
   }
 };
 

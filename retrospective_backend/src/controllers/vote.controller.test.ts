@@ -6,11 +6,17 @@ vi.mock("../services/vote.service", () => ({
   castVote: vi.fn(),
 }));
 
+vi.mock("../utils/sessionActor", () => ({
+  resolveSessionActor: vi.fn(),
+}));
+
 import { castVote } from "../services/vote.service";
+import { resolveSessionActor } from "../utils/sessionActor";
 import { voteForCard } from "./vote.controller";
 import type { AuthRequest } from "../types";
 
 const mockCastVote = castVote as unknown as Mock;
+const mockResolveSessionActor = resolveSessionActor as unknown as Mock;
 
 const createMockResponse = () => {
   const res = {
@@ -37,6 +43,8 @@ const createMockRequest = (cardId: string): AuthRequest =>
 describe("vote.controller", () => {
   beforeEach(() => {
     mockCastVote.mockReset();
+    mockResolveSessionActor.mockReset();
+    mockResolveSessionActor.mockResolvedValue({ participantId: 9, displayName: "Sarah", role: "participant" });
   });
 
   it("renvoie 201 et l'id du vote si le service réussit", async () => {
@@ -51,7 +59,8 @@ describe("vote.controller", () => {
     const body = res.body as { success: boolean; data: { voteId: number } };
     expect(body.success).toBe(true);
     expect(body.data.voteId).toBe(42);
-    expect(mockCastVote).toHaveBeenCalledWith(1, 5);
+    expect(mockResolveSessionActor).toHaveBeenCalledWith(req, 1);
+    expect(mockCastVote).toHaveBeenCalledWith(9, 5);
   });
 
   it("ne capture pas les erreurs du service (remontée au middleware d'erreur)", async () => {

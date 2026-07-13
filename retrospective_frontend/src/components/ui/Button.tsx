@@ -31,7 +31,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         <button
             ref={ref}
             className={cn(
-              'inline-flex items-center justify-center font-medium font-sans cursor-pointer transition-colors disabled:cursor-not-allowed disabled:opacity-50 select-none',
+              'inline-flex items-center justify-center font-medium font-sans cursor-pointer transition-colors disabled:cursor-not-allowed disabled:opacity-50 select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-navy-mid',
               buttonVariants[variant],
               buttonSizes[size],
               props.className

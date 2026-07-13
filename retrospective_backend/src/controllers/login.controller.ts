@@ -6,9 +6,9 @@ interface AuthRequest extends Request {
 }
 
 export const login = async (req: AuthRequest, res: Response) => {
-  const { username, password } = req.body;
+  const { email, password } = req.body;
 
-  const data = await loginUser({ username, password });
+  const data = await loginUser({ email, password });
 
   return res.status(200).json({
     success: true,

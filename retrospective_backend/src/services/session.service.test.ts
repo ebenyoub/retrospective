@@ -11,6 +11,7 @@ vi.mock("../models/session.model", () => ({
   insertSessionUserJoin: vi.fn(),
   findSessionById: vi.fn(),
   updateSessionStep: vi.fn(),
+  updateSessionFormat: vi.fn(),
 }));
 
 import {
@@ -23,8 +24,16 @@ import {
   insertSessionUserJoin,
   findSessionById,
   updateSessionStep,
+  updateSessionFormat,
 } from '../models/session.model';
-import { createSessionForUser, getSessionsForUser, joinSessionForUser, getSessionDetails, updateSessionStepService } from "./session.service";
+import {
+  createSessionForUser,
+  getSessionsForUser,
+  joinSessionForUser,
+  getSessionDetails,
+  updateSessionStepService,
+  updateSessionFormatService,
+} from "./session.service";
 import { AppError } from "../utils/AppError";
 
 const mockCloseExpiredSessionsForOwner = closeExpiredSessionsForOwner as unknown as Mock;
@@ -36,6 +45,20 @@ const mockInsertSession = insertSession as unknown as Mock;
 const mockInsertSessionUserJoin = insertSessionUserJoin as unknown as Mock;
 const mockFindSessionById = findSessionById as unknown as Mock;
 const mockUpdateSessionStep = updateSessionStep as unknown as Mock;
+const mockUpdateSessionFormat = updateSessionFormat as unknown as Mock;
+
+const baseSessionRow = {
+  id: 7,
+  name: "S1",
+  code: "1234",
+  status: "open",
+  step: "waiting",
+  owner_id: 1,
+  format_name: "Start / Stop / Continue",
+  format_columns: ["Start", "Stop", "Continue"],
+  expires_at: new Date(),
+  created_at: new Date(),
+};
 
 describe("session.service", () => {
   beforeEach(() => {
@@ -48,6 +71,7 @@ describe("session.service", () => {
     mockInsertSessionUserJoin.mockReset();
     mockFindSessionById.mockReset();
     mockUpdateSessionStep.mockReset();
+    mockUpdateSessionFormat.mockReset();
   });
 
   it("renvoie un tableau vide si le modèle ne renvoie aucune session", async () => {
@@ -216,11 +240,10 @@ describe("session.service", () => {
     });
 
     it("renvoie les détails de la session si elle existe", async () => {
-      const mockSession = { id: 7, name: "S1", code: "1234", status: "open", step: "waiting", owner_id: 1, expires_at: new Date(), created_at: new Date() };
-      mockFindSessionById.mockResolvedValueOnce(mockSession);
+      mockFindSessionById.mockResolvedValueOnce(baseSessionRow);
 
       const result = await getSessionDetails(7);
-      expect(result).toMatchObject({ id: 7, name: "S1", step: "waiting" });
+      expect(result).toMatchObject({ id: 7, name: "S1", step: "waiting", formatName: "Start / Stop / Continue" });
     });
   });
 
@@ -242,6 +265,47 @@ describe("session.service", () => {
 
       const result = await updateSessionStepService(7, 1, "writing");
       expect(result).toBe(true);
+    });
+  });
+
+  describe("updateSessionFormatService", () => {
+    it("lève une AppError 404 si la session n'existe pas", async () => {
+      mockFindSessionById.mockResolvedValueOnce(null);
+
+      await expect(updateSessionFormatService(7, 1, "Mad/Sad/Glad", ["Mad", "Sad", "Glad"])).rejects.toMatchObject({
+        statusCode: 404,
+        code: "SESSION_NOT_FOUND",
+      });
+    });
+
+    it("lève une AppError 403 si l'utilisateur n'est pas le facilitateur", async () => {
+      mockFindSessionById.mockResolvedValueOnce({ id: 7, owner_id: 2 });
+
+      await expect(updateSessionFormatService(7, 1, "Mad/Sad/Glad", ["Mad", "Sad", "Glad"])).rejects.toMatchObject({
+        statusCode: 403,
+        code: "FORBIDDEN",
+      });
+    });
+
+    it("lève une AppError 400 si le nombre de colonnes est hors bornes", async () => {
+      mockFindSessionById.mockResolvedValueOnce({ id: 7, owner_id: 1 });
+
+      await expect(updateSessionFormatService(7, 1, "Solo", ["Une seule colonne"])).rejects.toMatchObject({
+        statusCode: 400,
+        code: "FORMAT_COLUMNS_INVALID",
+      });
+    });
+
+    it("met à jour le format avec succès si l'utilisateur est le facilitateur", async () => {
+      mockFindSessionById.mockResolvedValueOnce({ id: 7, owner_id: 1 });
+      mockUpdateSessionFormat.mockResolvedValueOnce(true);
+      mockFindSessionById.mockResolvedValueOnce({ ...baseSessionRow, format_name: "Mad/Sad/Glad", format_columns: ["Mad", "Sad", "Glad"] });
+
+      const result = await updateSessionFormatService(7, 1, "Mad/Sad/Glad", ["Mad", "Sad", "Glad"]);
+
+      expect(mockUpdateSessionFormat).toHaveBeenCalledWith(7, "Mad/Sad/Glad", ["Mad", "Sad", "Glad"]);
+      expect(result.formatName).toBe("Mad/Sad/Glad");
+      expect(result.formatColumns).toEqual(["Mad", "Sad", "Glad"]);
     });
   });
 });

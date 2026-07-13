@@ -8,12 +8,13 @@
 CREATE TABLE IF NOT EXISTS retro_cards (
   id INT AUTO_INCREMENT PRIMARY KEY,
   session_id INT NOT NULL,
-  author_id INT NOT NULL,
+  author_participant_id INT NOT NULL,
   column_type ENUM('start', 'stop', 'continue') NOT NULL,
   content VARCHAR(280) NOT NULL,
   created_at DATETIME DEFAULT NOW(),
   FOREIGN KEY (session_id) REFERENCES sessions(id),
-  FOREIGN KEY (author_id) REFERENCES users(id)
+  FOREIGN KEY (author_participant_id) REFERENCES session_participants(id)
 );
 
 CREATE INDEX idx_retro_cards_session ON retro_cards(session_id);
+CREATE INDEX idx_retro_cards_author_participant ON retro_cards(author_participant_id);

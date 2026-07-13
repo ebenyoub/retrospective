@@ -7,7 +7,7 @@ vi.mock("./db", () => ({
 
 import db from "./db";
 import {
-  countVotesByUserInSession,
+  countVotesByParticipantInSession,
   findCardSessionId,
   findExistingVote,
   insertVote,
@@ -52,10 +52,10 @@ describe("vote.model", () => {
     expect(voteId).toBe(42);
   });
 
-  it("countVotesByUserInSession renvoie le compteur", async () => {
+  it("countVotesByParticipantInSession renvoie le compteur", async () => {
     mockExecute.mockResolvedValueOnce([[{ count: 3 }]]);
 
-    const count = await countVotesByUserInSession(1, 1);
+    const count = await countVotesByParticipantInSession(1, 1);
 
     expect(count).toBe(3);
     expect(mockExecute).toHaveBeenCalledWith(expect.any(String), [1, 1]);

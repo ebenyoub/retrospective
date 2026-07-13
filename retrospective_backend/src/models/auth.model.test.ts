@@ -8,7 +8,7 @@ vi.mock("./db", () => ({
 import db from "./db";
 import {
   deleteUserById,
-  findUserByUsername,
+  findUserByEmail,
   findUsersByUsernameOrEmail,
   insertUser,
 } from "./auth.model";
@@ -20,15 +20,15 @@ describe("auth.model", () => {
     mockExecute.mockReset();
   });
 
-  it("findUserByUsername retourne le premier utilisateur ou null", async () => {
+  it("findUserByEmail retourne le premier utilisateur ou null", async () => {
     const row = { id: 1, username: "Elyas", hash_password: "hash", email: "e@test.com" };
     mockExecute.mockResolvedValueOnce([[row]]);
 
-    await expect(findUserByUsername("Elyas")).resolves.toBe(row);
+    await expect(findUserByEmail("e@test.com")).resolves.toBe(row);
 
     mockExecute.mockResolvedValueOnce([[]]);
 
-    await expect(findUserByUsername("inconnu")).resolves.toBeNull();
+    await expect(findUserByEmail("inconnu@test.com")).resolves.toBeNull();
   });
 
   it("findUsersByUsernameOrEmail retourne les lignes brutes", async () => {

@@ -9,6 +9,7 @@ import {
   insertSessionUserJoin,
   findSessionById,
   updateSessionStep,
+  updateSessionFormat,
   type SessionRole,
 } from '../models/session.model';
 import { AppError } from "../utils/AppError";
@@ -180,6 +181,8 @@ export interface SessionDetails {
   status: string;
   step: "waiting" | "writing" | "voting" | "results";
   ownerId: number;
+  formatName: string;
+  formatColumns: string[];
   expiresAt: Date;
   createdAt: Date;
 }
@@ -198,9 +201,43 @@ export const getSessionDetails = async (sessionId: number): Promise<SessionDetai
     status: session.status,
     step: session.step,
     ownerId: session.owner_id,
+    formatName: session.format_name,
+    formatColumns: session.format_columns,
     expiresAt: session.expires_at,
     createdAt: session.created_at,
   };
+};
+
+const MIN_FORMAT_COLUMNS = 2;
+const MAX_FORMAT_COLUMNS = 5;
+
+export const updateSessionFormatService = async (
+  sessionId: number,
+  userId: number,
+  formatName: string,
+  formatColumns: string[]
+): Promise<SessionDetails> => {
+  const session = await findSessionById(sessionId);
+
+  if (!session) {
+    throw new AppError(404, "Session non trouvée.", "SESSION_NOT_FOUND");
+  }
+
+  if (session.owner_id !== userId) {
+    throw new AppError(403, "Seul le facilitateur peut modifier le format de la session.", "FORBIDDEN");
+  }
+
+  if (formatColumns.length < MIN_FORMAT_COLUMNS || formatColumns.length > MAX_FORMAT_COLUMNS) {
+    throw new AppError(
+      400,
+      `Le format doit contenir entre ${MIN_FORMAT_COLUMNS} et ${MAX_FORMAT_COLUMNS} colonnes.`,
+      "FORMAT_COLUMNS_INVALID"
+    );
+  }
+
+  await updateSessionFormat(sessionId, formatName, formatColumns);
+
+  return getSessionDetails(sessionId);
 };
 
 export const updateSessionStepService = async (

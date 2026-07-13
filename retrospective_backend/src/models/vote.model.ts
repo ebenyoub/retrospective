@@ -22,31 +22,31 @@ export const findCardSessionId = async (cardId: number): Promise<number | null> 
   return rows[0]?.session_id ?? null;
 };
 
-export const findExistingVote = async (cardId: number, userId: number): Promise<number | null> => {
+export const findExistingVote = async (cardId: number, participantId: number): Promise<number | null> => {
   const [rows] = await db.execute<ExistingVoteRow[]>(
-    "select id from votes where card_id = ? and user_id = ?",
-    [cardId, userId]
+    "select id from votes where card_id = ? and participant_id = ?",
+    [cardId, participantId]
   );
 
   return rows[0]?.id ?? null;
 };
 
-export const countVotesByUserInSession = async (userId: number, sessionId: number): Promise<number> => {
+export const countVotesByParticipantInSession = async (participantId: number, sessionId: number): Promise<number> => {
   const [rows] = await db.execute<VoteCountRow[]>(
     `select count(*) as count
      from votes v
      inner join retro_cards rc on rc.id = v.card_id
-     where v.user_id = ? and rc.session_id = ?`,
-    [userId, sessionId]
+     where v.participant_id = ? and rc.session_id = ?`,
+    [participantId, sessionId]
   );
 
   return rows[0]?.count ?? 0;
 };
 
-export const insertVote = async (cardId: number, userId: number): Promise<number> => {
+export const insertVote = async (cardId: number, participantId: number): Promise<number> => {
   const [result] = await db.execute<ResultSetHeader>(
-    "insert into votes (card_id, user_id) values (?, ?)",
-    [cardId, userId]
+    "insert into votes (card_id, participant_id) values (?, ?)",
+    [cardId, participantId]
   );
 
   return result.insertId;

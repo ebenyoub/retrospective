@@ -5,7 +5,8 @@ import { SessionLookupRow } from "../types";
 export interface CardRow extends RowDataPacket {
   id: number;
   session_id: number;
-  author_id: number;
+  author_participant_id: number;
+  author_name: string;
   column_type: string;
   content: string;
   created_at: Date;
@@ -14,7 +15,7 @@ export interface CardRow extends RowDataPacket {
 
 export interface CardOwnerRow extends RowDataPacket {
   id: number;
-  author_id: number;
+  author_participant_id: number;
 }
 
 export const findSessionById = async (sessionId: number | string): Promise<SessionLookupRow | null> => {
@@ -28,13 +29,13 @@ export const findSessionById = async (sessionId: number | string): Promise<Sessi
 
 export const insertCard = async (
   sessionId: number | string,
-  userId: number,
+  participantId: number,
   columnType: string,
   content: string
 ): Promise<number> => {
   const [result] = await db.execute<ResultSetHeader>(
-    "insert into retro_cards (session_id, author_id, column_type, content) values (?, ?, ?, ?)",
-    [sessionId, userId, columnType, content]
+    "insert into retro_cards (session_id, author_participant_id, column_type, content) values (?, ?, ?, ?)",
+    [sessionId, participantId, columnType, content]
   );
 
   return result.insertId;
@@ -42,9 +43,11 @@ export const insertCard = async (
 
 export const findCardsBySessionId = async (sessionId: number | string): Promise<CardRow[]> => {
   const [cards] = await db.execute<CardRow[]>(
-    `select rc.id, rc.session_id, rc.author_id, rc.column_type, rc.content, rc.created_at,
+    `select rc.id, rc.session_id, rc.author_participant_id, sp.display_name as author_name,
+            rc.column_type, rc.content, rc.created_at,
             count(v.id) as votes_count
      from retro_cards rc
+     inner join session_participants sp on sp.id = rc.author_participant_id
      left join votes v on v.card_id = rc.id
      where rc.session_id = ?
      group by rc.id
@@ -60,7 +63,7 @@ export const findCardOwner = async (
   cardId: number
 ): Promise<CardOwnerRow | null> => {
   const [rows] = await db.execute<CardOwnerRow[]>(
-    "select id, author_id from retro_cards where id = ? and session_id = ?",
+    "select id, author_participant_id from retro_cards where id = ? and session_id = ?",
     [cardId, sessionId]
   );
 
@@ -69,7 +72,7 @@ export const findCardOwner = async (
 
 export const findCardOwnerById = async (cardId: number | string): Promise<CardOwnerRow | null> => {
   const [rows] = await db.execute<CardOwnerRow[]>(
-    "select id, author_id from retro_cards where id = ?",
+    "select id, author_participant_id from retro_cards where id = ?",
     [cardId]
   );
 

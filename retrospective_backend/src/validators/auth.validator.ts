@@ -10,7 +10,7 @@ export const signupSchema = z.object({
 
 export const loginSchema = z.object({
   body: z.object({
-    username: z.string({ error: "Le pseudo est requis." }).min(1, "Le pseudo est requis."),
+    email: z.string({ error: "L'adresse email est requise." }).email("L'adresse email n'est pas valide."),
     password: z.string({ error: "Le mot de passe est requis." }).min(1, "Le mot de passe est requis.")
   })
 });

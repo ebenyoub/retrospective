@@ -8,6 +8,8 @@ export interface SessionType {
   owner_id: number;
   status: string;
   step: "waiting" | "writing" | "voting" | "results";
+  format_name: string;
+  format_columns: string[];
   created_at: Date;
   expires_at: Date;
 }

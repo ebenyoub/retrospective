@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { createSessionSchema, createCardSchema, updateSessionStepSchema } from "./session.validator";
+import { createSessionSchema, createCardSchema, updateSessionStepSchema, updateSessionFormatSchema } from "./session.validator";
 import { signupSchema } from "./auth.validator";
+import { guestJoinSchema } from "./participant.validator";
 
 // Vérifie que les messages d'erreur personnalisés (syntaxe Zod v4 `error`)
 // sont bien renvoyés à l'utilisateur.
@@ -42,6 +43,39 @@ describe("validators — messages d'erreur personnalisés", () => {
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.issues[0].message).toBe("Le mot de passe est requis.");
+    }
+  });
+
+  it("renvoie le message si le format n'a pas assez de colonnes", () => {
+    const result = updateSessionFormatSchema.safeParse({
+      body: { formatName: "Solo", formatColumns: ["Une seule"] },
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0].message).toBe("Le format doit contenir au moins 2 colonnes.");
+    }
+  });
+
+  it("accepte un format personnalisé avec 2 à 5 colonnes", () => {
+    const result = updateSessionFormatSchema.safeParse({
+      body: { formatName: "Mad/Sad/Glad", formatColumns: ["Mad", "Sad", "Glad"] },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("renvoie le message si le pseudo invité est trop court", () => {
+    const result = guestJoinSchema.safeParse({ body: { pseudo: "E" } });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0].message).toBe("Le pseudo doit contenir au moins 2 caractères.");
+    }
+  });
+
+  it("conserve le pseudo tel quel (trim uniquement, pas de transformation)", () => {
+    const result = guestJoinSchema.safeParse({ body: { pseudo: "  EBNoob  " } });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.body.pseudo).toBe("EBNoob");
     }
   });
 });

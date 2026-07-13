@@ -18,7 +18,7 @@ const isValidColumnType = (value: unknown): value is ColumnType =>
   typeof value === "string" && VALID_COLUMN_TYPES.includes(value as ColumnType);
 
 interface CreateCardInput {
-  userId: number;
+  participantId: number;
   sessionId: string;
   content: unknown;
   columnType: unknown;
@@ -29,19 +29,19 @@ interface GetCardsInput {
 }
 
 interface UpdateCardInput {
-  userId: number;
+  participantId: number;
   sessionId: number;
   cardId: number;
   content: unknown;
 }
 
 interface DeleteCardInput {
-  userId: number;
+  participantId: number;
   cardId: string;
 }
 
 export const createCard = async ({
-  userId,
+  participantId,
   sessionId,
   content,
   columnType,
@@ -60,7 +60,7 @@ export const createCard = async ({
     throw new AppError(404, "Session introuvable.", "SESSION_NOT_FOUND");
   }
 
-  return insertCard(sessionId, userId, columnType, content);
+  return insertCard(sessionId, participantId, columnType, content.trim());
 };
 
 export const getCards = async ({ sessionId }: GetCardsInput) => {
@@ -75,7 +75,8 @@ export const getCards = async ({ sessionId }: GetCardsInput) => {
   return cards.map((card) => ({
     id: card.id,
     sessionId: card.session_id,
-    authorId: card.author_id,
+    authorId: card.author_participant_id,
+    authorName: card.author_name,
     columnType: card.column_type,
     content: card.content,
     createdAt: card.created_at,
@@ -83,7 +84,7 @@ export const getCards = async ({ sessionId }: GetCardsInput) => {
   }));
 };
 
-export const updateCard = async ({ userId, sessionId, cardId, content }: UpdateCardInput): Promise<void> => {
+export const updateCard = async ({ participantId, sessionId, cardId, content }: UpdateCardInput): Promise<void> => {
   if (!content || typeof content !== "string" || content.trim() === "") {
     throw new AppError(400, "Le contenu de la carte est requis.", "CARD_CONTENT_REQUIRED");
   }
@@ -94,21 +95,21 @@ export const updateCard = async ({ userId, sessionId, cardId, content }: UpdateC
     throw new AppError(404, "Carte introuvable.", "CARD_NOT_FOUND");
   }
 
-  if (card.author_id !== userId) {
+  if (card.author_participant_id !== participantId) {
     throw new AppError(403, "Vous ne pouvez modifier que vos propres cartes.", "CARD_FORBIDDEN");
   }
 
   await updateCardContent(sessionId, cardId, content.trim());
 };
 
-export const deleteCard = async ({ userId, cardId }: DeleteCardInput): Promise<void> => {
+export const deleteCard = async ({ participantId, cardId }: DeleteCardInput): Promise<void> => {
   const card = await findCardOwnerById(cardId);
 
   if (card === null) {
     throw new AppError(404, "Carte introuvable.", "CARD_NOT_FOUND");
   }
 
-  if (card.author_id !== userId) {
+  if (card.author_participant_id !== participantId) {
     throw new AppError(403, "Vous ne pouvez supprimer que vos propres cartes.", "CARD_FORBIDDEN");
   }
 

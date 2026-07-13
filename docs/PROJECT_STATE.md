@@ -4,11 +4,11 @@
 
 ## Date de dernière mise à jour
 
-2026-07-09 (stabilisation : parcours complet vérifié + 3 bugs corrigés)
+2026-07-13 (correction du parcours participant : jointure par lien d'invitation direct, code de session visible en permanence)
 
 ## État global
 
-🟢 MVP prêt côté fonctionnalités principales — sessions, cartes (ajout, modification, suppression), votes, résultats, rôles, workflow d'étapes de session, responsive basique et messages d'erreur cohérents sont fonctionnels. L'UI est alignée sur la maquette Figma Make. Le backend est homogénéisé sur le pattern `controller → service → model → DB`, compile sans erreur TypeScript (`npx tsc --noEmit`) et se lance avec MySQL via Docker Compose. Il reste surtout la préparation de démo/soutenance.
+🟢 MVP prêt côté fonctionnalités principales. Le parcours participant complet (code + pseudo → salle d'attente → écriture) est désormais **fonctionnel de bout en bout, y compris via le lien d'invitation direct** : un participant qui ouvre `/session/:id` sans être passé par l'accueil se voit maintenant proposer le formulaire de pseudo sur place au lieu d'être renvoyé vers l'accueil (bug corrigé le 2026-07-13, voir décisions). La salle d'attente est **synchronisée en temps réel** entre facilitateur et participants (Socket.IO), avec une vraie source de vérité backend (table `session_participants`) : un participant invité rejoint sans créer de compte, avec son pseudo conservé tel quel (unicité vérifiée par session, pas de suffixe automatique), peut écrire des cartes et voter (cartes/votes rattachés à `session_participants.id`, plus à `users.id`). Capacité de session portée à 25 personnes (backend + frontend). Le facilitateur peut choisir un format de rétrospective (presets + format personnalisé). Le code de session reste affiché en permanence (salle d'attente + écriture/vote/résultats). Le menu « Profil » est devenu un menu déroulant accessible, la page `/profile` a été supprimée. L'UI reste alignée sur la maquette Figma Make. Le backend est homogénéisé sur le pattern `controller → service → model → DB`, compile sans erreur TypeScript (`npx tsc --noEmit`) et se lance avec MySQL via Docker Compose.
 
 ## Fonctionnalités livrées
 
@@ -43,10 +43,19 @@
 | Docker Compose backend + MySQL (init auto `schema.sql`) | ✅ PR #24 mergée dans `dev` | 2026-07-08 |
 | Dette TypeScript backend (`npx tsc --noEmit` sans erreur) | ✅ Validateurs migrés vers la syntaxe Zod v4 (`error`) + tests messages | 2026-07-09 |
 | Parcours utilisateur complet vérifié en conditions réelles (Docker + Playwright, 2 utilisateurs) | ✅ Inscription → session → cartes → votes (limite) → résultats → déconnexion | 2026-07-09 |
-| Protection des routes privées (`RequireAuth`) | ✅ `/profile`, `/sessions`, `/session`, `/session/:id` redirigent vers `/login` si non connecté | 2026-07-09 |
+| Protection des routes privées (`RequireAuth`) | ✅ `/sessions`, `/session` redirigent vers `/login` si non connecté. `/session/:id` ne l'est **plus** (voir salle d'attente ci-dessous) ; `/profile` a été supprimée | 2026-07-09, révisé 2026-07-10 |
 | Salle d'attente : affichage du vrai code à 4 chiffres (au lieu de l'id) | ✅ Corrigé dans `SessionDashboard.tsx` | 2026-07-09 |
 | Boutons de la page d'accueil branchés (création/rejoindre) | ✅ Redirigent vers les vrais parcours selon l'état de connexion | 2026-07-09 |
 | Audit styles Tailwind/Figma | ✅ Tailwind v4 confirmé partout (tokens `@theme`), CSS mort supprimé, spin-card re-thémé aux couleurs Figma et limité au chargement, lien "Mot de passe oublié ?" aligné | 2026-07-09 |
+| Parcours de création de compte + première rétro combiné sur l'accueil | ✅ `CreateAccountForm`/`CreateSessionForm`/`JoinSessionForm` (React Hook Form + Zod), connexion par email, redirection post-connexion selon sessions actives | 2026-07-09 |
+| **Salle d'attente temps réel** | ✅ Table `session_participants` (source de vérité unique, facilitateur + invités), Socket.IO (`session:join`/`session:participants-updated`/`session:started`), plus de redirection `/login` pour un invité, modale de pseudo (RHF + Zod), pseudo conservé tel quel (unicité par session, erreur claire si pris), pas de doublon au refresh (jeton invité en `localStorage`, isolé de l'auth) | 2026-07-10 |
+| Capacité de session portée à 25 (facilitateur inclus) | ✅ Vérifiée backend (`participant.service.ts`) et frontend, phrase dynamique sous la liste, message clair si complète | 2026-07-10 |
+| Format de rétrospective sélectionnable | ✅ 4 presets + format personnalisé (2 à 5 colonnes, modale), persistance `sessions.format_name`/`format_columns`, réservé au facilitateur (vérifié backend) | 2026-07-10 |
+| Cartes de participants accessibles/lisibles | ✅ Graisse modérée, badge « Facilitateur » (pas « Admin »), statut texte + couleur, focus visible, résumé unique dans la barre latérale (suppression des répétitions) | 2026-07-10 |
+| Copie du code de session | ✅ Bouton dédié avec retour visuel, `aria-label`, API Clipboard | 2026-07-10 |
+| Menu Profil déroulant accessible | ✅ Remplace la page `/profile` : clic, clic extérieur, Échap, navigation clavier, ARIA, focus rendu au bouton | 2026-07-10 |
+| Participant invité peut écrire des cartes et voter | ✅ `retro_cards.author_participant_id`/`votes.participant_id` référencent `session_participants` (plus `users`) | 2026-07-13 |
+| Parcours participant corrigé (jointure via lien d'invitation direct) | ✅ `JoinSessionModal` câblé dans `SessionDashboard.tsx` (existait mais n'était rendu nulle part), code de session affiché en permanence | 2026-07-13 |
 
 ## Récapitulatif de la journée du 2026-07-08
 
@@ -83,25 +92,28 @@
 
 ## État du backend
 
-- **Framework** : Express **5.2.1** (migré depuis 4.22.2 aujourd'hui), `@types/express` 5.0.6.
-- **Architecture** : `retrospective_backend/src/{routes,controllers,services,models,middlewares,utils,types}` — voir `docs/technical/ARCHITECTURE.md` pour le détail. La règle cible est stricte et appliquée aux controllers applicatifs.
-- **Gestion d'erreurs** : `AppError` + `errorHandler` centralisé + `asyncHandler`, utilisés sur les routes conformes récentes.
-- **Tests** : backend 140/140 passés (2026-07-09), `npx tsc --noEmit` sans erreur ; frontend 37/37 passés, build Vite OK.
+- **Framework** : Express **5.2.1**, `@types/express` 5.0.6.
+- **Architecture** : `retrospective_backend/src/{routes,controllers,services,models,middlewares,utils,types,realtime}` — nouveau dossier `realtime/` pour Socket.IO. Voir `docs/technical/ARCHITECTURE.md` pour le détail.
+- **Gestion d'erreurs** : `AppError` + `errorHandler` centralisé + `asyncHandler`.
+- **Temps réel** : Socket.IO attaché au même serveur HTTP qu'Express (`server.ts` utilise désormais `http.createServer` + `initSocket`). CORS partagé entre Express et Socket.IO via `src/utils/corsOrigin.ts` (une seule définition de « quelle origine est autorisée »).
+- **Tests** : backend 185/185 passés (2026-07-13), `npx tsc --noEmit` sans erreur ; frontend 109/109 passés, lint clean, build Vite OK.
 
 ## Ce qui est en cours
 
-- Rien en cours — arbre de travail propre sur `dev`, toutes les PR (#3 à #24) sont mergées.
+- Rien en cours. Correction du parcours participant (jointure par lien direct) vérifiée en conditions réelles le 2026-07-13 (Docker Compose + Playwright, facilitateur + invité). Tests, lint, build (frontend + backend) vérifiés le 2026-07-13. Pas encore commité (attente de validation).
 
 ## Prochaine étape
 
 **Finalisation soutenance.**
-- Le parcours complet a été vérifié en conditions réelles le 2026-07-09 (Docker Compose + navigateur, 2 utilisateurs) : tout le flux fonctionne.
-- Restent : décision sur le formulaire "quick start" de la page d'accueil (champs prénom/mot de passe décoratifs), compteur "7 participants" en dur, régénération des secrets, documents jury (`docs/jury/`).
+- Parcours facilitateur + participant invité vérifié en conditions réelles le 2026-07-13 (Docker Compose + Playwright, 2 contextes navigateur), **y compris l'ouverture directe du lien d'invitation** (sans passer par l'accueil) : création de compte + rétro, invitation, jointure sans compte, synchronisation temps réel, écriture de carte, lancement de la rétro synchronisé, code de session visible en permanence.
+- Restent : régénération des secrets, documents jury (`docs/jury/`).
 
 ## Dette technique restante
 
 ### Non bloquant, peut attendre
 - Responsive avancé — le responsive basique MVP est livré ; il peut rester du polish visuel fin hors périmètre.
+- **Format de rétrospective non reflété sur le tableau d'écriture** : le format choisi (presets ou personnalisé) est persisté et visible dans la salle d'attente, mais `RetroColumn`/`retro_cards.column_type` restent figés sur 3 colonnes `start/stop/continue`. Voir décision du 2026-07-10.
+- Compteur "7 participants connectés" en dur sur l'accueil (`HomeHero`) — supprimé lors d'une tâche précédente puis code source à revérifier si réintroduit ; à confirmer qu'aucune valeur fictive ne subsiste avant la soutenance.
 
 ### Potentiellement bloquant pour la soutenance (à ne pas oublier)
 - En mode Docker Compose, les variables backend locales sont fournies par
@@ -110,6 +122,7 @@
   depuis `.env.example` reste nécessaire.
 - Secrets (`JWT_SECRET`, `GMAIL_APP_PASSWORD`) à régénérer — ils ont existé en clair dans un historique Git local avant purge, à considérer comme compromis.
 - Protection de branche GitHub (`main`/`dev`) — commandes fournies précédemment, pas encore confirmées actives (à revérifier : `gh api repos/.../branches/main/protection`).
+- **Migrations SQL à appliquer manuellement sur toute base existante** : `retrospective_backend/sql/create_session_participants.sql` et `alter_sessions_add_format.sql` sont déjà fusionnées dans `schema.sql` pour une base neuve, mais une base Docker existante doit les exécuter une fois manuellement (déjà fait sur la base de dev locale le 2026-07-10).
 
 ## Blocages / Risques
 

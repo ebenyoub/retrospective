@@ -1,56 +1,96 @@
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import Button from '@/components/ui/Button';
-
-const cardFormSchema = z.object({
-  content: z.string().trim().min(1, 'Le contenu de la carte est requis.'),
-});
-
-type CardFormValues = z.infer<typeof cardFormSchema>;
+import { useState, type KeyboardEvent } from 'react';
 
 interface RetroAddCardFormProps {
+  /** Couleur hexadécimale de la colonne (ex: '#16a34a') pour colorier la bordure et le bouton. */
+  color: string;
   onAddCard: (content: string) => Promise<void> | void;
 }
 
-const RetroAddCardForm = ({ onAddCard }: RetroAddCardFormProps) => {
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors, isSubmitting },
-  } = useForm<CardFormValues>({
-    resolver: zodResolver(cardFormSchema),
-    defaultValues: { content: '' },
-  });
+/**
+ * Formulaire d'ajout de carte aligné sur la maquette Figma Make :
+ * — textarea flex avec bordure colorée quand saisie active
+ * — bouton icon-only 34×34 à droite, coloré avec la couleur de la colonne
+ * — Enter (sans Shift) pour valider
+ * — bouton disabled tant que le textarea est vide
+ */
+const RetroAddCardForm = ({ color, onAddCard }: RetroAddCardFormProps) => {
+  const [value, setValue] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const submit = handleSubmit(async (values) => {
-    await onAddCard(values.content);
-    reset();
-  });
+  const hasContent = value.trim().length > 0;
+
+  const submit = async () => {
+    const text = value.trim();
+    if (!text || isSubmitting) return;
+
+    setIsSubmitting(true);
+    try {
+      await onAddCard(text);
+      setValue('');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      void submit();
+    }
+  };
 
   return (
-    <form onSubmit={submit} className="flex flex-col gap-1.5 p-[10px_12px] border-t border-navy-border bg-navy">
-      <textarea
-        {...register('content')}
-        rows={2}
-        placeholder="Nouvelle carte..."
-        disabled={isSubmitting}
-        className="w-full rounded-figma-sm border border-navy-border-med bg-navy-surface px-3 py-2 text-xs text-slate-100 placeholder:text-slate-500 outline-none resize-none disabled:opacity-50 transition-colors focus:border-white/30"
-      />
-      {errors.content && (
-        <span className="text-xs text-red-400">{errors.content.message}</span>
-      )}
-      <Button
-        type="submit"
-        disabled={isSubmitting}
-        variant="secondary"
-        size="sm"
-        className="self-end"
-      >
-        Ajouter
-      </Button>
-    </form>
+    <div className="flex-shrink-0 border-t border-navy-border p-[10px_12px]">
+      <div className="flex gap-1.5">
+        {/* Textarea — bordure colorée selon la colonne quand du contenu est présent */}
+        <textarea
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Nouvelle carte..."
+          rows={2}
+          disabled={isSubmitting}
+          aria-label="Contenu de la nouvelle carte"
+          className="flex-1 resize-none rounded-[9px] bg-navy-surface px-[10px] py-2 text-[13px] text-slate-50 placeholder:text-slate-500 outline-none transition-colors disabled:opacity-50"
+          style={{
+            border: `1px solid ${hasContent ? color + '60' : 'rgba(255,255,255,0.13)'}`,
+          }}
+        />
+
+        {/* Bouton icon-only 34×34 — coloré quand actif, grisé quand vide */}
+        <button
+          type="button"
+          onClick={() => void submit()}
+          disabled={!hasContent || isSubmitting}
+          aria-label="Ajouter"
+          className="flex-shrink-0 flex items-center justify-center rounded-[9px] transition-all disabled:cursor-not-allowed"
+          style={{
+            width: 34,
+            height: 34,
+            background: hasContent ? color : 'rgba(255,255,255,0.08)',
+            color: hasContent ? '#ffffff' : '#475569',
+            border: 'none',
+            cursor: hasContent ? 'pointer' : 'default',
+          }}
+        >
+          {/* Icône Plus — SVG inline, aucune dépendance externe */}
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 15 15"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M7.5 1.5v12M1.5 7.5h12"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            />
+          </svg>
+        </button>
+      </div>
+    </div>
   );
 };
 

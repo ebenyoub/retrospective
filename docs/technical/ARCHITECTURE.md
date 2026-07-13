@@ -18,10 +18,12 @@ retrospective/
 │   ├── src/
 │   │   ├── routes/            # Déclaration des routes (auth.routes.ts, session.routes.ts)
 │   │   ├── controllers/       # HTTP uniquement (req/res), pas de SQL
-│   │   ├── services/          # Logique métier (session.service.ts)
-│   │   ├── models/            # Accès MySQL direct (db.ts, session.model.ts)
-│   │   ├── middlewares/       # auth.middleware.ts
-│   │   ├── utils/             # logger, AppError, asyncHandler, errorHandler
+│   │   ├── services/          # Logique métier (session.service.ts, participant.service.ts)
+│   │   ├── models/            # Accès MySQL direct (db.ts, session.model.ts, participant.model.ts)
+│   │   ├── middlewares/       # auth.middleware.ts, validate.middleware.ts (Zod)
+│   │   ├── validators/        # Schémas Zod par ressource (session, card, participant)
+│   │   ├── realtime/          # Socket.IO (socket.ts) — salle d'attente + changement d'étape en direct
+│   │   ├── utils/             # logger, AppError, asyncHandler, errorHandler, sessionActor, corsOrigin
 │   │   └── types/             # Types partagés (AuthRequest, etc.)
 │   ├── authentication/utils/  # transporter.ts, types.ts — spécifique au domaine auth, pas déplacé
 │   └── server.ts              # Assemble les routes + middleware d'erreur, point d'entrée
@@ -88,20 +90,48 @@ Toute nouvelle route ou modification substantielle d'une route existante doit su
 
 ### Routes principales
 
-`src/routes/auth.routes.ts` (montée sur `/auth`, 7 routes) et `src/routes/session.routes.ts` (montée sur `/session`) :
+`src/routes/auth.routes.ts` (montée sur `/auth`, 7 routes) et `src/routes/session.routes.ts` (montée sur `/session`). Les routes qui reçoivent un body passent désormais par le middleware `validate(schema)` (Zod) avant le contrôleur :
 
 ```ts
 router.get('/', auth, asyncHandler(listSessions));
-router.post('/create-session', auth, asyncHandler(createSession));
-router.post('/join', auth, asyncHandler(joinSession));
-router.post('/:sessionId/cards', auth, asyncHandler(createCard));
-router.get('/:sessionId/cards', auth, asyncHandler(getCards));
-router.patch('/:sessionId/cards/:cardId', auth, asyncHandler(updateCard));
-router.delete('/:sessionId/cards/:cardId', auth, asyncHandler(deleteCard));
-router.post('/:sessionId/cards/:cardId/vote', auth, asyncHandler(voteForCard));
+router.post('/create-session', auth, validate(createSessionSchema), asyncHandler(createSession));
+router.post('/join', auth, validate(joinSessionSchema), asyncHandler(joinSession));
+
+// Session (lecture publique : un invité doit pouvoir lire nom/code/format avant de rejoindre)
+router.get('/:sessionId', asyncHandler(getSession));
+router.patch('/:sessionId/step', auth, validate(updateSessionStepSchema), asyncHandler(updateSessionStep));
+router.patch('/:sessionId/format', auth, validate(updateSessionFormatSchema), asyncHandler(updateSessionFormat));
+
+// Salle d'attente : le code à 4 chiffres reste la vraie barrière, pas de middleware `auth`
+// (un invité sans compte doit pouvoir rejoindre et lister les participants).
+router.post('/join-guest', validate(guestJoinByCodeSchema), asyncHandler(guestJoinByCode));
+router.get('/:sessionId/participants', asyncHandler(listParticipants));
+router.post('/:sessionId/participants/self', auth, asyncHandler(joinAsSelf));
+router.post('/:sessionId/participants/guest-join', validate(guestJoinSchema), asyncHandler(guestJoin));
+router.post('/:sessionId/participants/resume', validate(resumeGuestSchema), asyncHandler(resumeGuest));
+router.delete('/:sessionId/participants/:participantId', validate(leaveParticipantSchema), asyncHandler(removeParticipant));
+
+// Cartes et votes : author_participant_id / participant_id référencent session_participants,
+// pas users — un invité peut donc écrire des cartes et voter sans compte.
+router.post('/:sessionId/cards', validate(createCardSchema), asyncHandler(createCard));
+router.get('/:sessionId/cards', asyncHandler(getCards));
+router.patch('/:sessionId/cards/:cardId', validate(updateCardSchema), asyncHandler(updateCard));
+router.delete('/:sessionId/cards/:cardId', asyncHandler(deleteCard));
+router.post('/:sessionId/cards/:cardId/vote', asyncHandler(voteForCard));
 ```
 
-Détail complet dans `docs/technical/API.md` (à vérifier/actualiser séparément).
+L'identité de l'auteur d'une action carte/vote (`participantId`) est résolue par `src/utils/sessionActor.ts` : JWT pour un utilisateur authentifié (facilitateur ou participant avec compte), en-têtes `x-participant-id`/`x-guest-token` pour un invité — jamais les deux à la fois.
+
+Détail complet dans `docs/technical/API.md` (à vérifier/actualiser séparément, encore partiellement à jour sur ce point).
+
+### Temps réel (Socket.IO)
+
+Un unique serveur Socket.IO (`src/realtime/socket.ts`) est attaché au même serveur HTTP qu'Express (`http.createServer` dans `server.ts`, au lieu de `app.listen`), avec la même règle CORS (`src/utils/corsOrigin.ts`, partagée avec Express pour ne jamais avoir deux définitions divergentes de "quelle origine est autorisée").
+
+- `session:join` (client → serveur) : un socket rejoint la room `session:{id}` après vérification qu'il connaît soit un JWT valide, soit le `guestToken` du participant qu'il prétend représenter.
+- `session:participants-updated` (serveur → room) : diffusé à chaque jointure/départ/changement de statut.
+- `session:started` (serveur → room) : diffusé quand le facilitateur change l'étape de la session (`PATCH /:sessionId/step`), fait passer les participants de la salle d'attente à l'écran d'écriture.
+- Le frontend garde un polling REST de secours (`GET /session/:id` toutes les 4s) pour ne jamais dépendre uniquement du WebSocket.
 
 ### Audit de conformité backend — 2026-07-08
 
@@ -154,9 +184,12 @@ Aucune violation connue dans les controllers applicatifs après PR #15.
 
 - Mots de passe hashés avec bcrypt (salt rounds : 10)
 - Authentification par JWT (token dans les headers)
+- Participant invité : `guest_token` aléatoire (pas un compte), jamais renvoyé dans les diffusions Socket.IO (`ParticipantSummary` ne l'expose pas), vérifié à chaque action carte/vote via `sessionActor.ts`
 - Requêtes SQL paramétrées (pas d'injection possible)
 - Variables d'environnement pour les secrets
-- CORS configuré côté backend
+- CORS configuré côté backend, règle partagée Express/Socket.IO (`src/utils/corsOrigin.ts`)
+
+**Dette connue (non bloquante)** : un `guest_token` n'a pas de durée de vie propre — il reste valide tant que la ligne `session_participants` existe, même après l'expiration (`sessions.expires_at`) ou la clôture de la session. Voir `TODO.md`.
 
 ## Variables d'environnement
 

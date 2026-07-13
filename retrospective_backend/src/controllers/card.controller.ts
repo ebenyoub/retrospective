@@ -1,18 +1,18 @@
-import { Response } from "express";
-import { AuthRequest } from '../types';
+import { Request, Response } from "express";
 import {
   createCard as createCardService,
   deleteCard as deleteCardService,
   getCards as getCardsService,
   updateCard as updateCardService,
 } from "../services/card.service";
+import { resolveSessionActor } from "../utils/sessionActor";
 
-export const createCard = async (req: AuthRequest, res: Response) => {
-  const { userId } = req.user;
+export const createCard = async (req: Request, res: Response) => {
   const sessionId = String(req.params.sessionId);
   const { content, columnType } = req.body;
+  const actor = await resolveSessionActor(req, Number(sessionId));
 
-  const cardId = await createCardService({ userId, sessionId, content, columnType });
+  const cardId = await createCardService({ participantId: actor.participantId, sessionId, content, columnType });
 
   return res.status(201).json({
     success: true,
@@ -21,8 +21,9 @@ export const createCard = async (req: AuthRequest, res: Response) => {
   });
 };
 
-export const getCards = async (req: AuthRequest, res: Response) => {
+export const getCards = async (req: Request, res: Response) => {
   const sessionId = String(req.params.sessionId);
+  await resolveSessionActor(req, Number(sessionId));
 
   const data = await getCardsService({ sessionId });
 
@@ -32,14 +33,14 @@ export const getCards = async (req: AuthRequest, res: Response) => {
   });
 };
 
-export const updateCard = async (req: AuthRequest, res: Response) => {
-  const { userId } = req.user;
+export const updateCard = async (req: Request, res: Response) => {
   const sessionId = Number(String(req.params.sessionId));
   const cardId = Number(String(req.params.cardId));
   const { content } = req.body;
+  const actor = await resolveSessionActor(req, sessionId);
 
   await updateCardService({
-    userId,
+    participantId: actor.participantId,
     sessionId,
     cardId,
     content,
@@ -51,11 +52,12 @@ export const updateCard = async (req: AuthRequest, res: Response) => {
   });
 };
 
-export const deleteCard = async (req: AuthRequest, res: Response) => {
-  const { userId } = req.user;
+export const deleteCard = async (req: Request, res: Response) => {
+  const sessionId = Number(String(req.params.sessionId));
   const cardId = String(req.params.cardId);
+  const actor = await resolveSessionActor(req, sessionId);
 
-  await deleteCardService({ userId, cardId });
+  await deleteCardService({ participantId: actor.participantId, cardId });
 
   return res.status(200).json({
     success: true,

@@ -1,6 +1,6 @@
 import { AppError } from "../utils/AppError";
 import {
-  countVotesByUserInSession,
+  countVotesByParticipantInSession,
   findCardSessionId,
   findExistingVote,
   insertVote,
@@ -12,20 +12,20 @@ export interface CastVoteResult {
   voteId: number;
 }
 
-export const castVote = async (userId: number, cardId: number): Promise<CastVoteResult> => {
+export const castVote = async (participantId: number, cardId: number): Promise<CastVoteResult> => {
   const sessionId = await findCardSessionId(cardId);
 
   if (sessionId === null) {
     throw new AppError(404, "Carte introuvable", "CARD_NOT_FOUND");
   }
 
-  const existingVote = await findExistingVote(cardId, userId);
+  const existingVote = await findExistingVote(cardId, participantId);
 
   if (existingVote !== null) {
     throw new AppError(400, "Vous avez déjà voté pour cette carte", "ALREADY_VOTED");
   }
 
-  const votesUsed = await countVotesByUserInSession(userId, sessionId);
+  const votesUsed = await countVotesByParticipantInSession(participantId, sessionId);
 
   if (votesUsed >= MAX_VOTES_PER_SESSION) {
     throw new AppError(400, "Limite de votes atteinte pour cette session", "VOTE_LIMIT_REACHED", {
@@ -33,7 +33,7 @@ export const castVote = async (userId: number, cardId: number): Promise<CastVote
     });
   }
 
-  const voteId = await insertVote(cardId, userId);
+  const voteId = await insertVote(cardId, participantId);
 
   return { voteId };
 };

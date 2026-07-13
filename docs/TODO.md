@@ -34,17 +34,40 @@
 - [x] **UX-HOME-01 — Champs décoratifs sans indication** : le formulaire "Créer une rétro" de la home page utilise des champs non fonctionnels → ajout d'une note "Un compte est requis" sous le bouton (`HomeTabsCard.tsx`).
 
 ### Tickets créés (non bloquants — à faire après soutenance)
-- [ ] **TODO-HOME-01 — Compteur "7 participants" en dur** : remplacer `CONNECTED_PARTICIPANTS = 7` par une vraie donnée temps réel ou supprimer l'indicateur. Risque : question du jury sur cette valeur fixe.
-- [ ] **TODO-HOME-02 — Formulaire "quick start" home page** : les champs Nom/Prénom/MDP sont visuellement présents mais non connectés au backend. Décision à prendre : les supprimer ou les relier au vrai flux de création de session.
+- [x] **TODO-HOME-01 — Compteur "7 participants" en dur** : badge supprimé de l'accueil (`HomeHero`), aucune donnée fictive affichée comme réelle. Résolu.
+- [x] **TODO-HOME-02 — Formulaire "quick start" home page** : remplacé par le vrai flux `CreateAccountForm` (compte + rétro en un seul envoi, React Hook Form + Zod). Résolu.
 - [ ] **TODO-URL-01 — API base URL en dur (`http://localhost:8000`)** : toutes les pages font des `fetch` hardcodés. À externaliser dans une variable `VITE_API_URL` pour permettre un déploiement propre (hors périmètre DWWM mais bonne pratique à mentionner à l'oral).
-- [ ] **TODO-AUTH-02 — Pas de redirection post-login vers la page d'origine** : après `RequireAuth` redirect vers `/login`, l'utilisateur est envoyé sur `/profile` et non sur la page demandée. Amélioration UX post-soutenance.
+- [x] **TODO-AUTH-02 — Pas de redirection post-login vers la page d'origine** : après connexion, redirection selon les sessions actives (une seule → dedans, plusieurs → Mes sessions, aucune → accueil) via `resolveLandingRoute`. Résolu le 2026-07-09.
 - [ ] **TODO-DOCS-01 — Régénérer secrets** : `JWT_SECRET` et `GMAIL_APP_PASSWORD` du `docker-compose.yml` sont des valeurs placeholder. À documenter dans les slides jury et à régénérer en prod.
+- [x] **TODO-SESSION-01 — Liste des participants absente** : `GET /session/:id/participants` + table `session_participants` + Socket.IO. Résolu le 2026-07-10 (voir `docs/decisions/DECISIONS.md`).
 
 ## Tickets issus de l'audit styles Tailwind/Figma du 2026-07-09
 
 - [ ] **Toast en styled-components avec fond blanc** (`ToastStyled.tsx` + icônes Font Awesome via CDN dans `index.html`) : seul composant hors Tailwind, style clair qui détonne sur le thème sombre Figma. Décider : réécrire le toast en Tailwind avec les tokens du thème (et retirer `styled-components` + le CDN Font Awesome), ou l'assumer tel quel devant le jury.
 - [ ] **Compteur de votes restants absent** : la maquette Figma affiche "5 votes restants" pendant la phase de vote ; l'application n'informe l'utilisateur qu'au moment du refus du 6e vote. Amélioration UX à chiffrer.
-- [ ] **Éléments maquette hors périmètre MVP** (à assumer à l'oral, pas à corriger) : chat "Discussion", liste des participants avec avatars, timer d'étape, commentaires sur cartes, lien d'invitation `retroflow.app/join/...`, code à 6 caractères (le MVP utilise 4 chiffres).
+- [x] **Liste des participants avec avatars** : implémentée le 2026-07-10 (temps réel, avatars à initiales, statut, rôle).
+- [ ] **Éléments maquette encore hors périmètre MVP** (à assumer à l'oral, pas à corriger) : chat "Discussion", timer d'étape, commentaires sur cartes, code à 6 caractères (le MVP utilise 4 chiffres).
+
+## Tickets issus de la salle d'attente temps réel (2026-07-10)
+
+- [x] **TODO-PARTICIPANT-01 — Participant invité limité à la salle d'attente** : résolu — `retro_cards.author_participant_id`/`votes.participant_id` référencent `session_participants` (plus `users.id`), un invité peut écrire des cartes et voter une fois la rétro lancée.
+- [ ] **TODO-FORMAT-01 — Format de rétrospective non reflété sur le tableau d'écriture** : le format choisi (presets ou personnalisé) est persisté (`sessions.format_name`/`format_columns`) et visible dans la salle d'attente, mais `RetroColumn` reste figé sur 3 colonnes `start/stop/continue` (`retro_cards.column_type` est un ENUM à 3 valeurs). Migration de schéma nécessaire pour un tableau réellement dynamique.
+- [ ] **TODO-CLEANUP-01 — Comptes techniques invités de l'ancienne implémentation** : avant l'introduction de `session_participants`, une version précédente créait un compte réel dans `users` pour chaque invité (pseudo suivi d'un email `@guest.local`). Ces lignes historiques (créées lors de sessions de test) peuvent être nettoyées en base de dev ; sans impact fonctionnel.
+
+## Tickets issus de la correction du parcours participant (2026-07-13)
+
+- [x] **BUG-PARTICIPANT-01 — Lien d'invitation direct inutilisable** : un participant ouvrant `/session/:id` sans passer par l'accueil (pas de compte, pas d'identité invitée stockée) était silencieusement renvoyé vers `/` au lieu de se voir proposer un pseudo pour cette session — il ne rejoignait donc jamais la salle d'attente ni l'écran d'écriture. Cause : `JoinSessionModal.tsx` existait (avec ses propres tests) mais n'était jamais rendu dans `SessionDashboard.tsx`. Corrigé : le composant est affiché à la place de la redirection, y compris quand un jeton invité stocké est devenu invalide.
+- [x] **BUG-PARTICIPANT-02 — Code de session masqué après le démarrage** : le code à 4 chiffres n'était visible que dans la salle d'attente ; disparaissait dès le passage à l'étape écriture/vote/résultats. Ajout d'un badge « Code : XXXX » permanent dans la barre d'outils de ces trois étapes.
+
+## Tickets issus de l'audit de conformité skills (2026-07-13)
+
+- [x] **AUDIT-01 — Validateur invité orphelin** : `leaveParticipantSchema` (Zod) existait mais n'était branché sur aucune route — `DELETE /:sessionId/participants/:participantId` n'avait aucune validation d'entrée. Corrigé : `validate(leaveParticipantSchema)` ajouté sur la route.
+- [x] **AUDIT-02 — Code mort dans `RetroCardItem`** : fallback `authorName` (+ `useAuth`) inatteignable car le backend renvoie toujours `authorName` (jointure SQL obligatoire). Supprimé, fixtures de test corrigées en conséquence.
+- [x] **AUDIT-03 — Nom de fonction hérité de l'ancien modèle** : `countVotesByUserInSession` prenait déjà un `participantId` depuis la migration vers `session_participants`. Renommé en `countVotesByParticipantInSession`.
+- [x] **AUDIT-04 — `SELECT *` dans `participant.model.ts`** : remplacé par une liste de colonnes explicite (`PARTICIPANT_COLUMNS`), cohérent avec `card.model.ts`/`vote.model.ts` du même chantier.
+- [ ] **AUDIT-05 — `guest_token` sans expiration propre** : un jeton invité reste valide indéfiniment tant que la ligne `session_participants` existe, même après `sessions.expires_at`/`status='closed'`. Non corrigé cette session (changement de comportement produit à valider : que doit-il se passer pour un invité sur une session expirée/fermée ?). Voir `docs/technical/ARCHITECTURE.md`.
+- [ ] **AUDIT-06 — Avatar dupliqué entre salle d'attente et cartes** : `WaitingScreen.tsx` (hash sur le nom) et `RetroCardItem.tsx` (hash sur l'id) réimplémentent chacun un avatar à initiales avec des algorithmes de couleur différents. Mutualisation possible dans `components/ui/`, non faite cette session pour éviter un changement visuel non validé (les couleurs assignées à chaque participant changeraient).
+- [ ] **AUDIT-07 — Documentation technique incomplète** : `docs/technical/ARCHITECTURE.md` a été mis à jour (participants, Socket.IO, routes), mais `docs/technical/API.md` et `docs/technical/DATABASE.md` n'ont pas encore reçu la même passe de mise à jour pour la table `session_participants` et les routes `/participants/*`.
 
 ## Tickets issus des tests manuels du 2026-07-09
 
