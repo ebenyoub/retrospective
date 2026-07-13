@@ -322,6 +322,54 @@ describe('SessionDashboard', () => {
     expect(screen.queryByRole('dialog', { name: 'Participants (2)' })).toBeNull();
   });
 
+  it('ouvre et ferme le panneau Discussion sans mélanger les participants', async () => {
+    const fetchMock = createDashboardFetchMock({ cardsSequence: [emptyCardsResponse] });
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderDashboard();
+
+    const discussionButton = await screen.findByRole('button', { name: 'Discussion' });
+    expect(discussionButton.getAttribute('aria-expanded')).toBe('false');
+
+    fireEvent.click(discussionButton);
+
+    const drawer = await screen.findByRole('dialog', { name: 'Discussion' });
+    expect(discussionButton.getAttribute('aria-expanded')).toBe('true');
+    expect(within(drawer).getByText('0 message')).toBeTruthy();
+    expect(within(drawer).getByText('Aucun message pour le moment')).toBeTruthy();
+    expect((within(drawer).getByRole('textbox', { name: 'Écrire un message' }) as HTMLTextAreaElement).disabled).toBe(true);
+    expect((within(drawer).getByRole('button', { name: 'Envoyer le message' }) as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.queryByRole('dialog', { name: 'Participants (1)' })).toBeNull();
+
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(screen.queryByRole('dialog', { name: 'Discussion' })).toBeNull();
+
+    fireEvent.click(discussionButton);
+    expect(await screen.findByRole('dialog', { name: 'Discussion' })).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Fermer le panneau Discussion' }));
+    expect(screen.queryByRole('dialog', { name: 'Discussion' })).toBeNull();
+  });
+
+  it('ne superpose pas les panneaux Participants et Discussion', async () => {
+    const fetchMock = createDashboardFetchMock({ cardsSequence: [emptyCardsResponse] });
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderDashboard();
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Participants' }));
+    expect(await screen.findByRole('dialog', { name: 'Participants (1)' })).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Discussion' }));
+
+    expect(await screen.findByRole('dialog', { name: 'Discussion' })).toBeTruthy();
+    expect(screen.queryByRole('dialog', { name: 'Participants (1)' })).toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Participants' }));
+
+    expect(await screen.findByRole('dialog', { name: 'Participants (1)' })).toBeTruthy();
+    expect(screen.queryByRole('dialog', { name: 'Discussion' })).toBeNull();
+  });
+
   it("rend le compteur, le timer et le bouton principal dans la barre d'actions en écriture", async () => {
     const fetchMock = createDashboardFetchMock({
       cardsSequence: [

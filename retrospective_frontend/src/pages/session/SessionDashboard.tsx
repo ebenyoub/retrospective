@@ -5,6 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { getApiErrorMessage, isApiSuccess, NETWORK_ERROR_MESSAGE, readJsonSafely } from '@/lib/apiError';
 import RetroColumn from './components/RetroColumn';
+import DiscussionDrawer from './components/DiscussionDrawer';
 import ParticipantsDrawer from './components/ParticipantsDrawer';
 import SessionActionBar from './components/SessionActionBar';
 import SessionContextBar from './components/SessionContextBar';
@@ -106,6 +107,7 @@ const SessionDashboard = () => {
   const [isCustomFormatModalOpen, setIsCustomFormatModalOpen] = useState(false);
   const [isSessionCodeCopied, setIsSessionCodeCopied] = useState(false);
   const [isParticipantsDrawerOpen, setIsParticipantsDrawerOpen] = useState(false);
+  const [isDiscussionDrawerOpen, setIsDiscussionDrawerOpen] = useState(false);
 
   const votesUsed = useMemo(() => cards.filter((card) => card.votedByMe).length, [cards]);
   const votesLeft = useMemo(() => Math.max(0, 5 - votesUsed), [votesUsed]);
@@ -503,6 +505,20 @@ const SessionDashboard = () => {
     }
   };
 
+  const handleToggleParticipantsDrawer = () => {
+    setIsParticipantsDrawerOpen((isOpen) => {
+      if (!isOpen) setIsDiscussionDrawerOpen(false);
+      return !isOpen;
+    });
+  };
+
+  const handleToggleDiscussionDrawer = () => {
+    setIsDiscussionDrawerOpen((isOpen) => {
+      if (!isOpen) setIsParticipantsDrawerOpen(false);
+      return !isOpen;
+    });
+  };
+
   if (isLoading) {
     return (
       <div className="flex flex-1 items-center justify-center">
@@ -567,9 +583,11 @@ const SessionDashboard = () => {
         participantCount={participants.filter((participant) => participant.status === 'online').length}
         isSessionCodeCopied={isSessionCodeCopied}
         isParticipantsOpen={isParticipantsDrawerOpen}
+        isDiscussionOpen={isDiscussionDrawerOpen}
         onBack={handleLeaveSession}
         onCopySessionCode={handleCopySessionCode}
-        onToggleParticipants={() => setIsParticipantsDrawerOpen((isOpen) => !isOpen)}
+        onToggleParticipants={handleToggleParticipantsDrawer}
+        onToggleDiscussion={handleToggleDiscussionDrawer}
       />
       <SessionActionBar
         step={step}
@@ -583,6 +601,11 @@ const SessionDashboard = () => {
         isOpen={isParticipantsDrawerOpen}
         isDesktop={!isMobileViewport}
         onClose={() => setIsParticipantsDrawerOpen(false)}
+      />
+      <DiscussionDrawer
+        isOpen={isDiscussionDrawerOpen}
+        isDesktop={!isMobileViewport}
+        onClose={() => setIsDiscussionDrawerOpen(false)}
       />
 
       {step === 'results' ? (

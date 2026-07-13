@@ -15,6 +15,7 @@ interface SessionContextBarProps {
   onToggleParticipants?: () => void;
   onToggleDiscussion?: () => void;
   isParticipantsOpen?: boolean;
+  isDiscussionOpen?: boolean;
 }
 
 const SessionContextBar = ({
@@ -29,6 +30,7 @@ const SessionContextBar = ({
   onToggleParticipants,
   onToggleDiscussion,
   isParticipantsOpen = false,
+  isDiscussionOpen = false,
 }: SessionContextBarProps) => {
   const displayName = sessionName || `Session ${sessionId}`;
 
@@ -99,7 +101,12 @@ const SessionContextBar = ({
           type="button"
           onClick={onToggleDiscussion}
           aria-label="Discussion"
-          className="inline-flex h-[30px] cursor-pointer items-center gap-1.5 rounded-lg border border-transparent bg-transparent px-2.5 font-sans text-xs font-medium leading-none text-slate-400 transition-colors select-none hover:border-navy-border-med hover:bg-navy-surface-med hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-navy-mid"
+          aria-expanded={isDiscussionOpen}
+          className={`inline-flex h-[30px] cursor-pointer items-center gap-1.5 rounded-lg border px-2.5 font-sans text-xs font-medium leading-none transition-colors select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-navy-mid ${
+            isDiscussionOpen
+              ? 'border-navy-border-med bg-navy-surface-med text-slate-200'
+              : 'border-transparent bg-transparent text-slate-400 hover:border-navy-border-med hover:bg-navy-surface-med hover:text-slate-200'
+          }`}
         >
           <MessageCircle size={14} aria-hidden="true" />
           <span className="hidden sm:inline">Discussion</span>

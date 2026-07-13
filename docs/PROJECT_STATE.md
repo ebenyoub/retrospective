@@ -4,6 +4,8 @@
 
 ## Date de dernière mise à jour
 
+2026-07-13 (`T-SESSION-BAR-04 — DiscussionDrawer` terminé : panneau Discussion déclenché depuis `SessionContextBar`, état vide sans données fictives, zone de saisie désactivée tant qu'aucune persistance réelle n'est validée, fermeture bouton/Échap/clic extérieur, exclusivité avec ParticipantsDrawer ; test ciblé, lint, TypeScript et vérifications Playwright desktop/mobile OK)
+
 2026-07-13 (`T-SESSION-BAR-03 — ParticipantsDrawer` terminé : panneau Participants déclenché depuis `SessionContextBar`, affichage des vraies données de session, distinction facilitateur/participant, fermeture par bouton, Échap et clic extérieur ; test ciblé, lint, TypeScript et vérifications Playwright desktop/mobile OK)
 
 2026-07-13 (`T-SESSION-BAR-02 — SessionActionBar` terminé et validé utilisateur : seconde barre sous le header principal stabilisée avec compteur total en écriture, votes restants en vote, timer et bouton principal facilitateur ; test ciblé 35/35, lint et build frontend OK ; vérification Playwright locale avec API mockée, captures `test-results/screenshots/session-actionbar-writing.png` et `test-results/screenshots/session-actionbar-mobile.png`)
@@ -129,10 +131,11 @@
 - `T-SESSION-BAR-01 — SessionContextBar` est terminé et validé utilisateur.
 - `T-SESSION-BAR-02 — SessionActionBar` est terminé et validé utilisateur : la seconde barre contient le compteur total de cartes en écriture, les votes restants en vote, le timer et le bouton principal facilitateur, sans troisième ligne de barre d'actions.
 - `T-SESSION-BAR-03 — ParticipantsDrawer` est terminé : le déclencheur Participants ouvre un panneau responsive alimenté par les vraies données de session.
+- `T-SESSION-BAR-04 — DiscussionDrawer` est terminé : le déclencheur Discussion ouvre un panneau responsive, sans message fictif ni backend ajouté.
 
 ## Prochaine étape
 
-**Reprendre le Product Backlog à partir de `T-SESSION-BAR-04 — DiscussionDrawer`.**
+**Reprendre le Product Backlog à partir de `T-SESSION-BAR-05 — Commentaires des cartes`.**
 - Ne pas revenir sur `SessionContextBar`, `SessionActionBar` ou `ParticipantsDrawer` sauf régression démontrée.
 
 **Finalisation soutenance.**

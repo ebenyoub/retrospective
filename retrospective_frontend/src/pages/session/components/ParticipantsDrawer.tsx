@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { X } from 'lucide-react';
 
 import type { ParticipantSummary } from '../hooks/useSessionParticipants';
@@ -40,20 +40,7 @@ const initialsForName = (name: string): string =>
     .toUpperCase() || '?';
 
 const ParticipantsDrawer = ({ participants, isOpen, isDesktop, onClose }: ParticipantsDrawerProps) => {
-  const [isMounted, setIsMounted] = useState(isOpen);
   const onlineCount = participants.filter((participant) => participant.status === 'online').length;
-
-  useEffect(() => {
-    let timeoutId: number;
-
-    if (isOpen) {
-      timeoutId = window.setTimeout(() => setIsMounted(true), 0);
-      return () => window.clearTimeout(timeoutId);
-    }
-
-    timeoutId = window.setTimeout(() => setIsMounted(false), 220);
-    return () => window.clearTimeout(timeoutId);
-  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -66,12 +53,11 @@ const ParticipantsDrawer = ({ participants, isOpen, isDesktop, onClose }: Partic
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
-  if (!isMounted) return null;
+  if (!isOpen) return null;
 
   const panelPosition = isDesktop
     ? 'right-0 top-0 h-full w-[280px] translate-x-0 rounded-none border-l'
     : 'inset-x-0 bottom-0 max-h-[70vh] translate-y-0 rounded-t-2xl border-t';
-  const closedPanelPosition = isDesktop ? 'translate-x-full' : 'translate-y-full';
 
   return (
     <div
@@ -83,18 +69,14 @@ const ParticipantsDrawer = ({ participants, isOpen, isDesktop, onClose }: Partic
         type="button"
         aria-label="Fermer le panneau Participants"
         onClick={onClose}
-        className={`absolute inset-0 cursor-default bg-black/45 transition-opacity duration-200 ${
-          isOpen ? 'opacity-100' : 'opacity-0'
-        }`}
+        className="absolute inset-0 cursor-default bg-black/45"
       />
 
       <aside
         role="dialog"
         aria-modal="true"
         aria-labelledby="participants-drawer-title"
-        className={`absolute flex flex-col overflow-hidden border-navy-border bg-navy-mid shadow-2xl transition-transform duration-200 ease-out ${panelPosition} ${
-          isOpen ? '' : closedPanelPosition
-        }`}
+        className={`absolute flex flex-col overflow-hidden border-navy-border bg-navy-mid shadow-2xl transition-transform duration-200 ease-out ${panelPosition}`}
       >
         <header className="flex h-14 flex-shrink-0 items-center justify-between border-b border-navy-border px-4">
           <div className="min-w-0">

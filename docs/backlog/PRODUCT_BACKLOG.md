@@ -94,7 +94,7 @@ Fonctionnalités explicitement justifiées par le cahier des charges, les User S
 | Identifiant | **T-SESSION-BAR-04** |
 | Titre | Panneau Discussion depuis le déclencheur |
 | Priorité | P2 |
-| Statut | ⬜ À faire |
+| Statut | ✅ Terminé — validé utilisateur |
 | Objectif | Ouvrir le fil de discussion depuis le déclencheur de `SessionContextBar` et préparer l'intégration des messages/commentaires. |
 | Critères d'acceptation | Le déclencheur Discussion ouvre/ferme un panneau conforme au prototype ; le panneau distingue clairement état vide, liste de messages et zone de saisie selon le périmètre validé ; le ticket ne crée pas encore les commentaires de cartes ; aucune donnée mockée n'est présentée comme réelle ; le comportement à implémenter est borné avant développement si une route backend manque. |
 | Fichiers probablement concernés | `retrospective_frontend/src/pages/session/components/SessionContextBar.tsx`, nouveau composant probable `DiscussionDrawer.tsx`, `retrospective_frontend/src/pages/session/SessionDashboard.tsx`, tests associés ; backend uniquement si une décision produit valide la persistance des messages. |
