@@ -4,6 +4,7 @@ import FormContainer, { FormTitle } from "@/components/ui/FormContainer";
 import FormField from "@/components/ui/FormField";
 import SpinContainer from "@/components/ui/SpinContainer";
 import { getApiErrorMessage, isApiSuccess, NETWORK_ERROR_MESSAGE, readJsonSafely } from "@/lib/apiError";
+import { API_BASE } from "@/lib/api";
 import React, { useState, type ChangeEvent } from "react";
 import { useNavigate, NavLink } from "react-router-dom";
 
@@ -40,7 +41,7 @@ const Forgot = () => {
 
     try {
       setIsLoading(true);
-      const response = await fetch("http://localhost:8000/auth/forgot", {
+      const response = await fetch(`${API_BASE}/auth/forgot`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email })
@@ -74,7 +75,7 @@ const Forgot = () => {
 
     setIsLoading(true);
     try {
-      const response = await fetch("http://localhost:8000/auth/verify-code", {
+      const response = await fetch(`${API_BASE}/auth/verify-code`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, code })
@@ -121,7 +122,7 @@ const Forgot = () => {
     try {
       setIsLoading(true);
 
-      const response = await fetch("http://localhost:8000/auth/reset-password", {
+      const response = await fetch(`${API_BASE}/auth/reset-password`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, newPassword, code })

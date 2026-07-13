@@ -15,8 +15,18 @@ export interface SessionType {
 }
 
 
+// Identité extraite du JWT et attachée à la requête par le middleware `auth`.
+export interface AuthUser {
+  userId: number;
+  username: string;
+}
+
+// Requête d'une route protégée : le middleware `auth` a validé le token et
+// rempli `user`. `user` reste optionnel côté type (Express fournit une
+// `Request` de base sans `user`) ; le helper `requireAuthUser` garantit sa
+// présence à l'exécution. Les routes publiques utilisent `Request` directement.
 export interface AuthRequest extends Request {
-  user?: any;
+  user?: AuthUser;
 }
 
 export interface UserRow extends RowDataPacket {

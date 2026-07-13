@@ -6,13 +6,17 @@
 
 ```
 retrospective/
-├── frontend/          # Application React
+├── retrospective_frontend/    # Application React (organisée par page — revue 2026-07-13)
 │   └── src/
-│       ├── authentication/    # Login, Register
-│       ├── components/        # Composants réutilisables
-│       ├── context/           # Context API (état global)
-│       ├── hooks/             # Hooks customs
-│       └── pages/             # Pages / routes
+│       ├── components/        # Composants PARTAGÉS (Header, ProfileMenu, RequireAuth) + ui/
+│       ├── context/           # Context API (auth/, toast/)
+│       ├── hooks/             # Hooks partagés (useFormValidation)
+│       ├── lib/               # api.ts (URL API centralisée), apiError, sessionLanding, utils
+│       ├── pages/
+│       │   ├── home/          # home.tsx + components/ (formulaires accueil)
+│       │   ├── auth/          # Login, Signup, Forgot
+│       │   └── session/       # SessionDashboard/List/Create + components/ + hooks/ (spécifiques)
+│       └── main.tsx           # Router + providers
 │
 ├── retrospective_backend/   # API Express
 │   ├── src/
@@ -32,6 +36,8 @@ retrospective/
 ```
 
 **État réel (2026-07-08, après PR #15)** : le pattern `controller → service → model` est une règle d'architecture **non négociable**. Les controllers applicatifs ne contiennent plus d'accès DB direct, de SQL, de `bcrypt`, de `jwt`, de génération de token ou d'appel direct à un provider externe.
+
+**Revue 2026-07-13 (un fichier par ressource)** : les contrôleurs, historiquement éclatés par action, sont consolidés pour être **1:1 avec les services et les modèles**. Les 6 ressources — `auth`, `passwordReset`, `session`, `participant`, `card`, `vote` — ont chacune exactement un `*.controller.ts`, un `*.service.ts` et un `*.model.ts`. L'identité de l'utilisateur authentifié est typée (`AuthUser`, plus de `any`) et lue via `utils/authUser.ts#requireAuthUser`.
 
 ## Frontend
 

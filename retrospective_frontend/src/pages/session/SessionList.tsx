@@ -3,6 +3,7 @@ import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
 import { useAuth } from '@/context/auth/useAuth';
 import { getApiErrorMessage, isApiSuccess, NETWORK_ERROR_MESSAGE, readJsonSafely } from '@/lib/apiError';
+import { API_BASE } from '@/lib/api';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ROLE_LABEL, type SessionRole } from './sessionRole';
@@ -32,7 +33,7 @@ const SessionList = () => {
       setErrorMessage("");
 
       try {
-        const response = await fetch('http://localhost:8000/session', {
+        const response = await fetch(`${API_BASE}/session`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 

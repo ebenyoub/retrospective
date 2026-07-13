@@ -8,7 +8,7 @@ import { useAuth, type AuthLoginData } from "@/context/auth/useAuth";
 import { getApiErrorMessage, isApiSuccess, NETWORK_ERROR_MESSAGE, readJsonSafely } from "@/lib/apiError";
 import FieldError from "@/components/ui/FieldError";
 
-const API_BASE = "http://localhost:8000";
+import { API_BASE } from "@/lib/api";
 
 const createAccountSchema = z
   .object({

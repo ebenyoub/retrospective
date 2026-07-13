@@ -14,7 +14,7 @@ export interface PasswordTokenRow extends RowDataPacket {
 
 export const findUserByEmail = async (email: string): Promise<PasswordResetUserRow | null> => {
   const [users] = await db.execute<PasswordResetUserRow[]>(
-    'SELECT * FROM users WHERE email = ?',
+    'SELECT id, username, hash_password, email FROM users WHERE email = ?',
     [email]
   );
 
@@ -50,7 +50,7 @@ export const findActivePasswordTokenByEmail = async (email: string): Promise<Pas
 
 export const findActivePasswordResetByEmail = async (email: string): Promise<RowDataPacket | null> => {
   const [rows] = await db.execute<RowDataPacket[]>(
-    'SELECT * FROM password WHERE email = ? AND expire_at > NOW()',
+    'SELECT id FROM password WHERE email = ? AND expire_at > NOW()',
     [email]
   );
 

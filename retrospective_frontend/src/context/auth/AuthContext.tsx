@@ -1,6 +1,7 @@
 import { AuthContext, type AuthLoginData } from "@/context/auth/useAuth";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { API_BASE } from "@/lib/api";
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [token, setToken] = useState(localStorage.getItem('token') || "")
@@ -47,7 +48,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (!isAuthenticated) return;
 
       try {
-        const response = await fetch("http://localhost:8000/auth/profile", {
+        const response = await fetch(`${API_BASE}/auth/profile`, {
           headers: { Authorization: `Bearer ${token}` }
         });
 

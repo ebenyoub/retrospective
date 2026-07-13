@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { io, type Socket } from "socket.io-client";
 import { isApiSuccess, readJsonSafely } from "@/lib/apiError";
 
-const API_BASE = "http://localhost:8000";
+import { API_BASE } from "@/lib/api";
 
 export interface ParticipantSummary {
   id: number;

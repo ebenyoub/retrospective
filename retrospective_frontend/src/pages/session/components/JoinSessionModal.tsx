@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/FormContainer";
 import FieldError from "@/components/ui/FieldError";
 import { getApiErrorMessage, isApiSuccess, NETWORK_ERROR_MESSAGE, readJsonSafely } from "@/lib/apiError";
 
-const API_BASE = "http://localhost:8000";
+import { API_BASE } from "@/lib/api";
 
 // Même règle que côté backend (validators/participant.validator.ts) : lettres
 // (accents inclus), chiffres, espaces, apostrophes et tirets.

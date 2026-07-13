@@ -20,6 +20,8 @@ export interface ExpiredSessionsResult {
   changedRows: number;
 }
 
+const SESSION_COLUMNS = "id, name, code, owner_id, status, step, format_name, format_columns, created_at, expires_at";
+
 export const findSessionsForUser = async (userId: number): Promise<SessionRow[]> => {
   const [sessions] = await db.execute<SessionRow[]>(
     `select id, name, code, status, step, expires_at, created_at, 'facilitator' as role
@@ -57,7 +59,7 @@ export const findActiveSessionForOwner = async (
   nowUtc: string
 ): Promise<(RowDataPacket & SessionType) | null> => {
   const [session] = await db.execute<(RowDataPacket & SessionType)[]>(
-    'select * from sessions where owner_id = ? and status = "open" and expires_at > ?',
+    `select ${SESSION_COLUMNS} from sessions where owner_id = ? and status = "open" and expires_at > ?`,
     [userId, nowUtc]
   );
 
@@ -92,7 +94,7 @@ export const findSessionUserJoin = async (
   sessionId: number
 ): Promise<JoinRow | null> => {
   const [jointure] = await db.execute<JoinRow[]>(
-    'select * from session_user where user_id = ? and session_id = ?',
+    'select id, user_id, session_id from session_user where user_id = ? and session_id = ?',
     [userId, sessionId]
   );
 
@@ -116,7 +118,7 @@ export const insertSessionUserJoin = async (
 
 export const findSessionById = async (sessionId: number): Promise<(RowDataPacket & SessionType) | null> => {
   const [session] = await db.execute<(RowDataPacket & SessionType)[]>(
-    'select * from sessions where id = ?',
+    `select ${SESSION_COLUMNS} from sessions where id = ?`,
     [sessionId]
   );
 

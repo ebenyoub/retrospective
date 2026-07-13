@@ -10,6 +10,7 @@ import { useToast } from "@/context/toast/useToast";
 import useFormValidation from "@/hooks/useFormValidation";
 import type { ValidationSchema } from "@/hooks/useFormValidation";
 import { getApiErrorMessage, isApiSuccess, NETWORK_ERROR_MESSAGE, readJsonSafely } from "@/lib/apiError";
+import { API_BASE } from "@/lib/api";
 
 interface CreateSessionValues {
   name: string;
@@ -51,7 +52,7 @@ const SessionCreate = () => {
     try {
       setIsLoading(true);
 
-      const response = await fetch("http://localhost:8000/session/create-session", {
+      const response = await fetch(`${API_BASE}/session/create-session`, {
         method: "POST",
         headers: {
           'Content-Type': 'application/json',

@@ -15,7 +15,7 @@ import JoinSessionModal, { type GuestJoinResponse } from './components/JoinSessi
 import { useGuestParticipant } from './hooks/useGuestParticipant';
 import { useSessionParticipants, type SelfIdentity } from './hooks/useSessionParticipants';
 
-const API_BASE = 'http://localhost:8000';
+import { API_BASE } from '@/lib/api';
 
 type SessionStep = 'waiting' | 'writing' | 'voting' | 'results';
 

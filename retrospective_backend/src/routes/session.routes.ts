@@ -1,11 +1,15 @@
 import { Router } from 'express';
 import { auth } from '../middlewares/auth.middleware';
-import { createSession } from '../controllers/create.controller';
-import joinSession from '../controllers/join.controller';
+import {
+  createSession,
+  joinSession,
+  listSessions,
+  getSession,
+  updateSessionStep,
+  updateSessionFormat,
+} from '../controllers/session.controller';
 import { createCard, getCards, updateCard, deleteCard } from '../controllers/card.controller';
-import { listSessions } from '../controllers/list.controller';
 import { voteForCard } from '../controllers/vote.controller';
-import { getSession, updateSessionStep, updateSessionFormat } from '../controllers/step.controller';
 import { guestJoin, guestJoinByCode, joinAsSelf, listParticipants, removeParticipant, resumeGuest } from '../controllers/participant.controller';
 import { asyncHandler } from '../utils/asyncHandler';
 import { validate } from '../middlewares/validate.middleware';

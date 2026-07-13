@@ -4,7 +4,7 @@
 
 ## Date de dernière mise à jour
 
-2026-07-13 (correction du parcours participant : jointure par lien d'invitation direct, code de session visible en permanence)
+2026-07-13 (revue d'architecture : alignement complet sur les skills DWWM — frontend par page, contrôleurs backend 1 fichier/ressource, URL API centralisée, suppression du `any`)
 
 ## État global
 
@@ -56,6 +56,7 @@
 | Menu Profil déroulant accessible | ✅ Remplace la page `/profile` : clic, clic extérieur, Échap, navigation clavier, ARIA, focus rendu au bouton | 2026-07-10 |
 | Participant invité peut écrire des cartes et voter | ✅ `retro_cards.author_participant_id`/`votes.participant_id` référencent `session_participants` (plus `users`) | 2026-07-13 |
 | Parcours participant corrigé (jointure via lien d'invitation direct) | ✅ `JoinSessionModal` câblé dans `SessionDashboard.tsx` (existait mais n'était rendu nulle part), code de session affiché en permanence | 2026-07-13 |
+| Revue d'architecture — conformité skills DWWM | ✅ Frontend organisé par page (`pages/session/`), contrôleurs backend consolidés 1:1 par ressource, URL API centralisée (`lib/api.ts`), `any` supprimé (`AuthUser` + `requireAuthUser`), code mort supprimé. Comportement constant : 185 tests back + 109 front verts, parcours réel vérifié | 2026-07-13 |
 
 ## Récapitulatif de la journée du 2026-07-08
 
@@ -93,14 +94,21 @@
 ## État du backend
 
 - **Framework** : Express **5.2.1**, `@types/express` 5.0.6.
-- **Architecture** : `retrospective_backend/src/{routes,controllers,services,models,middlewares,utils,types,realtime}` — nouveau dossier `realtime/` pour Socket.IO. Voir `docs/technical/ARCHITECTURE.md` pour le détail.
+- **Architecture** : `retrospective_backend/src/{routes,controllers,services,models,middlewares,validators,utils,types,realtime}`. Depuis la revue du 2026-07-13, les **6 contrôleurs sont 1:1 avec les 6 services et les 6 modèles** : `auth`, `passwordReset`, `session`, `participant`, `card`, `vote` (fini les contrôleurs éclatés par action). Voir `docs/technical/ARCHITECTURE.md`.
+- **Typage** : plus aucun `any` dans le code source. Le type partagé `AuthRequest` (dans `src/types`) porte `user?: AuthUser` ; le helper `src/utils/authUser.ts#requireAuthUser` garantit et type l'utilisateur authentifié.
+- **SQL** : plus aucun `SELECT *` dans les modèles (colonnes explicites partout).
 - **Gestion d'erreurs** : `AppError` + `errorHandler` centralisé + `asyncHandler`.
-- **Temps réel** : Socket.IO attaché au même serveur HTTP qu'Express (`server.ts` utilise désormais `http.createServer` + `initSocket`). CORS partagé entre Express et Socket.IO via `src/utils/corsOrigin.ts` (une seule définition de « quelle origine est autorisée »).
+- **Temps réel** : Socket.IO attaché au même serveur HTTP qu'Express (`server.ts` utilise `http.createServer` + `initSocket`). CORS partagé entre Express et Socket.IO via `src/utils/corsOrigin.ts`.
 - **Tests** : backend 185/185 passés (2026-07-13), `npx tsc --noEmit` sans erreur ; frontend 109/109 passés, lint clean, build Vite OK.
+
+## État du frontend
+
+- **Organisation par page** : `src/pages/{home,auth,session}/`, chaque page avec ses `components/` (et `hooks/` pour `session/`) spécifiques ; composants partagés dans `src/components/` (+ `components/ui/`). L'ancien `pages/private/` est renommé `pages/session/` (cohérent avec la route `/session/:id`).
+- **URL d'API** : centralisée dans `src/lib/api.ts` (`API_BASE`, surchargée par `VITE_API_URL`) — plus aucune URL en dur.
 
 ## Ce qui est en cours
 
-- Rien en cours. Correction du parcours participant (jointure par lien direct) vérifiée en conditions réelles le 2026-07-13 (Docker Compose + Playwright, facilitateur + invité). Tests, lint, build (frontend + backend) vérifiés le 2026-07-13. Pas encore commité (attente de validation).
+- Rien en cours. Revue d'architecture (conformité skills DWWM) terminée le 2026-07-13, à comportement constant, vérifiée en conditions réelles (Docker Compose + Playwright : signup → session → jointure invité → lancement → écriture → carte, plus vérification API des endpoints auth/session). Tests, lint, build (frontend + backend) verts. Pas encore commité (attente de validation).
 
 ## Prochaine étape
 

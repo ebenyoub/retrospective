@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { AuthRequest } from "../types";
 import { AppError } from "../utils/AppError";
+import { requireAuthUser } from "../utils/authUser";
 import { emitParticipantsUpdated } from "../realtime/socket";
 import {
   ensureAuthenticatedParticipant,
@@ -49,7 +50,7 @@ export const listParticipants = async (req: Request, res: Response) => {
 // pseudo à saisir (son vrai nom de compte est utilisé).
 export const joinAsSelf = async (req: AuthRequest, res: Response) => {
   const sessionId = parseSessionId(req);
-  const { userId, username } = req.user;
+  const { userId, username } = requireAuthUser(req);
 
   const session = await getSessionDetails(sessionId);
   const role = session.ownerId === userId ? "facilitator" : "participant";

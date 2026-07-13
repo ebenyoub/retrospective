@@ -1,4 +1,5 @@
 import { isApiSuccess, readJsonSafely } from './apiError';
+import { API_BASE } from './api';
 
 interface LandingSession {
   id: number;
@@ -14,7 +15,7 @@ interface LandingSession {
  */
 export const resolveLandingRoute = async (token: string): Promise<string> => {
   try {
-    const response = await fetch('http://localhost:8000/session', {
+    const response = await fetch(`${API_BASE}/session`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     const data = await readJsonSafely(response);

@@ -1,9 +1,10 @@
-import { Request, Response, NextFunction } from "express";
-import jwt, { TokenExpiredError } from "jsonwebtoken"; import { logger } from "../utils/logger";
+import { Response, NextFunction } from "express";
+import jwt, { TokenExpiredError, type JwtPayload } from "jsonwebtoken";
+import { logger } from "../utils/logger";
+import { AuthRequest } from "../types";
 
-export interface AuthRequest extends Request {
-  user?: any;
-}
+// Ré-export pour compatibilité : le type de référence vit dans `../types`.
+export type { AuthRequest };
 
 export const auth = (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
@@ -22,9 +23,8 @@ export const auth = (req: AuthRequest, res: Response, next: NextFunction) => {
       throw new Error("JWT_SECRET manquant");
     }
 
-    const decoded = jwt.verify(token, jwtSecret);
-    // logger.info("➡️ Token décodé.")
-    req.user = decoded;
+    const decoded = jwt.verify(token, jwtSecret) as JwtPayload;
+    req.user = { userId: decoded.userId, username: decoded.username };
 
     next();
   } catch (err) {

@@ -22,7 +22,7 @@ export const findUsersByUsernameOrEmail = async (
   email: string
 ): Promise<AuthUserRow[]> => {
   const [users] = await db.execute<AuthUserRow[]>(
-    'SELECT * FROM users WHERE username = ? || email = ?',
+    'SELECT id, username, hash_password, email FROM users WHERE username = ? || email = ?',
     [username, email]
   );
 

@@ -7,6 +7,7 @@ import { useAuth, type AuthLoginData } from '@/context/auth/useAuth';
 import { useToast } from '@/context/toast/useToast';
 import useFormValidation, { type ValidationSchema } from '@/hooks/useFormValidation';
 import { getApiErrorMessage, isApiSuccess, NETWORK_ERROR_MESSAGE, readJsonSafely } from '@/lib/apiError';
+import { API_BASE } from '@/lib/api';
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 
@@ -76,7 +77,7 @@ const Signup: React.FC = () => {
         try {
             setIsLoading(true);
 
-            const response = await fetch("http://localhost:8000/auth/signup", {
+            const response = await fetch(`${API_BASE}/auth/signup`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(values)

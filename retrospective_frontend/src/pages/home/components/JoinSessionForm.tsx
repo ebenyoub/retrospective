@@ -8,7 +8,7 @@ import { getApiErrorMessage, isApiSuccess, NETWORK_ERROR_MESSAGE, readJsonSafely
 import FieldError from "@/components/ui/FieldError";
 import SessionCodeInput from "./SessionCodeInput";
 
-const API_BASE = "http://localhost:8000";
+import { API_BASE } from "@/lib/api";
 
 const joinSessionSchema = z.object({
   code: z.string().length(4, "Le code de session est obligatoire."),

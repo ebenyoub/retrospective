@@ -36,7 +36,7 @@
 ### Tickets créés (non bloquants — à faire après soutenance)
 - [x] **TODO-HOME-01 — Compteur "7 participants" en dur** : badge supprimé de l'accueil (`HomeHero`), aucune donnée fictive affichée comme réelle. Résolu.
 - [x] **TODO-HOME-02 — Formulaire "quick start" home page** : remplacé par le vrai flux `CreateAccountForm` (compte + rétro en un seul envoi, React Hook Form + Zod). Résolu.
-- [ ] **TODO-URL-01 — API base URL en dur (`http://localhost:8000`)** : toutes les pages font des `fetch` hardcodés. À externaliser dans une variable `VITE_API_URL` pour permettre un déploiement propre (hors périmètre DWWM mais bonne pratique à mentionner à l'oral).
+- [x] **TODO-URL-01 — API base URL en dur (`http://localhost:8000`)** : résolu le 2026-07-13 — centralisé dans `src/lib/api.ts` (`API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8000"`) + `.env.example`. Plus aucune URL en dur dans le code source.
 - [x] **TODO-AUTH-02 — Pas de redirection post-login vers la page d'origine** : après connexion, redirection selon les sessions actives (une seule → dedans, plusieurs → Mes sessions, aucune → accueil) via `resolveLandingRoute`. Résolu le 2026-07-09.
 - [ ] **TODO-DOCS-01 — Régénérer secrets** : `JWT_SECRET` et `GMAIL_APP_PASSWORD` du `docker-compose.yml` sont des valeurs placeholder. À documenter dans les slides jury et à régénérer en prod.
 - [x] **TODO-SESSION-01 — Liste des participants absente** : `GET /session/:id/participants` + table `session_participants` + Socket.IO. Résolu le 2026-07-10 (voir `docs/decisions/DECISIONS.md`).
@@ -67,7 +67,19 @@
 - [x] **AUDIT-04 — `SELECT *` dans `participant.model.ts`** : remplacé par une liste de colonnes explicite (`PARTICIPANT_COLUMNS`), cohérent avec `card.model.ts`/`vote.model.ts` du même chantier.
 - [ ] **AUDIT-05 — `guest_token` sans expiration propre** : un jeton invité reste valide indéfiniment tant que la ligne `session_participants` existe, même après `sessions.expires_at`/`status='closed'`. Non corrigé cette session (changement de comportement produit à valider : que doit-il se passer pour un invité sur une session expirée/fermée ?). Voir `docs/technical/ARCHITECTURE.md`.
 - [ ] **AUDIT-06 — Avatar dupliqué entre salle d'attente et cartes** : `WaitingScreen.tsx` (hash sur le nom) et `RetroCardItem.tsx` (hash sur l'id) réimplémentent chacun un avatar à initiales avec des algorithmes de couleur différents. Mutualisation possible dans `components/ui/`, non faite cette session pour éviter un changement visuel non validé (les couleurs assignées à chaque participant changeraient).
-- [ ] **AUDIT-07 — Documentation technique incomplète** : `docs/technical/ARCHITECTURE.md` a été mis à jour (participants, Socket.IO, routes), mais `docs/technical/API.md` et `docs/technical/DATABASE.md` n'ont pas encore reçu la même passe de mise à jour pour la table `session_participants` et les routes `/participants/*`.
+- [ ] **AUDIT-07 — Documentation technique incomplète** : `docs/technical/ARCHITECTURE.md` a été mis à jour (participants, Socket.IO, routes, arborescence par page, contrôleurs consolidés), mais `docs/technical/API.md` et `docs/technical/DATABASE.md` n'ont pas encore reçu la même passe de mise à jour pour la table `session_participants` et les routes `/participants/*`.
+
+## Tickets issus de la revue d'architecture (2026-07-13)
+
+- [x] **ARCHI-01 — Frontend organisé par page** : `src/pages/private/` renommé `src/pages/session/` (nom cohérent avec la route). Composants/hooks spécifiques dans le dossier de la page, partagés dans `src/components/`.
+- [x] **ARCHI-02 — Contrôleurs backend 1 fichier/ressource** : auth (7 fichiers) → `auth.controller.ts` + `passwordReset.controller.ts` ; session (4 fichiers) → `session.controller.ts`. 6 contrôleurs 1:1 avec services et modèles.
+- [x] **ARCHI-03 — URL API centralisée** : `src/lib/api.ts` + `.env.example` (voir TODO-URL-01).
+- [x] **ARCHI-04 — Suppression du `any` backend** : `AuthUser` + helper `requireAuthUser`, doublon d'interface `AuthRequest` supprimé.
+- [x] **ARCHI-05 — `SELECT *` restants** : `session.model.ts`, `auth.model.ts`, `passwordReset.model.ts` passés en colonnes explicites.
+- [x] **ARCHI-06 — Code mort supprimé** : `App.tsx`, `assets/Logo.tsx`, `context/theme/useTheme.ts`, `HomeFeatureSection.tsx`, dossier `styleComonent/`.
+- [ ] **ARCHI-07 — Formulaires `Login/Signup/SessionCreate` en `useFormValidation` (manuel)** : le skill `react` préconise React Hook Form (déjà utilisé par les formulaires d'accueil). Migration non faite cette revue (changement de comportement de formulaire, hors périmètre « structure »). À planifier.
+- [ ] **ARCHI-08 — Toast en styled-components** : `ToastStyled.tsx` (déplacé dans `components/ui/`) reste hors Tailwind (fond blanc, `styled-components` + CDN Font Awesome). Réécriture Tailwind = changement visuel, à décider (voir aussi le ticket styles Tailwind/Figma plus haut).
+- [ ] **ARCHI-09 — `signup` renvoie 200 + message "Connexion réussie."** : le skill `express-nodejs` préconise 201 pour un POST créant une ressource, et le message devrait refléter l'inscription. Non corrigé (changement de comportement/copy). À décider.
 
 ## Tickets issus des tests manuels du 2026-07-09
 

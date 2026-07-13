@@ -10,6 +10,7 @@ import type { ValidationSchema } from '@/hooks/useFormValidation';
 import useFormValidation from '@/hooks/useFormValidation';
 import { getApiErrorMessage, isApiSuccess, NETWORK_ERROR_MESSAGE, readJsonSafely } from '@/lib/apiError';
 import { resolveLandingRoute } from '@/lib/sessionLanding';
+import { API_BASE } from '@/lib/api';
 
 interface LoginValues {
     email: string;
@@ -57,7 +58,7 @@ const Login: React.FC = () => {
         try {
             setIsLoading(true);
 
-            const response = await fetch("http://localhost:8000/auth/login", {
+            const response = await fetch(`${API_BASE}/auth/login`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(values)

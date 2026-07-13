@@ -1,12 +1,7 @@
 import { Router } from 'express';
 import { auth } from '../middlewares/auth.middleware';
-import { verifyCode } from '../controllers/code.controller';
-import { deleteAccount } from '../controllers/delete.controller';
-import { login } from '../controllers/login.controller';
-import { signup } from '../controllers/signup.controller';
-import { forgot } from '../controllers/forgot.controller';
-import { profile } from '../controllers/profile.controller';
-import { resetPassword } from '../controllers/reset.controller';
+import { login, signup, profile, deleteAccount } from '../controllers/auth.controller';
+import { forgot, verifyCode, resetPassword } from '../controllers/passwordReset.controller';
 import { asyncHandler } from '../utils/asyncHandler';
 import { validate } from '../middlewares/validate.middleware';
 import {

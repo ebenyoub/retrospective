@@ -177,4 +177,27 @@
 
 ---
 
+## 2026-07-13 — Revue d'architecture : alignement complet sur les skills DWWM
+
+**Décision** : Refactorisation structurelle (sans nouvelle fonctionnalité) pour rendre le projet réellement fidèle aux skills `.claude/skills/`. Quatre chantiers :
+
+1. **Frontend organisé par page** — `src/pages/private/` (nom hérité, incohérent avec la route `/session`) renommé `src/pages/session/`. Chaque page garde ses composants/hooks spécifiques dans son propre dossier (`components/`, `hooks/`) ; les composants réellement partagés restent dans `src/components/`. Conforme au skill `react` (« pages orchestrent, composants spécifiques dans le dossier de leur page »).
+
+2. **Backend : un fichier par ressource** — les contrôleurs éclatés par action (7 fichiers auth : login/signup/profile/delete/forgot/code/reset ; 4 fichiers session : create/join/list/step) sont consolidés en `auth.controller.ts`, `passwordReset.controller.ts` et `session.controller.ts`. Résultat : 6 contrôleurs **1:1 avec les 6 services et les 6 modèles** (auth, passwordReset, session, participant, card, vote). Conforme au skill `express-nodejs` (« un fichier par ressource, suffixé `.controller.ts` »), et cohérent avec `card`/`vote`/`participant` déjà dans ce format.
+
+3. **URL d'API centralisée** — les 13 occurrences de `http://localhost:8000` en dur (frontend) remplacées par un unique `src/lib/api.ts` (`API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8000"`) + `.env.example`. Conforme au skill `projet-web-deploiement` (« aucune URL d'API en dur »).
+
+4. **Suppression du `any` backend** — le type partagé `AuthRequest` (et son doublon dans `auth.middleware.ts`) utilisait `user?: any`. Introduction d'un type `AuthUser { userId, username }` et d'un helper `requireAuthUser(req)` qui garantit et type l'utilisateur authentifié. `user` reste **optionnel** au niveau du type (une `Request` Express de base n'a pas de `user` : le rendre obligatoire casse la compatibilité avec `RequestHandler`), et le helper lève une 401 si absent. Conforme au skill `typescript` (« aucun `any` »).
+
+**Pourquoi** : Les nouveaux skills (cours d'Elyas) sont la référence du projet. L'audit a montré des écarts réels : nommage incohérent, contrôleurs fragmentés, URL en dur, `any`, code mort. Ces corrections sont **structurelles et à comportement constant** (aucune route, réponse ou règle métier modifiée) — vérifié par 185 tests backend + 109 tests frontend inchangés et un parcours réel (Docker + Playwright).
+
+**Alternatives considérées** :
+- Garder les contrôleurs par action (skill `express-dwwm` : « un contrôleur par action ») → écarté : contredit le skill `express-nodejs` (plus récent, sourcé cours) qui prime, et l'état mixte actuel (certaines ressources par fichier, d'autres par action) nuit à la cohérence, un critère DWWM clé.
+- Rendre `AuthRequest.user` obligatoire → écarté : casse l'assignabilité aux `RequestHandler` d'Express (la `Request` de base n'a pas de `user`).
+- Réécrire les formulaires `Login/Signup/SessionCreate` en React Hook Form (comme les formulaires d'accueil) → écarté cette fois : changement de comportement de formulaire, hors périmètre « structure », documenté en dette.
+
+**Suppressions de code mort** : `App.tsx` (stub Vite jamais monté), `assets/Logo.tsx` (jamais importé), `context/theme/useTheme.ts` (aucun provider ni consommateur), `pages/home/components/HomeFeatureSection.tsx` (jamais importé), et le dossier mal nommé `components/styleComonent/` (→ `ToastStyled.tsx` déplacé dans `components/ui/`).
+
+---
+
 > Ajouter une entrée à chaque fois qu'une décision technique importante est prise.
