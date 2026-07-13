@@ -85,7 +85,7 @@ const SessionList = () => {
         </div>
       )}
 
-      <Button onClick={() => navigate('/')} className="w-fit">
+      <Button onClick={() => navigate('/', { state: { tab: 'join' } })} className="w-fit">
         Retour
       </Button>
     </Container>

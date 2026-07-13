@@ -4,6 +4,7 @@
 
 Avant toute tâche :
 
+- Lire obligatoirement `.claude/PROJECT_WORKFLOW.md` avant toute tâche.
 - Identifier les skills concernés dans `.claude/skills`.
 - Les lire avant de proposer une solution.
 - Les considérer comme la référence du projet.

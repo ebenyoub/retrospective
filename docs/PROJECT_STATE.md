@@ -4,13 +4,17 @@
 
 ## Date de dernière mise à jour
 
-2026-07-13 (passe de fidélité visuelle — page de RÉSULTATS refaite d'après le prototype Figma `ResultsScreen` : bande de statistiques, Top 3 avec médailles + barres de votes, 3 colonnes par catégorie avec cartes compactes ; **en attente de validation visuelle**)
+2026-07-13 (passe de fidélité visuelle — affichage dynamique du quota de votes restants en continu sous forme de texte et de 5 pastilles dynamiques colorées/grisées d'après le prototype Figma, avec jointure SQL au chargement des cartes pour savoir si le participant connecté a déjà voté pour chaque carte)
+
+2026-07-13 (passe de fidélité visuelle — page d'ÉCRITURE alignée sur le prototype Figma `WritingScreen` : layout sans hauteur fixe, EmptyState par colonne avec emojis, onglets mobiles, compteur de cartes global, intégration du `TimerChip` statique et du menu d'actions `…` ; correction du bouton de retour de `SessionList` pour casser la boucle de redirection automatique sur l'accueil)
+
+2026-07-13 (passe de fidélité visuelle — page de RÉSULTATS refaite d'après le prototype Figma `ResultsScreen` : bande de statistiques, Top 3 avec médailles + barres de votes, 3 colonnes par catégorie avec cartes compactes)
 
 2026-07-13 (revue d'architecture : alignement complet sur les skills DWWM — frontend par page, contrôleurs backend 1 fichier/ressource, URL API centralisée, suppression du `any`)
 
 ## État global
 
-🟢 MVP prêt côté fonctionnalités principales. Le parcours participant complet (code + pseudo → salle d'attente → écriture) est désormais **fonctionnel de bout en bout, y compris via le lien d'invitation direct** : un participant qui ouvre `/session/:id` sans être passé par l'accueil se voit maintenant proposer le formulaire de pseudo sur place au lieu d'être renvoyé vers l'accueil (bug corrigé le 2026-07-13, voir décisions). La salle d'attente est **synchronisée en temps réel** entre facilitateur et participants (Socket.IO), avec une vraie source de vérité backend (table `session_participants`) : un participant invité rejoint sans créer de compte, avec son pseudo conservé tel quel (unicité vérifiée par session, pas de suffixe automatique), peut écrire des cartes et voter (cartes/votes rattachés à `session_participants.id`, plus à `users.id`). Capacité de session portée à 25 personnes (backend + frontend). Le facilitateur peut choisir un format de rétrospective (presets + format personnalisé). Le code de session reste affiché en permanence (salle d'attente + écriture/vote/résultats). Le menu « Profil » est devenu un menu déroulant accessible, la page `/profile` a été supprimée. L'UI reste alignée sur la maquette Figma Make. Le backend est homogénéisé sur le pattern `controller → service → model → DB`, compile sans erreur TypeScript (`npx tsc --noEmit`) et se lance avec MySQL via Docker Compose.
+🟢 MVP prêt et stabilisé côté fonctionnalités et design. Le parcours participant complet (code + pseudo → salle d'attente → écriture → vote → résultats) est désormais **fonctionnel de bout en bout et aligné visuellement sur Figma**, y compris en navigation directe via lien d'invitation. La salle d'attente et le changement d'étape sont **synchronisés en temps réel** (Socket.IO) avec une vraie source de vérité backend (`session_participants`), et un polling de secours de 4s assure la robustesse pour les cartes et les votes. Capacité de session portée à 25 personnes. Le facilitateur dispose de presets et d'un configurateur de format de colonnes. Le menu « Profil » et le menu d'actions de session `…` respectent l'accessibilité. L'ensemble des 185 tests backend et 109 tests frontend sont au vert, TypeScript compile proprement et ESLint ne lève aucune erreur. L'application est validée en conditions réelles et prête à l'emploi.
 
 ## Fonctionnalités livrées
 

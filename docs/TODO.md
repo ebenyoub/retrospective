@@ -59,6 +59,16 @@
 - [x] **BUG-PARTICIPANT-01 — Lien d'invitation direct inutilisable** : un participant ouvrant `/session/:id` sans passer par l'accueil (pas de compte, pas d'identité invitée stockée) était silencieusement renvoyé vers `/` au lieu de se voir proposer un pseudo pour cette session — il ne rejoignait donc jamais la salle d'attente ni l'écran d'écriture. Cause : `JoinSessionModal.tsx` existait (avec ses propres tests) mais n'était jamais rendu dans `SessionDashboard.tsx`. Corrigé : le composant est affiché à la place de la redirection, y compris quand un jeton invité stocké est devenu invalide.
 - [x] **BUG-PARTICIPANT-02 — Code de session masqué après le démarrage** : le code à 4 chiffres n'était visible que dans la salle d'attente ; disparaissait dès le passage à l'étape écriture/vote/résultats. Ajout d'un badge « Code : XXXX » permanent dans la barre d'outils de ces trois étapes.
 
+## Tickets issus de l'alignement Figma & Navigation (2026-07-13)
+
+- [x] **BUG-NAV-01 — Navigation en boucle sur Mes sessions** : la redirection automatique vers la session active s'activait lors du clic sur le bouton *Retour*. Corrigé en passant `tab: 'join'` au state de navigation pour marquer une intention explicite et désactiver le rebond.
+- [x] **BUG-PARTICIPANT-03 — Ajout de cartes impossible** : correction de la synchronisation de l'identité de l'invité après refresh et validation du flux d'ajout.
+- [x] **TODO-FIGMA-03 — Chronomètre (TimerChip) absent** : intégration de la puce de chronomètre d'étape statique (`"05:00"` à l'écriture, `"04:30"` au vote) dans la sub-toolbar.
+- [x] **TODO-FIGMA-04 — Bouton d'actions `…` absent** : intégration du menu d'actions de session `…` à l'écriture et au vote pour permettre la sortie de session des participants à tout moment.
+- [x] **TODO-FIGMA-05 — Alignement complet de l'écran d'Écriture** : intégration du composant `EmptyState` avec emojis, layout vertical fluide, onglets mobiles mis en conformité.
+- [x] **TODO-UX-02 — Compteur de votes restants en continu** : afficher le nombre de votes restants pendant la phase de vote au lieu de ne lever l'erreur qu'au 6e vote (Priorité P0 / MVP).
+- [ ] **TODO-UI-02 — Refonte du système de Toast en Tailwind** : supprimer styled-components et le CDN Font Awesome pour unifier le design avec les tokens Figma (Priorité P2 / Évolution).
+
 ## Tickets issus de l'audit de conformité skills (2026-07-13)
 
 - [x] **AUDIT-01 — Validateur invité orphelin** : `leaveParticipantSchema` (Zod) existait mais n'était branché sur aucune route — `DELETE /:sessionId/participants/:participantId` n'avait aucune validation d'entrée. Corrigé : `validate(leaveParticipantSchema)` ajouté sur la route.

@@ -23,9 +23,12 @@ export const createCard = async (req: Request, res: Response) => {
 
 export const getCards = async (req: Request, res: Response) => {
   const sessionId = String(req.params.sessionId);
-  await resolveSessionActor(req, Number(sessionId));
+  const actor = await resolveSessionActor(req, Number(sessionId));
 
-  const data = await getCardsService({ sessionId });
+  const data = await getCardsService({
+    sessionId,
+    participantId: actor.participantId,
+  });
 
   return res.status(200).json({
     success: true,

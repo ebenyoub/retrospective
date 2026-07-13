@@ -10,6 +10,7 @@ export interface RetroCard {
   content: string;
   createdAt: string;
   votesCount: number;
+  votedByMe?: boolean;
 }
 
 interface RetroCardItemProps {
@@ -121,9 +122,14 @@ const RetroCardItem = ({ card, accentClassName, currentUserId, onVote, onUpdateC
           <button
             type="button"
             onClick={() => onVote(card.id)}
-            className="text-xs font-semibold text-slate-200 hover:text-white bg-navy-surface-med hover:bg-white/10 rounded-[8px] border border-navy-border px-2.5 py-1.5 transition-all cursor-pointer"
+            disabled={card.votedByMe}
+            className={`text-xs font-semibold rounded-[8px] border px-2.5 py-1.5 transition-all cursor-pointer ${
+              card.votedByMe
+                ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/20 cursor-not-allowed opacity-80"
+                : "text-slate-200 hover:text-white bg-navy-surface-med hover:bg-white/10 border-navy-border"
+            }`}
           >
-            Voter
+            {card.votedByMe ? "Voté" : "Voter"}
           </button>
         )}
       </div>

@@ -26,6 +26,7 @@ interface CreateCardInput {
 
 interface GetCardsInput {
   sessionId: string;
+  participantId?: number | null;
 }
 
 interface UpdateCardInput {
@@ -63,14 +64,14 @@ export const createCard = async ({
   return insertCard(sessionId, participantId, columnType, content.trim());
 };
 
-export const getCards = async ({ sessionId }: GetCardsInput) => {
+export const getCards = async ({ sessionId, participantId }: GetCardsInput) => {
   const session = await findSessionById(sessionId);
 
   if (session === null) {
     throw new AppError(404, "Session introuvable.", "SESSION_NOT_FOUND");
   }
 
-  const cards = await findCardsBySessionId(sessionId);
+  const cards = await findCardsBySessionId(sessionId, participantId);
 
   return cards.map((card) => ({
     id: card.id,
@@ -80,7 +81,8 @@ export const getCards = async ({ sessionId }: GetCardsInput) => {
     columnType: card.column_type,
     content: card.content,
     createdAt: card.created_at,
-    votesCount: card.votes_count
+    votesCount: card.votes_count,
+    votedByMe: !!card.voted_by_me,
   }));
 };
 

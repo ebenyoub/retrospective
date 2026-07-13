@@ -15,6 +15,7 @@ import CustomFormatModal from './components/CustomFormatModal';
 import JoinSessionModal, { type GuestJoinResponse } from './components/JoinSessionModal';
 import { useGuestParticipant } from './hooks/useGuestParticipant';
 import { useSessionParticipants, type SelfIdentity } from './hooks/useSessionParticipants';
+import TimerChip from './components/TimerChip';
 
 import { API_BASE } from '@/lib/api';
 
@@ -37,38 +38,46 @@ const guestHeaders = (participantId: number, guestToken: string): Record<string,
 const COLUMNS: {
   key: RetroCard['columnType'];
   title: string;
+  emoji: string;
   color: string;
   dotClassName: string;
   accentClassName: string;
   tabActiveClassName: string;
-  emptyMessage: string;
+  emptyTitle: string;
+  emptyDescription: string;
 }[] = [
   {
     key: 'continue',
     title: 'Positif',
+    emoji: '✅',
     color: '#16a34a',
     dotClassName: 'bg-green-500',
     accentClassName: 'border-l-green-500',
     tabActiveClassName: 'border-green-500',
-    emptyMessage: "Aucun retour positif pour l'instant.",
+    emptyTitle: 'Aucune carte positif',
+    emptyDescription: "Écrivez ce qui s'est bien passé…",
   },
   {
     key: 'stop',
     title: 'Négatif',
+    emoji: '🚧',
     color: '#dc2626',
     dotClassName: 'bg-red-500',
     accentClassName: 'border-l-red-500',
     tabActiveClassName: 'border-red-500',
-    emptyMessage: "Aucun retour négatif pour l'instant.",
+    emptyTitle: 'Aucune carte négatif',
+    emptyDescription: 'Écrivez ce qui a moins bien marché…',
   },
   {
     key: 'start',
     title: 'Idées',
+    emoji: '💡',
     color: '#d97706',
     dotClassName: 'bg-yellow-500',
     accentClassName: 'border-l-yellow-500',
     tabActiveClassName: 'border-yellow-500',
-    emptyMessage: "Aucune idée pour l'instant.",
+    emptyTitle: 'Aucune carte idées',
+    emptyDescription: "Proposez des pistes d'amélioration…",
   },
 ];
 
@@ -96,6 +105,10 @@ const SessionDashboard = () => {
   const { identity: guestIdentity, setIdentity: setGuestIdentity, clearIdentity: clearGuestIdentity } = useGuestParticipant(sessionId);
   const [selfParticipantId, setSelfParticipantId] = useState<number | null>(null);
   const [isCustomFormatModalOpen, setIsCustomFormatModalOpen] = useState(false);
+  const [isActionsMenuOpen, setIsActionsMenuOpen] = useState(false);
+
+  const votesUsed = useMemo(() => cards.filter((card) => card.votedByMe).length, [cards]);
+  const votesLeft = useMemo(() => Math.max(0, 5 - votesUsed), [votesUsed]);
 
   const actorHeaders = useMemo((): Record<string, string> | null => {
     if (isAuthenticated && token) {
@@ -533,26 +546,105 @@ const SessionDashboard = () => {
               Code : {sessionCode}
             </span>
           )}
+          {step === 'writing' && (
+            <span className="text-xs text-slate-400 font-sans hidden sm:inline select-none">
+              {cards.length} carte{cards.length !== 1 ? 's' : ''} au total
+            </span>
+          )}
+          {step === 'voting' && (
+            <div
+              role="status"
+              aria-label={`${votesLeft} votes restants sur 5`}
+              className="flex items-center gap-2 bg-navy-surface border border-navy-border-med rounded-lg px-3 py-1 flex-shrink-0"
+            >
+              <span className="font-sans text-[13px] font-bold text-slate-200 select-none">
+                {votesLeft} vote{votesLeft !== 1 ? 's' : ''} restant{votesLeft !== 1 ? 's' : ''}
+              </span>
+              <div className="flex gap-1" aria-hidden="true">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className={`w-2.5 h-2.5 rounded-full transition-colors duration-200 ${
+                      i < votesLeft ? 'bg-amber-400' : 'bg-navy-border-med'
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
-        {role === 'facilitator' && (
-          <div className="flex items-center gap-2">
-            {step === 'writing' && (
-              <Button variant="primary" size="sm" onClick={() => handleTransitionStep('voting')}>
-                Passer au vote →
-              </Button>
-            )}
-            {step === 'voting' && (
-              <Button variant="success" size="sm" onClick={() => handleTransitionStep('results')}>
-                Voir les résultats →
-              </Button>
-            )}
-            {step === 'results' && (
-              <Button variant="secondary" size="sm" onClick={() => navigate('/sessions')}>
-                Quitter la session
-              </Button>
-            )}
-          </div>
-        )}
+        <div className="flex items-center gap-2 relative">
+          {step === 'writing' && <TimerChip value="05:00" />}
+          {step === 'voting' && <TimerChip value="04:30" />}
+
+          {role === 'facilitator' && (
+            <>
+              {step === 'writing' && (
+                <Button variant="primary" size="sm" onClick={() => handleTransitionStep('voting')}>
+                  Passer au vote →
+                </Button>
+              )}
+              {step === 'voting' && (
+                <Button variant="success" size="sm" onClick={() => handleTransitionStep('results')}>
+                  Voir les résultats →
+                </Button>
+              )}
+            </>
+          )}
+
+          {step === 'results' && (
+            <Button variant="secondary" size="sm" onClick={() => navigate('/sessions', { state: { tab: 'join' } })}>
+              Quitter la session
+            </Button>
+          )}
+
+          {/* Bouton de menu à trois points (menu `…`) visible uniquement à l'écriture et au vote */}
+          {step !== 'results' && (
+            <>
+              <button
+                type="button"
+                onClick={() => setIsActionsMenuOpen(!isActionsMenuOpen)}
+                aria-label="Actions de session"
+                aria-expanded={isActionsMenuOpen}
+                className="flex items-center justify-center w-8 h-8 rounded-lg bg-navy-surface-med border border-navy-border-med text-slate-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer select-none"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="1" />
+                  <circle cx="19" cy="12" r="1" />
+                  <circle cx="5" cy="12" r="1" />
+                </svg>
+              </button>
+
+              {/* Dropdown Menu pour les actions */}
+              {isActionsMenuOpen && (
+                <>
+                  <div 
+                    className="fixed inset-0 z-40" 
+                    onClick={() => setIsActionsMenuOpen(false)} 
+                  />
+                  <div className="absolute right-0 top-full mt-1.5 w-44 rounded-lg bg-navy-mid border border-navy-border shadow-lg py-1 z-50 animate-fade-in">
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        setIsActionsMenuOpen(false);
+                        if (!isAuthenticated && guestIdentity && selfParticipantId) {
+                          await leaveParticipation();
+                          clearGuestIdentity();
+                          navigate('/');
+                        } else {
+                          navigate('/sessions', { state: { tab: 'join' } });
+                        }
+                      }}
+                      className="w-full text-left font-sans text-xs font-semibold text-red-400 hover:text-red-300 hover:bg-red-500/10 px-3 py-2 transition-all cursor-pointer border-none bg-transparent"
+                    >
+                      Quitter la session
+                    </button>
+                  </div>
+                </>
+              )}
+            </>
+          )}
+        </div>
       </div>
 
       {step === 'results' ? (
@@ -577,7 +669,7 @@ const SessionDashboard = () => {
                         : 'border-transparent text-slate-500 hover:text-slate-300'
                     }`}
                   >
-                    <span className={`h-2 w-2 rounded-full ${column.dotClassName}`} />
+                    <span className="text-[14px] leading-none" role="img" aria-hidden="true">{column.emoji}</span>
                     <span>{column.title}</span>
                     <span
                       className={`rounded px-1.5 font-mono text-[10px] ${
@@ -592,8 +684,8 @@ const SessionDashboard = () => {
             </div>
           )}
 
-          {/* Grille 3 colonnes Figma Make : gap:0, fond navy-border = séparateurs 1px */}
-          <div className="flex-1 grid grid-cols-1 md:grid-cols-3 overflow-hidden" style={{ gap: 1, background: 'rgba(255,255,255,0.08)' }}>
+          {/* Grille 3 colonnes Figma Make : gap:1px (gap-px), fond navy-border = séparateurs 1px */}
+          <div className="flex-1 grid grid-cols-1 md:grid-cols-3 overflow-hidden bg-navy-border gap-px">
             {COLUMNS.map((column) => (
               <RetroColumn
                 key={column.key}
@@ -601,10 +693,12 @@ const SessionDashboard = () => {
                   ? (activeMobileColumn === column.key ? '' : 'hidden')
                   : ''}
                 title={column.title}
+                emoji={column.emoji}
                 color={column.color}
                 dotClassName={column.dotClassName}
                 accentClassName={column.accentClassName}
-                emptyMessage={column.emptyMessage}
+                emptyTitle={column.emptyTitle}
+                emptyDescription={column.emptyDescription}
                 cards={cards.filter((card) => card.columnType === column.key)}
                 currentUserId={selfParticipantId}
                 onAddCard={step === 'writing' ? (content) => handleAddCard(column.key, content) : undefined}

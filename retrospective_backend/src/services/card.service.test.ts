@@ -115,6 +115,7 @@ describe("card.service", () => {
         content: "Texte",
         createdAt,
         votesCount: 3,
+        votedByMe: false,
       },
     ]);
   });

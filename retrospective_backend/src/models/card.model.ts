@@ -11,6 +11,7 @@ export interface CardRow extends RowDataPacket {
   content: string;
   created_at: Date;
   votes_count: number;
+  voted_by_me?: number;
 }
 
 export interface CardOwnerRow extends RowDataPacket {
@@ -41,18 +42,22 @@ export const insertCard = async (
   return result.insertId;
 };
 
-export const findCardsBySessionId = async (sessionId: number | string): Promise<CardRow[]> => {
+export const findCardsBySessionId = async (
+  sessionId: number | string,
+  participantId?: number | null
+): Promise<CardRow[]> => {
   const [cards] = await db.execute<CardRow[]>(
     `select rc.id, rc.session_id, rc.author_participant_id, sp.display_name as author_name,
             rc.column_type, rc.content, rc.created_at,
-            count(v.id) as votes_count
+            count(v.id) as votes_count,
+            exists(select 1 from votes v2 where v2.card_id = rc.id and v2.participant_id = ?) as voted_by_me
      from retro_cards rc
      inner join session_participants sp on sp.id = rc.author_participant_id
      left join votes v on v.card_id = rc.id
      where rc.session_id = ?
      group by rc.id
      order by rc.created_at asc`,
-    [sessionId]
+    [participantId ?? null, sessionId]
   );
 
   return cards;
