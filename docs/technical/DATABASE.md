@@ -1,24 +1,30 @@
 # Base de Données
 
-Le schéma local de référence est versionné dans
-`retrospective_backend/sql/schema.sql`.
+Le schéma local de référence est versionné dans [schema.sql](file:///Users/ebenyoub/Developer/retrospective/retrospective_backend/sql/schema.sql).
 
-Avec Docker Compose, ce fichier est monté dans `/docker-entrypoint-initdb.d` et
-MySQL l'exécute automatiquement lors de la création initiale du volume
-`retrospective_mysql_data`.
+Avec Docker Compose, ce fichier est monté dans `/docker-entrypoint-initdb.d` et MySQL l'exécute automatiquement lors de la création initiale du volume `retrospective_mysql_data`.
 
-## Schéma actuel exploité par le backend
+---
 
+## Schéma Physique de Référence (MySQL)
+
+### 1. Table `users`
+Stocke les comptes des utilisateurs inscrits (facilitateurs).
 ```sql
 CREATE TABLE IF NOT EXISTS users (
   id INT AUTO_INCREMENT PRIMARY KEY,
   username VARCHAR(100) NOT NULL,
-  email VARCHAR(255) NOT NULL UNIQUE,
+  email VARCHAR(255) NOT NULL,
   hash_password VARCHAR(255) NOT NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE KEY unique_users_username (username)
-);
+  UNIQUE KEY unique_users_username (username),
+  UNIQUE KEY unique_users_email (email)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+```
 
+### 2. Table `sessions`
+Stocke les réunions de rétrospective créées par les facilitateurs.
+```sql
 CREATE TABLE IF NOT EXISTS sessions (
   id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
@@ -26,109 +32,146 @@ CREATE TABLE IF NOT EXISTS sessions (
   owner_id INT NOT NULL,
   status ENUM('open', 'closed') NOT NULL DEFAULT 'open',
   step ENUM('waiting', 'writing', 'voting', 'results') NOT NULL DEFAULT 'waiting',
+  format_name VARCHAR(60) NOT NULL DEFAULT 'Start / Stop / Continue',
+  format_columns JSON NOT NULL DEFAULT (JSON_ARRAY('Start', 'Stop', 'Continue')),
   expires_at DATETIME NOT NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (owner_id) REFERENCES users(id)
-);
+  CONSTRAINT fk_sessions_owner
+    FOREIGN KEY (owner_id) REFERENCES users(id)
+    ON DELETE CASCADE,
+  INDEX idx_sessions_owner (owner_id),
+  INDEX idx_sessions_code (code),
+  INDEX idx_sessions_status_expires (status, expires_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+```
 
+### 3. Table `session_user`
+Table d'association legacy stockant l'historique d'appartenance des utilisateurs inscrits à des sessions.
+```sql
 CREATE TABLE IF NOT EXISTS session_user (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT NOT NULL,
   session_id INT NOT NULL,
   joined_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES users(id),
-  FOREIGN KEY (session_id) REFERENCES sessions(id),
-  UNIQUE KEY unique_session_user (user_id, session_id)
-);
+  CONSTRAINT fk_session_user_user
+    FOREIGN KEY (user_id) REFERENCES users(id)
+    ON DELETE CASCADE,
+  CONSTRAINT fk_session_user_session
+    FOREIGN KEY (session_id) REFERENCES sessions(id)
+    ON DELETE CASCADE,
+  UNIQUE KEY unique_session_user (user_id, session_id),
+  INDEX idx_session_user_session (session_id),
+  INDEX idx_session_user_user (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+```
 
+### 4. Table `session_participants`
+**Source de vérité de la salle d'attente**. Elle unifie la représentation des participants inscrits et des invités (visiteurs sans compte) connectés à une session en cours.
+```sql
+CREATE TABLE IF NOT EXISTS session_participants (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  session_id INT NOT NULL,
+  user_id INT NULL,
+  guest_token VARCHAR(64) NULL,
+  display_name VARCHAR(60) NOT NULL,
+  role ENUM('facilitator', 'participant') NOT NULL DEFAULT 'participant',
+  status ENUM('online', 'offline') NOT NULL DEFAULT 'online',
+  joined_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  last_seen_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_session_participants_session
+    FOREIGN KEY (session_id) REFERENCES sessions(id)
+    ON DELETE CASCADE,
+  CONSTRAINT fk_session_participants_user
+    FOREIGN KEY (user_id) REFERENCES users(id)
+    ON DELETE CASCADE,
+  UNIQUE KEY unique_session_participant_user (session_id, user_id),
+  UNIQUE KEY unique_session_participant_guest (session_id, guest_token),
+  UNIQUE KEY unique_session_participant_name (session_id, display_name),
+  INDEX idx_session_participants_session (session_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+```
+
+### 5. Table `retro_cards`
+Stocke les cartes (remarques) ajoutées par les participants ou le facilitateur lors de la rétrospective.
+```sql
 CREATE TABLE IF NOT EXISTS retro_cards (
   id INT AUTO_INCREMENT PRIMARY KEY,
   session_id INT NOT NULL,
-  author_id INT NOT NULL,
+  author_participant_id INT NOT NULL,
   column_type ENUM('start', 'stop', 'continue') NOT NULL,
   content VARCHAR(280) NOT NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (session_id) REFERENCES sessions(id),
-  FOREIGN KEY (author_id) REFERENCES users(id)
-);
+  CONSTRAINT fk_retro_cards_session
+    FOREIGN KEY (session_id) REFERENCES sessions(id)
+    ON DELETE CASCADE,
+  CONSTRAINT fk_retro_cards_author_participant
+    FOREIGN KEY (author_participant_id) REFERENCES session_participants(id)
+    ON DELETE CASCADE,
+  INDEX idx_retro_cards_session (session_id),
+  INDEX idx_retro_cards_author_participant (author_participant_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+```
 
+### 6. Table `votes`
+Enregistre les votes des participants sur les cartes. Chaque participant a une limite de 5 votes par session.
+```sql
 CREATE TABLE IF NOT EXISTS votes (
   id INT AUTO_INCREMENT PRIMARY KEY,
   card_id INT NOT NULL,
-  user_id INT NOT NULL,
+  participant_id INT NOT NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (card_id) REFERENCES retro_cards(id),
-  FOREIGN KEY (user_id) REFERENCES users(id),
-  UNIQUE KEY unique_vote (card_id, user_id)
-);
+  CONSTRAINT fk_votes_card
+    FOREIGN KEY (card_id) REFERENCES retro_cards(id)
+    ON DELETE CASCADE,
+  CONSTRAINT fk_votes_participant
+    FOREIGN KEY (participant_id) REFERENCES session_participants(id)
+    ON DELETE CASCADE,
+  UNIQUE KEY unique_vote (card_id, participant_id),
+  INDEX idx_votes_card (card_id),
+  INDEX idx_votes_participant (participant_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
-## Relations
+---
+
+## Modèle Conceptuel et Relations
 
 ```
-users (1) ──────── (N) sessions         [créateur = facilitateur]
-users (N) ──────── (N) sessions         [via session_user]
-sessions (1) ───── (N) retro_cards
-users (1) ──────── (N) retro_cards      [auteur]
-retro_cards (N) ── (N) users            [via votes]
+users (1) ───────────────── (N) sessions             [Créateur / Facilitateur]
+users (1) ───────────────── (N) session_participants  [Optionnel, si connecté]
+sessions (1) ────────────── (N) session_participants  [Salle d'attente]
+session_participants (1) ── (N) retro_cards           [Auteur de la carte]
+retro_cards (1) ─────────── (N) votes                 [Cible du vote]
+session_participants (1) ── (N) votes                 [Émetteur du vote]
 ```
 
-## Index recommandés
+* **Cascade de suppression (`ON DELETE CASCADE`)** : La suppression d'une session ou d'un utilisateur propage la suppression de ses dépendances (participations, cartes, votes) afin de maintenir l'intégrité référentielle en BDD.
 
-```sql
-CREATE INDEX idx_sessions_owner ON sessions(owner_id);
-CREATE INDEX idx_sessions_code ON sessions(code);
-CREATE INDEX idx_session_user_session ON session_user(session_id);
-CREATE INDEX idx_retro_cards_session ON retro_cards(session_id);
-CREATE INDEX idx_retro_cards_author ON retro_cards(author_id);
-CREATE INDEX idx_votes_card ON votes(card_id);
-CREATE INDEX idx_votes_user ON votes(user_id);
-```
+---
 
-## Conventions
+## Conventions et Règles de Gestion
+- **Identifiants uniques** : Toutes les tables exploitent une clé primaire numérique auto-incrémentée (`id`).
+- **Dates de traçabilité** : Chaque enregistrement possède un champ `created_at` typé `DATETIME` qui capture automatiquement l'instant de création (`DEFAULT CURRENT_TIMESTAMP`).
+- **Type ENUM** : Préféré pour limiter les valeurs de colonnes à des listes fermées (`step`, `status`, `role`, `column_type`).
+- **Isolation des invités** : Les invités (`guest_token`) ne possèdent aucun enregistrement dans la table `users`. Ils sont suivis de manière éphémère uniquement au travers de la table `session_participants`.
+- **Indexations systématiques** : Toutes les clés étrangères ainsi que les clés de recherche récurrentes (comme le `code` de session à 4 chiffres) possèdent des index pour optimiser les performances de requêtage.
 
-- Toutes les tables ont un `id` AUTO_INCREMENT PRIMARY KEY
-- Toutes les tables ont un `created_at` DATETIME DEFAULT NOW()
-- Les clés étrangères sont systématiquement indexées
-- Les colonnes ENUM sont préférées aux chaînes libres pour les valeurs fixes
-- Pas de données sensibles en clair (mots de passe hashés, pas de tokens en BDD)
+---
 
-## Fichiers SQL
+## Administration et Docker Local
 
-- `retrospective_backend/sql/schema.sql` : schéma initial complet pour les
-  nouvelles bases locales, utilisé par Docker.
-- `retrospective_backend/sql/alter_sessions_add_name.sql` : migration legacy
-  pour une ancienne base qui possède déjà `sessions`.
-- `retrospective_backend/sql/alter_sessions_add_step.sql` : migration legacy
-  pour une ancienne base qui possède déjà `sessions`.
-- `retrospective_backend/sql/create_retro_cards.sql` : migration legacy pour
-  ajouter les cartes à une base existante.
-- `retrospective_backend/sql/create_votes.sql` : migration legacy pour ajouter
-  les votes à une base existante.
+### Commandes utiles
 
-Ne pas exécuter les migrations legacy sur une base créée avec `schema.sql`,
-sinon les colonnes/tables existent déjà.
-
-## Docker local
-
-Depuis la racine du projet :
-
-```bash
-docker compose up --build
-```
-
-Le backend écoute sur `http://localhost:8000`.
-MySQL est exposé sur le port hôte `3308` et utilise un volume persistant.
-
-Pour arrêter sans supprimer les données :
-
-```bash
-docker compose down
-```
-
-Pour réinitialiser volontairement la base locale et rejouer `schema.sql` :
-
-```bash
-docker compose down -v
-docker compose up --build
-```
+* Démarrer la base de données et l'application locale :
+  ```bash
+  docker compose up --build
+  ```
+* Arrêter le service docker :
+  ```bash
+  docker compose down
+  ```
+* Réinitialiser complètement le volume de données et rejouer le schéma initial :
+  ```bash
+  docker compose down -v
+  docker compose up --build
+  ```
