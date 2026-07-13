@@ -257,6 +257,71 @@ describe('SessionDashboard', () => {
     expect(within(contextBar).queryByRole('button', { name: /Passer au vote/ })).toBeNull();
   });
 
+  it('ouvre et ferme le panneau Participants depuis la barre de contexte', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockImplementation((url) => {
+        if (url.endsWith('/session/1')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({
+              success: true,
+              data: {
+                id: 1,
+                name: 'Rétro sprint 12',
+                code: '4242',
+                step: 'writing',
+                ownerId: 1,
+              },
+            }),
+          });
+        }
+        if (url.endsWith('/session/1/participants/self')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({ success: true, data: { id: 1, role: 'facilitator' } }),
+          });
+        }
+        if (url.endsWith('/session/1/participants')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({
+              success: true,
+              data: [
+                { id: 1, sessionId: 1, displayName: 'Elyas', role: 'facilitator', status: 'online' },
+                { id: 2, sessionId: 1, displayName: 'Samia', role: 'participant', status: 'offline' },
+              ],
+            }),
+          });
+        }
+        return Promise.resolve(emptyCardsResponse);
+      })
+    );
+
+    renderDashboard();
+
+    const participantsButton = await screen.findByRole('button', { name: 'Participants' });
+    expect(participantsButton.getAttribute('aria-expanded')).toBe('false');
+
+    fireEvent.click(participantsButton);
+
+    const drawer = await screen.findByRole('dialog', { name: 'Participants (2)' });
+    expect(participantsButton.getAttribute('aria-expanded')).toBe('true');
+    expect(within(drawer).getByText('Elyas')).toBeTruthy();
+    expect(within(drawer).getByText('Samia')).toBeTruthy();
+    expect(within(drawer).getByText('Facilitateur')).toBeTruthy();
+    expect(within(drawer).getByText('Participant')).toBeTruthy();
+    expect(within(drawer).getByText('1 en ligne')).toBeTruthy();
+
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(screen.queryByRole('dialog', { name: 'Participants (2)' })).toBeNull();
+
+    fireEvent.click(participantsButton);
+    expect(await screen.findByRole('dialog', { name: 'Participants (2)' })).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Fermer le panneau Participants' }));
+    expect(screen.queryByRole('dialog', { name: 'Participants (2)' })).toBeNull();
+  });
+
   it("rend le compteur, le timer et le bouton principal dans la barre d'actions en écriture", async () => {
     const fetchMock = createDashboardFetchMock({
       cardsSequence: [

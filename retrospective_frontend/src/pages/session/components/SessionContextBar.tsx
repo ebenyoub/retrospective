@@ -14,6 +14,7 @@ interface SessionContextBarProps {
   onCopySessionCode: () => void;
   onToggleParticipants?: () => void;
   onToggleDiscussion?: () => void;
+  isParticipantsOpen?: boolean;
 }
 
 const SessionContextBar = ({
@@ -27,6 +28,7 @@ const SessionContextBar = ({
   onCopySessionCode,
   onToggleParticipants,
   onToggleDiscussion,
+  isParticipantsOpen = false,
 }: SessionContextBarProps) => {
   const displayName = sessionName || `Session ${sessionId}`;
 
@@ -78,7 +80,12 @@ const SessionContextBar = ({
           type="button"
           onClick={onToggleParticipants}
           aria-label="Participants"
-          className="inline-flex h-[30px] cursor-pointer items-center gap-1.5 rounded-lg border border-transparent bg-transparent px-2.5 font-sans text-xs font-medium leading-none text-slate-400 transition-colors select-none hover:border-navy-border-med hover:bg-navy-surface-med hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-navy-mid"
+          aria-expanded={isParticipantsOpen}
+          className={`inline-flex h-[30px] cursor-pointer items-center gap-1.5 rounded-lg border px-2.5 font-sans text-xs font-medium leading-none transition-colors select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-navy-mid ${
+            isParticipantsOpen
+              ? 'border-navy-border-med bg-navy-surface-med text-slate-200'
+              : 'border-transparent bg-transparent text-slate-400 hover:border-navy-border-med hover:bg-navy-surface-med hover:text-slate-200'
+          }`}
         >
           <Users size={14} aria-hidden="true" />
           <span className="hidden sm:inline">Participants</span>

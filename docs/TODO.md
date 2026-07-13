@@ -73,7 +73,7 @@
 
 - [x] **T-SESSION-BAR-01 — SessionContextBar** : terminé et validé utilisateur. Première barre sous le header principal : retour, breadcrumb, nom de session, `StepIndicator`, code, déclencheurs Participants/Discussion. Aucun compteur, timer ou bouton principal dans cette barre.
 - [x] **T-SESSION-BAR-02 — SessionActionBar** : terminé et validé utilisateur. Seconde barre uniquement après validation de `SessionContextBar` : compteur total de cartes ou votes restants, timer, bouton principal, sans troisième barre.
-- [ ] **T-SESSION-BAR-03 — ParticipantsDrawer** : panneau Participants déclenché depuis `SessionContextBar`, avec vraies données.
+- [x] **T-SESSION-BAR-03 — ParticipantsDrawer** : terminé. Panneau Participants déclenché depuis `SessionContextBar`, avec vraies données.
 - [ ] **T-SESSION-BAR-04 — DiscussionDrawer** : panneau Discussion déclenché depuis `SessionContextBar`, périmètre données à valider avant backend.
 - [ ] **T-SESSION-BAR-05 — Commentaires des cartes** : à traiter uniquement si le périmètre commentaires est confirmé par les sources projet.
 - [ ] **T-SESSION-BAR-06 — Revue UI finale écran Écriture** : comparaison globale au prototype après validation des composants précédents.

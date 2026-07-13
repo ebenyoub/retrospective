@@ -4,6 +4,8 @@
 
 ## Date de dernière mise à jour
 
+2026-07-13 (`T-SESSION-BAR-03 — ParticipantsDrawer` terminé : panneau Participants déclenché depuis `SessionContextBar`, affichage des vraies données de session, distinction facilitateur/participant, fermeture par bouton, Échap et clic extérieur ; test ciblé, lint, TypeScript et vérifications Playwright desktop/mobile OK)
+
 2026-07-13 (`T-SESSION-BAR-02 — SessionActionBar` terminé et validé utilisateur : seconde barre sous le header principal stabilisée avec compteur total en écriture, votes restants en vote, timer et bouton principal facilitateur ; test ciblé 35/35, lint et build frontend OK ; vérification Playwright locale avec API mockée, captures `test-results/screenshots/session-actionbar-writing.png` et `test-results/screenshots/session-actionbar-mobile.png`)
 
 2026-07-13 (`T-SESSION-BAR-01 — SessionContextBar` terminé et validé utilisateur : barre de contexte isolée sous le header principal, déclencheurs Participants/Discussion rendus comme boutons accessibles, retrait du rôle de cette barre, tests ciblés 33/33, lint et build frontend OK ; validation visuelle confirmée)
@@ -126,11 +128,12 @@
   - `SessionActionBar` : compteur total de cartes ou votes restants, timer, bouton principal de l'étape.
 - `T-SESSION-BAR-01 — SessionContextBar` est terminé et validé utilisateur.
 - `T-SESSION-BAR-02 — SessionActionBar` est terminé et validé utilisateur : la seconde barre contient le compteur total de cartes en écriture, les votes restants en vote, le timer et le bouton principal facilitateur, sans troisième ligne de barre d'actions.
+- `T-SESSION-BAR-03 — ParticipantsDrawer` est terminé : le déclencheur Participants ouvre un panneau responsive alimenté par les vraies données de session.
 
 ## Prochaine étape
 
-**Reprendre le Product Backlog à partir de `T-SESSION-BAR-03 — ParticipantsDrawer` uniquement après validation explicite de lancement.**
-- Ne pas commencer ParticipantsDrawer, DiscussionDrawer ou commentaires dans la clôture de `T-SESSION-BAR-02`.
+**Reprendre le Product Backlog à partir de `T-SESSION-BAR-04 — DiscussionDrawer`.**
+- Ne pas revenir sur `SessionContextBar`, `SessionActionBar` ou `ParticipantsDrawer` sauf régression démontrée.
 
 **Finalisation soutenance.**
 - Parcours facilitateur + participant invité vérifié en conditions réelles le 2026-07-13 (Docker Compose + Playwright, 2 contextes navigateur), **y compris l'ouverture directe du lien d'invitation** (sans passer par l'accueil) : création de compte + rétro, invitation, jointure sans compte, synchronisation temps réel, écriture de carte, lancement de la rétro synchronisé, code de session visible en permanence.

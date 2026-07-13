@@ -5,6 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { getApiErrorMessage, isApiSuccess, NETWORK_ERROR_MESSAGE, readJsonSafely } from '@/lib/apiError';
 import RetroColumn from './components/RetroColumn';
+import ParticipantsDrawer from './components/ParticipantsDrawer';
 import SessionActionBar from './components/SessionActionBar';
 import SessionContextBar from './components/SessionContextBar';
 import SessionResults from './components/SessionResults';
@@ -104,6 +105,7 @@ const SessionDashboard = () => {
   const [selfParticipantId, setSelfParticipantId] = useState<number | null>(null);
   const [isCustomFormatModalOpen, setIsCustomFormatModalOpen] = useState(false);
   const [isSessionCodeCopied, setIsSessionCodeCopied] = useState(false);
+  const [isParticipantsDrawerOpen, setIsParticipantsDrawerOpen] = useState(false);
 
   const votesUsed = useMemo(() => cards.filter((card) => card.votedByMe).length, [cards]);
   const votesLeft = useMemo(() => Math.max(0, 5 - votesUsed), [votesUsed]);
@@ -564,8 +566,10 @@ const SessionDashboard = () => {
         step={step}
         participantCount={participants.filter((participant) => participant.status === 'online').length}
         isSessionCodeCopied={isSessionCodeCopied}
+        isParticipantsOpen={isParticipantsDrawerOpen}
         onBack={handleLeaveSession}
         onCopySessionCode={handleCopySessionCode}
+        onToggleParticipants={() => setIsParticipantsDrawerOpen((isOpen) => !isOpen)}
       />
       <SessionActionBar
         step={step}
@@ -573,6 +577,12 @@ const SessionDashboard = () => {
         votesLeft={votesLeft}
         isFacilitator={role === 'facilitator'}
         onTransitionStep={handleTransitionStep}
+      />
+      <ParticipantsDrawer
+        participants={participants}
+        isOpen={isParticipantsDrawerOpen}
+        isDesktop={!isMobileViewport}
+        onClose={() => setIsParticipantsDrawerOpen(false)}
       />
 
       {step === 'results' ? (

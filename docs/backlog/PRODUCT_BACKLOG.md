@@ -79,7 +79,7 @@ Fonctionnalités explicitement justifiées par le cahier des charges, les User S
 | Identifiant | **T-SESSION-BAR-03** |
 | Titre | Panneau Participants depuis le déclencheur |
 | Priorité | P1 |
-| Statut | ⬜ À faire |
+| Statut | ✅ Terminé — validé utilisateur |
 | Objectif | Ouvrir un panneau Participants depuis le déclencheur de `SessionContextBar` et afficher les vraies données de session. |
 | Critères d'acceptation | Le déclencheur Participants ouvre/ferme le panneau ; le panneau affiche les vrais participants issus de `useSessionParticipants`/API, avec nom, rôle et statut disponibles ; desktop et mobile respectent le prototype ; fermeture accessible au clic et au clavier ; aucune donnée mockée n'est affichée comme réelle. |
 | Fichiers probablement concernés | `retrospective_frontend/src/pages/session/components/SessionContextBar.tsx`, nouveau composant probable `ParticipantsDrawer.tsx`, `retrospective_frontend/src/pages/session/hooks/useSessionParticipants.ts`, `retrospective_frontend/src/pages/session/SessionDashboard.tsx`, tests associés. |
