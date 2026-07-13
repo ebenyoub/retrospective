@@ -124,7 +124,7 @@ Fonctionnalités explicitement justifiées par le cahier des charges, les User S
 | Identifiant | **T-SESSION-BAR-06** |
 | Titre | Revue UI finale de l'écran Écriture |
 | Priorité | P1 |
-| Statut | ⬜ À faire |
+| Statut | ✅ Terminé — revue finale validée |
 | Objectif | Comparer l'écran complet au prototype après validation des composants précédents et corriger uniquement les derniers écarts démontrés. |
 | Critères d'acceptation | L'écran complet est comparé au prototype sur desktop et mobile ; seules les divergences restantes de l'écran Écriture sont corrigées ; les tâches validées précédentes ne sont pas modifiées sauf régression démontrée ; aucun nouveau regroupement fonctionnel n'est introduit ; la revue vérifie l'absence de troisième barre et la non-régression des cartes, colonnes, votes et résultats. |
 | Fichiers probablement concernés | `retrospective_frontend/src/pages/session/SessionDashboard.tsx`, composants sous `retrospective_frontend/src/pages/session/components/`, tests de non-régression, documentation de suivi. |

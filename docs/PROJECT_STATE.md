@@ -4,6 +4,8 @@
 
 ## Date de dernière mise à jour
 
+2026-07-13 (`T-SESSION-BAR-06 — Revue UI finale de l'écran Écriture` terminé : écran complet comparé au prototype sur desktop/mobile avec Playwright ; aucune correction fonctionnelle supplémentaire nécessaire après validation des composants précédents ; test ciblé, lint et TypeScript OK)
+
 2026-07-13 (`T-SESSION-BAR-05 — Commentaires des cartes` terminé dans le périmètre UI : ouverture d'un modal depuis les cartes, état vide sans donnée fictive, aucun compteur de commentaires affiché faute de source réelle, saisie désactivée tant qu'aucune persistance n'est validée ; test ciblé, lint, TypeScript et vérifications Playwright desktop/mobile OK)
 
 2026-07-13 (`T-SESSION-BAR-04 — DiscussionDrawer` terminé : panneau Discussion déclenché depuis `SessionContextBar`, état vide sans données fictives, zone de saisie désactivée tant qu'aucune persistance réelle n'est validée, fermeture bouton/Échap/clic extérieur, exclusivité avec ParticipantsDrawer ; test ciblé, lint, TypeScript et vérifications Playwright desktop/mobile OK)
@@ -135,11 +137,12 @@
 - `T-SESSION-BAR-03 — ParticipantsDrawer` est terminé : le déclencheur Participants ouvre un panneau responsive alimenté par les vraies données de session.
 - `T-SESSION-BAR-04 — DiscussionDrawer` est terminé : le déclencheur Discussion ouvre un panneau responsive, sans message fictif ni backend ajouté.
 - `T-SESSION-BAR-05 — Commentaires des cartes` est terminé dans le périmètre UI : ouverture depuis une carte, modal conforme, pas de compteur ou commentaire fictif.
+- `T-SESSION-BAR-06 — Revue UI finale de l'écran Écriture` est terminé : aucun écart restant ne justifie de reprendre les composants validés.
 
 ## Prochaine étape
 
-**Reprendre le Product Backlog à partir de `T-SESSION-BAR-06 — Revue UI finale de l'écran Écriture`.**
-- Ne pas revenir sur `SessionContextBar`, `SessionActionBar` ou `ParticipantsDrawer` sauf régression démontrée.
+**La page Écriture est terminée pour le chantier "zone sous le header principal".**
+- Ne pas revenir sur `SessionContextBar`, `SessionActionBar`, `ParticipantsDrawer`, `DiscussionDrawer` ou commentaires de cartes sauf régression démontrée.
 
 **Finalisation soutenance.**
 - Parcours facilitateur + participant invité vérifié en conditions réelles le 2026-07-13 (Docker Compose + Playwright, 2 contextes navigateur), **y compris l'ouverture directe du lien d'invitation** (sans passer par l'accueil) : création de compte + rétro, invitation, jointure sans compte, synchronisation temps réel, écriture de carte, lancement de la rétro synchronisé, code de session visible en permanence.
