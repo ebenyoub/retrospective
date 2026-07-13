@@ -109,7 +109,7 @@ Fonctionnalités explicitement justifiées par le cahier des charges, les User S
 | Identifiant | **T-SESSION-BAR-05** |
 | Titre | Connexion des cartes au fil de discussion/commentaires |
 | Priorité | P2 |
-| Statut | ⬜ À faire |
+| Statut | ✅ Terminé — périmètre UI sans backend |
 | Objectif | Connecter les cartes au fil de discussion ou à un modal de commentaires uniquement si cette fonctionnalité est confirmée par les sources projet. |
 | Critères d'acceptation | Le ticket commence par confirmer le périmètre exact : commentaires par carte, discussion globale, ou lien entre les deux ; les cartes affichent un compteur réel seulement si une source de données existe ; l'ouverture depuis une carte respecte le prototype ; aucune table/route n'est ajoutée sans validation du périmètre ; aucun comportement de vote/édition/suppression existant ne régresse. |
 | Fichiers probablement concernés | `retrospective_frontend/src/pages/session/components/RetroCardItem.tsx`, `RetroColumn.tsx`, `SessionDashboard.tsx`, nouveau composant probable de commentaires, tests associés ; backend et SQL uniquement si validés. |

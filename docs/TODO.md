@@ -75,7 +75,7 @@
 - [x] **T-SESSION-BAR-02 — SessionActionBar** : terminé et validé utilisateur. Seconde barre uniquement après validation de `SessionContextBar` : compteur total de cartes ou votes restants, timer, bouton principal, sans troisième barre.
 - [x] **T-SESSION-BAR-03 — ParticipantsDrawer** : terminé. Panneau Participants déclenché depuis `SessionContextBar`, avec vraies données.
 - [x] **T-SESSION-BAR-04 — DiscussionDrawer** : terminé. Panneau Discussion déclenché depuis `SessionContextBar`, périmètre données borné sans backend.
-- [ ] **T-SESSION-BAR-05 — Commentaires des cartes** : à traiter uniquement si le périmètre commentaires est confirmé par les sources projet.
+- [x] **T-SESSION-BAR-05 — Commentaires des cartes** : terminé dans le périmètre UI confirmé par Figma, sans compteur ni persistance fictifs.
 - [ ] **T-SESSION-BAR-06 — Revue UI finale écran Écriture** : comparaison globale au prototype après validation des composants précédents.
 
 ## Tickets issus de l'audit de conformité skills (2026-07-13)

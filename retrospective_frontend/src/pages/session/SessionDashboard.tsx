@@ -3,10 +3,12 @@ import { useToast } from '@/context/toast/useToast';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import { API_BASE } from '@/lib/api';
 import { getApiErrorMessage, isApiSuccess, NETWORK_ERROR_MESSAGE, readJsonSafely } from '@/lib/apiError';
-import RetroColumn from './components/RetroColumn';
+import CardCommentsModal from './components/CardCommentsModal';
 import DiscussionDrawer from './components/DiscussionDrawer';
 import ParticipantsDrawer from './components/ParticipantsDrawer';
+import RetroColumn from './components/RetroColumn';
 import SessionActionBar from './components/SessionActionBar';
 import SessionContextBar from './components/SessionContextBar';
 import SessionResults from './components/SessionResults';
@@ -18,8 +20,6 @@ import JoinSessionModal, { type GuestJoinResponse } from './components/JoinSessi
 import { useGuestParticipant } from './hooks/useGuestParticipant';
 import { useSessionParticipants, type SelfIdentity } from './hooks/useSessionParticipants';
 import type { SessionStep } from './sessionStep';
-
-import { API_BASE } from '@/lib/api';
 
 interface SessionDetails {
   id: number;
@@ -108,6 +108,7 @@ const SessionDashboard = () => {
   const [isSessionCodeCopied, setIsSessionCodeCopied] = useState(false);
   const [isParticipantsDrawerOpen, setIsParticipantsDrawerOpen] = useState(false);
   const [isDiscussionDrawerOpen, setIsDiscussionDrawerOpen] = useState(false);
+  const [commentsCard, setCommentsCard] = useState<RetroCard | null>(null);
 
   const votesUsed = useMemo(() => cards.filter((card) => card.votedByMe).length, [cards]);
   const votesLeft = useMemo(() => Math.max(0, 5 - votesUsed), [votesUsed]);
@@ -607,6 +608,13 @@ const SessionDashboard = () => {
         isDesktop={!isMobileViewport}
         onClose={() => setIsDiscussionDrawerOpen(false)}
       />
+      {commentsCard && (
+        <CardCommentsModal
+          card={commentsCard}
+          isDesktop={!isMobileViewport}
+          onClose={() => setCommentsCard(null)}
+        />
+      )}
 
       {step === 'results' ? (
         /* Vue résultats : stats, Top 3 et colonnes par catégorie (fidèle Figma) */
@@ -662,6 +670,7 @@ const SessionDashboard = () => {
                 currentUserId={selfParticipantId}
                 onAddCard={step === 'writing' ? (content) => handleAddCard(column.key, content) : undefined}
                 onVote={handleVote}
+                onOpenComments={setCommentsCard}
                 onUpdateCard={handleUpdateCard}
                 onDeleteCard={handleDeleteCard}
                 canVote={step === 'voting'}

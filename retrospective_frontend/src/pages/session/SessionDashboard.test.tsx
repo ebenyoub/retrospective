@@ -370,6 +370,52 @@ describe('SessionDashboard', () => {
     expect(screen.queryByRole('dialog', { name: 'Discussion' })).toBeNull();
   });
 
+  it('ouvre le modal de commentaires depuis une carte sans compteur fictif', async () => {
+    const fetchMock = createDashboardFetchMock({
+      cardsSequence: [
+        {
+          ok: true,
+          json: async () => ({
+            success: true,
+            data: [
+              {
+                id: 1,
+                sessionId: 1,
+                authorId: 1,
+                authorName: 'Elyas',
+                columnType: 'start',
+                content: 'Carte à commenter',
+                createdAt: '2026-07-07T10:00:00.000Z',
+                votesCount: 2,
+              },
+            ],
+          }),
+        },
+      ],
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderDashboard();
+
+    await screen.findByText('Carte à commenter');
+    expect(screen.getByText('2 votes')).toBeTruthy();
+
+    const commentsButton = screen.getByRole('button', { name: 'Ouvrir les commentaires' });
+    expect(commentsButton.textContent).toBe('Commentaires');
+
+    fireEvent.click(commentsButton);
+
+    const modal = await screen.findByRole('dialog', { name: 'Carte à commenter' });
+    expect(within(modal).getByText('Idées')).toBeTruthy();
+    expect(within(modal).getByText('Elyas')).toBeTruthy();
+    expect(within(modal).getByText('Aucun commentaire disponible')).toBeTruthy();
+    expect((within(modal).getByRole('textbox', { name: 'Écrire un commentaire' }) as HTMLTextAreaElement).disabled).toBe(true);
+    expect((within(modal).getByRole('button', { name: 'Envoyer le commentaire' }) as HTMLButtonElement).disabled).toBe(true);
+
+    fireEvent.click(within(modal).getByRole('button', { name: 'Fermer les commentaires' }));
+    expect(screen.queryByRole('dialog', { name: 'Carte à commenter' })).toBeNull();
+  });
+
   it("rend le compteur, le timer et le bouton principal dans la barre d'actions en écriture", async () => {
     const fetchMock = createDashboardFetchMock({
       cardsSequence: [

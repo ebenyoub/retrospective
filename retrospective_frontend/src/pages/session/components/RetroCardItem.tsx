@@ -1,3 +1,4 @@
+import { MessageCircle } from 'lucide-react';
 import { useState, type FormEvent } from "react";
 import Avatar from "./Avatar";
 
@@ -20,11 +21,12 @@ interface RetroCardItemProps {
   onVote: (cardId: number) => Promise<void> | void;
   onUpdateCard?: (cardId: number, content: string) => Promise<boolean> | boolean;
   onDeleteCard?: (cardId: number) => Promise<void> | void;
+  onOpenComments?: (card: RetroCard) => void;
   canVote?: boolean;
   canEdit?: boolean;
 }
 
-const RetroCardItem = ({ card, accentClassName, currentUserId, onVote, onUpdateCard, onDeleteCard, canVote = true, canEdit = true }: RetroCardItemProps) => {
+const RetroCardItem = ({ card, accentClassName, currentUserId, onVote, onUpdateCard, onDeleteCard, onOpenComments, canVote = true, canEdit = true }: RetroCardItemProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [draftContent, setDraftContent] = useState(card.content);
   
@@ -100,6 +102,17 @@ const RetroCardItem = ({ card, accentClassName, currentUserId, onVote, onUpdateC
         <span className="text-xs font-mono text-slate-400 select-none mr-auto">
           {card.votesCount} vote{card.votesCount !== 1 ? "s" : ""}
         </span>
+        {!isEditing && onOpenComments && (
+          <button
+            type="button"
+            onClick={() => onOpenComments(card)}
+            aria-label="Ouvrir les commentaires"
+            className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-slate-300 bg-transparent hover:bg-navy-surface rounded-[8px] border border-transparent hover:border-navy-border px-2 py-1.5 transition-all cursor-pointer"
+          >
+            <MessageCircle size={13} aria-hidden="true" />
+            <span>Commentaires</span>
+          </button>
+        )}
         {canUpdate && !isEditing && (
           <button
             type="button"

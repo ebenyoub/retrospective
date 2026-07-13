@@ -4,6 +4,8 @@
 
 ## Date de dernière mise à jour
 
+2026-07-13 (`T-SESSION-BAR-05 — Commentaires des cartes` terminé dans le périmètre UI : ouverture d'un modal depuis les cartes, état vide sans donnée fictive, aucun compteur de commentaires affiché faute de source réelle, saisie désactivée tant qu'aucune persistance n'est validée ; test ciblé, lint, TypeScript et vérifications Playwright desktop/mobile OK)
+
 2026-07-13 (`T-SESSION-BAR-04 — DiscussionDrawer` terminé : panneau Discussion déclenché depuis `SessionContextBar`, état vide sans données fictives, zone de saisie désactivée tant qu'aucune persistance réelle n'est validée, fermeture bouton/Échap/clic extérieur, exclusivité avec ParticipantsDrawer ; test ciblé, lint, TypeScript et vérifications Playwright desktop/mobile OK)
 
 2026-07-13 (`T-SESSION-BAR-03 — ParticipantsDrawer` terminé : panneau Participants déclenché depuis `SessionContextBar`, affichage des vraies données de session, distinction facilitateur/participant, fermeture par bouton, Échap et clic extérieur ; test ciblé, lint, TypeScript et vérifications Playwright desktop/mobile OK)
@@ -132,10 +134,11 @@
 - `T-SESSION-BAR-02 — SessionActionBar` est terminé et validé utilisateur : la seconde barre contient le compteur total de cartes en écriture, les votes restants en vote, le timer et le bouton principal facilitateur, sans troisième ligne de barre d'actions.
 - `T-SESSION-BAR-03 — ParticipantsDrawer` est terminé : le déclencheur Participants ouvre un panneau responsive alimenté par les vraies données de session.
 - `T-SESSION-BAR-04 — DiscussionDrawer` est terminé : le déclencheur Discussion ouvre un panneau responsive, sans message fictif ni backend ajouté.
+- `T-SESSION-BAR-05 — Commentaires des cartes` est terminé dans le périmètre UI : ouverture depuis une carte, modal conforme, pas de compteur ou commentaire fictif.
 
 ## Prochaine étape
 
-**Reprendre le Product Backlog à partir de `T-SESSION-BAR-05 — Commentaires des cartes`.**
+**Reprendre le Product Backlog à partir de `T-SESSION-BAR-06 — Revue UI finale de l'écran Écriture`.**
 - Ne pas revenir sur `SessionContextBar`, `SessionActionBar` ou `ParticipantsDrawer` sauf régression démontrée.
 
 **Finalisation soutenance.**
