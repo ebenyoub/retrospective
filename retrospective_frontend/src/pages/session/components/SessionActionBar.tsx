@@ -21,8 +21,9 @@ const SessionActionBar = ({
 
   return (
     <div
+      role="toolbar"
       aria-label="Actions de l'étape"
-      className="flex flex-shrink-0 items-center gap-3 border-b border-navy-border px-3 py-2.5 md:px-5"
+      className="flex h-12 flex-shrink-0 items-center gap-3 border-b border-navy-border bg-navy-surface px-3 md:h-[50px] md:px-5"
     >
       <div className="flex min-w-0 flex-1 items-center">
         {step === 'voting' ? (
@@ -52,7 +53,7 @@ const SessionActionBar = ({
         )}
       </div>
 
-      <div className="relative ml-auto flex shrink-0 items-center gap-2">
+      <div className="ml-auto flex shrink-0 items-center gap-2">
         {step === 'writing' && <TimerChip value="05:00" />}
         {step === 'voting' && <TimerChip value="04:30" />}
 

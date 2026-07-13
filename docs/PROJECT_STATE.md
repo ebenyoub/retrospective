@@ -4,6 +4,8 @@
 
 ## Date de dernière mise à jour
 
+2026-07-13 (`T-SESSION-BAR-02 — SessionActionBar` terminé et validé utilisateur : seconde barre sous le header principal stabilisée avec compteur total en écriture, votes restants en vote, timer et bouton principal facilitateur ; test ciblé 35/35, lint et build frontend OK ; vérification Playwright locale avec API mockée, captures `test-results/screenshots/session-actionbar-writing.png` et `test-results/screenshots/session-actionbar-mobile.png`)
+
 2026-07-13 (`T-SESSION-BAR-01 — SessionContextBar` terminé et validé utilisateur : barre de contexte isolée sous le header principal, déclencheurs Participants/Discussion rendus comme boutons accessibles, retrait du rôle de cette barre, tests ciblés 33/33, lint et build frontend OK ; validation visuelle confirmée)
 
 2026-07-13 (recadrage backlog — arrêt des modifications directes de la navbar de session ; découpage du chantier sous le header principal en 6 tickets indépendants : `SessionContextBar`, `SessionActionBar`, `ParticipantsDrawer`, `DiscussionDrawer`, commentaires des cartes, revue UI finale. La navbar n'est pas validée comme terminée.)
@@ -123,13 +125,12 @@
   - `SessionContextBar` : retour, breadcrumb, nom de session, `StepIndicator`, code de session, déclencheurs Participants et Discussion.
   - `SessionActionBar` : compteur total de cartes ou votes restants, timer, bouton principal de l'étape.
 - `T-SESSION-BAR-01 — SessionContextBar` est terminé et validé utilisateur.
-- Les modifications frontend non commitées restantes sur `SessionActionBar` et `TimerChip` ne sont pas validées par cette tâche et restent à reprendre dans `T-SESSION-BAR-02`.
-- Régression/risque identifié : l'état global peut encore donner l'impression d'une troisième barre selon le placement de la sub-toolbar et des onglets mobiles. À traiter uniquement dans `T-SESSION-BAR-02` ou la revue UI finale.
+- `T-SESSION-BAR-02 — SessionActionBar` est terminé et validé utilisateur : la seconde barre contient le compteur total de cartes en écriture, les votes restants en vote, le timer et le bouton principal facilitateur, sans troisième ligne de barre d'actions.
 
 ## Prochaine étape
 
-**Reprendre le Product Backlog à partir de `T-SESSION-BAR-02 — SessionActionBar` uniquement après validation explicite de lancement.**
-- Ne pas commencer `SessionActionBar`, ParticipantsDrawer, DiscussionDrawer ou commentaires dans la clôture de `T-SESSION-BAR-01`.
+**Reprendre le Product Backlog à partir de `T-SESSION-BAR-03 — ParticipantsDrawer` uniquement après validation explicite de lancement.**
+- Ne pas commencer ParticipantsDrawer, DiscussionDrawer ou commentaires dans la clôture de `T-SESSION-BAR-02`.
 
 **Finalisation soutenance.**
 - Parcours facilitateur + participant invité vérifié en conditions réelles le 2026-07-13 (Docker Compose + Playwright, 2 contextes navigateur), **y compris l'ouverture directe du lien d'invitation** (sans passer par l'accueil) : création de compte + rétro, invitation, jointure sans compte, synchronisation temps réel, écriture de carte, lancement de la rétro synchronisé, code de session visible en permanence.

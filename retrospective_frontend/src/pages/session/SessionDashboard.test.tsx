@@ -257,6 +257,96 @@ describe('SessionDashboard', () => {
     expect(within(contextBar).queryByRole('button', { name: /Passer au vote/ })).toBeNull();
   });
 
+  it("rend le compteur, le timer et le bouton principal dans la barre d'actions en écriture", async () => {
+    const fetchMock = createDashboardFetchMock({
+      cardsSequence: [
+        {
+          ok: true,
+          json: async () => ({
+            success: true,
+            data: [
+              {
+                id: 1,
+                sessionId: 1,
+                authorId: 1,
+                authorName: 'Elyas',
+                columnType: 'start',
+                content: 'Une carte',
+                createdAt: '2026-07-07T10:00:00.000Z',
+                votesCount: 0,
+              },
+              {
+                id: 2,
+                sessionId: 1,
+                authorId: 1,
+                authorName: 'Elyas',
+                columnType: 'continue',
+                content: 'Une autre carte',
+                createdAt: '2026-07-07T10:01:00.000Z',
+                votesCount: 0,
+              },
+            ],
+          }),
+        },
+      ],
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderDashboard();
+
+    const actionBar = await screen.findByRole('toolbar', { name: "Actions de l'étape" });
+    const contextBar = await screen.findByRole('navigation', { name: 'Contexte de session' });
+
+    expect(within(actionBar).getByText('2 cartes au total')).toBeTruthy();
+    expect(within(actionBar).getByText('05:00')).toBeTruthy();
+    expect(within(actionBar).getByRole('button', { name: /Passer au vote/ })).toBeTruthy();
+
+    expect(within(contextBar).queryByText('2 cartes au total')).toBeNull();
+    expect(within(contextBar).queryByText('05:00')).toBeNull();
+    expect(screen.getAllByRole('toolbar', { name: "Actions de l'étape" })).toHaveLength(1);
+  });
+
+  it("rend les votes restants, le timer et le bouton principal dans la barre d'actions en vote", async () => {
+    const fetchMock = createDashboardFetchMock({
+      step: 'voting',
+      cardsSequence: [
+        {
+          ok: true,
+          json: async () => ({
+            success: true,
+            data: [
+              {
+                id: 1,
+                sessionId: 1,
+                authorId: 1,
+                authorName: 'Elyas',
+                columnType: 'start',
+                content: 'Carte déjà votée',
+                createdAt: '2026-07-07T10:00:00.000Z',
+                votesCount: 1,
+                votedByMe: true,
+              },
+            ],
+          }),
+        },
+      ],
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderDashboard();
+
+    const actionBar = await screen.findByRole('toolbar', { name: "Actions de l'étape" });
+    const contextBar = await screen.findByRole('navigation', { name: 'Contexte de session' });
+
+    expect(within(actionBar).getByRole('status', { name: '4 votes restants sur 5' })).toBeTruthy();
+    expect(within(actionBar).getByText('04:30')).toBeTruthy();
+    expect(within(actionBar).getByRole('button', { name: /Voir les résultats/ })).toBeTruthy();
+
+    expect(within(contextBar).queryByRole('status', { name: '4 votes restants sur 5' })).toBeNull();
+    expect(within(contextBar).queryByText('04:30')).toBeNull();
+    expect(screen.getAllByRole('toolbar', { name: "Actions de l'étape" })).toHaveLength(1);
+  });
+
   it('permet de quitter une session démarrée depuis le bouton Retour de la barre contexte', async () => {
     const fetchSpy = vi.fn().mockImplementation((url, init) => {
       const method = init?.method ?? 'GET';

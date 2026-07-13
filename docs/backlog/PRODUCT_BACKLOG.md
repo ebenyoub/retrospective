@@ -64,7 +64,7 @@ Fonctionnalités explicitement justifiées par le cahier des charges, les User S
 | Identifiant | **T-SESSION-BAR-02** |
 | Titre | SessionActionBar fidèle au prototype |
 | Priorité | P0 |
-| Statut | ⬜ À faire |
+| Statut | ✅ Terminé — validé utilisateur |
 | Objectif | Obtenir la seconde barre sous le header principal : actions d'étape uniquement. |
 | Critères d'acceptation | Le compteur total de cartes est rendu dans cette barre en étape écriture ; l'indicateur de votes restants reste rendu dans cette barre en étape vote ; le timer est rendu dans cette barre ; le bouton principal facilitateur est rendu dans cette barre ; aucune troisième ligne ou troisième navbar n'apparaît ; la barre reproduit la sub-toolbar Figma des écrans `WritingScreen` et `VoteScreen` ; aucun élément de contexte de session n'y est déplacé. |
 | Fichiers probablement concernés | `retrospective_frontend/src/pages/session/SessionDashboard.tsx`, `retrospective_frontend/src/pages/session/components/SessionActionBar.tsx`, `retrospective_frontend/src/pages/session/components/TimerChip.tsx`, `retrospective_frontend/src/pages/session/SessionDashboard.test.tsx` |

@@ -579,46 +579,44 @@ const SessionDashboard = () => {
         /* Vue résultats : stats, Top 3 et colonnes par catégorie (fidèle Figma) */
         <SessionResults cards={cards} isDesktop={!isMobileViewport} />
       ) : (
-        <>
-          {/* Onglets mobiles */}
-          {isMobileViewport && (
-            <div className="flex flex-shrink-0 border-b border-navy-border px-1">
-              {COLUMNS.map((column) => {
-                const isActive = activeMobileColumn === column.key;
-                const count = cards.filter((card) => card.columnType === column.key).length;
-                return (
-                  <button
-                    key={column.key}
-                    type="button"
-                    onClick={() => setActiveMobileColumn(column.key)}
-                    className={`flex flex-1 items-center justify-center gap-1.5 border-b-2 px-1 py-2.5 text-xs font-semibold transition-colors ${
-                      isActive
-                        ? `${column.tabActiveClassName} text-slate-50`
-                        : 'border-transparent text-slate-500 hover:text-slate-300'
-                    }`}
-                  >
-                    <span className="text-[14px] leading-none" role="img" aria-hidden="true">{column.emoji}</span>
-                    <span>{column.title}</span>
-                    <span
-                      className={`rounded px-1.5 font-mono text-[10px] ${
-                        isActive ? 'bg-navy-surface-med text-slate-200' : 'bg-navy-surface text-slate-600'
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          {/* Grille 3 colonnes Figma Make : gap:1px (gap-px), fond navy-border = séparateurs 1px */}
+          <div className="relative flex-1 grid grid-cols-1 md:grid-cols-3 overflow-hidden bg-navy-border gap-px">
+            {isMobileViewport && (
+              <div className="absolute inset-x-0 top-0 z-10 flex border-b border-navy-border bg-navy-mid/95 px-1 backdrop-blur">
+                {COLUMNS.map((column) => {
+                  const isActive = activeMobileColumn === column.key;
+                  const count = cards.filter((card) => card.columnType === column.key).length;
+                  return (
+                    <button
+                      key={column.key}
+                      type="button"
+                      onClick={() => setActiveMobileColumn(column.key)}
+                      className={`flex flex-1 items-center justify-center gap-1.5 border-b-2 px-1 py-2.5 text-xs font-semibold transition-colors ${
+                        isActive
+                          ? `${column.tabActiveClassName} text-slate-50`
+                          : 'border-transparent text-slate-500 hover:text-slate-300'
                       }`}
                     >
-                      {count}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-
-          {/* Grille 3 colonnes Figma Make : gap:1px (gap-px), fond navy-border = séparateurs 1px */}
-          <div className="flex-1 grid grid-cols-1 md:grid-cols-3 overflow-hidden bg-navy-border gap-px">
+                      <span className="text-[14px] leading-none" role="img" aria-hidden="true">{column.emoji}</span>
+                      <span>{column.title}</span>
+                      <span
+                        className={`rounded px-1.5 font-mono text-[10px] ${
+                          isActive ? 'bg-navy-surface-med text-slate-200' : 'bg-navy-surface text-slate-600'
+                        }`}
+                      >
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
             {COLUMNS.map((column) => (
               <RetroColumn
                 key={column.key}
                 className={isMobileViewport
-                  ? (activeMobileColumn === column.key ? '' : 'hidden')
+                  ? (activeMobileColumn === column.key ? 'pt-11' : 'hidden')
                   : ''}
                 title={column.title}
                 emoji={column.emoji}
@@ -638,7 +636,7 @@ const SessionDashboard = () => {
               />
             ))}
           </div>
-        </>
+        </div>
       )}
     </div>
   );
