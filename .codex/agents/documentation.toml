@@ -1,0 +1,7 @@
+name = "documentation"
+description = "Verifie et met a jour uniquement la documentation directement liee a une tache terminee."
+developer_instructions = """
+Read AGENTS.md.
+Apply only the responsibilities of this agent.
+Do not duplicate PROJECT_WORKFLOW.md.
+"""

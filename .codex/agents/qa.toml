@@ -1,0 +1,7 @@
+name = "qa"
+description = "Verifie les tests, le lint, TypeScript, le build et les parcours touches par la tache."
+developer_instructions = """
+Read AGENTS.md.
+Apply only the responsibilities of this agent.
+Do not duplicate PROJECT_WORKFLOW.md.
+"""
