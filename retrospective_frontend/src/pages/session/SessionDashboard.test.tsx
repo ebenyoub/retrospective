@@ -1235,11 +1235,14 @@ describe('SessionDashboard', () => {
     });
     vi.stubGlobal('fetch', fetchSpy);
 
-    let locationState: unknown = null;
     const LocationDisplay = () => {
       const location = useLocation();
-      locationState = location.state;
-      return <p>Page d'accueil</p>;
+      return (
+        <>
+          <p>Page d'accueil</p>
+          <output data-testid="location-state">{JSON.stringify(location.state)}</output>
+        </>
+      );
     };
 
     render(
@@ -1263,7 +1266,7 @@ describe('SessionDashboard', () => {
       expect.objectContaining({ method: 'DELETE' })
     );
     // L'état de navigation fromSessions doit être présent pour bloquer la boucle
-    expect(locationState).toEqual({ fromSessions: true });
+    expect(screen.getByTestId('location-state').textContent).toBe(JSON.stringify({ fromSessions: true }));
     // Le token du facilitateur ne doit pas avoir été effacé
     expect(authState.token).toBe('facilitator-token');
     expect(authState.isAuthenticated).toBe(true);

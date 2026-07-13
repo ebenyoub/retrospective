@@ -131,11 +131,14 @@ describe('SessionList', () => {
       vi.fn().mockResolvedValue({ ok: true, json: async () => ({ success: true, data: [] }) })
     );
 
-    let locationState: unknown = null;
     const LocationDisplay = () => {
       const location = useLocation();
-      locationState = location.state;
-      return <p>Page d'accueil</p>;
+      return (
+        <>
+          <p>Page d'accueil</p>
+          <output data-testid="location-state">{JSON.stringify(location.state)}</output>
+        </>
+      );
     };
 
     render(
@@ -150,6 +153,6 @@ describe('SessionList', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Retour' }));
 
     expect(await screen.findByText('Page d\'accueil')).toBeTruthy();
-    expect(locationState).toEqual({ fromSessions: true });
+    expect(screen.getByTestId('location-state').textContent).toBe(JSON.stringify({ fromSessions: true }));
   });
 });

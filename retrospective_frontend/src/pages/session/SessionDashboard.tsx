@@ -178,10 +178,10 @@ const SessionDashboard = () => {
   useEffect(() => {
     const sessionIdNumber = Number(sessionId);
     if (!sessionId || sessionId === "undefined" || isNaN(sessionIdNumber) || sessionIdNumber <= 0) {
-      setIsLoading(false);
+      const loadingTimeout = window.setTimeout(() => setIsLoading(false), 0);
       addToast('error', 'Session invalide ou non spécifiée.');
       navigate(isAuthenticated ? '/sessions' : '/');
-      return;
+      return () => window.clearTimeout(loadingTimeout);
     }
 
     let isActive = true;
