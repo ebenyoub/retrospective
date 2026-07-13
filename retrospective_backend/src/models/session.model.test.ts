@@ -8,6 +8,7 @@ vi.mock("./db", () => ({
 import db from './db';
 import {
   closeExpiredSessionsForOwner,
+  closeActiveSessionsForOwner,
   findActiveSessionForOwner,
   findSessionByCode,
   findSessionsForUser,
@@ -61,6 +62,14 @@ describe("session.model", () => {
     await expect(closeExpiredSessionsForOwner(1, "now")).resolves.toEqual({
       affectedRows: 2,
       changedRows: 1,
+    });
+  });
+
+  it("closeActiveSessionsForOwner retourne affectedRows", async () => {
+    mockExecute.mockResolvedValueOnce([{ affectedRows: 3 }]);
+
+    await expect(closeActiveSessionsForOwner(1)).resolves.toEqual({
+      affectedRows: 3,
     });
   });
 

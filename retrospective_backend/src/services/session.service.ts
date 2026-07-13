@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import {
   closeExpiredSessionsForOwner,
-  findActiveSessionForOwner,
+  closeActiveSessionsForOwner,
   findSessionByCode,
   findSessionsForUser,
   findSessionUserJoin,
@@ -93,15 +93,11 @@ export const createSessionForUser = async ({ userId, name }: CreateSessionInput)
     logger.info(`🧹 ${closeResult.affectedRows} session(s) expirée(s) fermée(s).`);
   }
 
-  const activeSession = await findActiveSessionForOwner(userId, nowUtc);
-
-  if (activeSession) {
-    logger.info(`✅ Session active récupérée. Code => ${activeSession.code}`);
-    return {
-      statusCode: 200,
-      message: "Session active récupérée.",
-      data: activeSession,
-    };
+  // Afin d'éviter la réutilisation silencieuse d'une ancienne session et d'assurer qu'une nouvelle session
+  // est toujours créée avec le nom saisi, on ferme toutes les sessions actives en cours du propriétaire.
+  const closeActiveResult = await closeActiveSessionsForOwner(userId);
+  if (closeActiveResult.affectedRows > 0) {
+    logger.info(`🧹 ${closeActiveResult.affectedRows} session(s) active(s) fermée(s) pour le propriétaire.`);
   }
 
   const code = crypto.randomInt(1000, 9999).toString();

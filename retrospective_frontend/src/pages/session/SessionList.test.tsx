@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import SessionList from './SessionList';
 
 vi.mock('@/context/auth/useAuth', () => ({
@@ -123,5 +123,33 @@ describe('SessionList', () => {
     fireEvent.click(await screen.findByText('Rétro Sprint 1'));
 
     expect(await screen.findByText('Dashboard de session')).toBeTruthy();
+  });
+
+  it('navigue vers l\'accueil avec l\'état fromSessions au clic sur le bouton Retour', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({ ok: true, json: async () => ({ success: true, data: [] }) })
+    );
+
+    let locationState: unknown = null;
+    const LocationDisplay = () => {
+      const location = useLocation();
+      locationState = location.state;
+      return <p>Page d'accueil</p>;
+    };
+
+    render(
+      <MemoryRouter initialEntries={['/sessions']}>
+        <Routes>
+          <Route path="/sessions" element={<SessionList />} />
+          <Route path="/" element={<LocationDisplay />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Retour' }));
+
+    expect(await screen.findByText('Page d\'accueil')).toBeTruthy();
+    expect(locationState).toEqual({ fromSessions: true });
   });
 });

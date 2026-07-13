@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import SessionDashboard from './SessionDashboard';
 
 type SocketHandler = (payload?: unknown) => void;
@@ -1160,5 +1160,168 @@ describe('SessionDashboard', () => {
     mockSocket.__trigger('session:started', { step: 'writing' });
 
     expect(await screen.findAllByPlaceholderText('Nouvelle carte...')).toHaveLength(3);
+  });
+
+  it("redirige vers /sessions si authentifié et affiche une erreur si l'identifiant de session est invalide", async () => {
+    authState.isAuthenticated = true;
+    authState.token = 'test-token';
+    const fetchSpy = vi.fn();
+    vi.stubGlobal('fetch', fetchSpy);
+
+    render(
+      <MemoryRouter initialEntries={['/session/undefined']}>
+        <Routes>
+          <Route path="/" element={<p>Accueil</p>} />
+          <Route path="/sessions" element={<p>Sessions</p>} />
+          <Route path="/session/:id" element={<SessionDashboard />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    expect(await screen.findByText('Sessions')).toBeTruthy();
+    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(addToastMock).toHaveBeenCalledWith('error', 'Session invalide ou non spécifiée.');
+  });
+
+  it("redirige vers l'accueil si non authentifié et affiche une erreur si l'identifiant de session est invalide", async () => {
+    authState.isAuthenticated = false;
+    authState.token = '';
+    const fetchSpy = vi.fn();
+    vi.stubGlobal('fetch', fetchSpy);
+
+    render(
+      <MemoryRouter initialEntries={['/session/undefined']}>
+        <Routes>
+          <Route path="/" element={<p>Accueil</p>} />
+          <Route path="/sessions" element={<p>Sessions</p>} />
+          <Route path="/session/:id" element={<SessionDashboard />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    expect(await screen.findByText('Accueil')).toBeTruthy();
+    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(addToastMock).toHaveBeenCalledWith('error', 'Session invalide ou non spécifiée.');
+  });
+
+  it("un facilitateur connecté qui quitte la salle d'attente reste connecté, garde son JWT, et navigue vers l'accueil avec fromSessions", async () => {
+    authState.isAuthenticated = true;
+    authState.token = 'facilitator-token';
+
+    const fetchSpy = vi.fn().mockImplementation((url, init) => {
+      const method = init?.method ?? 'GET';
+      if (method === 'DELETE' && url.endsWith('/session/1/participants/9')) {
+        return Promise.resolve({ ok: true, json: async () => ({ success: true }) });
+      }
+      if (url.endsWith('/session/1')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ success: true, data: { id: 1, name: 'Retro', code: '1234', status: 'open', step: 'waiting', ownerId: 1 } }),
+        });
+      }
+      if (url.endsWith('/session/1/participants/self')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ success: true, data: { id: 9, role: 'facilitator' } }),
+        });
+      }
+      if (url.endsWith('/session/1/participants')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ success: true, data: [{ id: 9, displayName: 'Elyas', role: 'facilitator', status: 'online' }] }),
+        });
+      }
+      return Promise.resolve({ ok: true, json: async () => ({ success: true, data: [] }) });
+    });
+    vi.stubGlobal('fetch', fetchSpy);
+
+    let locationState: unknown = null;
+    const LocationDisplay = () => {
+      const location = useLocation();
+      locationState = location.state;
+      return <p>Page d'accueil</p>;
+    };
+
+    render(
+      <MemoryRouter initialEntries={['/session/1']}>
+        <Routes>
+          <Route path="/" element={<LocationDisplay />} />
+          <Route path="/session/:id" element={<SessionDashboard />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    // On attend le rendu de la salle d'attente
+    const leaveBtn = await screen.findByRole('button', { name: 'Quitter la session' });
+    fireEvent.click(leaveBtn);
+
+    // Vérifie qu'on navigue bien vers l'accueil
+    expect(await screen.findByText("Page d'accueil")).toBeTruthy();
+    // Vérifie que l'appel DELETE a bien été fait
+    expect(fetchSpy).toHaveBeenCalledWith(
+      expect.stringMatching(/\/session\/1\/participants\/9$/),
+      expect.objectContaining({ method: 'DELETE' })
+    );
+    // L'état de navigation fromSessions doit être présent pour bloquer la boucle
+    expect(locationState).toEqual({ fromSessions: true });
+    // Le token du facilitateur ne doit pas avoir été effacé
+    expect(authState.token).toBe('facilitator-token');
+    expect(authState.isAuthenticated).toBe(true);
+  });
+
+  it("un participant invité qui quitte la salle d'attente est nettoyé et navigue vers l'accueil", async () => {
+    authState.isAuthenticated = false;
+    authState.token = '';
+    localStorage.setItem('retro:guest:1', JSON.stringify({ participantId: 9, guestToken: 'guest-9', displayName: 'Sarah' }));
+
+    const fetchSpy = vi.fn().mockImplementation((url, init) => {
+      const method = init?.method ?? 'GET';
+      if (method === 'DELETE' && url.endsWith('/session/1/participants/9')) {
+        return Promise.resolve({ ok: true, json: async () => ({ success: true }) });
+      }
+      if (url.endsWith('/session/1')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ success: true, data: { id: 1, name: 'Retro', code: '1234', status: 'open', step: 'waiting', ownerId: 1 } }),
+        });
+      }
+      if (url.endsWith('/session/1/participants/resume')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ success: true, data: { id: 9, role: 'participant' } }),
+        });
+      }
+      if (url.endsWith('/session/1/participants')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ success: true, data: [{ id: 9, displayName: 'Sarah', role: 'participant', status: 'online' }] }),
+        });
+      }
+      return Promise.resolve({ ok: true, json: async () => ({ success: true, data: [] }) });
+    });
+    vi.stubGlobal('fetch', fetchSpy);
+
+    render(
+      <MemoryRouter initialEntries={['/session/1']}>
+        <Routes>
+          <Route path="/" element={<p>Page d'accueil</p>} />
+          <Route path="/session/:id" element={<SessionDashboard />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    // On attend le rendu de la salle d'attente
+    const leaveBtn = await screen.findByRole('button', { name: 'Quitter la session' });
+    fireEvent.click(leaveBtn);
+
+    // Vérifie qu'on navigue bien vers l'accueil
+    expect(await screen.findByText("Page d'accueil")).toBeTruthy();
+    // Vérifie que l'appel DELETE a bien été fait
+    expect(fetchSpy).toHaveBeenCalledWith(
+      expect.stringMatching(/\/session\/1\/participants\/9$/),
+      expect.objectContaining({ method: 'DELETE' })
+    );
+    // L'identité de l'invité a été nettoyée du localStorage
+    expect(localStorage.getItem('retro:guest:1')).toBeNull();
   });
 });

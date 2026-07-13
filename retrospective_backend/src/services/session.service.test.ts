@@ -3,7 +3,7 @@ import type { Mock } from "vitest";
 
 vi.mock("../models/session.model", () => ({
   closeExpiredSessionsForOwner: vi.fn(),
-  findActiveSessionForOwner: vi.fn(),
+  closeActiveSessionsForOwner: vi.fn(),
   findSessionByCode: vi.fn(),
   findSessionsForUser: vi.fn(),
   findSessionUserJoin: vi.fn(),
@@ -16,7 +16,7 @@ vi.mock("../models/session.model", () => ({
 
 import {
   closeExpiredSessionsForOwner,
-  findActiveSessionForOwner,
+  closeActiveSessionsForOwner,
   findSessionByCode,
   findSessionsForUser,
   findSessionUserJoin,
@@ -37,7 +37,7 @@ import {
 import { AppError } from "../utils/AppError";
 
 const mockCloseExpiredSessionsForOwner = closeExpiredSessionsForOwner as unknown as Mock;
-const mockFindActiveSessionForOwner = findActiveSessionForOwner as unknown as Mock;
+const mockCloseActiveSessionsForOwner = closeActiveSessionsForOwner as unknown as Mock;
 const mockFindSessionByCode = findSessionByCode as unknown as Mock;
 const mockFindSessionsForUser = findSessionsForUser as unknown as Mock;
 const mockFindSessionUserJoin = findSessionUserJoin as unknown as Mock;
@@ -63,7 +63,7 @@ const baseSessionRow = {
 describe("session.service", () => {
   beforeEach(() => {
     mockCloseExpiredSessionsForOwner.mockReset();
-    mockFindActiveSessionForOwner.mockReset();
+    mockCloseActiveSessionsForOwner.mockReset();
     mockFindSessionByCode.mockReset();
     mockFindSessionsForUser.mockReset();
     mockFindSessionUserJoin.mockReset();
@@ -143,21 +143,23 @@ describe("session.service", () => {
     } satisfies Partial<AppError>);
   });
 
-  it("createSessionForUser réutilise une session active", async () => {
-    const activeSession = { id: 1, code: "1234", owner_id: 1, status: "open" };
+  it("createSessionForUser ferme la session active et en crée une nouvelle", async () => {
     mockCloseExpiredSessionsForOwner.mockResolvedValueOnce({ changedRows: 0, affectedRows: 0 });
-    mockFindActiveSessionForOwner.mockResolvedValueOnce(activeSession);
+    mockCloseActiveSessionsForOwner.mockResolvedValueOnce({ affectedRows: 1 });
+    mockInsertSession.mockResolvedValueOnce(9);
 
-    await expect(createSessionForUser({ userId: 1, name: "Active Session" })).resolves.toEqual({
-      statusCode: 200,
-      message: "Session active récupérée.",
-      data: activeSession,
-    });
+    const result = await createSessionForUser({ userId: 1, name: "Nouvelle Session" });
+
+    expect(mockCloseActiveSessionsForOwner).toHaveBeenCalledWith(1);
+    expect(mockInsertSession).toHaveBeenCalledWith("Nouvelle Session", expect.any(String), 1, expect.any(String));
+    expect(result.statusCode).toBe(201);
+    expect(result.message).toBe("Session créée.");
+    expect(result.data).toMatchObject({ sessionId: 9, name: "Nouvelle Session" });
   });
 
   it("createSessionForUser crée une session si aucune n'est active", async () => {
     mockCloseExpiredSessionsForOwner.mockResolvedValueOnce({ changedRows: 0, affectedRows: 0 });
-    mockFindActiveSessionForOwner.mockResolvedValueOnce(null);
+    mockCloseActiveSessionsForOwner.mockResolvedValueOnce({ affectedRows: 0 });
     mockInsertSession.mockResolvedValueOnce(7);
 
     const result = await createSessionForUser({ userId: 1, name: "Nouvelle Session" });
@@ -171,7 +173,7 @@ describe("session.service", () => {
 
   it("createSessionForUser convertit une erreur d'insertion en AppError 500", async () => {
     mockCloseExpiredSessionsForOwner.mockResolvedValueOnce({ changedRows: 0, affectedRows: 0 });
-    mockFindActiveSessionForOwner.mockResolvedValueOnce(null);
+    mockCloseActiveSessionsForOwner.mockResolvedValueOnce({ affectedRows: 0 });
     mockInsertSession.mockRejectedValueOnce(new Error("boom"));
 
     await expect(createSessionForUser({ userId: 1, name: "Nouvelle Session" })).rejects.toMatchObject({

@@ -54,6 +54,19 @@ export const closeExpiredSessionsForOwner = async (
   };
 };
 
+export const closeActiveSessionsForOwner = async (
+  userId: number
+): Promise<{ affectedRows: number }> => {
+  const [result] = await db.execute<ResultSetHeader>(
+    'update sessions set status = "closed" where owner_id = ? and status = "open"',
+    [userId]
+  );
+
+  return {
+    affectedRows: result.affectedRows,
+  };
+};
+
 export const findActiveSessionForOwner = async (
   userId: number,
   nowUtc: string

@@ -7,6 +7,7 @@ import HomeTabsCard from "./components/HomeTabsCard";
 
 interface HomeLocationState {
   tab?: "create" | "join";
+  fromSessions?: boolean;
 }
 
 const Home = () => {
@@ -14,7 +15,7 @@ const Home = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const state = location.state as HomeLocationState | null;
-  const hasExplicitIntent = Boolean(state?.tab);
+  const hasExplicitIntent = Boolean(state?.tab || state?.fromSessions);
 
   // Retour d'un facilitateur (ou participant) déjà connecté sur l'accueil :
   // s'il a une session active, on l'y renvoie directement — sauf s'il vient

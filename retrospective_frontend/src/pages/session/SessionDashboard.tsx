@@ -126,7 +126,8 @@ const SessionDashboard = () => {
   }, [isAuthenticated, token, selfParticipantId, guestIdentity]);
 
   const fetchCards = useCallback(async () => {
-    if (!sessionId || !actorHeaders) return;
+    const sessionIdNumber = Number(sessionId);
+    if (!sessionId || sessionId === "undefined" || isNaN(sessionIdNumber) || sessionIdNumber <= 0 || !actorHeaders) return;
 
     try {
       const response = await fetch(`${API_BASE}/session/${sessionId}/cards`, {
@@ -149,7 +150,8 @@ const SessionDashboard = () => {
   // Publique (pas de JWT requis) : un participant invité doit pouvoir lire le
   // nom, le code et le format de la session avant même d'avoir rejoint.
   const fetchSessionDetails = useCallback(async () => {
-    if (!sessionId) return;
+    const sessionIdNumber = Number(sessionId);
+    if (!sessionId || sessionId === "undefined" || isNaN(sessionIdNumber) || sessionIdNumber <= 0) return;
 
     try {
       const response = await fetch(`${API_BASE}/session/${sessionId}`, {
@@ -174,6 +176,14 @@ const SessionDashboard = () => {
   }, [sessionId, token, userId, isAuthenticated]);
 
   useEffect(() => {
+    const sessionIdNumber = Number(sessionId);
+    if (!sessionId || sessionId === "undefined" || isNaN(sessionIdNumber) || sessionIdNumber <= 0) {
+      setIsLoading(false);
+      addToast('error', 'Session invalide ou non spécifiée.');
+      navigate(isAuthenticated ? '/sessions' : '/');
+      return;
+    }
+
     let isActive = true;
 
     const loadSession = async () => {
@@ -195,7 +205,7 @@ const SessionDashboard = () => {
       isActive = false;
       clearInterval(interval);
     };
-  }, [fetchSessionDetails, fetchCards]);
+  }, [fetchSessionDetails, fetchCards, sessionId, navigate, isAuthenticated, addToast]);
 
   useEffect(() => {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
@@ -210,6 +220,8 @@ const SessionDashboard = () => {
   // Rejoint automatiquement la salle d'attente pour un utilisateur authentifié
   // (facilitateur ou participant connu) : idempotent, pas de doublon au refresh.
   useEffect(() => {
+    const sessionIdNumber = Number(sessionId);
+    if (!sessionId || sessionId === "undefined" || isNaN(sessionIdNumber) || sessionIdNumber <= 0) return;
     // isLoading évite de se fier au step initial ('waiting' par défaut avant
     // la 1ère réponse) : sans cette garde, cet effet se déclenche à tort pour
     // une session déjà en écriture/vote/résultats le temps que le vrai step arrive.
@@ -244,6 +256,8 @@ const SessionDashboard = () => {
   // Reprend la participation invitée après un refresh (même onglet, même
   // jeton) : ne recrée jamais une seconde ligne pour le même invité.
   useEffect(() => {
+    const sessionIdNumber = Number(sessionId);
+    if (!sessionId || sessionId === "undefined" || isNaN(sessionIdNumber) || sessionIdNumber <= 0) return;
     if (isLoading || isAuthenticated || !guestIdentity || selfParticipantId) return;
 
     let isActive = true;
@@ -312,11 +326,13 @@ const SessionDashboard = () => {
     }
   }, [sessionId, selfParticipantId, token, guestIdentity]);
 
-  const handleLeaveWaitingRoom = async () => {
+  const handleLeaveSession = useCallback(async () => {
     await leaveParticipation();
-    clearGuestIdentity();
-    navigate('/');
-  };
+    if (!isAuthenticated) {
+      clearGuestIdentity();
+    }
+    navigate('/', { state: { fromSessions: true } });
+  }, [leaveParticipation, isAuthenticated, clearGuestIdentity, navigate]);
 
   const handleUpdateFormat = async (nextName: string, nextColumns: string[]) => {
     if (!token) return;
@@ -510,7 +526,7 @@ const SessionDashboard = () => {
           role={role || 'participant'}
           formatName={formatName}
           onStart={() => handleTransitionStep('writing')}
-          onLeave={handleLeaveWaitingRoom}
+          onLeave={handleLeaveSession}
           onSelectFormatPreset={handleUpdateFormat}
           onOpenCustomFormatModal={() => setIsCustomFormatModalOpen(true)}
           isDesktop={!isMobileViewport}
@@ -593,7 +609,7 @@ const SessionDashboard = () => {
           )}
 
           {step === 'results' && (
-            <Button variant="secondary" size="sm" onClick={() => navigate('/sessions', { state: { tab: 'join' } })}>
+            <Button variant="secondary" size="sm" onClick={handleLeaveSession}>
               Quitter la session
             </Button>
           )}
@@ -627,13 +643,7 @@ const SessionDashboard = () => {
                       type="button"
                       onClick={async () => {
                         setIsActionsMenuOpen(false);
-                        if (!isAuthenticated && guestIdentity && selfParticipantId) {
-                          await leaveParticipation();
-                          clearGuestIdentity();
-                          navigate('/');
-                        } else {
-                          navigate('/sessions', { state: { tab: 'join' } });
-                        }
+                        await handleLeaveSession();
                       }}
                       className="w-full text-left font-sans text-xs font-semibold text-red-400 hover:text-red-300 hover:bg-red-500/10 px-3 py-2 transition-all cursor-pointer border-none bg-transparent"
                     >

@@ -44,7 +44,8 @@ export const useSessionParticipants = (
   });
 
   useEffect(() => {
-    if (!self) return;
+    const idVal = Number(sessionId);
+    if (!self || !sessionId || sessionId === "undefined" || isNaN(idVal) || idVal <= 0) return;
 
     let isActive = true;
 
