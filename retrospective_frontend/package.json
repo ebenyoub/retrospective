@@ -8,7 +8,10 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed"
   },
   "dependencies": {
     "@csstools/normalize.css": "^12.1.1",
@@ -29,6 +32,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
+    "@playwright/test": "^1.61.1",
     "@testing-library/react": "^16.3.2",
     "@types/node": "^24.10.1",
     "@types/react": "^19.2.2",
