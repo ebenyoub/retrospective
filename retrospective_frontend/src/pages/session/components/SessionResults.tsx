@@ -1,9 +1,8 @@
 import Avatar from './Avatar';
 import type { RetroCard } from './RetroCardItem';
 
-// Catégories affichées dans les résultats. On reprend les couleurs, libellés et
-// emojis du prototype Figma (Positif / Négatif / Idées). `badgeBg` / `badgeText`
-// correspondent aux teintes claires utilisées par le badge de catégorie.
+// Catégories affichées dans les résultats. Les clés restent techniques
+// (`start` / `stop` / `continue`) mais les libellés viennent du format choisi.
 interface ResultCategory {
   key: RetroCard['columnType'];
   label: string;
@@ -13,16 +12,26 @@ interface ResultCategory {
   badgeText: string;
 }
 
-const CATEGORIES: ResultCategory[] = [
-  { key: 'continue', label: 'Positif', emoji: '✅', color: '#16a34a', badgeBg: '#dcfce7', badgeText: '#14532d' },
-  { key: 'stop', label: 'Négatif', emoji: '🚧', color: '#dc2626', badgeBg: '#fee2e2', badgeText: '#7f1d1d' },
-  { key: 'start', label: 'Idées', emoji: '💡', color: '#d97706', badgeBg: '#fef3c7', badgeText: '#78350f' },
+const DEFAULT_CATEGORY_LABELS = ['Commencer', 'Arrêter', 'Continuer'];
+
+const CATEGORY_META: Omit<ResultCategory, 'label'>[] = [
+  { key: 'start', emoji: '💡', color: '#d97706', badgeBg: '#fef3c7', badgeText: '#78350f' },
+  { key: 'stop', emoji: '🚧', color: '#dc2626', badgeBg: '#fee2e2', badgeText: '#7f1d1d' },
+  { key: 'continue', emoji: '✅', color: '#16a34a', badgeBg: '#dcfce7', badgeText: '#14532d' },
 ];
 
 const MEDALS = ['🥇', '🥈', '🥉'];
 
-const categoryFor = (columnType: RetroCard['columnType']): ResultCategory =>
-  CATEGORIES.find((category) => category.key === columnType) ?? CATEGORIES[0];
+const buildCategories = (formatColumns: string[]): ResultCategory[] => {
+  const labels = formatColumns.length === 3 ? formatColumns : DEFAULT_CATEGORY_LABELS;
+  return CATEGORY_META.map((category, index) => ({
+    ...category,
+    label: labels[index],
+  }));
+};
+
+const categoryFor = (columnType: RetroCard['columnType'], categories: ResultCategory[]): ResultCategory =>
+  categories.find((category) => category.key === columnType) ?? categories[0];
 
 // Barre horizontale montrant le poids d'une carte par rapport à la plus votée.
 const VoteBar = ({ votes, maxVotes, color }: { votes: number; maxVotes: number; color: string }) => {
@@ -44,8 +53,8 @@ const CategoryBadge = ({ category }: { category: ResultCategory }) => (
 );
 
 // Carte du podium Top 3 : médaille, contenu, badge + auteur, barre et nombre de votes.
-const Top3Card = ({ card, rank, maxVotes }: { card: RetroCard; rank: number; maxVotes: number }) => {
-  const category = categoryFor(card.columnType);
+const Top3Card = ({ card, rank, maxVotes, categories }: { card: RetroCard; rank: number; maxVotes: number; categories: ResultCategory[] }) => {
+  const category = categoryFor(card.columnType, categories);
   return (
     <article
       className="flex items-start gap-2.5 rounded-[10px] border border-navy-border border-l-[3px] bg-navy-mid px-3.5 py-2.5"
@@ -95,10 +104,12 @@ const ResultCard = ({ card, category, maxVotes }: { card: RetroCard; category: R
 
 interface SessionResultsProps {
   cards: RetroCard[];
+  formatColumns: string[];
   isDesktop: boolean;
 }
 
-const SessionResults = ({ cards, isDesktop }: SessionResultsProps) => {
+const SessionResults = ({ cards, formatColumns, isDesktop }: SessionResultsProps) => {
+  const categories = buildCategories(formatColumns);
   const sorted = [...cards].sort((a, b) => b.votesCount - a.votesCount);
   const maxVotes = Math.max(...cards.map((card) => card.votesCount), 1);
   const totalVotes = cards.reduce((sum, card) => sum + card.votesCount, 0);
@@ -140,13 +151,13 @@ const SessionResults = ({ cards, isDesktop }: SessionResultsProps) => {
               </h2>
               <div className="grid grid-cols-3 gap-2.5">
                 {top3.map((card, index) => (
-                  <Top3Card key={card.id} card={card} rank={index} maxVotes={maxVotes} />
+                  <Top3Card key={card.id} card={card} rank={index} maxVotes={maxVotes} categories={categories} />
                 ))}
               </div>
             </div>
 
             <div className="grid flex-1 grid-cols-3 gap-px overflow-hidden bg-navy-border">
-              {CATEGORIES.map((category) => {
+              {categories.map((category) => {
                 const categoryCards = sorted.filter((card) => card.columnType === category.key);
                 return (
                   <section key={category.key} className="flex flex-col overflow-hidden bg-navy">
@@ -202,12 +213,12 @@ const SessionResults = ({ cards, isDesktop }: SessionResultsProps) => {
             </h2>
             <div className="flex flex-col gap-1.5">
               {top3.map((card, index) => (
-                <Top3Card key={card.id} card={card} rank={index} maxVotes={maxVotes} />
+                <Top3Card key={card.id} card={card} rank={index} maxVotes={maxVotes} categories={categories} />
               ))}
             </div>
           </section>
 
-          {CATEGORIES.map((category) => {
+          {categories.map((category) => {
             const categoryCards = sorted.filter((card) => card.columnType === category.key);
             if (categoryCards.length === 0) return null;
             return (

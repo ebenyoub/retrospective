@@ -644,7 +644,7 @@ const SessionDashboard = () => {
 
       {step === 'results' ? (
         /* Vue résultats : stats, Top 3 et colonnes par catégorie (fidèle Figma) */
-        <SessionResults cards={cards} isDesktop={!isMobileViewport} />
+        <SessionResults cards={cards} formatColumns={formatColumns} isDesktop={!isMobileViewport} />
       ) : (
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
           {/* Grille 3 colonnes Figma Make : gap:1px (gap-px), fond navy-border = séparateurs 1px */}
