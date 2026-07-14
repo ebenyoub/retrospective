@@ -4,6 +4,8 @@
 
 ## Date de dernière mise à jour
 
+2026-07-14 (`ARCH-SESSION-09 — Accessibilité de CardCommentsModal` terminé : modal de commentaires mis en conformité a11y selon les standards W3C/WAI-ARIA et l'implémentation du Drawer. Ajout du focus trap, gestion de la touche Échap, restauration automatique du focus au démontage et correction de la sémantique de l'overlay de clic extérieur. Clôture définitive du chantier session par une décision d'architecture dans DECISIONS.md.)
+
 2026-07-14 (`T-QUALITY-01 — Découpage des tests frontend` terminé : le fichier monolithique `SessionDashboard.test.tsx` de 1900+ lignes a été découpé par responsabilité en 6 fichiers de tests d'intégration ciblés. Les mocks et helpers de rendu communs ont été mutualisés dans le répertoire `src/pages/session/tests/sessionTestUtils.tsx`. La couverture de tests et le comportement d'intégration sont préservés avec 139 tests verts.)
 
 2026-07-14 (`BACKLOG-STRUCTURE-01 — Hiérarchie du Product Backlog` : les tickets MVP sont rattachés à leurs User Stories parentes, la roadmap devient `Ordre d'implémentation MVP`, les anciens `T-SESSION-BAR-*` passent en historique technique, et les tickets actifs portent une priorité `P0/P1/P2`)
