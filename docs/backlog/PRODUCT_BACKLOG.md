@@ -115,6 +115,7 @@ Fonctionnalités explicitement justifiées par le cahier des charges, les User S
 | 10 | **MVP-ACTION-01** | US-11 | P1 | Ajouter le plan d'action. | ❌ Reporté |
 | 11 | **MVP-SUMMARY-01** | US-11 | P1 | Ajouter l'écran résumé. | ❌ Reporté |
 | 12 | **MVP-WRITING-STATE-01** | US-07 | P2 | Finaliser les états chargement/erreur/vides. | ✅ Terminé |
+| 12.1 | **MVP-WRITING-STATE-02** | US-07 | P2 | Validation E2E des états de chargement et vides. | ✅ Terminé |
 
 ### Historique des chantiers techniques
 
