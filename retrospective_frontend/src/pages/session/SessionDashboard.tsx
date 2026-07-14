@@ -16,7 +16,6 @@ import SessionResults from './components/SessionResults';
 import type { RetroCard } from './components/RetroCardItem';
 import type { SessionRole } from './sessionRole';
 import { WaitingScreen } from './components/WaitingScreen';
-import CustomFormatModal from './components/CustomFormatModal';
 import JoinSessionModal, { type GuestJoinResponse } from './components/JoinSessionModal';
 import { useGuestParticipant } from './hooks/useGuestParticipant';
 import { useSessionParticipants, type SelfIdentity } from './hooks/useSessionParticipants';
@@ -130,7 +129,6 @@ const SessionDashboard = () => {
   // Salle d'attente : identité du participant courant (compte ou invité).
   const { identity: guestIdentity, setIdentity: setGuestIdentity, clearIdentity: clearGuestIdentity } = useGuestParticipant(sessionId);
   const [selfParticipantId, setSelfParticipantId] = useState<number | null>(null);
-  const [isCustomFormatModalOpen, setIsCustomFormatModalOpen] = useState(false);
   const [isSessionCodeCopied, setIsSessionCodeCopied] = useState(false);
   const [isParticipantsDrawerOpen, setIsParticipantsDrawerOpen] = useState(false);
   const [isDiscussionDrawerOpen, setIsDiscussionDrawerOpen] = useState(false);
@@ -596,19 +594,8 @@ const SessionDashboard = () => {
           onStart={() => handleTransitionStep('writing')}
           onLeave={handleLeaveSession}
           onSelectFormatPreset={handleUpdateFormat}
-          onOpenCustomFormatModal={() => setIsCustomFormatModalOpen(true)}
           isDesktop={!isMobileViewport}
         />
-        {isCustomFormatModalOpen && (
-          <CustomFormatModal
-            initialName={formatName}
-            onValidate={(name, columns) => {
-              handleUpdateFormat(name, columns);
-              setIsCustomFormatModalOpen(false);
-            }}
-            onCancel={() => setIsCustomFormatModalOpen(false)}
-          />
-        )}
       </>
     );
   }

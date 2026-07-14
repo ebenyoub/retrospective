@@ -6,64 +6,62 @@ describe('RetroFormatSelector', () => {
   it('participant : affiche un simple libellé en lecture seule (pas de select)', () => {
     render(
       <RetroFormatSelector
-        formatName="Mad / Sad / Glad"
+        formatName="Succès / Difficultés / Idées"
         isFacilitator={false}
         onSelectPreset={vi.fn()}
-        onOpenCustomModal={vi.fn()}
       />
     );
 
-    expect(screen.getByText('Mad / Sad / Glad')).toBeTruthy();
+    expect(screen.getByText('Succès / Difficultés / Idées')).toBeTruthy();
     expect(screen.queryByRole('combobox')).toBeNull();
   });
 
-  it('facilitateur : affiche un sélecteur avec les presets et l\'option personnalisée', () => {
+  it('facilitateur : affiche uniquement les 6 formats MVP français', () => {
     render(
       <RetroFormatSelector
-        formatName="Start / Stop / Continue"
+        formatName="Commencer / Arrêter / Continuer"
         isFacilitator
         onSelectPreset={vi.fn()}
-        onOpenCustomModal={vi.fn()}
       />
     );
 
     const select = screen.getByLabelText('Format de la rétrospective') as HTMLSelectElement;
-    expect(select.value).toBe('Start / Stop / Continue');
-    expect(screen.getByText('Mad / Sad / Glad')).toBeTruthy();
-    expect(screen.getByText('Créer un format personnalisé…')).toBeTruthy();
+    expect(select.value).toBe('Commencer / Arrêter / Continuer');
+    expect(screen.getByText('Points positifs / Points négatifs / Actions')).toBeTruthy();
+    expect(screen.getByText('Succès / Difficultés / Idées')).toBeTruthy();
+    expect(screen.getByText("J'ai aimé / J'ai moins aimé / Propositions")).toBeTruthy();
+    expect(screen.getByText('Conserver / Améliorer / Innover')).toBeTruthy();
+    expect(screen.getByText('Bien passé / À améliorer / Prochaines actions')).toBeTruthy();
+    expect(screen.queryByText('Mad / Sad / Glad')).toBeNull();
+    expect(screen.queryByText('Créer un format personnalisé…')).toBeNull();
   });
 
   it('sélectionner un preset appelle onSelectPreset avec ses colonnes', () => {
     const onSelectPreset = vi.fn();
     render(
       <RetroFormatSelector
-        formatName="Start / Stop / Continue"
+        formatName="Commencer / Arrêter / Continuer"
         isFacilitator
         onSelectPreset={onSelectPreset}
-        onOpenCustomModal={vi.fn()}
       />
     );
 
-    fireEvent.change(screen.getByLabelText('Format de la rétrospective'), { target: { value: 'Mad / Sad / Glad' } });
+    fireEvent.change(screen.getByLabelText('Format de la rétrospective'), { target: { value: 'Succès / Difficultés / Idées' } });
 
-    expect(onSelectPreset).toHaveBeenCalledWith('Mad / Sad / Glad', ['Mad', 'Sad', 'Glad']);
+    expect(onSelectPreset).toHaveBeenCalledWith('Succès / Difficultés / Idées', ['Succès', 'Difficultés', 'Idées']);
   });
 
-  it('sélectionner "Créer un format personnalisé" ouvre la modale sans changer le format actuel', () => {
-    const onOpenCustomModal = vi.fn();
-    const onSelectPreset = vi.fn();
+  it('conserve l\'affichage du format courant si une ancienne session porte un libellé inconnu', () => {
     render(
       <RetroFormatSelector
-        formatName="Start / Stop / Continue"
+        formatName="Ancien format"
         isFacilitator
-        onSelectPreset={onSelectPreset}
-        onOpenCustomModal={onOpenCustomModal}
+        onSelectPreset={vi.fn()}
       />
     );
 
-    fireEvent.change(screen.getByLabelText('Format de la rétrospective'), { target: { value: '__custom__' } });
-
-    expect(onOpenCustomModal).toHaveBeenCalled();
-    expect(onSelectPreset).not.toHaveBeenCalled();
+    const select = screen.getByLabelText('Format de la rétrospective') as HTMLSelectElement;
+    expect(select.value).toBe('Ancien format');
+    expect(screen.getByText('Ancien format')).toBeTruthy();
   });
 });

@@ -17,7 +17,6 @@ interface WaitingScreenProps {
   onStart: () => void;
   onLeave: () => void;
   onSelectFormatPreset: (name: string, columns: string[]) => void;
-  onOpenCustomFormatModal: () => void;
   isDesktop: boolean;
 }
 
@@ -109,7 +108,6 @@ export const WaitingScreen = ({
   onStart,
   onLeave,
   onSelectFormatPreset,
-  onOpenCustomFormatModal,
   isDesktop,
 }: WaitingScreenProps) => {
   const [linkCopied, setLinkCopied] = useState(false);
@@ -156,7 +154,6 @@ export const WaitingScreen = ({
         formatName={formatName}
         isFacilitator={isFacilitator}
         onSelectPreset={onSelectFormatPreset}
-        onOpenCustomModal={onOpenCustomFormatModal}
       />
     </div>
   );

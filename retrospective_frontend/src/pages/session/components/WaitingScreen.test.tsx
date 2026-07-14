@@ -19,11 +19,10 @@ const baseProps = {
   sessionName: 'Retro Sprint 42',
   sessionCode: '1234',
   selfParticipantId: 1,
-  formatName: 'Start / Stop / Continue',
+  formatName: 'Commencer / Arrêter / Continuer',
   onStart: vi.fn(),
   onLeave: vi.fn(),
   onSelectFormatPreset: vi.fn(),
-  onOpenCustomFormatModal: vi.fn(),
   isDesktop: true,
 };
 
@@ -92,7 +91,7 @@ describe('WaitingScreen', () => {
     expect(screen.getByText('En attente du lancement par le facilitateur...')).toBeTruthy();
     expect(screen.queryByRole('button', { name: /Lancer la rétro/ })).toBeNull();
     expect(screen.queryByLabelText('Format de la rétrospective')).toBeNull();
-    expect(screen.getByText('Start / Stop / Continue')).toBeTruthy();
+    expect(screen.getByText('Commencer / Arrêter / Continuer')).toBeTruthy();
   });
 
   it('copie le code de session via le presse-papiers', async () => {
