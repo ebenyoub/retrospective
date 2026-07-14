@@ -103,6 +103,7 @@ Fonctionnalités explicitement justifiées par le cahier des charges, les User S
 | 4 | **MVP-RESULTS-01** | US-09 | P0 | Finaliser l'écran Résultats. | ✅ Terminé |
 | 4.1 | **MVP-RESULTS-02** | US-09 | P0 | Validation E2E de l'écran Résultats. | ✅ Terminé |
 | 5 | **MVP-TRANSITION-01** | US-10 | P0 | Valider toutes les transitions d'étape. | ✅ Terminé |
+| 5.1 | **MVP-TRANSITION-02** | US-10 | P0 | Validation E2E de l'enchaînement des étapes. | ✅ Terminé |
 | 6 | **MVP-E2E-01** | US-11 | P0 | Vérifier le parcours produit complet. | ✅ Terminé |
 | 7 | **MVP-PARTICIPANTS-01** | US-07 | P1 | Corriger l'UX du drawer Participants. | ✅ Terminé |
 | 8 | **MVP-DISCUSSION-01** | US-07 | P1 | Finaliser Discussion. | ✅ Terminé |
