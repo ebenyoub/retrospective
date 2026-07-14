@@ -37,6 +37,7 @@ test.describe('création de session avec format MVP', () => {
   for (const format of formats) {
     test(`envoie le format ${format.name}`, async ({ page }) => {
       let createPayload: unknown = null;
+      const cardPayloads: unknown[] = [];
 
       await page.addInitScript(() => {
         window.localStorage.setItem('token', 'playwright-token');
@@ -61,6 +62,59 @@ test.describe('création de session avec format MVP', () => {
           }),
         });
       });
+      await page.route('**/session/100', async (route) => {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            success: true,
+            data: {
+              id: 100,
+              name: 'Sprint format',
+              code: '1234',
+              status: 'open',
+              step: 'writing',
+              ownerId: 1,
+              formatName: format.name,
+              formatColumns: format.columns,
+            },
+          }),
+        });
+      });
+      await page.route('**/session/100/cards', async (route) => {
+        if (route.request().method() === 'POST') {
+          cardPayloads.push(route.request().postDataJSON());
+          await route.fulfill({
+            status: 201,
+            contentType: 'application/json',
+            body: JSON.stringify({ success: true, data: { cardId: cardPayloads.length } }),
+          });
+          return;
+        }
+
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ success: true, data: [] }),
+        });
+      });
+      await page.route('**/session/100/participants/self', async (route) => {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ success: true, data: { id: 1, role: 'facilitator' } }),
+        });
+      });
+      await page.route('**/session/100/participants', async (route) => {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            success: true,
+            data: [{ id: 1, sessionId: 100, displayName: 'Facilitateur', role: 'facilitator', status: 'online' }],
+          }),
+        });
+      });
 
       await page.goto('/session');
 
@@ -74,6 +128,28 @@ test.describe('création de session avec format MVP', () => {
         formatName: format.name,
         formatColumns: format.columns,
       });
+
+      await page.getByRole('button', { name: 'Accéder au tableau' }).click();
+
+      for (const column of format.columns) {
+        await expect(page.getByText(column).first()).toBeVisible();
+      }
+
+      const textareas = page.getByPlaceholder('Nouvelle carte...');
+      const addButtons = page.getByRole('button', { name: 'Ajouter' });
+
+      await textareas.nth(0).fill(`Carte ${format.columns[0]}`);
+      await addButtons.nth(0).click();
+      await textareas.nth(1).fill(`Carte ${format.columns[1]}`);
+      await addButtons.nth(1).click();
+      await textareas.nth(2).fill(`Carte ${format.columns[2]}`);
+      await addButtons.nth(2).click();
+
+      await expect.poll(() => cardPayloads).toEqual([
+        { content: `Carte ${format.columns[0]}`, columnType: 'start' },
+        { content: `Carte ${format.columns[1]}`, columnType: 'stop' },
+        { content: `Carte ${format.columns[2]}`, columnType: 'continue' },
+      ]);
     });
   }
 });

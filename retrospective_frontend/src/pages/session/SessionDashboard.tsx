@@ -5,6 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { API_BASE } from '@/lib/api';
 import { getApiErrorMessage, isApiSuccess, NETWORK_ERROR_MESSAGE, readJsonSafely } from '@/lib/apiError';
+import { getRetroFormatById, DEFAULT_RETRO_FORMAT_ID } from '@/lib/retroFormats';
 import CardCommentsModal from './components/CardCommentsModal';
 import DiscussionDrawer from './components/DiscussionDrawer';
 import ParticipantsDrawer from './components/ParticipantsDrawer';
@@ -28,6 +29,7 @@ interface SessionDetails {
   step?: SessionStep;
   ownerId: number;
   formatName?: string;
+  formatColumns?: string[] | string;
 }
 
 const guestHeaders = (participantId: number, guestToken: string): Record<string, string> => ({
@@ -37,7 +39,6 @@ const guestHeaders = (participantId: number, guestToken: string): Record<string,
 
 const COLUMNS: {
   key: RetroCard['columnType'];
-  title: string;
   emoji: string;
   color: string;
   dotClassName: string;
@@ -47,39 +48,63 @@ const COLUMNS: {
   emptyDescription: string;
 }[] = [
   {
-    key: 'continue',
-    title: 'Positif',
-    emoji: '✅',
-    color: '#16a34a',
-    dotClassName: 'bg-green-500',
-    accentClassName: 'border-l-green-500',
-    tabActiveClassName: 'border-green-500',
-    emptyTitle: 'Aucune carte positif',
-    emptyDescription: "Écrivez ce qui s'est bien passé…",
-  },
-  {
-    key: 'stop',
-    title: 'Négatif',
-    emoji: '🚧',
-    color: '#dc2626',
-    dotClassName: 'bg-red-500',
-    accentClassName: 'border-l-red-500',
-    tabActiveClassName: 'border-red-500',
-    emptyTitle: 'Aucune carte négatif',
-    emptyDescription: 'Écrivez ce qui a moins bien marché…',
-  },
-  {
     key: 'start',
-    title: 'Idées',
     emoji: '💡',
     color: '#d97706',
     dotClassName: 'bg-yellow-500',
     accentClassName: 'border-l-yellow-500',
     tabActiveClassName: 'border-yellow-500',
-    emptyTitle: 'Aucune carte idées',
-    emptyDescription: "Proposez des pistes d'amélioration…",
+    emptyTitle: 'Aucune carte',
+    emptyDescription: 'Ajoutez une première idée dans cette colonne…',
+  }, {
+    key: 'stop',
+    emoji: '🚧',
+    color: '#dc2626',
+    dotClassName: 'bg-red-500',
+    accentClassName: 'border-l-red-500',
+    tabActiveClassName: 'border-red-500',
+    emptyTitle: 'Aucune carte',
+    emptyDescription: 'Ajoutez une première idée dans cette colonne…',
+  },
+  {
+    key: 'continue',
+    emoji: '✅',
+    color: '#16a34a',
+    dotClassName: 'bg-green-500',
+    accentClassName: 'border-l-green-500',
+    tabActiveClassName: 'border-green-500',
+    emptyTitle: 'Aucune carte',
+    emptyDescription: 'Ajoutez une première idée dans cette colonne…',
   },
 ];
+
+const defaultFormatColumns = getRetroFormatById(DEFAULT_RETRO_FORMAT_ID).columns;
+const legacyDefaultFormatColumns = ['Start', 'Stop', 'Continue'];
+
+const normalizeLegacyDefaultColumns = (columns: string[]): string[] => (
+  columns.every((column, index) => column === legacyDefaultFormatColumns[index])
+    ? defaultFormatColumns
+    : columns
+);
+
+const normalizeFormatColumns = (columns: SessionDetails['formatColumns']): string[] => {
+  if (Array.isArray(columns) && columns.length === 3) {
+    return normalizeLegacyDefaultColumns(columns);
+  }
+
+  if (typeof columns === 'string') {
+    try {
+      const parsed: unknown = JSON.parse(columns);
+      if (Array.isArray(parsed) && parsed.length === 3 && parsed.every((column) => typeof column === 'string')) {
+        return normalizeLegacyDefaultColumns(parsed);
+      }
+    } catch {
+      return defaultFormatColumns;
+    }
+  }
+
+  return defaultFormatColumns;
+};
 
 const SessionDashboard = () => {
   const { id } = useParams();
@@ -93,8 +118,9 @@ const SessionDashboard = () => {
   const [sessionName, setSessionName] = useState<string>('');
   const [sessionCode, setSessionCode] = useState<string>('');
   const [step, setStep] = useState<SessionStep>('waiting');
-  const [formatName, setFormatName] = useState<string>('Start / Stop / Continue');
-  const [activeMobileColumn, setActiveMobileColumn] = useState<RetroCard['columnType']>('continue');
+  const [formatName, setFormatName] = useState<string>(getRetroFormatById(DEFAULT_RETRO_FORMAT_ID).name);
+  const [formatColumns, setFormatColumns] = useState<string[]>(defaultFormatColumns);
+  const [activeMobileColumn, setActiveMobileColumn] = useState<RetroCard['columnType']>('start');
   const [isMobileViewport, setIsMobileViewport] = useState(() => (
     typeof window !== 'undefined'
     && typeof window.matchMedia === 'function'
@@ -112,6 +138,17 @@ const SessionDashboard = () => {
 
   const votesUsed = useMemo(() => cards.filter((card) => card.votedByMe).length, [cards]);
   const votesLeft = useMemo(() => Math.max(0, 5 - votesUsed), [votesUsed]);
+  const writingColumns = useMemo(() => {
+    const labels = formatColumns.length === 3
+      ? formatColumns
+      : defaultFormatColumns;
+
+    return COLUMNS.map((column, index) => ({
+      ...column,
+      title: labels[index],
+      emptyTitle: `Aucune carte ${labels[index].toLowerCase()}`,
+    }));
+  }, [formatColumns]);
 
   const actorHeaders = useMemo((): Record<string, string> | null => {
     if (isAuthenticated && token) {
@@ -167,7 +204,8 @@ const SessionDashboard = () => {
         setSessionName(data.data.name);
         setSessionCode(data.data.code);
         setStep(data.data.step || 'writing');
-        setFormatName(data.data.formatName);
+        setFormatName(data.data.formatName ?? getRetroFormatById(DEFAULT_RETRO_FORMAT_ID).name);
+        setFormatColumns(normalizeFormatColumns(data.data.formatColumns));
 
         if (isAuthenticated && userId) {
           setRole(data.data.ownerId === userId ? 'facilitator' : 'participant');
@@ -353,6 +391,7 @@ const SessionDashboard = () => {
 
       if (response.ok && isApiSuccess(data)) {
         setFormatName(nextName);
+        setFormatColumns(nextColumns);
       } else {
         addToast('error', getApiErrorMessage(data, 'Impossible de mettre à jour le format.'));
       }
@@ -625,7 +664,7 @@ const SessionDashboard = () => {
           <div className="relative flex-1 grid grid-cols-1 md:grid-cols-3 overflow-hidden bg-navy-border gap-px">
             {isMobileViewport && (
               <div className="absolute inset-x-0 top-0 z-10 flex border-b border-navy-border bg-navy-mid/95 px-1 backdrop-blur">
-                {COLUMNS.map((column) => {
+                {writingColumns.map((column) => {
                   const isActive = activeMobileColumn === column.key;
                   const count = cards.filter((card) => card.columnType === column.key).length;
                   return (
@@ -653,7 +692,7 @@ const SessionDashboard = () => {
                 })}
               </div>
             )}
-            {COLUMNS.map((column) => (
+            {writingColumns.map((column) => (
               <RetroColumn
                 key={column.key}
                 className={isMobileViewport

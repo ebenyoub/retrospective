@@ -56,8 +56,19 @@ const createDashboardFetchMock = (options: {
   updateCardResponse?: unknown;
   deleteCardResponse?: unknown;
   step?: 'waiting' | 'writing' | 'voting' | 'results';
+  formatName?: string;
+  formatColumns?: string[];
 }) => {
-  const { cardsSequence, voteResponse, addCardResponse, updateCardResponse, deleteCardResponse, step = 'writing' } = options;
+  const {
+    cardsSequence,
+    voteResponse,
+    addCardResponse,
+    updateCardResponse,
+    deleteCardResponse,
+    step = 'writing',
+    formatName = 'Commencer / Arrêter / Continuer',
+    formatColumns = ['Commencer', 'Arrêter', 'Continuer'],
+  } = options;
   let cardsCallIndex = 0;
 
   return vi.fn().mockImplementation((url: string, init?: RequestInit) => {
@@ -75,6 +86,8 @@ const createDashboardFetchMock = (options: {
             status: 'open',
             step: step,
             ownerId: 1,
+            formatName,
+            formatColumns,
           },
         }),
       });
@@ -155,14 +168,24 @@ describe('SessionDashboard', () => {
     ioMock.mockClear();
   });
 
-  it('affiche les 3 colonnes start / stop / continue', async () => {
+  it('affiche les 3 colonnes du format par défaut', async () => {
     vi.stubGlobal(
       'fetch',
       vi.fn().mockImplementation((url) => {
         if (url.endsWith('/session/1')) {
           return Promise.resolve({
             ok: true,
-            json: async () => ({ success: true, data: { id: 1, name: 'Tableau de rétrospective — session 1', step: 'writing', ownerId: 1 } }),
+            json: async () => ({
+              success: true,
+              data: {
+                id: 1,
+                name: 'Tableau de rétrospective — session 1',
+                step: 'writing',
+                ownerId: 1,
+                formatName: 'Commencer / Arrêter / Continuer',
+                formatColumns: ['Commencer', 'Arrêter', 'Continuer'],
+              },
+            }),
           });
         }
         return Promise.resolve({
@@ -174,9 +197,78 @@ describe('SessionDashboard', () => {
 
     renderDashboard();
 
-    expect(await screen.findByText('Idées')).toBeTruthy();
-    expect(screen.getByText('Négatif')).toBeTruthy();
-    expect(screen.getByText('Positif')).toBeTruthy();
+    expect(await screen.findByText('Commencer')).toBeTruthy();
+    expect(screen.getByText('Arrêter')).toBeTruthy();
+    expect(screen.getByText('Continuer')).toBeTruthy();
+  });
+
+  it('affiche les 3 colonnes du format choisi pour la session', async () => {
+    const fetchMock = createDashboardFetchMock({
+      cardsSequence: [emptyCardsResponse],
+      formatName: 'Succès / Difficultés / Idées',
+      formatColumns: ['Succès', 'Difficultés', 'Idées'],
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderDashboard();
+
+    expect(await screen.findByText('Succès')).toBeTruthy();
+    expect(screen.getByText('Difficultés')).toBeTruthy();
+    expect(screen.getByText('Idées')).toBeTruthy();
+  });
+
+  it('affiche les colonnes si formatColumns est renvoyé sous forme de JSON', async () => {
+    const fetchMock = createDashboardFetchMock({
+      cardsSequence: [emptyCardsResponse],
+      formatName: 'Conserver / Améliorer / Innover',
+      formatColumns: ['Conserver', 'Améliorer', 'Innover'],
+    }).mockImplementation((url: string, init?: RequestInit) => {
+      if (url.endsWith('/session/1')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            success: true,
+            data: {
+              id: 1,
+              name: 'Tableau de rétrospective — session 1',
+              step: 'writing',
+              ownerId: 1,
+              formatName: 'Conserver / Améliorer / Innover',
+              formatColumns: JSON.stringify(['Conserver', 'Améliorer', 'Innover']),
+            },
+          }),
+        });
+      }
+
+      return createDashboardFetchMock({
+        cardsSequence: [emptyCardsResponse],
+      })(url, init);
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderDashboard();
+
+    expect(await screen.findByText('Conserver')).toBeTruthy();
+    expect(screen.getByText('Améliorer')).toBeTruthy();
+    expect(screen.getByText('Innover')).toBeTruthy();
+  });
+
+  it('normalise les anciens libellés Start / Stop / Continue en français', async () => {
+    const fetchMock = createDashboardFetchMock({
+      cardsSequence: [emptyCardsResponse],
+      formatName: 'Start / Stop / Continue',
+      formatColumns: ['Start', 'Stop', 'Continue'],
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderDashboard();
+
+    expect(await screen.findByText('Commencer')).toBeTruthy();
+    expect(screen.getByText('Arrêter')).toBeTruthy();
+    expect(screen.getByText('Continuer')).toBeTruthy();
+    expect(screen.queryByText('Start')).toBeNull();
+    expect(screen.queryByText('Stop')).toBeNull();
+    expect(screen.queryByText('Continue')).toBeNull();
   });
 
   it('affiche le code de session en permanence pendant les phases écriture/vote/résultats', async () => {
@@ -644,7 +736,7 @@ describe('SessionDashboard', () => {
 
     renderDashboard();
 
-    await screen.findByText('Idées');
+    await screen.findByText('Commencer');
 
     expect(screen.getAllByPlaceholderText('Nouvelle carte...')).toHaveLength(3);
     expect(screen.getAllByRole('button', { name: 'Ajouter' })).toHaveLength(3);
@@ -664,7 +756,7 @@ describe('SessionDashboard', () => {
 
     renderDashboard();
 
-    await screen.findByText('Idées');
+    await screen.findByText('Commencer');
     const callsBeforeSubmit = fetchMock.mock.calls.length;
 
     const button = screen.getAllByRole('button', { name: 'Ajouter' })[0] as HTMLButtonElement;
@@ -703,16 +795,52 @@ describe('SessionDashboard', () => {
 
     renderDashboard();
 
-    await screen.findByText('Idées');
+    await screen.findByText('Commencer');
 
     const textareas = screen.getAllByPlaceholderText('Nouvelle carte...');
     const buttons = screen.getAllByRole('button', { name: 'Ajouter' });
 
-    // Index 1 = colonne "Stop"
+    // Index 1 = colonne "Arrêter" (clé technique stop)
     fireEvent.change(textareas[1], { target: { value: 'Le daily était trop long' } });
     fireEvent.click(buttons[1]);
 
     expect(await screen.findByText('Le daily était trop long')).toBeTruthy();
+  });
+
+  it('conserve les clés techniques des cartes avec un format français personnalisé', async () => {
+    const fetchMock = createDashboardFetchMock({
+      cardsSequence: [emptyCardsResponse],
+      addCardResponse: { ok: true, json: async () => ({ success: true, data: { cardId: 1 } }) },
+      formatName: 'Succès / Difficultés / Idées',
+      formatColumns: ['Succès', 'Difficultés', 'Idées'],
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderDashboard();
+
+    await screen.findByText('Succès');
+
+    const textareas = screen.getAllByPlaceholderText('Nouvelle carte...');
+    const buttons = screen.getAllByRole('button', { name: 'Ajouter' });
+
+    fireEvent.change(textareas[0], { target: { value: 'Carte succès' } });
+    fireEvent.click(buttons[0]);
+    fireEvent.change(textareas[1], { target: { value: 'Carte difficulté' } });
+    fireEvent.click(buttons[1]);
+    fireEvent.change(textareas[2], { target: { value: 'Carte idée' } });
+    fireEvent.click(buttons[2]);
+
+    await vi.waitFor(() => {
+      const cardPayloads = fetchMock.mock.calls
+        .filter(([url, init]) => String(url).endsWith('/cards') && init?.method === 'POST')
+        .map(([, init]) => JSON.parse(String(init?.body)));
+
+      expect(cardPayloads).toEqual([
+        { content: 'Carte succès', columnType: 'start' },
+        { content: 'Carte difficulté', columnType: 'stop' },
+        { content: 'Carte idée', columnType: 'continue' },
+      ]);
+    });
   });
 
   it("affiche un toast d'erreur si l'ajout de carte est refusé par le backend", async () => {
@@ -727,7 +855,7 @@ describe('SessionDashboard', () => {
 
     renderDashboard();
 
-    await screen.findByText('Idées');
+    await screen.findByText('Commencer');
 
     fireEvent.change(screen.getAllByPlaceholderText('Nouvelle carte...')[0], {
       target: { value: 'Carte refusée' },
@@ -1372,8 +1500,8 @@ describe('SessionDashboard', () => {
     });
 
     const textareas = await screen.findAllByPlaceholderText('Nouvelle carte...');
-    fireEvent.change(textareas[2], { target: { value: 'Carte invitée' } });
-    fireEvent.click(screen.getAllByRole('button', { name: 'Ajouter' })[2]);
+    fireEvent.change(textareas[0], { target: { value: 'Carte invitée' } });
+    fireEvent.click(screen.getAllByRole('button', { name: 'Ajouter' })[0]);
 
     expect(await screen.findByText('Carte invitée')).toBeTruthy();
     expect(fetchMock.mock.calls.some(([url, init]) => (
