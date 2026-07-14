@@ -47,7 +47,10 @@ test.describe('création de session avec format MVP', () => {
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
-          body: JSON.stringify({ userId: 1, username: 'Facilitateur' }),
+          body: JSON.stringify({
+            success: true,
+            data: { userId: 1, username: 'Facilitateur' },
+          }),
         });
       });
 

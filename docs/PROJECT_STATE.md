@@ -4,6 +4,14 @@
 
 ## Date de dernière mise à jour
 
+2026-07-14 (`MVP-VOTE-02 — Validation E2E de la salle de vote` terminé : création de session-voting.spec.ts couvrant le quota, les boutons de vote et la mise à jour dynamique de la page. Résolution d'un bug latent sur le mock de /auth/profile qui n'était pas correctement enveloppé pour requestApi, restaurant la totalité des tests Playwright au vert.)
+
+2026-07-14 (`AUTH-02 — Audit et correction accessibilité` terminé : mise en accessibilité complète des formulaires du module Auth et Forgot. Centralisation de aria-invalid dans FormField.tsx, et ajout de role="alert" pour l'erreur globale et aria-busy pour l'attente réseau.)
+
+2026-07-14 (`MVP-TIMER-01 — Rendre le timer d'étape fonctionnel` terminé : le composant TimerChip a été rendu dynamique en local via un intervalle dégressif réinitialisé à chaque transition d'étape.)
+
+2026-07-14 (`AUTH-01 — Création de la couche authApi` terminé : extraction de l'intégralité des 5 requêtes fetch brutes du module Auth et du profil vers un service dédié authApi.ts s'appuyant sur requestApi générique. Suppression de la duplication des interfaces de types LoginValues et SignupValues.)
+
 2026-07-14 (`ARCH-SESSION-09 — Accessibilité de CardCommentsModal` terminé : modal de commentaires mis en conformité a11y selon les standards W3C/WAI-ARIA et l'implémentation du Drawer. Ajout du focus trap, gestion de la touche Échap, restauration automatique du focus au démontage et correction de la sémantique de l'overlay de clic extérieur. Clôture définitive du chantier session par une décision d'architecture dans DECISIONS.md.)
 
 2026-07-14 (`T-QUALITY-01 — Découpage des tests frontend` terminé : le fichier monolithique `SessionDashboard.test.tsx` de 1900+ lignes a été découpé par responsabilité en 6 fichiers de tests d'intégration ciblés. Les mocks et helpers de rendu communs ont été mutualisés dans le répertoire `src/pages/session/tests/sessionTestUtils.tsx`. La couverture de tests et le comportement d'intégration sont préservés avec 139 tests verts.)
