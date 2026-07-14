@@ -15,6 +15,11 @@ import {
 import { AppError } from "../utils/AppError";
 import { logger } from "../utils/logger";
 import { SessionType } from "../types";
+import {
+  DEFAULT_RETRO_FORMAT_PRESET,
+  getRetroFormatColumnLabels,
+  isValidRetroFormatSelection,
+} from "../constants/retroFormats";
 
 export interface SessionListItem {
   id: number;
@@ -30,6 +35,8 @@ export interface SessionListItem {
 interface CreateSessionInput {
   userId?: number;
   name?: unknown;
+  formatName?: unknown;
+  formatColumns?: unknown;
 }
 
 interface CreatedSessionResult {
@@ -77,13 +84,31 @@ const toMysqlDateTime = (value: string): string =>
     .replace('T', ' ')
     .replace(/\.\d{3}Z$/, '');
 
-export const createSessionForUser = async ({ userId, name }: CreateSessionInput): Promise<CreatedSessionResult> => {
+export const createSessionForUser = async ({
+  userId,
+  name,
+  formatName,
+  formatColumns,
+}: CreateSessionInput): Promise<CreatedSessionResult> => {
   if (!userId) {
     throw new AppError(401, "Impossible de créer la session : utilisateur non identifié", "USER_NOT_IDENTIFIED");
   }
 
   if (!name || typeof name !== "string" || name.trim() === "") {
     throw new AppError(400, "Le nom de session est obligatoire.", "SESSION_NAME_REQUIRED");
+  }
+
+  const selectedFormatName = typeof formatName === "string"
+    ? formatName.trim()
+    : DEFAULT_RETRO_FORMAT_PRESET.name;
+  const selectedFormatColumns = Array.isArray(formatColumns)
+    ? formatColumns
+      .filter((column): column is string => typeof column === "string")
+      .map((column) => column.trim())
+    : getRetroFormatColumnLabels(DEFAULT_RETRO_FORMAT_PRESET);
+
+  if (!isValidRetroFormatSelection(selectedFormatName, selectedFormatColumns)) {
+    throw new AppError(400, "Le format de rétrospective est invalide.", "FORMAT_INVALID");
   }
 
   const nowUtc = new Date().toISOString();
@@ -105,7 +130,14 @@ export const createSessionForUser = async ({ userId, name }: CreateSessionInput)
 
   try {
     const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
-    const sessionId = await insertSession(name.trim(), code, userId, toMysqlDateTime(expiresAt));
+    const sessionId = await insertSession(
+      name.trim(),
+      code,
+      userId,
+      toMysqlDateTime(expiresAt),
+      selectedFormatName,
+      selectedFormatColumns
+    );
 
     logger.info(`ℹ️sessionId : ${sessionId}`);
 
@@ -204,9 +236,6 @@ export const getSessionDetails = async (sessionId: number): Promise<SessionDetai
   };
 };
 
-const MIN_FORMAT_COLUMNS = 2;
-const MAX_FORMAT_COLUMNS = 5;
-
 export const updateSessionFormatService = async (
   sessionId: number,
   userId: number,
@@ -223,12 +252,8 @@ export const updateSessionFormatService = async (
     throw new AppError(403, "Seul le facilitateur peut modifier le format de la session.", "FORBIDDEN");
   }
 
-  if (formatColumns.length < MIN_FORMAT_COLUMNS || formatColumns.length > MAX_FORMAT_COLUMNS) {
-    throw new AppError(
-      400,
-      `Le format doit contenir entre ${MIN_FORMAT_COLUMNS} et ${MAX_FORMAT_COLUMNS} colonnes.`,
-      "FORMAT_COLUMNS_INVALID"
-    );
+  if (!isValidRetroFormatSelection(formatName, formatColumns)) {
+    throw new AppError(400, "Le format de rétrospective est invalide.", "FORMAT_INVALID");
   }
 
   await updateSessionFormat(sessionId, formatName, formatColumns);

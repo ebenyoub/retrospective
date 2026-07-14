@@ -87,7 +87,11 @@ describe("session.controller", () => {
         message: "Session créée.",
         data: { sessionId: 7, code: "1234", expiresAt: "2026-07-08T11:00:00.000Z" },
       });
-      const req = createMockRequest(undefined, {}, { name: "Ma Super Session" });
+      const req = createMockRequest(undefined, {}, {
+        name: "Ma Super Session",
+        formatName: "Succès / Difficultés / Idées",
+        formatColumns: ["Succès", "Difficultés", "Idées"],
+      });
       const res = createMockResponse();
 
       await createSession(req, res as unknown as Response);
@@ -98,7 +102,12 @@ describe("session.controller", () => {
         message: "Session créée.",
         data: { sessionId: 7, code: "1234", expiresAt: "2026-07-08T11:00:00.000Z" },
       });
-      expect(mockCreateSessionForUser).toHaveBeenCalledWith({ userId: undefined, name: "Ma Super Session" });
+      expect(mockCreateSessionForUser).toHaveBeenCalledWith({
+        userId: undefined,
+        name: "Ma Super Session",
+        formatName: "Succès / Difficultés / Idées",
+        formatColumns: ["Succès", "Difficultés", "Idées"],
+      });
     });
 
     it("ne capture pas les erreurs du service", async () => {
@@ -216,9 +225,9 @@ describe("session.controller", () => {
 
   describe("updateSessionFormat", () => {
     it("met à jour le format et renvoie 200", async () => {
-      const updatedSession = { id: 7, formatName: "Mad/Sad/Glad", formatColumns: ["Mad", "Sad", "Glad"] };
+      const updatedSession = { id: 7, formatName: "Succès / Difficultés / Idées", formatColumns: ["Succès", "Difficultés", "Idées"] };
       mockUpdateSessionFormatService.mockResolvedValueOnce(updatedSession);
-      const req = createMockRequest(1, { sessionId: "7" }, { formatName: "Mad/Sad/Glad", formatColumns: ["Mad", "Sad", "Glad"] });
+      const req = createMockRequest(1, { sessionId: "7" }, { formatName: "Succès / Difficultés / Idées", formatColumns: ["Succès", "Difficultés", "Idées"] });
       const res = createMockResponse();
 
       await updateSessionFormat(req, res as unknown as Response);
@@ -229,7 +238,7 @@ describe("session.controller", () => {
         message: "Format de la session mis à jour.",
         data: updatedSession,
       });
-      expect(mockUpdateSessionFormatService).toHaveBeenCalledWith(7, 1, "Mad/Sad/Glad", ["Mad", "Sad", "Glad"]);
+      expect(mockUpdateSessionFormatService).toHaveBeenCalledWith(7, 1, "Succès / Difficultés / Idées", ["Succès", "Difficultés", "Idées"]);
     });
   });
 });

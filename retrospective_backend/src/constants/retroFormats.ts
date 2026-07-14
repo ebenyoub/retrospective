@@ -13,16 +13,18 @@ export interface RetroFormatPreset {
 
 export const RETRO_COLUMN_KEYS: RetroColumnKey[] = ["start", "stop", "continue"];
 
+export const DEFAULT_RETRO_FORMAT_PRESET: RetroFormatPreset = {
+  id: "start-stop-continue",
+  name: "Commencer / Arrêter / Continuer",
+  columns: [
+    { key: "start", label: "Commencer" },
+    { key: "stop", label: "Arrêter" },
+    { key: "continue", label: "Continuer" },
+  ],
+};
+
 export const RETRO_FORMAT_PRESETS: RetroFormatPreset[] = [
-  {
-    id: "start-stop-continue",
-    name: "Commencer / Arrêter / Continuer",
-    columns: [
-      { key: "start", label: "Commencer" },
-      { key: "stop", label: "Arrêter" },
-      { key: "continue", label: "Continuer" },
-    ],
-  },
+  DEFAULT_RETRO_FORMAT_PRESET,
   {
     id: "positive-negative-actions",
     name: "Points positifs / Points négatifs / Actions",
@@ -70,3 +72,19 @@ export const RETRO_FORMAT_PRESETS: RetroFormatPreset[] = [
   },
 ];
 
+export const getRetroFormatColumnLabels = (format: RetroFormatPreset): string[] =>
+  format.columns.map((column) => column.label);
+
+export const findRetroFormatByName = (formatName: string): RetroFormatPreset | null =>
+  RETRO_FORMAT_PRESETS.find((format) => format.name === formatName) ?? null;
+
+export const isValidRetroFormatSelection = (formatName: string, formatColumns: string[]): boolean => {
+  const format = findRetroFormatByName(formatName);
+
+  if (!format) return false;
+
+  const expectedColumns = getRetroFormatColumnLabels(format);
+
+  return expectedColumns.length === formatColumns.length
+    && expectedColumns.every((column, index) => column === formatColumns[index]);
+};

@@ -46,19 +46,19 @@ describe("validators — messages d'erreur personnalisés", () => {
     }
   });
 
-  it("renvoie le message si le format n'a pas assez de colonnes", () => {
+  it("renvoie le message si le format n'a pas exactement 3 colonnes", () => {
     const result = updateSessionFormatSchema.safeParse({
       body: { formatName: "Solo", formatColumns: ["Une seule"] },
     });
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.issues[0].message).toBe("Le format doit contenir au moins 2 colonnes.");
+      expect(result.error.issues[0].message).toBe("Le format doit contenir exactement 3 colonnes.");
     }
   });
 
-  it("accepte un format personnalisé avec 2 à 5 colonnes", () => {
+  it("accepte un format avec exactement 3 colonnes", () => {
     const result = updateSessionFormatSchema.safeParse({
-      body: { formatName: "Mad/Sad/Glad", formatColumns: ["Mad", "Sad", "Glad"] },
+      body: { formatName: "Succès / Difficultés / Idées", formatColumns: ["Succès", "Difficultés", "Idées"] },
     });
     expect(result.success).toBe(true);
   });

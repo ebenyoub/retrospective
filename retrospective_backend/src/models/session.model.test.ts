@@ -87,7 +87,27 @@ describe("session.model", () => {
   it("insertSession retourne l'id inséré", async () => {
     mockExecute.mockResolvedValueOnce([{ insertId: 7 }]);
 
-    await expect(insertSession("Ma Super Session", "1234", 1, "2026-07-08 11:00:00")).resolves.toBe(7);
+    await expect(insertSession(
+      "Ma Super Session",
+      "1234",
+      1,
+      "2026-07-08 11:00:00",
+      "Commencer / Arrêter / Continuer",
+      ["Commencer", "Arrêter", "Continuer"]
+    )).resolves.toBe(7);
+
+    expect(mockExecute).toHaveBeenCalledWith(
+      expect.any(String),
+      [
+        "Ma Super Session",
+        "1234",
+        1,
+        "open",
+        "2026-07-08 11:00:00",
+        "Commencer / Arrêter / Continuer",
+        JSON.stringify(["Commencer", "Arrêter", "Continuer"]),
+      ]
+    );
   });
 
   it("findSessionByCode retourne la première session ou null", async () => {

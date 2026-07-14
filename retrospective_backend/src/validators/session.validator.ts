@@ -2,7 +2,14 @@ import { z } from "zod";
 
 export const createSessionSchema = z.object({
   body: z.object({
-    name: z.string({ error: "Le nom de session est obligatoire." }).trim().min(3, "Le nom doit faire au moins 3 caractères.")
+    name: z.string({ error: "Le nom de session est obligatoire." }).trim().min(3, "Le nom doit faire au moins 3 caractères."),
+    formatName: z.string({ error: "Le nom du format est requis." }).trim()
+      .min(1, "Le nom du format est requis.")
+      .max(60, "Le nom du format ne peut pas dépasser 60 caractères.")
+      .optional(),
+    formatColumns: z.array(
+      z.string().trim().min(1, "Le nom de la colonne est requis.").max(30, "Le nom de la colonne ne peut pas dépasser 30 caractères.")
+    ).length(3, "Le format doit contenir exactement 3 colonnes.").optional()
   })
 });
 
@@ -46,7 +53,6 @@ export const updateSessionFormatSchema = z.object({
       .max(60, "Le nom du format ne peut pas dépasser 60 caractères."),
     formatColumns: z.array(
       z.string().trim().min(1, "Le nom de la colonne est requis.").max(30, "Le nom de la colonne ne peut pas dépasser 30 caractères.")
-    ).min(2, "Le format doit contenir au moins 2 colonnes.").max(5, "Le format ne peut pas dépasser 5 colonnes.")
+    ).length(3, "Le format doit contenir exactement 3 colonnes.")
   })
 });
-

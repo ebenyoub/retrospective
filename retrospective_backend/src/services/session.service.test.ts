@@ -35,6 +35,7 @@ import {
   updateSessionFormatService,
 } from "./session.service";
 import { AppError } from "../utils/AppError";
+import { DEFAULT_RETRO_FORMAT_PRESET, getRetroFormatColumnLabels } from "../constants/retroFormats";
 
 const mockCloseExpiredSessionsForOwner = closeExpiredSessionsForOwner as unknown as Mock;
 const mockCloseActiveSessionsForOwner = closeActiveSessionsForOwner as unknown as Mock;
@@ -54,8 +55,8 @@ const baseSessionRow = {
   status: "open",
   step: "waiting",
   owner_id: 1,
-  format_name: "Start / Stop / Continue",
-  format_columns: ["Start", "Stop", "Continue"],
+  format_name: "Commencer / Arrêter / Continuer",
+  format_columns: ["Commencer", "Arrêter", "Continuer"],
   expires_at: new Date(),
   created_at: new Date(),
 };
@@ -151,7 +152,14 @@ describe("session.service", () => {
     const result = await createSessionForUser({ userId: 1, name: "Nouvelle Session" });
 
     expect(mockCloseActiveSessionsForOwner).toHaveBeenCalledWith(1);
-    expect(mockInsertSession).toHaveBeenCalledWith("Nouvelle Session", expect.any(String), 1, expect.any(String));
+    expect(mockInsertSession).toHaveBeenCalledWith(
+      "Nouvelle Session",
+      expect.any(String),
+      1,
+      expect.any(String),
+      DEFAULT_RETRO_FORMAT_PRESET.name,
+      getRetroFormatColumnLabels(DEFAULT_RETRO_FORMAT_PRESET)
+    );
     expect(result.statusCode).toBe(201);
     expect(result.message).toBe("Session créée.");
     expect(result.data).toMatchObject({ sessionId: 9, name: "Nouvelle Session" });
@@ -169,6 +177,40 @@ describe("session.service", () => {
     expect(result.data).toMatchObject({ sessionId: 7, name: "Nouvelle Session" });
     expect((result.data as { code: string }).code).toMatch(/^\d{4}$/);
     expect((result.data as { expiresAt: string }).expiresAt).toEqual(expect.any(String));
+  });
+
+  it("createSessionForUser enregistre un format MVP fourni", async () => {
+    const formatName = "Succès / Difficultés / Idées";
+    const formatColumns = ["Succès", "Difficultés", "Idées"];
+    mockCloseExpiredSessionsForOwner.mockResolvedValueOnce({ changedRows: 0, affectedRows: 0 });
+    mockCloseActiveSessionsForOwner.mockResolvedValueOnce({ affectedRows: 0 });
+    mockInsertSession.mockResolvedValueOnce(7);
+
+    await createSessionForUser({ userId: 1, name: "Nouvelle Session", formatName, formatColumns });
+
+    expect(mockInsertSession).toHaveBeenCalledWith(
+      "Nouvelle Session",
+      expect.any(String),
+      1,
+      expect.any(String),
+      formatName,
+      formatColumns
+    );
+  });
+
+  it("createSessionForUser refuse un format absent des formats MVP", async () => {
+    await expect(createSessionForUser({
+      userId: 1,
+      name: "Nouvelle Session",
+      formatName: "Mad / Sad / Glad",
+      formatColumns: ["Mad", "Sad", "Glad"],
+    })).rejects.toMatchObject({
+      statusCode: 400,
+      code: "FORMAT_INVALID",
+    } satisfies Partial<AppError>);
+    expect(mockCloseExpiredSessionsForOwner).not.toHaveBeenCalled();
+    expect(mockCloseActiveSessionsForOwner).not.toHaveBeenCalled();
+    expect(mockInsertSession).not.toHaveBeenCalled();
   });
 
   it("createSessionForUser convertit une erreur d'insertion en AppError 500", async () => {
@@ -245,7 +287,7 @@ describe("session.service", () => {
       mockFindSessionById.mockResolvedValueOnce(baseSessionRow);
 
       const result = await getSessionDetails(7);
-      expect(result).toMatchObject({ id: 7, name: "S1", step: "waiting", formatName: "Start / Stop / Continue" });
+      expect(result).toMatchObject({ id: 7, name: "S1", step: "waiting", formatName: "Commencer / Arrêter / Continuer" });
     });
   });
 
@@ -274,7 +316,7 @@ describe("session.service", () => {
     it("lève une AppError 404 si la session n'existe pas", async () => {
       mockFindSessionById.mockResolvedValueOnce(null);
 
-      await expect(updateSessionFormatService(7, 1, "Mad/Sad/Glad", ["Mad", "Sad", "Glad"])).rejects.toMatchObject({
+      await expect(updateSessionFormatService(7, 1, "Succès / Difficultés / Idées", ["Succès", "Difficultés", "Idées"])).rejects.toMatchObject({
         statusCode: 404,
         code: "SESSION_NOT_FOUND",
       });
@@ -283,31 +325,31 @@ describe("session.service", () => {
     it("lève une AppError 403 si l'utilisateur n'est pas le facilitateur", async () => {
       mockFindSessionById.mockResolvedValueOnce({ id: 7, owner_id: 2 });
 
-      await expect(updateSessionFormatService(7, 1, "Mad/Sad/Glad", ["Mad", "Sad", "Glad"])).rejects.toMatchObject({
+      await expect(updateSessionFormatService(7, 1, "Succès / Difficultés / Idées", ["Succès", "Difficultés", "Idées"])).rejects.toMatchObject({
         statusCode: 403,
         code: "FORBIDDEN",
       });
     });
 
-    it("lève une AppError 400 si le nombre de colonnes est hors bornes", async () => {
+    it("lève une AppError 400 si le format n'est pas un format MVP", async () => {
       mockFindSessionById.mockResolvedValueOnce({ id: 7, owner_id: 1 });
 
       await expect(updateSessionFormatService(7, 1, "Solo", ["Une seule colonne"])).rejects.toMatchObject({
         statusCode: 400,
-        code: "FORMAT_COLUMNS_INVALID",
+        code: "FORMAT_INVALID",
       });
     });
 
     it("met à jour le format avec succès si l'utilisateur est le facilitateur", async () => {
       mockFindSessionById.mockResolvedValueOnce({ id: 7, owner_id: 1 });
       mockUpdateSessionFormat.mockResolvedValueOnce(true);
-      mockFindSessionById.mockResolvedValueOnce({ ...baseSessionRow, format_name: "Mad/Sad/Glad", format_columns: ["Mad", "Sad", "Glad"] });
+      mockFindSessionById.mockResolvedValueOnce({ ...baseSessionRow, format_name: "Succès / Difficultés / Idées", format_columns: ["Succès", "Difficultés", "Idées"] });
 
-      const result = await updateSessionFormatService(7, 1, "Mad/Sad/Glad", ["Mad", "Sad", "Glad"]);
+      const result = await updateSessionFormatService(7, 1, "Succès / Difficultés / Idées", ["Succès", "Difficultés", "Idées"]);
 
-      expect(mockUpdateSessionFormat).toHaveBeenCalledWith(7, "Mad/Sad/Glad", ["Mad", "Sad", "Glad"]);
-      expect(result.formatName).toBe("Mad/Sad/Glad");
-      expect(result.formatColumns).toEqual(["Mad", "Sad", "Glad"]);
+      expect(mockUpdateSessionFormat).toHaveBeenCalledWith(7, "Succès / Difficultés / Idées", ["Succès", "Difficultés", "Idées"]);
+      expect(result.formatName).toBe("Succès / Difficultés / Idées");
+      expect(result.formatColumns).toEqual(["Succès", "Difficultés", "Idées"]);
     });
   });
 });

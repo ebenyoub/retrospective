@@ -83,11 +83,13 @@ export const insertSession = async (
   name: string,
   code: string,
   userId: number,
-  expiresAtMysql: string
+  expiresAtMysql: string,
+  formatName: string,
+  formatColumns: string[]
 ): Promise<number> => {
   const [result] = await db.execute<ResultSetHeader>(
-    'insert into sessions (name, code, owner_id, status, expires_at) values(?, ?, ?, ?, ?)',
-    [name, code, userId, 'open', expiresAtMysql]
+    'insert into sessions (name, code, owner_id, status, expires_at, format_name, format_columns) values(?, ?, ?, ?, ?, ?, ?)',
+    [name, code, userId, 'open', expiresAtMysql, formatName, JSON.stringify(formatColumns)]
   );
 
   return result.insertId;
