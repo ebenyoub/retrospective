@@ -41,6 +41,7 @@ describe('CreateSessionForm', () => {
 
     const onSessionCreated = renderForm();
     fireEvent.change(screen.getByLabelText('Nom de la rétro'), { target: { value: 'Sprint 43' } });
+    fireEvent.change(screen.getByLabelText('Format de rétro'), { target: { value: 'success-difficulties-ideas' } });
     fireEvent.click(screen.getByRole('button', { name: 'Créer et lancer' }));
 
     await vi.waitFor(() => expect(onSessionCreated).toHaveBeenCalledWith(7));
@@ -48,5 +49,23 @@ describe('CreateSessionForm', () => {
       'http://localhost:8000/session/create-session',
       expect.objectContaining({ headers: expect.objectContaining({ Authorization: 'Bearer existing-token' }) })
     );
+    expect(JSON.parse(String(fetchMock.mock.calls[0][1].body))).toEqual({
+      name: 'Sprint 43',
+      formatName: 'Succès / Difficultés / Idées',
+      formatColumns: ['Succès', 'Difficultés', 'Idées'],
+    });
+  });
+
+  it('affiche uniquement les 6 formats MVP validés', () => {
+    renderForm();
+
+    expect(Array.from(screen.getByLabelText('Format de rétro').querySelectorAll('option')).map((option) => option.textContent)).toEqual([
+      'Commencer / Arrêter / Continuer',
+      'Points positifs / Points négatifs / Actions',
+      'Succès / Difficultés / Idées',
+      "J'ai aimé / J'ai moins aimé / Propositions",
+      'Conserver / Améliorer / Innover',
+      'Bien passé / À améliorer / Prochaines actions',
+    ]);
   });
 });

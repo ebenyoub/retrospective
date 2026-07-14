@@ -11,16 +11,21 @@ import useFormValidation from "@/hooks/useFormValidation";
 import type { ValidationSchema } from "@/hooks/useFormValidation";
 import { getApiErrorMessage, isApiSuccess, NETWORK_ERROR_MESSAGE, readJsonSafely } from "@/lib/apiError";
 import { API_BASE } from "@/lib/api";
+import { DEFAULT_RETRO_FORMAT_ID, RETRO_FORMAT_OPTIONS, getRetroFormatById } from "@/lib/retroFormats";
 
 interface CreateSessionValues {
   name: string;
+  formatId: string;
 }
 
 const createSessionValidationSchema: ValidationSchema<CreateSessionValues> = {
   name: [
     (value) => value.trim() === "" ? "Le nom de la session est requis." : undefined,
     (value) => value.trim().length < 3 ? "Le nom doit faire au moins 3 caractères." : undefined,
-  ]
+  ],
+  formatId: [
+    (value) => value.trim() === "" ? "Le format est requis." : undefined,
+  ],
 };
 
 const SessionCreate = () => {
@@ -37,7 +42,7 @@ const SessionCreate = () => {
     validateAll,
     setIsLoading
   } = useFormValidation<CreateSessionValues>(
-    { name: "" },
+    { name: "", formatId: DEFAULT_RETRO_FORMAT_ID },
     createSessionValidationSchema
   );
 
@@ -49,6 +54,8 @@ const SessionCreate = () => {
       return;
     }
 
+    const selectedFormat = getRetroFormatById(values.formatId);
+
     try {
       setIsLoading(true);
 
@@ -58,7 +65,11 @@ const SessionCreate = () => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ name: values.name })
+        body: JSON.stringify({
+          name: values.name,
+          formatName: selectedFormat.name,
+          formatColumns: selectedFormat.columns,
+        })
       });
 
       const data = await readJsonSafely(response);
@@ -96,6 +107,27 @@ const SessionCreate = () => {
               error={errors.name}
               showValidState
             />
+            <div className="mb-4 flex flex-col gap-1.5">
+              <label htmlFor="formatId" className="block font-sans text-xs font-semibold text-slate-400 tracking-wider uppercase">
+                Format de rétro
+              </label>
+              <select
+                id="formatId"
+                name="formatId"
+                value={values.formatId}
+                disabled={isLoading}
+                onChange={handleInputChange}
+                onBlur={handleInputChange}
+                className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none transition-colors focus:border-blue-400 disabled:opacity-60"
+              >
+                {RETRO_FORMAT_OPTIONS.map((format) => (
+                  <option key={format.id} value={format.id}>
+                    {format.name}
+                  </option>
+                ))}
+              </select>
+              {errors.formatId && <p className="text-sm text-red-400">{errors.formatId}</p>}
+            </div>
             <Button type="submit" className="w-full justify-center">
               Créer la session
             </Button>

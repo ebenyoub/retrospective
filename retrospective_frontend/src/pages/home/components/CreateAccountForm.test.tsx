@@ -106,11 +106,30 @@ describe('CreateAccountForm', () => {
 
     const onSessionCreated = renderForm();
     fillValidForm();
+    fireEvent.change(screen.getByLabelText('Format de rétro'), { target: { value: 'went-well-improve-next-actions' } });
 
     fireEvent.click(screen.getByRole('button', { name: 'Créer et lancer' }));
 
     await vi.waitFor(() => expect(onSessionCreated).toHaveBeenCalledWith(42));
     expect(mockLogin).toHaveBeenCalledWith(expect.objectContaining({ token: 'new-token', userId: 1 }));
+    expect(JSON.parse(String(fetchMock.mock.calls[1][1].body))).toEqual({
+      name: 'Sprint 43',
+      formatName: 'Bien passé / À améliorer / Prochaines actions',
+      formatColumns: ['Bien passé', 'À améliorer', 'Prochaines actions'],
+    });
+  });
+
+  it('affiche uniquement les 6 formats MVP validés', () => {
+    renderForm();
+
+    expect(Array.from(screen.getByLabelText('Format de rétro').querySelectorAll('option')).map((option) => option.textContent)).toEqual([
+      'Commencer / Arrêter / Continuer',
+      'Points positifs / Points négatifs / Actions',
+      'Succès / Difficultés / Idées',
+      "J'ai aimé / J'ai moins aimé / Propositions",
+      'Conserver / Améliorer / Innover',
+      'Bien passé / À améliorer / Prochaines actions',
+    ]);
   });
 
   it("affiche l'erreur sous le champ email si le compte existe déjà (conflit métier, pas de toast)", async () => {

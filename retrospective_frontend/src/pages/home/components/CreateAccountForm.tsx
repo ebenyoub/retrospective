@@ -9,6 +9,7 @@ import { getApiErrorMessage, isApiSuccess, NETWORK_ERROR_MESSAGE, readJsonSafely
 import FieldError from "@/components/ui/FieldError";
 
 import { API_BASE } from "@/lib/api";
+import { DEFAULT_RETRO_FORMAT_ID, RETRO_FORMAT_OPTIONS, getRetroFormatById } from "@/lib/retroFormats";
 
 const createAccountSchema = z
   .object({
@@ -18,6 +19,7 @@ const createAccountSchema = z
     password: z.string().min(8, "Le mot de passe doit contenir au moins 8 caractères."),
     confirmPassword: z.string().min(1, "La confirmation est obligatoire."),
     retroName: z.string().trim().min(3, "Le nom de la rétrospective doit contenir au moins 3 caractères."),
+    formatId: z.string().min(1, "Le format est requis."),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Les mots de passe ne correspondent pas.",
@@ -48,10 +50,13 @@ const CreateAccountForm = ({ onSessionCreated }: CreateAccountFormProps) => {
       password: "",
       confirmPassword: "",
       retroName: "",
+      formatId: DEFAULT_RETRO_FORMAT_ID,
     },
   });
 
   const onSubmit = async (values: CreateAccountValues) => {
+    const selectedFormat = getRetroFormatById(values.formatId);
+
     try {
       const username = `${values.prenom.trim()} ${values.nom.trim()}`;
       const signupResponse = await fetch(`${API_BASE}/auth/signup`, {
@@ -80,7 +85,11 @@ const CreateAccountForm = ({ onSessionCreated }: CreateAccountFormProps) => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${signupData.data.token}`,
         },
-        body: JSON.stringify({ name: values.retroName.trim() }),
+        body: JSON.stringify({
+          name: values.retroName.trim(),
+          formatName: selectedFormat.name,
+          formatColumns: selectedFormat.columns,
+        }),
       });
       const sessionData = await readJsonSafely(sessionResponse);
 
@@ -188,6 +197,25 @@ const CreateAccountForm = ({ onSessionCreated }: CreateAccountFormProps) => {
           {...register("retroName")}
         />
         <FieldError id="retroName-error" message={errors.retroName?.message} />
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="formatId" className="block font-sans text-xs font-semibold text-slate-400 tracking-wider uppercase">
+          Format de rétro
+        </label>
+        <select
+          id="formatId"
+          disabled={isSubmitting}
+          className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none transition-colors focus:border-blue-400 disabled:opacity-60"
+          {...register("formatId")}
+        >
+          {RETRO_FORMAT_OPTIONS.map((format) => (
+            <option key={format.id} value={format.id}>
+              {format.name}
+            </option>
+          ))}
+        </select>
+        <FieldError id="formatId-error" message={errors.formatId?.message} />
       </div>
 
       <div className="pt-1">

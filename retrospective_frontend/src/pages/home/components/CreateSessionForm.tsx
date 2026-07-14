@@ -8,9 +8,11 @@ import { getApiErrorMessage, isApiSuccess, NETWORK_ERROR_MESSAGE, readJsonSafely
 import FieldError from "@/components/ui/FieldError";
 
 import { API_BASE } from "@/lib/api";
+import { DEFAULT_RETRO_FORMAT_ID, RETRO_FORMAT_OPTIONS, getRetroFormatById } from "@/lib/retroFormats";
 
 const createSessionSchema = z.object({
   retroName: z.string().trim().min(3, "Le nom de la rétrospective doit contenir au moins 3 caractères."),
+  formatId: z.string().min(1, "Le format est requis."),
 });
 
 type CreateSessionValues = z.infer<typeof createSessionSchema>;
@@ -30,10 +32,12 @@ const CreateSessionForm = ({ onSessionCreated }: CreateSessionFormProps) => {
     formState: { errors, isSubmitting },
   } = useForm<CreateSessionValues>({
     resolver: zodResolver(createSessionSchema),
-    defaultValues: { retroName: "" },
+    defaultValues: { retroName: "", formatId: DEFAULT_RETRO_FORMAT_ID },
   });
 
   const onSubmit = async (values: CreateSessionValues) => {
+    const selectedFormat = getRetroFormatById(values.formatId);
+
     try {
       const response = await fetch(`${API_BASE}/session/create-session`, {
         method: "POST",
@@ -41,7 +45,11 @@ const CreateSessionForm = ({ onSessionCreated }: CreateSessionFormProps) => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ name: values.retroName.trim() }),
+        body: JSON.stringify({
+          name: values.retroName.trim(),
+          formatName: selectedFormat.name,
+          formatColumns: selectedFormat.columns,
+        }),
       });
       const data = await readJsonSafely(response);
 
@@ -71,6 +79,25 @@ const CreateSessionForm = ({ onSessionCreated }: CreateSessionFormProps) => {
           {...register("retroName")}
         />
         <FieldError id="retroName-error" message={errors.retroName?.message} />
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="formatId" className="block font-sans text-xs font-semibold text-slate-400 tracking-wider uppercase">
+          Format de rétro
+        </label>
+        <select
+          id="formatId"
+          disabled={isSubmitting}
+          className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none transition-colors focus:border-blue-400 disabled:opacity-60"
+          {...register("formatId")}
+        >
+          {RETRO_FORMAT_OPTIONS.map((format) => (
+            <option key={format.id} value={format.id}>
+              {format.name}
+            </option>
+          ))}
+        </select>
+        <FieldError id="formatId-error" message={errors.formatId?.message} />
       </div>
 
       <div className="pt-1">

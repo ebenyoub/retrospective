@@ -1,0 +1,51 @@
+export type RetroFormatId =
+  | "start-stop-continue"
+  | "positive-negative-actions"
+  | "success-difficulties-ideas"
+  | "liked-less-liked-proposals"
+  | "keep-improve-innovate"
+  | "went-well-improve-next-actions";
+
+export interface RetroFormatOption {
+  id: RetroFormatId;
+  name: string;
+  columns: string[];
+}
+
+export const RETRO_FORMAT_OPTIONS: RetroFormatOption[] = [
+  {
+    id: "start-stop-continue",
+    name: "Commencer / Arrêter / Continuer",
+    columns: ["Commencer", "Arrêter", "Continuer"],
+  },
+  {
+    id: "positive-negative-actions",
+    name: "Points positifs / Points négatifs / Actions",
+    columns: ["Points positifs", "Points négatifs", "Actions"],
+  },
+  {
+    id: "success-difficulties-ideas",
+    name: "Succès / Difficultés / Idées",
+    columns: ["Succès", "Difficultés", "Idées"],
+  },
+  {
+    id: "liked-less-liked-proposals",
+    name: "J'ai aimé / J'ai moins aimé / Propositions",
+    columns: ["J'ai aimé", "J'ai moins aimé", "Propositions"],
+  },
+  {
+    id: "keep-improve-innovate",
+    name: "Conserver / Améliorer / Innover",
+    columns: ["Conserver", "Améliorer", "Innover"],
+  },
+  {
+    id: "went-well-improve-next-actions",
+    name: "Bien passé / À améliorer / Prochaines actions",
+    columns: ["Bien passé", "À améliorer", "Prochaines actions"],
+  },
+];
+
+export const DEFAULT_RETRO_FORMAT_ID: RetroFormatId = "start-stop-continue";
+
+export const getRetroFormatById = (formatId: string): RetroFormatOption =>
+  RETRO_FORMAT_OPTIONS.find((format) => format.id === formatId) ?? RETRO_FORMAT_OPTIONS[0];
