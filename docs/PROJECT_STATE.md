@@ -4,6 +4,8 @@
 
 ## Date de dernière mise à jour
 
+2026-07-14 (`MVP-COMMENTS-02 — Validation E2E de la modal Commentaires` terminé : création de session-comments.spec.ts pour vérifier le focus trap à l'ouverture, l'état vide, les contrôles désactivés, la fermeture via Escape et la restauration du focus.)
+
 2026-07-14 (`MVP-DISCUSSION-02 — Validation E2E du drawer Discussion` terminé : complétion de session-drawers.spec.ts pour vérifier le titre d'état vide, la désactivation des contrôles et la rouverture sans régression.)
 
 2026-07-14 (`MVP-PARTICIPANTS-02 — Validation E2E du drawer Participants` terminé : complétion de session-drawers.spec.ts pour valider le badge Hôte, les rôles Facilitateur/Participant, et les statuts En ligne/Hors ligne.)

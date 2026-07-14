@@ -111,6 +111,7 @@ Fonctionnalités explicitement justifiées par le cahier des charges, les User S
 | 8 | **MVP-DISCUSSION-01** | US-07 | P1 | Finaliser Discussion. | ✅ Terminé |
 | 8.1 | **MVP-DISCUSSION-02** | US-07 | P1 | Validation E2E du drawer Discussion. | ✅ Terminé |
 | 9 | **MVP-COMMENTS-01** | US-07 | P1 | Implémenter les commentaires de cartes. | ✅ Terminé |
+| 9.1 | **MVP-COMMENTS-02** | US-07 | P1 | Validation E2E de la modal Commentaires. | ✅ Terminé |
 | 10 | **MVP-ACTION-01** | US-11 | P1 | Ajouter le plan d'action. | ❌ Reporté |
 | 11 | **MVP-SUMMARY-01** | US-11 | P1 | Ajouter l'écran résumé. | ❌ Reporté |
 | 12 | **MVP-WRITING-STATE-01** | US-07 | P2 | Finaliser les états chargement/erreur/vides. | ✅ Terminé |
