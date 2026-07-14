@@ -4,6 +4,8 @@
 
 ## Date de dernière mise à jour
 
+2026-07-14 (`MVP-E2E-02 — Validation E2E du parcours produit complet` terminé : création de session-full-journey.spec.ts couvrant l'inscription, la création de session, l'écriture, le vote et l'affichage final des résultats.)
+
 2026-07-14 (`MVP-TRANSITION-02 — Validation E2E de l'enchaînement des étapes` terminé : création de session-transition.spec.ts couvrant le parcours complet waiting -> writing -> voting -> results sous le contrôle du facilitateur.)
 
 2026-07-14 (`MVP-RESULTS-02 — Validation E2E de l'écran Résultats` terminé : création de session-results.spec.ts couvrant l'accès à l'étape, l'affichage des médailles du Top 3, le tri et le respect des libellés dynamiques du format.)
