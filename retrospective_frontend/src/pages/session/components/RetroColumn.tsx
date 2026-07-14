@@ -1,6 +1,7 @@
-import RetroCardItem, { type RetroCard } from "./RetroCardItem";
+import type { RetroCard } from '../types/card.types';
+import RetroCardItem from "./RetroCardItem";
 import RetroAddCardForm from "./RetroAddCardForm";
-import EmptyState from "./EmptyState";
+import EmptyState from "@/components/ui/EmptyState";
 import { cn } from "@/lib/utils";
 
 interface RetroColumnProps {

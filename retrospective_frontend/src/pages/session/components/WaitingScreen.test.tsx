@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { WaitingScreen } from './WaitingScreen';
-import type { ParticipantSummary } from '../hooks/useSessionParticipants';
+import type { ParticipantSummary } from '../types/participant.types';
 
 const makeParticipant = (overrides: Partial<ParticipantSummary> = {}): ParticipantSummary => ({
   id: 1,

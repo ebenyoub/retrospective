@@ -4,6 +4,11 @@ developer_instructions = """
 Analyse uniquement :
 - `git diff`
 - `git status`
+Vérifie la branche via `git status --short --branch`.
+Signale une correction requise si :
+- la branche est `main` avec des modifications ;
+- la branche est `dev` avec des modifications de ticket ;
+- la branche `feature/<ticket-id>` ne correspond pas au ticket annoncé.
 N'ouvre un fichier que si le diff ne suffit pas.
 Ne relis jamais l'ensemble du projet.
 Vérifie uniquement :

@@ -4,9 +4,9 @@ import { z } from "zod";
 import Button from "@/components/ui/Button";
 import { Input } from "@/components/ui/FormContainer";
 import FieldError from "@/components/ui/FieldError";
-import { getApiErrorMessage, isApiSuccess, NETWORK_ERROR_MESSAGE, readJsonSafely } from "@/lib/apiError";
-
-import { API_BASE } from "@/lib/api";
+import { getApiErrorMessage, NETWORK_ERROR_MESSAGE } from "@/lib/apiError";
+import { guestJoin } from "../services/participantApi";
+import type { GuestJoinResponse } from '../types/participant.types';
 
 // Même règle que côté backend (validators/participant.validator.ts) : lettres
 // (accents inclus), chiffres, espaces, apostrophes et tirets.
@@ -22,13 +22,6 @@ const pseudoFormSchema = z.object({
 });
 
 type PseudoFormValues = z.infer<typeof pseudoFormSchema>;
-
-export interface GuestJoinResponse {
-  id: number;
-  displayName: string;
-  role: "facilitator" | "participant";
-  guestToken: string;
-}
 
 interface JoinSessionModalProps {
   sessionId: string;
@@ -49,20 +42,15 @@ const JoinSessionModal = ({ sessionId, sessionName, onJoined }: JoinSessionModal
 
   const onSubmit = async (values: PseudoFormValues) => {
     try {
-      const response = await fetch(`${API_BASE}/session/${sessionId}/participants/guest-join`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pseudo: values.pseudo }),
-      });
-      const data = await readJsonSafely(response);
+      const result = await guestJoin(sessionId, values.pseudo);
 
-      if (!response.ok || !isApiSuccess<GuestJoinResponse>(data)) {
-        const fallback = response.status === 403 ? "Cette session est complète." : "Impossible de rejoindre la session.";
-        setError("pseudo", { message: getApiErrorMessage(data, fallback) });
+      if (!result.ok) {
+        const fallback = result.status === 403 ? "Cette session est complète." : "Impossible de rejoindre la session.";
+        setError("pseudo", { message: getApiErrorMessage(result.payload, fallback) });
         return;
       }
 
-      onJoined(data.data);
+      onJoined(result.data);
     } catch (error) {
       console.error(error);
       setError("pseudo", { message: NETWORK_ERROR_MESSAGE });
@@ -101,7 +89,7 @@ const JoinSessionModal = ({ sessionId, sessionName, onJoined }: JoinSessionModal
             <FieldError id="pseudo-error" message={errors.pseudo?.message} />
           </div>
 
-          <Button type="submit" variant="primary" size="lg" className="w-full" disabled={isSubmitting}>
+          <Button unstyled type="submit" variant="primary" size="lg" className="w-full" disabled={isSubmitting}>
             {isSubmitting ? "Connexion..." : "Rejoindre la session"}
           </Button>
         </form>

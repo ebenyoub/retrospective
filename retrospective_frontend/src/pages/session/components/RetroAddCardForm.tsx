@@ -1,4 +1,5 @@
 import { useState, type KeyboardEvent } from 'react';
+import IconButton from '@/components/ui/IconButton';
 
 interface RetroAddCardFormProps {
   /** Couleur hexadécimale de la colonne (ex: '#16a34a') pour colorier la bordure et le bouton. */
@@ -58,12 +59,11 @@ const RetroAddCardForm = ({ color, onAddCard }: RetroAddCardFormProps) => {
         />
 
         {/* Bouton icon-only 34×34 — coloré quand actif, grisé quand vide */}
-        <button
-          type="button"
+        <IconButton
           onClick={() => void submit()}
           disabled={!hasContent || isSubmitting}
           aria-label="Ajouter"
-          className="flex-shrink-0 flex items-center justify-center rounded-[9px] transition-all disabled:cursor-not-allowed"
+          className="h-[34px] w-[34px] rounded-[9px] border-0 transition-all disabled:cursor-not-allowed disabled:opacity-100"
           style={{
             width: 34,
             height: 34,
@@ -88,7 +88,7 @@ const RetroAddCardForm = ({ color, onAddCard }: RetroAddCardFormProps) => {
               strokeLinecap="round"
             />
           </svg>
-        </button>
+        </IconButton>
       </div>
     </div>
   );

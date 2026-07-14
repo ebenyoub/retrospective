@@ -1,10 +1,5 @@
 import { useCallback, useState } from "react";
-
-export interface GuestIdentity {
-  participantId: number;
-  guestToken: string;
-  displayName: string;
-}
+import type { GuestIdentity } from '../types/participant.types';
 
 const storageKey = (sessionId: string): string => `retro:guest:${sessionId}`;
 

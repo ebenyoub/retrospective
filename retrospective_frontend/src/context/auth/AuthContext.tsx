@@ -1,7 +1,7 @@
 import { AuthContext, type AuthLoginData } from "@/context/auth/useAuth";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { API_BASE } from "@/lib/api";
+import { fetchProfileApi } from "@/pages/auth/services/authApi";
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [token, setToken] = useState(localStorage.getItem('token') || "")
@@ -48,18 +48,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (!isAuthenticated) return;
 
       try {
-        const response = await fetch(`${API_BASE}/auth/profile`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const result = await fetchProfileApi(token);
 
-        if (!response.ok) {
+        if (!result.ok) {
           logout();
           return;
         }
 
-        const user = await response.json();
-        setUserId(user.userId);
-        setUsername(user.username);
+        setUserId(result.data.userId);
+        setUsername(result.data.username);
       } catch (error) {
         console.error("Erreur fetchProfile :", error);
         logout();

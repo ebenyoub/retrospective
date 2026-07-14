@@ -13,6 +13,9 @@ type Errors<TValues extends { [key: string]: unknown }> = {
     [K in keyof TValues]?: string;
 }
 
+type FormControlElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+type FormControlEvent = React.ChangeEvent<FormControlElement> | React.FocusEvent<FormControlElement>;
+
 const useFormValidation = <TValues extends Record<keyof TValues, unknown>>(
     initialValues: TValues,
     validationSchema: ValidationSchema<TValues>
@@ -38,7 +41,7 @@ const useFormValidation = <TValues extends Record<keyof TValues, unknown>>(
         [validationSchema, values]
     );
 
-    const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleInputChange = useCallback((e: FormControlEvent) => {
         const { name, value } = e.target;
 
         const fieldName = name as keyof TValues;

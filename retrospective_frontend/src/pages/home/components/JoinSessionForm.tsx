@@ -111,7 +111,7 @@ const JoinSessionForm = ({ onSessionJoined }: JoinSessionFormProps) => {
         <FieldError id="pseudo-error" message={errors.pseudo?.message} />
       </div>
 
-      <Button type="submit" variant="success" size="lg" className="w-full" disabled={isSubmitting}>
+      <Button unstyled type="submit" variant="success" size="lg" className="w-full" disabled={isSubmitting}>
         {isSubmitting ? "Connexion..." : "Rejoindre →"}
       </Button>
 

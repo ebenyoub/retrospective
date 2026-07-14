@@ -4,6 +4,7 @@
 
 ## À faire maintenant
 
+- [ ] **MVP-WRITING-01 — Finaliser le design des cartes et des actions Modifier/Supprimer sur l'écran Écriture** : première tâche MVP après `BACKLOG-REALIGN-01`. Rester strictement sur les cartes et leurs actions visuelles/fonctionnelles ; ne pas démarrer timer, discussion, commentaires, vote, résultats, plan d'action ou résumé.
 - [ ] Analyser le code existant frontend et backend
 - [ ] Remplir `docs/technical/ARCHITECTURE.md` avec l'état réel du code
 - [ ] Remplir `docs/technical/DATABASE.md` avec le schéma existant

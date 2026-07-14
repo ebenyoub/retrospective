@@ -3,22 +3,15 @@ import Container from '@/components/ui/Container';
 import FormContainer, { FormTitle } from '@/components/ui/FormContainer';
 import FormField from '@/components/ui/FormField';
 import SpinContainer from '@/components/ui/SpinContainer';
-import { useAuth, type AuthLoginData } from '@/context/auth/useAuth';
+import { useAuth } from '@/context/auth/useAuth';
 import { useToast } from '@/context/toast/useToast';
 import useFormValidation, { type ValidationSchema } from '@/hooks/useFormValidation';
-import { getApiErrorMessage, isApiSuccess, NETWORK_ERROR_MESSAGE, readJsonSafely } from '@/lib/apiError';
-import { API_BASE } from '@/lib/api';
+import { getApiErrorMessage, NETWORK_ERROR_MESSAGE } from '@/lib/apiError';
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
+import { signupApi, type SignupValues } from '@/pages/auth/services/authApi';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-interface SignupValues {
-    username: string;
-    email: string;
-    password: string;
-    confirm: string;
-}
 
 const validateConfirmPassword = (confirmValue: string, allvalues: SignupValues) => {
     if (confirmValue !== allvalues.password) {
@@ -77,34 +70,28 @@ const Signup: React.FC = () => {
         try {
             setIsLoading(true);
 
-            const response = await fetch(`${API_BASE}/auth/signup`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(values)
-            })
+            const result = await signupApi(values);
 
-            const data = await readJsonSafely(response);
-
-            if (response.ok && isApiSuccess<Omit<AuthLoginData, "email"> & { email?: string }>(data)) {
-                login({ ...data.data, email: data.data.email ?? values.email })
-                addToast("success", getApiErrorMessage(data, "Compte créé."));
+            if (result.ok) {
+                login({ ...result.data, email: result.data.email ?? values.email });
+                addToast("success", "Compte créé.");
                 navigate('/', { replace: true });
             } else {
-                addToast("error", getApiErrorMessage(data, "Inscription impossible."));
+                addToast("error", getApiErrorMessage(result.payload, "Inscription impossible."));
             }
 
         } catch (error) {
             console.error(error);
             addToast("error", NETWORK_ERROR_MESSAGE);
-} finally {
-    setIsLoading(false);
-}
+        } finally {
+            setIsLoading(false);
+        }
     }
 
 return (
     <Container className='flex justify-center items-center min-h-[60vh]'>
         <SpinContainer onSpin={isLoading} className="w-full max-w-md">
-            <FormContainer onSubmit={handleSubmit}>
+            <FormContainer onSubmit={handleSubmit} aria-busy={isLoading}>
                 <FormTitle>S'enregistrer</FormTitle>
 
                 <FormField

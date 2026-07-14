@@ -3,19 +3,14 @@ import FormField from '@/components/ui/FormField';
 import SpinContainer from '@/components/ui/SpinContainer';
 import Container from '@/components/ui/Container';
 import Button from '@/components/ui/Button';
-import { useAuth, type AuthLoginData } from '@/context/auth/useAuth';
+import { useAuth } from '@/context/auth/useAuth';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useToast } from '@/context/toast/useToast';
 import type { ValidationSchema } from '@/hooks/useFormValidation';
 import useFormValidation from '@/hooks/useFormValidation';
-import { getApiErrorMessage, isApiSuccess, NETWORK_ERROR_MESSAGE, readJsonSafely } from '@/lib/apiError';
+import { getApiErrorMessage, NETWORK_ERROR_MESSAGE } from '@/lib/apiError';
 import { resolveLandingRoute } from '@/lib/sessionLanding';
-import { API_BASE } from '@/lib/api';
-
-interface LoginValues {
-    email: string;
-    password: string;
-}
+import { loginApi, type LoginValues } from '@/pages/auth/services/authApi';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -58,23 +53,18 @@ const Login: React.FC = () => {
         try {
             setIsLoading(true);
 
-            const response = await fetch(`${API_BASE}/auth/login`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(values)
-            })
-            const data = await readJsonSafely(response);
+            const result = await loginApi(values);
 
-            if (response.ok && isApiSuccess<AuthLoginData>(data)) {
-                login(data.data)
-                addToast("success", "Vous êtes connectés.")
+            if (result.ok) {
+                login(result.data);
+                addToast("success", "Vous êtes connectés.");
 
                 // Redirection selon les sessions actives du facilitateur :
                 // une seule → dedans, plusieurs → "Mes sessions", aucune → accueil.
-                const landingRoute = await resolveLandingRoute(data.data.token);
+                const landingRoute = await resolveLandingRoute(result.data.token);
                 navigate(landingRoute, { replace: true });
             } else {
-                addToast("error", getApiErrorMessage(data, "Connexion impossible."));
+                addToast("error", getApiErrorMessage(result.payload, "Connexion impossible."));
             }
         } catch (err) {
             console.error(err);
@@ -87,7 +77,7 @@ const Login: React.FC = () => {
     return (
         <Container className='flex justify-center items-center min-h-[60vh]'>
             <SpinContainer onSpin={isLoading} className="w-full max-w-md">
-                <FormContainer onSubmit={handleSubmit}>
+                <FormContainer onSubmit={handleSubmit} aria-busy={isLoading}>
                     <FormTitle>Connexion</FormTitle>
                     <FormField
                         id="email"

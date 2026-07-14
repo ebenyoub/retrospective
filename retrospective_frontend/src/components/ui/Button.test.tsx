@@ -27,4 +27,18 @@ describe('Button', () => {
     const button = screen.getByRole('button', { name: 'Valider' }) as HTMLButtonElement;
     expect(button.type).toBe('submit');
   });
+
+  it('fusionne les classes personnalisées avec la variante', () => {
+    render(<Button variant="primary" className="w-full">Valider</Button>);
+
+    const button = screen.getByRole('button', { name: 'Valider' });
+    expect(button.className).toContain('bg-slate-50');
+    expect(button.className).toContain('w-full');
+  });
+
+  it('préserve une apparence entièrement personnalisée avec unstyled', () => {
+    render(<Button unstyled className="custom-button">Valider</Button>);
+
+    expect(screen.getByRole('button', { name: 'Valider' }).className).toBe('custom-button');
+  });
 });

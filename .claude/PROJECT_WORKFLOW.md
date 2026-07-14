@@ -9,6 +9,80 @@ Ces règles priment sur les préférences de l'IA.
 Le Product Backlog est la source officielle des priorités.
 L'IA ne choisit jamais elle-même la prochaine fonctionnalité.
 Elle exécute la première tâche prioritaire non terminée, sauf décision explicite de l'utilisateur.
+Les agents ne peuvent jamais créer ou modifier directement une User Story dans PRODUCT_BACKLOG.md sans validation explicite du Product Owner. Toute proposition doit d'abord être enregistrée dans BACKLOG_IDEAS.md.
+
+---
+
+# Orchestrateur
+L'orchestrateur principal est le seul coordinateur du workflow.
+
+Responsabilités :
+- sélectionner la tâche courante ;
+- vérifier la branche Git ;
+- évaluer la complexité avant toute implémentation ;
+- proposer un découpage si la tâche dépasse un composant ou plusieurs couches ;
+- lancer le développement ;
+- appeler Playwright lorsque la tâche modifie l'UI ;
+- appeler le reviewer sur le git diff uniquement ;
+- appeler la documentation après validation ;
+- créer le commit ;
+- vérifier que le dépôt est propre ;
+- passer à la tâche suivante.
+
+Avant toute implémentation, l'orchestrateur évalue la complexité de la tâche.
+Si la tâche modifie plusieurs couches (frontend, backend, SQL, tests...), impacte un grand nombre de fichiers, ou dépasse le périmètre d'un seul composant, il suspend le développement et propose un découpage en sous-tâches.
+Aucune implémentation ne commence tant que ce découpage n'est pas validé.
+L'orchestrateur est responsable du respect du périmètre et vérifie que le développement reste limité au ticket courant.
+Toute demande hors périmètre est enregistrée dans `BACKLOG_IDEAS.md` ou reportée à un ticket ultérieur.
+
+Les subagents ne doivent jamais :
+- choisir eux-mêmes une nouvelle tâche ;
+- créer une User Story ;
+- modifier le Product Backlog ;
+- créer un commit de leur propre initiative.
+
+Chaque subagent applique uniquement les règles correspondant à sa responsabilité.
+
+---
+
+# Git Flow obligatoire
+Le projet utilise le workflow suivant :
+
+```text
+feature/<ticket-id>
+↓ Pull Request
+dev
+↓ Validation
+↓ Pull Request
+main
+↓ Déploiement
+```
+
+Règles de branches :
+- `main` est toujours stable et déployable.
+- `dev` est la branche d'intégration.
+- chaque ticket du Product Backlog se développe sur une branche dédiée `feature/<ticket-id>`.
+- le `<ticket-id>` de la branche doit correspondre au ticket traité.
+
+Avant toute implémentation, l'agent doit :
+1. exécuter `git status --short --branch` ;
+2. identifier la branche courante ;
+3. vérifier que la branche correspond au ticket en cours.
+
+Si la branche courante est `main` :
+- refuser toute implémentation directe ;
+- demander ou créer une branche `feature/<ticket-id>` depuis `dev` uniquement après validation utilisateur.
+
+Si la branche courante est `dev` :
+- ne pas développer directement ;
+- créer automatiquement `feature/<ticket-id>` avant toute modification, sauf si l'utilisateur demande explicitement une analyse sans code.
+
+Si la branche courante est `feature/<autre-ticket>` :
+- ne pas développer ;
+- signaler que la branche ne correspond pas au ticket demandé.
+
+Une Pull Request vers `dev` est obligatoire pour intégrer une branche `feature/*`.
+Une Pull Request de `dev` vers `main` est obligatoire après validation.
 
 ---
 
@@ -131,6 +205,9 @@ Mettre à jour DECISIONS.md uniquement lorsqu'une décision d'architecture ou de
 Ne jamais faire de commit automatiquement.
 Toujours attendre la validation explicite de l'utilisateur.
 Le commit doit correspondre à une seule tâche du Product Backlog.
+Ne jamais développer directement sur `main` ou `dev`.
+Les branches de travail doivent respecter `feature/<ticket-id>`.
+Avant un commit, vérifier que les fichiers indexés appartiennent au ticket de la branche courante.
 
 ---
 
