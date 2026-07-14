@@ -125,10 +125,32 @@ test('ouvre et ferme les drawers au clavier et au clic extérieur', async ({ pag
   await expect(participantsDrawer).not.toBeVisible();
   await expect(participantsTrigger).toBeFocused();
 
-  await page.getByRole('button', { name: 'Discussion' }).click();
+  // ── VALIDATION DE LA DISCUSSION (MVP-DISCUSSION-02) ──
+  const discussionTrigger = page.getByRole('button', { name: 'Discussion' });
+  await discussionTrigger.click();
+
   const discussionDrawer = page.getByRole('dialog', { name: 'Discussion' });
   await expect(discussionDrawer).toBeVisible();
 
+  // Vérification de l'état vide
+  await expect(discussionDrawer.getByText('Aucun message pour le moment')).toBeVisible();
+
+  // Vérification des contrôles désactivés (périmètre borné)
+  const messageInput = discussionDrawer.getByRole('textbox', { name: 'Écrire un message' });
+  await expect(messageInput).toBeDisabled();
+
+  const sendButton = discussionDrawer.getByRole('button', { name: 'Envoyer le message' });
+  await expect(sendButton).toBeDisabled();
+
+  // Fermer le drawer
+  await page.getByRole('button', { name: 'Fermer le panneau Discussion' }).click();
+  await expect(discussionDrawer).not.toBeVisible();
+
+  // Vérifier la rouverture sans régression
+  await discussionTrigger.click();
+  await expect(discussionDrawer).toBeVisible();
+
+  // Fermer à nouveau
   await page.getByRole('button', { name: 'Fermer le panneau Discussion' }).click();
   await expect(discussionDrawer).not.toBeVisible();
 });
