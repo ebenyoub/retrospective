@@ -4,6 +4,8 @@
 
 ## Date de dernière mise à jour
 
+2026-07-14 (`MVP-RESULTS-02 — Validation E2E de l'écran Résultats` terminé : création de session-results.spec.ts couvrant l'accès à l'étape, l'affichage des médailles du Top 3, le tri et le respect des libellés dynamiques du format.)
+
 2026-07-14 (`MVP-VOTE-02 — Validation E2E de la salle de vote` terminé : création de session-voting.spec.ts couvrant le quota, les boutons de vote et la mise à jour dynamique de la page. Résolution d'un bug latent sur le mock de /auth/profile qui n'était pas correctement enveloppé pour requestApi, restaurant la totalité des tests Playwright au vert.)
 
 2026-07-14 (`AUTH-02 — Audit et correction accessibilité` terminé : mise en accessibilité complète des formulaires du module Auth et Forgot. Centralisation de aria-invalid dans FormField.tsx, et ajout de role="alert" pour l'erreur globale et aria-busy pour l'attente réseau.)
