@@ -4,6 +4,8 @@
 
 ## Date de dernière mise à jour
 
+2026-07-14 (`MVP-PARTICIPANTS-02 — Validation E2E du drawer Participants` terminé : complétion de session-drawers.spec.ts pour valider le badge Hôte, les rôles Facilitateur/Participant, et les statuts En ligne/Hors ligne.)
+
 2026-07-14 (`MVP-E2E-02 — Validation E2E du parcours produit complet` terminé : création de session-full-journey.spec.ts couvrant l'inscription, la création de session, l'écriture, le vote et l'affichage final des résultats.)
 
 2026-07-14 (`MVP-TRANSITION-02 — Validation E2E de l'enchaînement des étapes` terminé : création de session-transition.spec.ts couvrant le parcours complet waiting -> writing -> voting -> results sous le contrôle du facilitateur.)

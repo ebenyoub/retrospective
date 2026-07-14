@@ -107,6 +107,7 @@ Fonctionnalités explicitement justifiées par le cahier des charges, les User S
 | 6 | **MVP-E2E-01** | US-11 | P0 | Vérifier le parcours produit complet. | ✅ Terminé |
 | 6.1 | **MVP-E2E-02** | US-11 | P0 | Validation E2E du parcours produit complet. | ✅ Terminé |
 | 7 | **MVP-PARTICIPANTS-01** | US-07 | P1 | Corriger l'UX du drawer Participants. | ✅ Terminé |
+| 7.1 | **MVP-PARTICIPANTS-02** | US-07 | P1 | Validation E2E du drawer Participants. | ✅ Terminé |
 | 8 | **MVP-DISCUSSION-01** | US-07 | P1 | Finaliser Discussion. | ✅ Terminé |
 | 9 | **MVP-COMMENTS-01** | US-07 | P1 | Implémenter les commentaires de cartes. | ✅ Terminé |
 | 10 | **MVP-ACTION-01** | US-11 | P1 | Ajouter le plan d'action. | ❌ Reporté |

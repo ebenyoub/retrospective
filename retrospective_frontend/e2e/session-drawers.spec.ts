@@ -62,6 +62,20 @@ const prepareSession = async (page: Page): Promise<void> => {
             role: 'facilitator',
             status: 'online',
           },
+          {
+            id: 2,
+            sessionId: 200,
+            displayName: 'Alice',
+            role: 'participant',
+            status: 'online',
+          },
+          {
+            id: 3,
+            sessionId: 200,
+            displayName: 'Bob',
+            role: 'participant',
+            status: 'offline',
+          },
         ],
       }),
     });
@@ -75,14 +89,37 @@ test('ouvre et ferme les drawers au clavier et au clic extérieur', async ({ pag
   const participantsTrigger = page.getByRole('button', { name: 'Participants' });
   await participantsTrigger.click();
 
-  const participantsDrawer = page.getByRole('dialog', { name: 'Participants (1)' });
+  // Le drawer affiche Participants (3) au total
+  const participantsDrawer = page.getByRole('dialog', { name: 'Participants (3)' });
   await expect(participantsDrawer).toBeVisible();
   await expect(participantsDrawer).toBeFocused();
+
+  // Vérification de la taille et de l'aspect de l'avatar du premier participant
   const participantAvatar = participantsDrawer.locator('div[aria-hidden="true"]').filter({ hasText: 'F' });
   await expect(participantAvatar).toHaveCSS('width', '32px');
   await expect(participantAvatar).toHaveCSS('height', '32px');
   await expect(participantAvatar).toHaveCSS('font-size', '12px');
   await expect(participantAvatar).toHaveCSS('background-color', 'rgb(239, 68, 68)');
+
+  // ── VALIDATION DES RÔLES ET STATUTS (MVP-PARTICIPANTS-02) ──
+
+  // 1. Facilitateur (rôle Facilitateur, badge Hôte, en ligne)
+  const facItem = participantsDrawer.locator('li').filter({ hasText: 'Facilitateur' });
+  // Le nom "Facilitateur" est présent 2 fois (le pseudo de l'hôte et son rôle "Facilitateur")
+  await expect(facItem.getByText('Facilitateur', { exact: true })).toHaveCount(2);
+  await expect(facItem.getByText('Hôte')).toBeVisible();
+  await expect(facItem.getByText('En ligne')).toBeVisible();
+
+  // 2. Alice (rôle Participant, en ligne, pas de badge Hôte)
+  const aliceItem = participantsDrawer.locator('li').filter({ hasText: 'Alice' });
+  await expect(aliceItem.getByText('Participant')).toBeVisible();
+  await expect(aliceItem.getByText('Hôte')).toHaveCount(0);
+  await expect(aliceItem.getByText('En ligne')).toBeVisible();
+
+  // 3. Bob (rôle Participant, hors ligne)
+  const bobItem = participantsDrawer.locator('li').filter({ hasText: 'Bob' });
+  await expect(bobItem.getByText('Participant')).toBeVisible();
+  await expect(bobItem.getByText('Hors ligne')).toBeVisible();
 
   await page.keyboard.press('Escape');
   await expect(participantsDrawer).not.toBeVisible();
@@ -102,7 +139,7 @@ test('conserve les placements mobiles des deux drawers', async ({ page }) => {
   await page.goto('/session/200');
 
   await page.getByRole('button', { name: 'Participants' }).click();
-  const participantsDrawer = page.getByRole('dialog', { name: 'Participants (1)' });
+  const participantsDrawer = page.getByRole('dialog', { name: 'Participants (3)' });
   await expect(participantsDrawer).toHaveClass(/bottom-0/);
   await page.keyboard.press('Escape');
 
