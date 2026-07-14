@@ -32,7 +32,7 @@ test('parcours produit complet : inscription, creation de session, ecriture, vot
       contentType: 'application/json',
       body: JSON.stringify({
         success: true,
-        data: { userId: 1, username: 'JohnDoe' }
+        data: { userId: 1, username: 'JohnDoe', email: 'john@example.com' }
       }),
     });
   });
@@ -159,14 +159,15 @@ test('parcours produit complet : inscription, creation de session, ecriture, vot
   await page.getByLabel('Confirmation du mot de passe').fill('Password123');
   await page.getByRole('button', { name: "S'inscrire" }).click();
 
-  // 2. Création de session
-  await page.goto('/session');
-  await page.getByLabel('Nom de la session').fill('Sprint Full Journey');
-  await page.getByLabel('Format de rétro').selectOption('start-stop-continue');
-  await page.getByRole('button', { name: 'Créer la session' }).click();
+  // Attendre d'être redirigé vers l'accueil suite à l'inscription réussie
+  await expect(page).toHaveURL('/');
 
-  // Redirection vers le tableau
-  await page.getByRole('button', { name: 'Accéder au tableau' }).click();
+  // 2. Création de session (directement sur la page d'accueil connectée)
+  await page.getByLabel('Nom de la rétro').fill('Sprint Full Journey');
+  await page.getByLabel('Format de rétro').selectOption('start-stop-continue');
+  await page.getByRole('button', { name: 'Créer et lancer' }).click();
+
+  // Attendre la redirection directe vers le tableau
   await expect(page).toHaveURL(/\/session\/600$/);
 
   // 3. Salle d'attente (Waiting Step)
