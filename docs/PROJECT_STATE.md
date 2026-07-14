@@ -4,6 +4,8 @@
 
 ## Date de dernière mise à jour
 
+2026-07-14 (`TODO-FORMAT-01 — Formats MVP 3 colonnes` terminé : les 6 formats validés en français sont la seule source de vérité, la création de session persiste le format choisi, la salle d'attente permet uniquement ces 6 formats, les écrans Écriture et Résultats affichent les libellés du format réel tout en conservant les clés techniques `start`/`stop`/`continue` pour les cartes, et les anciennes sessions sans format exploitable restent compatibles avec le format par défaut)
+
 2026-07-14 (`TODO-DOCS-01 — Régénérer secrets` terminé : `docker-compose.yml` ne porte plus de valeur Gmail/JWT de production en dur, `.env.example` et docs sécurité/déploiement/jury documentent la génération hors dépôt avec `openssl rand -base64 48` et le stockage en variables d'environnement)
 
 2026-07-13 (`T-SESSION-BAR-06 — Revue UI finale de l'écran Écriture` terminé : écran complet comparé au prototype sur desktop/mobile avec Playwright ; aucune correction fonctionnelle supplémentaire nécessaire après validation des composants précédents ; test ciblé, lint et TypeScript OK)
@@ -30,7 +32,7 @@
 
 ## État global
 
-🟢 MVP prêt et stabilisé côté fonctionnalités et design. Le parcours participant complet (code + pseudo → salle d'attente → écriture → vote → résultats) est désormais **fonctionnel de bout en bout et aligné visuellement sur Figma**, y compris en navigation directe via lien d'invitation. La salle d'attente et le changement d'étape sont **synchronisés en temps réel** (Socket.IO) avec une vraie source de vérité backend (`session_participants`), et un polling de secours de 4s assure la robustesse pour les cartes et les votes. Capacité de session portée à 25 personnes. Le facilitateur dispose de presets et d'un configurateur de format de colonnes. Le menu « Profil » et le menu d'actions de session `…` respectent l'accessibilité. L'ensemble des 185 tests backend et 109 tests frontend sont au vert, TypeScript compile proprement et ESLint ne lève aucune erreur. L'application est validée en conditions réelles et prête à l'emploi.
+🟢 MVP prêt et stabilisé côté fonctionnalités et design. Le parcours participant complet (code + pseudo → salle d'attente → écriture → vote → résultats) est désormais **fonctionnel de bout en bout et aligné visuellement sur Figma**, y compris en navigation directe via lien d'invitation. La salle d'attente et le changement d'étape sont **synchronisés en temps réel** (Socket.IO) avec une vraie source de vérité backend (`session_participants`), et un polling de secours de 4s assure la robustesse pour les cartes et les votes. Capacité de session portée à 25 personnes. Le facilitateur choisit parmi les 6 formats MVP français, tous limités à 3 colonnes. Le menu « Profil » et le menu d'actions de session `…` respectent l'accessibilité. L'ensemble des 185 tests backend et 109 tests frontend sont au vert, TypeScript compile proprement et ESLint ne lève aucune erreur. L'application est validée en conditions réelles et prête à l'emploi.
 
 ## Fonctionnalités livrées
 
@@ -73,7 +75,7 @@
 | Parcours de création de compte + première rétro combiné sur l'accueil | ✅ `CreateAccountForm`/`CreateSessionForm`/`JoinSessionForm` (React Hook Form + Zod), connexion par email, redirection post-connexion selon sessions actives | 2026-07-09 |
 | **Salle d'attente temps réel** | ✅ Table `session_participants` (source de vérité unique, facilitateur + invités), Socket.IO (`session:join`/`session:participants-updated`/`session:started`), plus de redirection `/login` pour un invité, modale de pseudo (RHF + Zod), pseudo conservé tel quel (unicité par session, erreur claire si pris), pas de doublon au refresh (jeton invité en `localStorage`, isolé de l'auth) | 2026-07-10 |
 | Capacité de session portée à 25 (facilitateur inclus) | ✅ Vérifiée backend (`participant.service.ts`) et frontend, phrase dynamique sous la liste, message clair si complète | 2026-07-10 |
-| Format de rétrospective sélectionnable | ✅ 4 presets + format personnalisé (2 à 5 colonnes, modale), persistance `sessions.format_name`/`format_columns`, réservé au facilitateur (vérifié backend) | 2026-07-10 |
+| Format de rétrospective sélectionnable | ✅ 6 formats MVP français, exactement 3 colonnes, persistance `sessions.format_name`/`format_columns`, affichage cohérent en salle d'attente, écriture et résultats | 2026-07-14 |
 | Cartes de participants accessibles/lisibles | ✅ Graisse modérée, badge « Facilitateur » (pas « Admin »), statut texte + couleur, focus visible, résumé unique dans la barre latérale (suppression des répétitions) | 2026-07-10 |
 | Copie du code de session | ✅ Bouton dédié avec retour visuel, `aria-label`, API Clipboard | 2026-07-10 |
 | Menu Profil déroulant accessible | ✅ Remplace la page `/profile` : clic, clic extérieur, Échap, navigation clavier, ARIA, focus rendu au bouton | 2026-07-10 |
@@ -154,7 +156,6 @@
 
 ### Non bloquant, peut attendre
 - Responsive avancé — le responsive basique MVP est livré ; il peut rester du polish visuel fin hors périmètre.
-- **Format de rétrospective non reflété sur le tableau d'écriture** : le format choisi (presets ou personnalisé) est persisté et visible dans la salle d'attente, mais `RetroColumn`/`retro_cards.column_type` restent figés sur 3 colonnes `start/stop/continue`. Voir décision du 2026-07-10.
 - Compteur "7 participants connectés" en dur sur l'accueil (`HomeHero`) — supprimé lors d'une tâche précédente puis code source à revérifier si réintroduit ; à confirmer qu'aucune valeur fictive ne subsiste avant la soutenance.
 
 ### Potentiellement bloquant pour la soutenance (à ne pas oublier)
