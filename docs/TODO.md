@@ -38,7 +38,7 @@
 - [x] **TODO-HOME-02 — Formulaire "quick start" home page** : remplacé par le vrai flux `CreateAccountForm` (compte + rétro en un seul envoi, React Hook Form + Zod). Résolu.
 - [x] **TODO-URL-01 — API base URL en dur (`http://localhost:8000`)** : résolu le 2026-07-13 — centralisé dans `src/lib/api.ts` (`API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8000"`) + `.env.example`. Plus aucune URL en dur dans le code source.
 - [x] **TODO-AUTH-02 — Pas de redirection post-login vers la page d'origine** : après connexion, redirection selon les sessions actives (une seule → dedans, plusieurs → Mes sessions, aucune → accueil) via `resolveLandingRoute`. Résolu le 2026-07-09.
-- [ ] **TODO-DOCS-01 — Régénérer secrets** : `JWT_SECRET` et `GMAIL_APP_PASSWORD` du `docker-compose.yml` sont des valeurs placeholder. À documenter dans les slides jury et à régénérer en prod.
+- [x] **TODO-DOCS-01 — Régénérer secrets** : `JWT_SECRET` et `GMAIL_APP_PASSWORD` ne sont plus codés en dur dans `docker-compose.yml` ; procédure de génération/rotation documentée pour la soutenance et la production.
 - [x] **TODO-SESSION-01 — Liste des participants absente** : `GET /session/:id/participants` + table `session_participants` + Socket.IO. Résolu le 2026-07-10 (voir `docs/decisions/DECISIONS.md`).
 
 ## Tickets issus de l'audit styles Tailwind/Figma du 2026-07-09
@@ -121,7 +121,7 @@
 - [x] Responsive design basique (B16) — formulaires fluides, header/menu qui wrap, dashboard en 1/2/3 colonnes selon largeur, captures mobile/tablette vérifiées.
 - [x] `mail.controller.ts` et `test_transporter.js` (racine backend) — code mort supprimé (Résolu le 2026-07-08).
 - [ ] **Mode backend hors Docker** — recréer `retrospective_backend/.env` depuis `.env.example` avec de vraies valeurs avant de démarrer le serveur manuellement. En mode Docker Compose, les variables locales sont fournies par `docker-compose.yml`.
-- [ ] Secrets (`JWT_SECRET`, `GMAIL_APP_PASSWORD`) à régénérer — exposés en clair dans un historique Git local avant purge.
+- [x] Secrets (`JWT_SECRET`, `GMAIL_APP_PASSWORD`) à régénérer — procédure documentée ; les vraies valeurs doivent rester hors Git et être configurées dans l'environnement cible.
 
 ## Fait ✅ (2026-07-08, suite de journée — votes, résultats, rôles, delete-card, Express 5, UI)
 

@@ -4,6 +4,8 @@
 
 ## Date de dernière mise à jour
 
+2026-07-14 (`TODO-DOCS-01 — Régénérer secrets` terminé : `docker-compose.yml` ne porte plus de valeur Gmail/JWT de production en dur, `.env.example` et docs sécurité/déploiement/jury documentent la génération hors dépôt avec `openssl rand -base64 48` et le stockage en variables d'environnement)
+
 2026-07-13 (`T-SESSION-BAR-06 — Revue UI finale de l'écran Écriture` terminé : écran complet comparé au prototype sur desktop/mobile avec Playwright ; aucune correction fonctionnelle supplémentaire nécessaire après validation des composants précédents ; test ciblé, lint et TypeScript OK)
 
 2026-07-13 (`T-SESSION-BAR-05 — Commentaires des cartes` terminé dans le périmètre UI : ouverture d'un modal depuis les cartes, état vide sans donnée fictive, aucun compteur de commentaires affiché faute de source réelle, saisie désactivée tant qu'aucune persistance n'est validée ; test ciblé, lint, TypeScript et vérifications Playwright desktop/mobile OK)
@@ -146,7 +148,7 @@
 
 **Finalisation soutenance.**
 - Parcours facilitateur + participant invité vérifié en conditions réelles le 2026-07-13 (Docker Compose + Playwright, 2 contextes navigateur), **y compris l'ouverture directe du lien d'invitation** (sans passer par l'accueil) : création de compte + rétro, invitation, jointure sans compte, synchronisation temps réel, écriture de carte, lancement de la rétro synchronisé, code de session visible en permanence.
-- Restent : régénération des secrets, documents jury (`docs/jury/`).
+- Restent : documents jury (`docs/jury/`).
 
 ## Dette technique restante
 
@@ -160,7 +162,7 @@
   `docker-compose.yml` et la base est initialisée automatiquement. Pour un
   lancement backend manuel hors Docker, recréer `retrospective_backend/.env`
   depuis `.env.example` reste nécessaire.
-- Secrets (`JWT_SECRET`, `GMAIL_APP_PASSWORD`) à régénérer — ils ont existé en clair dans un historique Git local avant purge, à considérer comme compromis.
+- Secrets (`JWT_SECRET`, `GMAIL_APP_PASSWORD`) — procédure de rotation documentée ; les valeurs réelles doivent rester hors Git et être configurées dans l'environnement cible.
 - Protection de branche GitHub (`main`/`dev`) — commandes fournies précédemment, pas encore confirmées actives (à revérifier : `gh api repos/.../branches/main/protection`).
 - **Migrations SQL à appliquer manuellement sur toute base existante** : `retrospective_backend/sql/create_session_participants.sql` et `alter_sessions_add_format.sql` sont déjà fusionnées dans `schema.sql` pour une base neuve, mais une base Docker existante doit les exécuter une fois manuellement (déjà fait sur la base de dev locale le 2026-07-10).
 

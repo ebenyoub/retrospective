@@ -91,10 +91,30 @@ DB_PASSWORD=retrospective_password
 JWT_SECRET=une_chaine_secrete_longue_et_aleatoire
 JWT_EXPIRES_IN=24h
 
-SMTP_HOST=smtp.example.com
-SMTP_PORT=587
-SMTP_USER=email@example.com
-SMTP_PASS=mot_de_passe_smtp
+GMAIL_USER=email@example.com
+GMAIL_APP_PASSWORD=mot_de_passe_application_gmail
+```
+
+### Génération et rotation des secrets
+
+Les valeurs `JWT_SECRET` et `GMAIL_APP_PASSWORD` ne doivent jamais être
+committées avec leurs vraies valeurs.
+
+Pour préparer un environnement de démonstration ou de production :
+
+```bash
+openssl rand -base64 48
+```
+
+Utiliser la valeur obtenue comme `JWT_SECRET` dans l'environnement cible. Le
+mot de passe Gmail doit être un mot de passe d'application généré dans le
+compte Google, puis stocké uniquement dans `.env` ou dans les variables
+d'environnement du serveur.
+
+En local Docker Compose, `JWT_SECRET` peut être fourni depuis l'environnement :
+
+```bash
+JWT_SECRET="$(openssl rand -base64 48)" docker compose up --build
 ```
 
 ### Frontend

@@ -39,11 +39,11 @@ services:
       DB_NAME: retrospective
       DB_USER: retrospective_user
       DB_PASSWORD: retrospective_password
-      JWT_SECRET: local_docker_jwt_secret_change_me
+      JWT_SECRET: ${JWT_SECRET:-dev_only_change_me_jwt_secret_32_chars_min}
       JWT_EXPIRES_IN: 24h
       FRONTEND_ORIGIN: http://localhost:5173
-      GMAIL_USER: your_email@gmail.com
-      GMAIL_APP_PASSWORD: your_gmail_app_password
+      GMAIL_USER: ${GMAIL_USER:-}
+      GMAIL_APP_PASSWORD: ${GMAIL_APP_PASSWORD:-}
     ports:
       - "8000:8000"
     volumes:
