@@ -4,6 +4,12 @@
 
 ## Date de dernière mise à jour
 
+2026-07-14 (`T-QUALITY-01 — Découpage des tests frontend` terminé : le fichier monolithique `SessionDashboard.test.tsx` de 1900+ lignes a été découpé par responsabilité en 6 fichiers de tests d'intégration ciblés. Les mocks et helpers de rendu communs ont été mutualisés dans le répertoire `src/pages/session/tests/sessionTestUtils.tsx`. La couverture de tests et le comportement d'intégration sont préservés avec 139 tests verts.)
+
+2026-07-14 (`BACKLOG-STRUCTURE-01 — Hiérarchie du Product Backlog` : les tickets MVP sont rattachés à leurs User Stories parentes, la roadmap devient `Ordre d'implémentation MVP`, les anciens `T-SESSION-BAR-*` passent en historique technique, et les tickets actifs portent une priorité `P0/P1/P2`)
+
+2026-07-14 (`BACKLOG-REALIGN-01 — Réalignement MVP produit` : Product Backlog réaligné avec l'état réel du produit ; les User Stories larges `US-07`, `US-08`, `US-09` et `US-10` repassent en partiellement terminées tant que les sous-fonctionnalités produit ne sont pas livrées et validées ; prochain ticket MVP identifié : `MVP-WRITING-01`)
+
 2026-07-14 (`TODO-FORMAT-01 — Formats MVP 3 colonnes` terminé : les 6 formats validés en français sont la seule source de vérité, la création de session persiste le format choisi, la salle d'attente permet uniquement ces 6 formats, les écrans Écriture et Résultats affichent les libellés du format réel tout en conservant les clés techniques `start`/`stop`/`continue` pour les cartes, et les anciennes sessions sans format exploitable restent compatibles avec le format par défaut)
 
 2026-07-14 (`TODO-DOCS-01 — Régénérer secrets` terminé : `docker-compose.yml` ne porte plus de valeur Gmail/JWT de production en dur, `.env.example` et docs sécurité/déploiement/jury documentent la génération hors dépôt avec `openssl rand -base64 48` et le stockage en variables d'environnement)
@@ -32,7 +38,7 @@
 
 ## État global
 
-🟢 MVP prêt et stabilisé côté fonctionnalités et design. Le parcours participant complet (code + pseudo → salle d'attente → écriture → vote → résultats) est désormais **fonctionnel de bout en bout et aligné visuellement sur Figma**, y compris en navigation directe via lien d'invitation. La salle d'attente et le changement d'étape sont **synchronisés en temps réel** (Socket.IO) avec une vraie source de vérité backend (`session_participants`), et un polling de secours de 4s assure la robustesse pour les cartes et les votes. Capacité de session portée à 25 personnes. Le facilitateur choisit parmi les 6 formats MVP français, tous limités à 3 colonnes. Le menu « Profil » et le menu d'actions de session `…` respectent l'accessibilité. L'ensemble des 185 tests backend et 109 tests frontend sont au vert, TypeScript compile proprement et ESLint ne lève aucune erreur. L'application est validée en conditions réelles et prête à l'emploi.
+🟡 MVP produit en cours. Les fondations techniques sont solides (authentification, sessions, participants, cartes, votes, formats MVP à 3 colonnes, résultats partiels), mais le produit n'est pas encore terminé au sens utilisateur. Les écrans Écriture, Vote et Résultats contiennent encore des sous-fonctionnalités à livrer ou à valider : timer fonctionnel, commentaires réels, discussion réelle, UX Participants, design final des cartes, validation complète du vote, transitions d'étape, plan d'action, écran résumé et parcours Playwright complet. L'orchestrateur doit suivre le Product Backlog réaligné et ne plus considérer le MVP comme terminé tant que ces sous-tâches ne sont pas validées.
 
 ## Fonctionnalités livrées
 
@@ -43,10 +49,10 @@
 | Gestion des sessions (créer/rejoindre par code) | ✅ Livré | 2026-07-07 |
 | Lister ses sessions (`GET /session`, US-05) | ✅ Backend + page `SessionList.tsx` | 2026-07-08 |
 | Page d'accueil (Home) | ✅ Livré (reconstruite depuis `figma_make.zip`) | 2026-07-07 |
-| Tableau de rétrospective — 3 colonnes, ajout/modification de carte | ✅ Livré | 2026-07-08 |
-| Système de votes (backend + bouton frontend) | ✅ Livré | 2026-07-08 |
-| Vue des résultats triée par votes (US-09) | ✅ Livré | 2026-07-08 |
-| Fidélité visuelle page résultats (Top 3, stats, 3 colonnes catégories, cartes compactes) | 🟡 Développé, en attente de validation visuelle | 2026-07-13 |
+| Tableau de rétrospective — 3 colonnes, ajout/modification de carte | 🟡 Partiel : création et édition présentes, design/actions/commentaires à finaliser | 2026-07-14 |
+| Système de votes (backend + bouton frontend) | 🟡 Partiel : logique présente, salle de vote et validations E2E à finaliser | 2026-07-14 |
+| Vue des résultats triée par votes (US-09) | 🟡 Partiel : tri/top/statistiques présents, revue finale et états limites à valider | 2026-07-14 |
+| Fidélité visuelle page résultats (Top 3, stats, 3 colonnes catégories, cartes compactes) | 🟡 Développé, validation produit finale restante | 2026-07-14 |
 | Rôle affiché sur le tableau (Facilitateur/Participant) | ✅ Livré | 2026-07-08 |
 | Suppression de sa propre carte | ✅ Backend + frontend, PR #11 mergée dans `dev` | 2026-07-08 |
 | Modification de sa propre carte | ✅ Backend + frontend, PR #13 mergée dans `dev` | 2026-07-08 |
@@ -133,24 +139,15 @@
 
 ## Ce qui est en cours
 
-- Chantier "zone sous le header principal" recadré dans le Product Backlog officiel. Le prototype Figma contient exactement deux barres sous le header principal :
-  - `SessionContextBar` : retour, breadcrumb, nom de session, `StepIndicator`, code de session, déclencheurs Participants et Discussion.
-  - `SessionActionBar` : compteur total de cartes ou votes restants, timer, bouton principal de l'étape.
-- `T-SESSION-BAR-01 — SessionContextBar` est terminé et validé utilisateur.
-- `T-SESSION-BAR-02 — SessionActionBar` est terminé et validé utilisateur : la seconde barre contient le compteur total de cartes en écriture, les votes restants en vote, le timer et le bouton principal facilitateur, sans troisième ligne de barre d'actions.
-- `T-SESSION-BAR-03 — ParticipantsDrawer` est terminé : le déclencheur Participants ouvre un panneau responsive alimenté par les vraies données de session.
-- `T-SESSION-BAR-04 — DiscussionDrawer` est terminé : le déclencheur Discussion ouvre un panneau responsive, sans message fictif ni backend ajouté.
-- `T-SESSION-BAR-05 — Commentaires des cartes` est terminé dans le périmètre UI : ouverture depuis une carte, modal conforme, pas de compteur ou commentaire fictif.
-- `T-SESSION-BAR-06 — Revue UI finale de l'écran Écriture` est terminé : aucun écart restant ne justifie de reprendre les composants validés.
+- `BACKLOG-REALIGN-01` a réaligné le backlog avec l'état produit réel : les blocs `US-07`, `US-08`, `US-09` et `US-10` ne sont plus considérés terminés tant que leurs sous-fonctionnalités MVP ne sont pas livrées et validées.
+- La zone sous le header principal a une base UI validée, mais plusieurs comportements produit restent partiels : Participants, Discussion et Commentaires ne doivent plus être considérés terminés au sens MVP complet.
+- Le ticket prioritaire suivant est `MVP-WRITING-01 — Finaliser le design des cartes et des actions Modifier/Supprimer sur l'écran Écriture`.
 
 ## Prochaine étape
 
-**La page Écriture est terminée pour le chantier "zone sous le header principal".**
-- Ne pas revenir sur `SessionContextBar`, `SessionActionBar`, `ParticipantsDrawer`, `DiscussionDrawer` ou commentaires de cartes sauf régression démontrée.
+**MVP-WRITING-01 — Finaliser le design des cartes et des actions Modifier/Supprimer sur l'écran Écriture.**
 
-**Finalisation soutenance.**
-- Parcours facilitateur + participant invité vérifié en conditions réelles le 2026-07-13 (Docker Compose + Playwright, 2 contextes navigateur), **y compris l'ouverture directe du lien d'invitation** (sans passer par l'accueil) : création de compte + rétro, invitation, jointure sans compte, synchronisation temps réel, écriture de carte, lancement de la rétro synchronisé, code de session visible en permanence.
-- Restent : documents jury (`docs/jury/`).
+Cette tâche est la première sous-tâche MVP après réalignement. Elle doit rester limitée à l'écran Écriture et ne pas lancer Timer, Discussion, Commentaires, Vote, Résultats, Plan d'action ou Résumé.
 
 ## Dette technique restante
 
