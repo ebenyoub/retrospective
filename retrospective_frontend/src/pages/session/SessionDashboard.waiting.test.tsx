@@ -67,7 +67,7 @@ describe('SessionDashboard - Salle d\'attente (Waiting Step)', () => {
     ioMock.mockClear();
   });
 
-  it('un facilitateur connecté qui quitte la salle d\'attente reste connecté, garde son JWT, et navigue vers l\'accueil avec fromSessions', async () => {
+  it('un facilitateur connecté qui quitte la salle d\'attente reste connecté, garde son JWT, et navigue vers l\'accueil', async () => {
     authState.isAuthenticated = true;
     authState.token = 'facilitator-token';
 
@@ -125,7 +125,7 @@ describe('SessionDashboard - Salle d\'attente (Waiting Step)', () => {
       expect.stringMatching(/\/session\/1\/participants\/9$/),
       expect.objectContaining({ method: 'DELETE' })
     );
-    expect(screen.getByTestId('location-state').textContent).toBe(JSON.stringify({ fromSessions: true }));
+    expect(screen.getByTestId('location-state').textContent).toBe(JSON.stringify(null));
     expect(authState.token).toBe('facilitator-token');
     expect(authState.isAuthenticated).toBe(true);
   });

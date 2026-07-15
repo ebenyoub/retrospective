@@ -27,7 +27,7 @@ const Header = () => {
                 {/* Navigation / Actions */}
                 <nav className="flex items-center gap-2">
                     {!isAuthenticated ? (
-                        !isHomePage && !isSessionPage && (
+                        !isHomePage && (
                             <>
                                 <NavLink
                                     to="/signup"

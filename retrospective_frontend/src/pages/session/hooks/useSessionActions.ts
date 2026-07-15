@@ -35,7 +35,7 @@ export const useSessionActions = ({
     if (!isAuthenticated) {
       clearGuestIdentity();
     }
-    navigate('/', { state: { fromSessions: true } });
+    navigate('/');
   }, [leaveParticipation, isAuthenticated, clearGuestIdentity, navigate]);
 
   const handleUpdateFormat = useCallback(async (

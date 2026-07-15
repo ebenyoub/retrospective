@@ -125,7 +125,7 @@ describe('SessionList', () => {
     expect(await screen.findByText('Dashboard de session')).toBeTruthy();
   });
 
-  it('navigue vers l\'accueil avec l\'état fromSessions au clic sur le bouton Retour', async () => {
+  it('navigue vers l\'accueil sans état de navigation au clic sur le bouton Retour', async () => {
     vi.stubGlobal(
       'fetch',
       vi.fn().mockResolvedValue({ ok: true, json: async () => ({ success: true, data: [] }) })
@@ -153,6 +153,6 @@ describe('SessionList', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Retour' }));
 
     expect(await screen.findByText('Page d\'accueil')).toBeTruthy();
-    expect(screen.getByTestId('location-state').textContent).toBe(JSON.stringify({ fromSessions: true }));
+    expect(screen.getByTestId('location-state').textContent).toBe(JSON.stringify(null));
   });
 });

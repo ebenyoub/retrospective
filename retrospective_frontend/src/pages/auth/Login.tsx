@@ -9,7 +9,6 @@ import { useToast } from '@/context/toast/useToast';
 import type { ValidationSchema } from '@/hooks/useFormValidation';
 import useFormValidation from '@/hooks/useFormValidation';
 import { getApiErrorMessage, NETWORK_ERROR_MESSAGE } from '@/lib/apiError';
-import { resolveLandingRoute } from '@/lib/sessionLanding';
 import { loginApi, type LoginValues } from '@/pages/auth/services/authApi';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
