@@ -5,20 +5,12 @@ import Button from "@/components/ui/Button";
 import { Input } from "@/components/ui/FormContainer";
 import FieldError from "@/components/ui/FieldError";
 import { getApiErrorMessage, NETWORK_ERROR_MESSAGE } from "@/lib/apiError";
+import { pseudoSchema } from "@/lib/pseudoSchema";
 import { guestJoin } from "../services/participantApi";
 import type { GuestJoinResponse } from '../types/participant.types';
 
-// Même règle que côté backend (validators/participant.validator.ts) : lettres
-// (accents inclus), chiffres, espaces, apostrophes et tirets.
-const PSEUDO_REGEX = /^[\p{L}\p{N} '’-]+$/u;
-
 const pseudoFormSchema = z.object({
-  pseudo: z
-    .string({ error: "Le pseudo est requis." })
-    .trim()
-    .min(2, "Le pseudo doit contenir au moins 2 caractères.")
-    .max(30, "Le pseudo ne peut pas dépasser 30 caractères.")
-    .regex(PSEUDO_REGEX, "Le pseudo ne peut contenir que des lettres, chiffres, espaces, apostrophes et tirets."),
+  pseudo: pseudoSchema,
 });
 
 type PseudoFormValues = z.infer<typeof pseudoFormSchema>;

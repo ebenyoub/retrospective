@@ -15,7 +15,7 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const validateConfirmPassword = (confirmValue: string, allvalues: SignupValues) => {
     if (confirmValue !== allvalues.password) {
-        return "Les mots de passe de correspondent pas."
+        return "Les mots de passe ne correspondent pas."
     }
 
     return undefined;
@@ -32,11 +32,12 @@ const signupValidationSchema: ValidationSchema<SignupValues> = {
     ],
     password: [
         (value) => value.trim() === "" ? "Le mot de passe est requis." : undefined,
-        (value) => value.trim().length < 6 ? "Le mot de passe doit contenir au moins 6 caractères." : undefined,
+        // Même règle que le backend (auth.validator.ts : min 8).
+        (value) => value.trim().length < 8 ? "Le mot de passe doit contenir au moins 8 caractères." : undefined,
         validateConfirmPassword
     ],
     confirm: [
-        (value) => value.trim() === "" ? "La confirmation est requis." : undefined,
+        (value) => value.trim() === "" ? "La confirmation est requise." : undefined,
         validateConfirmPassword
     ]
 }

@@ -44,10 +44,25 @@ describe('JoinSessionForm', () => {
     fireEvent.click(screen.getByRole('button', { name: /Rejoindre/ }));
 
     expect(await screen.findByText('Le code de session est obligatoire.')).toBeTruthy();
-    expect(screen.getByText('Le prénom ou le pseudo est obligatoire.')).toBeTruthy();
+    expect(screen.getByText('Le pseudo doit contenir au moins 2 caractères.')).toBeTruthy();
     expect(fetchMock).not.toHaveBeenCalled();
     // Aucun toast global du type "Veuillez renseigner le code et le prénom."
     expect(screen.queryByText(/Veuillez renseigner/)).toBeNull();
+  });
+
+  it('bloque un pseudo trop court avant tout appel API, avec l\'erreur sous le champ pseudo', async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderForm();
+    fillCode('1234');
+    fireEvent.change(screen.getByLabelText('Prénom ou pseudo'), { target: { value: 'A' } });
+    fireEvent.click(screen.getByRole('button', { name: /Rejoindre/ }));
+
+    // Même règle que le backend (schéma partagé) : le serveur n'est jamais appelé.
+    const error = await screen.findByText('Le pseudo doit contenir au moins 2 caractères.');
+    expect(error.id).toBe('pseudo-error');
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it('rejoint la session sans compte et transmet le sessionId au succès', async () => {

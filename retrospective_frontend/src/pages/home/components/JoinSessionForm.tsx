@@ -10,15 +10,18 @@ import SessionCodeInput from "./SessionCodeInput";
 import { useAuth } from "@/context/auth/useAuth";
 
 import { API_BASE } from "@/lib/api";
+import { pseudoSchema } from "@/lib/pseudoSchema";
 
 const joinConnectedSchema = z.object({
   code: z.string().length(4, "Le code de session est obligatoire."),
   pseudo: z.string().optional(),
 });
 
+// Le pseudo suit les mêmes règles que le backend (schéma partagé) : une
+// valeur acceptée ici ne peut plus être rejetée par l'API.
 const joinGuestSchema = z.object({
   code: z.string().length(4, "Le code de session est obligatoire."),
-  pseudo: z.string().trim().min(1, "Le prénom ou le pseudo est obligatoire."),
+  pseudo: pseudoSchema,
 });
 
 type JoinSessionValues = z.infer<typeof joinGuestSchema>;
