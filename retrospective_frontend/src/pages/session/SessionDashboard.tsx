@@ -67,63 +67,24 @@ const SessionDashboard = () => {
   const navigate = useNavigate();
   const [isSessionCodeCopied, setIsSessionCodeCopied] = useState(false);
   const { activeMobileColumn, isMobileViewport, setActiveMobileColumn } = useSessionViewport();
-  const {
-    closeComments,
-    closeDiscussionDrawer,
-    closeParticipantsDrawer,
-    commentsCard,
-    isDiscussionDrawerOpen,
-    isParticipantsDrawerOpen,
-    openComments,
-    toggleDiscussionDrawer,
-    toggleParticipantsDrawer,
-  } = useSessionPanels();
-  const {
-    fetchSessionDetails,
-    formatColumns,
-    formatName,
-    hasLoadedSession,
-    ownerId,
-    sessionCode,
-    sessionName,
-    setFormatColumns,
-    setFormatName,
-    setStep,
-    step,
-  } = useSessionDetails({ sessionId, token });
-  const {
-    actorHeaders,
-    clearGuestIdentity,
-    guestIdentity,
-    handleGuestJoined,
-    leaveParticipation,
-    role,
-    selfIdentityForSocket,
-    selfParticipantId,
-  } = useSessionIdentity({
+  const panels = useSessionPanels();
+  const details = useSessionDetails({ sessionId, token });
+  const identity = useSessionIdentity({
     sessionId,
-    isSessionReady: hasLoadedSession,
+    isSessionReady: details.hasLoadedSession,
     isAuthenticated,
     token,
     userId,
-    ownerId,
+    ownerId: details.ownerId,
   });
-  const {
-    cards,
-    fetchCards,
-    handleAddCard,
-    handleDeleteCard,
-    handleUpdateCard,
-    handleVote,
-    votesLeft,
-  } = useSessionCards({ sessionId, actorHeaders, addToast });
+  const sessionCards = useSessionCards({ sessionId, actorHeaders: identity.actorHeaders, addToast });
   const isLoading = useSessionPolling({
     sessionId,
     isAuthenticated,
     navigate,
     addToast,
-    fetchSessionDetails,
-    fetchCards,
+    fetchSessionDetails: details.fetchSessionDetails,
+    fetchCards: sessionCards.fetchCards,
   });
   const {
     handleLeaveSession,
@@ -135,15 +96,15 @@ const SessionDashboard = () => {
     isAuthenticated,
     navigate,
     addToast,
-    leaveParticipation,
-    clearGuestIdentity,
-    setStep,
-    setFormatName,
-    setFormatColumns,
+    leaveParticipation: identity.leaveParticipation,
+    clearGuestIdentity: identity.clearGuestIdentity,
+    setStep: details.setStep,
+    setFormatName: details.setFormatName,
+    setFormatColumns: details.setFormatColumns,
   });
   const writingColumns = useMemo(() => {
-    const labels = formatColumns.length === 3
-      ? formatColumns
+    const labels = details.formatColumns.length === 3
+      ? details.formatColumns
       : defaultFormatColumns;
 
     return COLUMNS.map((column, index) => ({
@@ -151,21 +112,24 @@ const SessionDashboard = () => {
       title: labels[index],
       emptyTitle: `Aucune carte ${labels[index].toLowerCase()}`,
     }));
-  }, [formatColumns]);
+  }, [details.formatColumns]);
 
+  // `setStep` est extrait seul : useCallback exige une dépendance stable,
+  // ce que `details.setStep` ne garantit pas pour le compilateur React.
+  const { setStep } = details;
   const handleSessionStarted = useCallback((nextStep: string) => {
     setStep(nextStep as SessionStep);
   }, [setStep]);
 
-  const { participants } = useSessionParticipants(sessionId, selfIdentityForSocket, {
+  const { participants } = useSessionParticipants(sessionId, identity.selfIdentityForSocket, {
     onSessionStarted: handleSessionStarted,
   });
 
   const handleCopySessionCode = async () => {
-    if (!sessionCode) return;
+    if (!details.sessionCode) return;
 
     try {
-      await navigator.clipboard.writeText(sessionCode);
+      await navigator.clipboard.writeText(details.sessionCode);
       setIsSessionCodeCopied(true);
       setTimeout(() => setIsSessionCodeCopied(false), 1800);
     } catch (error) {
@@ -184,99 +148,99 @@ const SessionDashboard = () => {
   // Visiteur sans compte et sans identité invitée pour cette session (ex :
   // ouverture directe du lien d'invitation) : on lui demande un pseudo sur
   // place, jamais de redirection vers l'accueil ou vers la connexion.
-  if (!isAuthenticated && !guestIdentity) {
-    return <JoinSessionModal sessionId={sessionId} sessionName={sessionName} onJoined={handleGuestJoined} />;
-  }
-
-  if (step === 'waiting') {
-    return (
-      <WaitingStep
-        sessionId={sessionId}
-        sessionName={sessionName}
-        sessionCode={sessionCode}
-        participants={participants}
-        selfParticipantId={selfParticipantId}
-        role={role}
-        formatName={formatName}
-        onStart={() => handleTransitionStep('writing')}
-        onLeave={handleLeaveSession}
-        onSelectFormatPreset={handleUpdateFormat}
-        isDesktop={!isMobileViewport}
-      />
-    );
+  if (!isAuthenticated && !identity.guestIdentity) {
+    return <JoinSessionModal sessionId={sessionId} sessionName={details.sessionName} onJoined={identity.handleGuestJoined} />;
   }
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
       <SessionContextBar
-        sessionName={sessionName}
+        sessionName={details.sessionName}
         sessionId={sessionId}
-        sessionCode={sessionCode}
-        step={step}
+        sessionCode={details.sessionCode}
+        step={details.step}
         participantCount={participants.filter((participant) => participant.status === 'online').length}
         isSessionCodeCopied={isSessionCodeCopied}
-        isParticipantsOpen={isParticipantsDrawerOpen}
-        isDiscussionOpen={isDiscussionDrawerOpen}
+        isParticipantsOpen={panels.isParticipantsDrawerOpen}
+        isDiscussionOpen={panels.isDiscussionDrawerOpen}
         onBack={handleLeaveSession}
         onCopySessionCode={handleCopySessionCode}
-        onToggleParticipants={toggleParticipantsDrawer}
-        onToggleDiscussion={toggleDiscussionDrawer}
+        onToggleParticipants={panels.toggleParticipantsDrawer}
+        onToggleDiscussion={panels.toggleDiscussionDrawer}
       />
-      <SessionActionBar
-        step={step}
-        cardsCount={cards.length}
-        votesLeft={votesLeft}
-        isFacilitator={role === 'facilitator'}
-        onTransitionStep={handleTransitionStep}
-      />
-      <ParticipantsDrawer
-        participants={participants}
-        isOpen={isParticipantsDrawerOpen}
-        isDesktop={!isMobileViewport}
-        onClose={closeParticipantsDrawer}
-      />
-      <DiscussionDrawer
-        isOpen={isDiscussionDrawerOpen}
-        isDesktop={!isMobileViewport}
-        onClose={closeDiscussionDrawer}
-      />
-      {commentsCard && (
-        <CardCommentsModal
-          card={commentsCard}
+      {details.step === 'waiting' ? (
+        <WaitingStep
+          sessionId={sessionId}
+          sessionName={details.sessionName}
+          sessionCode={details.sessionCode}
+          participants={participants}
+          selfParticipantId={identity.selfParticipantId}
+          role={identity.role}
+          formatName={details.formatName}
+          onStart={() => handleTransitionStep('writing')}
+          onLeave={handleLeaveSession}
+          onSelectFormatPreset={handleUpdateFormat}
           isDesktop={!isMobileViewport}
-          onClose={closeComments}
-        />
-      )}
-
-      {step === 'results' ? (
-        <ResultsStep cards={cards} formatColumns={formatColumns} isDesktop={!isMobileViewport} />
-      ) : step === 'voting' ? (
-        <VotingStep
-          cards={cards}
-          columns={writingColumns}
-          activeMobileColumn={activeMobileColumn}
-          isMobileViewport={isMobileViewport}
-          currentUserId={selfParticipantId}
-          onSelectMobileColumn={setActiveMobileColumn}
-          onVote={handleVote}
-          onOpenComments={openComments}
-          onUpdateCard={handleUpdateCard}
-          onDeleteCard={handleDeleteCard}
         />
       ) : (
-        <WritingStep
-          cards={cards}
-          columns={writingColumns}
-          activeMobileColumn={activeMobileColumn}
-          isMobileViewport={isMobileViewport}
-          currentUserId={selfParticipantId}
-          onSelectMobileColumn={setActiveMobileColumn}
-          onAddCard={handleAddCard}
-          onVote={handleVote}
-          onOpenComments={openComments}
-          onUpdateCard={handleUpdateCard}
-          onDeleteCard={handleDeleteCard}
-        />
+        <>
+          <SessionActionBar
+            step={details.step}
+            cardsCount={sessionCards.cards.length}
+            votesLeft={sessionCards.votesLeft}
+            isFacilitator={identity.role === 'facilitator'}
+            onTransitionStep={handleTransitionStep}
+          />
+          <ParticipantsDrawer
+            participants={participants}
+            isOpen={panels.isParticipantsDrawerOpen}
+            isDesktop={!isMobileViewport}
+            onClose={panels.closeParticipantsDrawer}
+          />
+          <DiscussionDrawer
+            isOpen={panels.isDiscussionDrawerOpen}
+            isDesktop={!isMobileViewport}
+            onClose={panels.closeDiscussionDrawer}
+          />
+          {panels.commentsCard && (
+            <CardCommentsModal
+              card={panels.commentsCard}
+              isDesktop={!isMobileViewport}
+              onClose={panels.closeComments}
+            />
+          )}
+
+          {details.step === 'results' ? (
+            <ResultsStep cards={sessionCards.cards} formatColumns={details.formatColumns} isDesktop={!isMobileViewport} />
+          ) : details.step === 'voting' ? (
+            <VotingStep
+              cards={sessionCards.cards}
+              columns={writingColumns}
+              activeMobileColumn={activeMobileColumn}
+              isMobileViewport={isMobileViewport}
+              currentUserId={identity.selfParticipantId}
+              onSelectMobileColumn={setActiveMobileColumn}
+              onVote={sessionCards.handleVote}
+              onOpenComments={panels.openComments}
+              onUpdateCard={sessionCards.handleUpdateCard}
+              onDeleteCard={sessionCards.handleDeleteCard}
+            />
+          ) : (
+            <WritingStep
+              cards={sessionCards.cards}
+              columns={writingColumns}
+              activeMobileColumn={activeMobileColumn}
+              isMobileViewport={isMobileViewport}
+              currentUserId={identity.selfParticipantId}
+              onSelectMobileColumn={setActiveMobileColumn}
+              onAddCard={sessionCards.handleAddCard}
+              onVote={sessionCards.handleVote}
+              onOpenComments={panels.openComments}
+              onUpdateCard={sessionCards.handleUpdateCard}
+              onDeleteCard={sessionCards.handleDeleteCard}
+            />
+          )}
+        </>
       )}
     </div>
   );
