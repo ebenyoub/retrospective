@@ -202,6 +202,20 @@ Mettre à jour DECISIONS.md uniquement lorsqu'une décision d'architecture ou de
 ---
 
 # Git
+Interdiction absolue d'exécuter une commande modifiant l'historique Git ou l'état du dépôt sans instruction explicite de l'utilisateur.
+Cela inclut notamment :
+- git add
+- git commit
+- git merge
+- git rebase
+- git cherry-pick
+- git tag
+- git push
+- git reset
+- git revert
+- git stash
+Tu peux consulter git status, git diff et les logs, mais tu ne modifies jamais le dépôt sans autorisation explicite.
+
 Ne jamais faire de commit automatiquement.
 Toujours attendre la validation explicite de l'utilisateur.
 Le commit doit correspondre à une seule tâche du Product Backlog.
