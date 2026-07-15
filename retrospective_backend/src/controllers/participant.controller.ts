@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { AuthRequest } from "../types";
 import { AppError } from "../utils/AppError";
+import { readAuthToken } from "../utils/authCookie";
 import { requireAuthUser } from "../utils/authUser";
 import { emitParticipantsUpdated } from "../realtime/socket";
 import {
@@ -25,14 +26,14 @@ const parseSessionId = (req: Request): number => {
 // Un participant qui quitte peut être authentifié (JWT optionnel) ou invité
 // (jeton dans le corps de la requête) : on ne force pas `auth` sur cette route.
 const extractOptionalUserId = (req: Request): number | null => {
-  const header = req.headers.authorization;
-  if (!header || !header.startsWith("Bearer ")) return null;
+  const token = readAuthToken(req);
+  if (!token) return null;
 
   const jwtSecret = process.env.JWT_SECRET;
   if (!jwtSecret) return null;
 
   try {
-    const decoded = jwt.verify(header.split(" ")[1], jwtSecret) as { userId?: number };
+    const decoded = jwt.verify(token, jwtSecret) as { userId?: number };
     return decoded.userId ?? null;
   } catch {
     return null;

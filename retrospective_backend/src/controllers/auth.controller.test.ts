@@ -9,7 +9,7 @@ vi.mock("../services/auth.service", () => ({
   deleteAccountForUser: vi.fn(),
 }));
 
-import { login, signup, profile, deleteAccount } from "./auth.controller";
+import { login, logout, signup, profile, deleteAccount } from "./auth.controller";
 import { loginUser, signupUser, getProfile, deleteAccountForUser } from "../services/auth.service";
 import type { AuthRequest } from "../types";
 
@@ -22,12 +22,22 @@ const createMockResponse = () => {
   const res = {
     statusCode: 0,
     body: undefined as unknown,
+    cookies: {} as Record<string, string>,
+    clearedCookies: [] as string[],
     status(code: number) {
       res.statusCode = code;
       return res as unknown as Response;
     },
     json(payload: unknown) {
       res.body = payload;
+      return res as unknown as Response;
+    },
+    cookie(name: string, value: string) {
+      res.cookies[name] = value;
+      return res as unknown as Response;
+    },
+    clearCookie(name: string) {
+      res.clearedCookies.push(name);
       return res as unknown as Response;
     },
   };
@@ -62,6 +72,7 @@ describe("auth.controller", () => {
       const body = res.body as { success: boolean; data: { token: string } };
       expect(body.success).toBe(true);
       expect(body.data.token).toBe("token");
+      expect(res.cookies.token).toBe("token");
       expect(mockLoginUser).toHaveBeenCalledWith({
         email: "e@test.com",
         password: "TEST_PASSWORD_VALUE",
@@ -94,6 +105,7 @@ describe("auth.controller", () => {
       expect(body.success).toBe(true);
       expect(body.data.userId).toBe(42);
       expect(body.data.token).toBe("token");
+      expect(res.cookies.token).toBe("token");
       expect(mockSignupUser).toHaveBeenCalledWith({
         username: "Elyas",
         email: "elyas@test.com",
@@ -107,6 +119,22 @@ describe("auth.controller", () => {
       const res = createMockResponse();
 
       await expect(signup(req, res as unknown as Response)).rejects.toThrow("boom");
+    });
+  });
+
+  describe("logout", () => {
+    it("efface le cookie d'authentification et renvoie 200", () => {
+      const req = createMockRequest({});
+      const res = createMockResponse();
+
+      logout(req, res as unknown as Response);
+
+      expect(res.statusCode).toBe(200);
+      expect(res.clearedCookies).toContain("token");
+      expect(res.body).toEqual({
+        success: true,
+        message: "Déconnexion réussie.",
+      });
     });
   });
 

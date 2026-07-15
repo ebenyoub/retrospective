@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { auth } from '../middlewares/auth.middleware';
-import { login, signup, profile, deleteAccount } from '../controllers/auth.controller';
+import { login, logout, signup, profile, deleteAccount } from '../controllers/auth.controller';
 import { forgot, verifyCode, resetPassword } from '../controllers/passwordReset.controller';
 import { asyncHandler } from '../utils/asyncHandler';
 import { validate } from '../middlewares/validate.middleware';
@@ -16,6 +16,7 @@ const router = Router();
 
 router.get('/profile', auth, profile);
 router.post('/login', validate(loginSchema), asyncHandler(login));
+router.post('/logout', logout);
 router.post('/signup', validate(signupSchema), asyncHandler(signup));
 router.delete('/delete', auth, asyncHandler(deleteAccount));
 router.post('/forgot', validate(forgotSchema), asyncHandler(forgot));
