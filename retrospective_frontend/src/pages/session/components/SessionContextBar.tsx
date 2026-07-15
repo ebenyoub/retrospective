@@ -3,6 +3,8 @@ import Button from '@/components/ui/Button';
 
 import type { SessionStep } from '../types/session.types';
 import StepIndicator from './StepIndicator';
+import ProfileMenu from '@/components/ProfileMenu';
+import { useAuth } from '@/context/auth/useAuth';
 
 interface SessionContextBarProps {
   sessionName: string;
@@ -34,6 +36,7 @@ const SessionContextBar = ({
   isDiscussionOpen = false,
 }: SessionContextBarProps) => {
   const displayName = sessionName || `Session ${sessionId}`;
+  const { isAuthenticated } = useAuth();
 
   return (
     <nav
@@ -120,6 +123,11 @@ const SessionContextBar = ({
           <MessageCircle size={14} aria-hidden="true" />
           <span className="hidden sm:inline">Discussion</span>
         </Button>
+        {isAuthenticated && (
+          <div className="border-l border-navy-border-med pl-1.5 h-6 flex items-center shrink-0">
+            <ProfileMenu />
+          </div>
+        )}
       </div>
     </nav>
   );

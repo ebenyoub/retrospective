@@ -5,6 +5,13 @@ import JoinSessionForm from './JoinSessionForm';
 
 const jsonResponse = (body: unknown, ok = true) => ({ ok, json: async () => body });
 
+vi.mock('@/context/auth/useAuth', () => ({
+  useAuth: () => ({
+    isAuthenticated: false,
+    token: '',
+  }),
+}));
+
 const renderForm = (onSessionJoined = vi.fn()) => {
   render(
     <ToastProvider>

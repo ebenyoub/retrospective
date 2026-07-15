@@ -58,6 +58,7 @@ const COLUMNS: Omit<SessionBoardColumn, 'title'>[] = [
 ];
 
 const defaultFormatColumns = getRetroFormatById(DEFAULT_RETRO_FORMAT_ID).columns;
+
 const SessionDashboard = () => {
   const { id } = useParams();
   const sessionId = id || '';
@@ -65,11 +66,7 @@ const SessionDashboard = () => {
   const { addToast } = useToast();
   const navigate = useNavigate();
   const [isSessionCodeCopied, setIsSessionCodeCopied] = useState(false);
-  const {
-    activeMobileColumn,
-    isMobileViewport,
-    setActiveMobileColumn,
-  } = useSessionViewport();
+  const { activeMobileColumn, isMobileViewport, setActiveMobileColumn } = useSessionViewport();
   const {
     closeComments,
     closeDiscussionDrawer,
@@ -81,7 +78,6 @@ const SessionDashboard = () => {
     toggleDiscussionDrawer,
     toggleParticipantsDrawer,
   } = useSessionPanels();
-
   const {
     fetchSessionDetails,
     formatColumns,

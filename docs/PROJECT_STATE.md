@@ -4,6 +4,10 @@
 
 ## Date de dernière mise à jour
 
+2026-07-14 (`US-ARCHI-01 — Séparer complètement les parcours "Utilisateur connecté" et "Participant invité"` terminé : correction finale des redirections d'authentification, masquage de la navbar sur les pages de session, rendu universel de SessionContextBar sur toutes les étapes y compris WaitingStep pour l'accès au menu utilisateur, purge des résidus d'invités lors de la connexion, suppression du champ pseudo pour les connectés, 139 tests unitaires Vitest au vert, et réussite 23/23 de la suite E2E Playwright.)
+
+2026-07-14 (Séparation stricte des parcours Utilisateur connecté vs Participant invité : suppression de la redirection automatique de resolveLandingRoute, masquage du Header global en session et intégration du ProfileMenu dans SessionContextBar pour éviter les doublons, et masquage dynamique du champ pseudo de JoinSessionForm pour les utilisateurs connectés rejoignant via /session/join.)
+
 2026-07-14 (`MVP-WRITING-STATE-02 — Validation E2E des états de chargement et vides` terminé : création de session-writing-states.spec.ts pour valider l'affichage du texte de chargement initial et des EmptyStates associés aux 3 colonnes vides.)
 
 2026-07-14 (`MVP-COMMENTS-02 — Validation E2E de la modal Commentaires` terminé : création de session-comments.spec.ts pour vérifier le focus trap à l'ouverture, l'état vide, les contrôles désactivés, la fermeture via Escape et la restauration du focus.)

@@ -17,24 +17,11 @@ const Home = () => {
   const state = location.state as HomeLocationState | null;
   const hasExplicitIntent = Boolean(state?.tab || state?.fromSessions);
 
-  // Retour d'un facilitateur (ou participant) déjà connecté sur l'accueil :
-  // s'il a une session active, on l'y renvoie directement — sauf s'il vient
-  // du menu Profil avec une intention explicite (ex. "Créer une rétrospective").
+  // Suppression de la redirection automatique vers une session active.
+  // L'utilisateur authentifié reste sur l'accueil ou navigue de lui-même.
   useEffect(() => {
-    if (!isAuthenticated || !token || hasExplicitIntent) return;
-
-    let isActive = true;
-
-    resolveLandingRoute(token).then((route) => {
-      if (isActive && route !== "/") {
-        navigate(route, { replace: true });
-      }
-    });
-
-    return () => {
-      isActive = false;
-    };
-  }, [isAuthenticated, token, navigate, hasExplicitIntent]);
+    // Inerte
+  }, [isAuthenticated]);
 
   return (
     <div className="flex-1 flex items-center justify-center py-8 px-5">

@@ -59,10 +59,8 @@ const Login: React.FC = () => {
                 login(result.data);
                 addToast("success", "Vous êtes connectés.");
 
-                // Redirection selon les sessions actives du facilitateur :
-                // une seule → dedans, plusieurs → "Mes sessions", aucune → accueil.
-                const landingRoute = await resolveLandingRoute(result.data.token);
-                navigate(landingRoute, { replace: true });
+                // Redirection directe vers l'accueil neutre après connexion
+                navigate('/', { replace: true });
             } else {
                 addToast("error", getApiErrorMessage(result.payload, "Connexion impossible."));
             }

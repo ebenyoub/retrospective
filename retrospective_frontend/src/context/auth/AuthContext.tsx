@@ -15,6 +15,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // Ne navigue pas : chaque page appelante décide où rediriger après connexion
   // (session active, liste des sessions, accueil...).
   const login = (data: AuthLoginData) => {
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('retro:guest:')) {
+        localStorage.removeItem(key);
+      }
+    }
     localStorage.setItem('token', data.token);
     setToken(data.token);
     setIsAuthenticated(true);
@@ -24,6 +30,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }
 
   const logout = useCallback(() => {
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('retro:guest:')) {
+        localStorage.removeItem(key);
+      }
+    }
     localStorage.removeItem('token');
     setToken("");
     setIsAuthenticated(false);
