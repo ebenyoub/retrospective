@@ -12,19 +12,24 @@ import { useAuth } from "@/context/auth/useAuth";
 import { API_BASE } from "@/lib/api";
 import { pseudoSchema } from "@/lib/pseudoSchema";
 
-const joinConnectedSchema = z.object({
+// Le type du formulaire est commun aux deux modes : le pseudo y est optionnel,
+// c'est le schéma invité qui impose sa présence et ses règles.
+interface JoinSessionValues {
+  code: string;
+  pseudo?: string;
+}
+
+const joinConnectedSchema: z.ZodType<JoinSessionValues, JoinSessionValues> = z.object({
   code: z.string().length(4, "Le code de session est obligatoire."),
   pseudo: z.string().optional(),
 });
 
 // Le pseudo suit les mêmes règles que le backend (schéma partagé) : une
 // valeur acceptée ici ne peut plus être rejetée par l'API.
-const joinGuestSchema = z.object({
+const joinGuestSchema: z.ZodType<JoinSessionValues, JoinSessionValues> = z.object({
   code: z.string().length(4, "Le code de session est obligatoire."),
   pseudo: pseudoSchema,
 });
-
-type JoinSessionValues = z.infer<typeof joinGuestSchema>;
 
 interface JoinSessionFormProps {
   onSessionJoined: (sessionId: number) => void;
