@@ -6,10 +6,11 @@ import { requestApi, requestApiCommand } from './http';
 export const listParticipants = (sessionId: string) =>
   requestApi<ParticipantSummary[]>(`${API_BASE}/session/${sessionId}/participants`);
 
-export const joinAsSelf = (sessionId: string, token: string) =>
+// L'utilisateur connecté est identifié par son cookie HttpOnly,
+// envoyé automatiquement par requestApi.
+export const joinAsSelf = (sessionId: string) =>
   requestApi<{ id: number; role: SessionRole }>(`${API_BASE}/session/${sessionId}/participants/self`, {
     method: 'POST',
-    headers: { Authorization: `Bearer ${token}` },
   });
 
 export const resumeGuestParticipant = (
@@ -26,15 +27,11 @@ export const resumeGuestParticipant = (
 export const leaveParticipant = async (
   sessionId: string,
   participantId: number,
-  token?: string | null,
   guestToken?: string
 ): Promise<void> => {
   await requestApiCommand(`${API_BASE}/session/${sessionId}/participants/${participantId}`, {
     method: 'DELETE',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ guestToken }),
   });
 };

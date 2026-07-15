@@ -7,7 +7,6 @@ import type { SessionStep } from '../types/session.types';
 
 interface UseSessionActionsOptions {
   sessionId: string;
-  token: string;
   isAuthenticated: boolean;
   navigate: NavigateFunction;
   addToast: (type: 'success' | 'error', message: string) => void;
@@ -20,7 +19,6 @@ interface UseSessionActionsOptions {
 
 export const useSessionActions = ({
   sessionId,
-  token,
   isAuthenticated,
   navigate,
   addToast,
@@ -42,10 +40,10 @@ export const useSessionActions = ({
     nextName: string,
     nextColumns: string[]
   ): Promise<void> => {
-    if (!token) return;
+    if (!isAuthenticated) return;
 
     try {
-      const result = await updateSessionFormat(sessionId, token, nextName, nextColumns);
+      const result = await updateSessionFormat(sessionId, nextName, nextColumns);
 
       if (result.ok) {
         setFormatName(nextName);
@@ -57,13 +55,13 @@ export const useSessionActions = ({
       console.error('Erreur lors de la mise à jour du format :', error);
       addToast('error', NETWORK_ERROR_MESSAGE);
     }
-  }, [sessionId, token, setFormatName, setFormatColumns, addToast]);
+  }, [sessionId, isAuthenticated, setFormatName, setFormatColumns, addToast]);
 
   const handleTransitionStep = useCallback(async (nextStep: SessionStep): Promise<void> => {
-    if (!sessionId || !token) return;
+    if (!sessionId || !isAuthenticated) return;
 
     try {
-      const result = await updateSessionStep(sessionId, token, nextStep);
+      const result = await updateSessionStep(sessionId, nextStep);
 
       if (result.ok) {
         setStep(nextStep);
@@ -78,7 +76,7 @@ export const useSessionActions = ({
       console.error('Erreur lors du changement d\'étape :', error);
       addToast('error', NETWORK_ERROR_MESSAGE);
     }
-  }, [sessionId, token, setStep, addToast]);
+  }, [sessionId, isAuthenticated, setStep, addToast]);
 
   return { handleLeaveSession, handleTransitionStep, handleUpdateFormat };
 };

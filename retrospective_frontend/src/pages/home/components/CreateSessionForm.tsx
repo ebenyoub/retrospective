@@ -3,7 +3,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Button from "@/components/ui/Button";
 import { Input } from "@/components/ui/FormContainer";
-import { useAuth } from "@/context/auth/useAuth";
 import { getApiErrorMessage, isApiSuccess, NETWORK_ERROR_MESSAGE, readJsonSafely } from "@/lib/apiError";
 import FieldError from "@/components/ui/FieldError";
 
@@ -23,8 +22,6 @@ interface CreateSessionFormProps {
 
 // Facilitateur déjà connecté : uniquement le nom de la rétrospective.
 const CreateSessionForm = ({ onSessionCreated }: CreateSessionFormProps) => {
-  const { token } = useAuth();
-
   const {
     register,
     handleSubmit,
@@ -41,10 +38,8 @@ const CreateSessionForm = ({ onSessionCreated }: CreateSessionFormProps) => {
     try {
       const response = await fetch(`${API_BASE}/session/create-session`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: values.retroName.trim(),
           formatName: selectedFormat.name,

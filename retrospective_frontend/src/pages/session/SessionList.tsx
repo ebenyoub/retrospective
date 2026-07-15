@@ -1,7 +1,6 @@
 import Container from '@/components/ui/Container';
 import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
-import { useAuth } from '@/context/auth/useAuth';
 import { getApiErrorMessage, NETWORK_ERROR_MESSAGE } from '@/lib/apiError';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -10,21 +9,19 @@ import { listSessions } from './services/sessionApi';
 import type { SessionListItem } from './types/session.types';
 
 const SessionList = () => {
-  const { token } = useAuth();
   const navigate = useNavigate();
   const [sessions, setSessions] = useState<SessionListItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
+  // La page est derrière RequireAuth : le cookie authentifie l'appel.
   useEffect(() => {
-    if (!token) return;
-
     const fetchSessions = async () => {
       setIsLoading(true);
       setErrorMessage("");
 
       try {
-        const result = await listSessions(token);
+        const result = await listSessions();
 
         if (result.ok) {
           setSessions(result.data);
@@ -40,7 +37,7 @@ const SessionList = () => {
     };
 
     fetchSessions();
-  }, [token]);
+  }, []);
 
   return (
     <Container className="flex flex-col gap-6">

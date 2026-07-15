@@ -62,18 +62,17 @@ const defaultFormatColumns = getRetroFormatById(DEFAULT_RETRO_FORMAT_ID).columns
 const SessionDashboard = () => {
   const { id } = useParams();
   const sessionId = id || '';
-  const { isAuthenticated, token, userId } = useAuth();
+  const { isAuthenticated, userId } = useAuth();
   const { addToast } = useToast();
   const navigate = useNavigate();
   const [isSessionCodeCopied, setIsSessionCodeCopied] = useState(false);
   const { activeMobileColumn, isMobileViewport, setActiveMobileColumn } = useSessionViewport();
   const panels = useSessionPanels();
-  const details = useSessionDetails({ sessionId, token });
+  const details = useSessionDetails({ sessionId });
   const identity = useSessionIdentity({
     sessionId,
     isSessionReady: details.hasLoadedSession,
     isAuthenticated,
-    token,
     userId,
     ownerId: details.ownerId,
   });
@@ -92,7 +91,6 @@ const SessionDashboard = () => {
     handleUpdateFormat,
   } = useSessionActions({
     sessionId,
-    token,
     isAuthenticated,
     navigate,
     addToast,

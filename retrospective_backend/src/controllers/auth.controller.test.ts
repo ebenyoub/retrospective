@@ -69,9 +69,10 @@ describe("auth.controller", () => {
       await login(req, res as unknown as Response);
 
       expect(res.statusCode).toBe(200);
-      const body = res.body as { success: boolean; data: { token: string } };
+      const body = res.body as { success: boolean; data: Record<string, unknown> };
       expect(body.success).toBe(true);
-      expect(body.data.token).toBe("token");
+      // Le token ne circule que dans le cookie, jamais dans le JSON.
+      expect(body.data).toEqual({ userId: 1, username: "Elyas", email: "e@test.com" });
       expect(res.cookies.token).toBe("token");
       expect(mockLoginUser).toHaveBeenCalledWith({
         email: "e@test.com",
@@ -101,10 +102,10 @@ describe("auth.controller", () => {
       await signup(req, res as unknown as Response);
 
       expect(res.statusCode).toBe(200);
-      const body = res.body as { success: boolean; data: { token: string; userId: number } };
+      const body = res.body as { success: boolean; data: Record<string, unknown> };
       expect(body.success).toBe(true);
-      expect(body.data.userId).toBe(42);
-      expect(body.data.token).toBe("token");
+      // Le token ne circule que dans le cookie, jamais dans le JSON.
+      expect(body.data).toEqual({ userId: 42, username: "Elyas" });
       expect(res.cookies.token).toBe("token");
       expect(mockSignupUser).toHaveBeenCalledWith({
         username: "Elyas",
@@ -146,7 +147,7 @@ describe("auth.controller", () => {
 
       profile(req, res as unknown as Response);
 
-      expect(res.body).toEqual({ userId: 1, username: "Elyas" });
+      expect(res.body).toEqual({ success: true, data: { userId: 1, username: "Elyas" } });
       expect(mockGetProfile).toHaveBeenCalledWith({ userId: 1, username: "Elyas" });
     });
   });

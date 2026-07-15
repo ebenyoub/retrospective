@@ -3,7 +3,6 @@ import FormContainer from "@/components/ui/FormContainer";
 import FormField from "@/components/ui/FormField";
 import Button from "@/components/ui/Button";
 import SpinContainer from "@/components/ui/SpinContainer";
-import { useAuth } from "@/context/auth/useAuth";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/context/toast/useToast";
@@ -30,7 +29,6 @@ const createSessionValidationSchema: ValidationSchema<CreateSessionValues> = {
 };
 
 const SessionCreate = () => {
-  const { token } = useAuth();
   const { addToast } = useToast();
   const navigate = useNavigate();
   const [createdSession, setCreatedSession] = useState<CreatedSession | null>(null);
@@ -60,7 +58,7 @@ const SessionCreate = () => {
     try {
       setIsLoading(true);
 
-      const result = await createSession(token, {
+      const result = await createSession({
         name: values.name,
         formatName: selectedFormat.name,
         formatColumns: selectedFormat.columns,

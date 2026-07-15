@@ -34,10 +34,9 @@ const normalizeFormatColumns = (columns: SessionDetails['formatColumns']): strin
 
 interface UseSessionDetailsOptions {
   sessionId: string;
-  token: string;
 }
 
-export const useSessionDetails = ({ sessionId, token }: UseSessionDetailsOptions) => {
+export const useSessionDetails = ({ sessionId }: UseSessionDetailsOptions) => {
   const [sessionName, setSessionName] = useState<string>('');
   const [sessionCode, setSessionCode] = useState<string>('');
   const [step, setStep] = useState<SessionStep>('waiting');
@@ -51,7 +50,7 @@ export const useSessionDetails = ({ sessionId, token }: UseSessionDetailsOptions
     if (!sessionId || sessionId === 'undefined' || isNaN(sessionIdNumber) || sessionIdNumber <= 0) return;
 
     try {
-      const result = await getSessionDetails(sessionId, token);
+      const result = await getSessionDetails(sessionId);
 
       if (result.ok) {
         setSessionName(result.data.name);
@@ -66,7 +65,7 @@ export const useSessionDetails = ({ sessionId, token }: UseSessionDetailsOptions
     } finally {
       setHasLoadedSession(true);
     }
-  }, [sessionId, token]);
+  }, [sessionId]);
 
   return {
     fetchSessionDetails,

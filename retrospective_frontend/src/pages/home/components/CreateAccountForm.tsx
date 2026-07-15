@@ -59,8 +59,10 @@ const CreateAccountForm = ({ onSessionCreated }: CreateAccountFormProps) => {
 
     try {
       const username = `${values.prenom.trim()} ${values.nom.trim()}`;
+      // credentials : la réponse du signup pose le cookie d'authentification.
       const signupResponse = await fetch(`${API_BASE}/auth/signup`, {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, email: values.email.trim(), password: values.password }),
       });
@@ -75,16 +77,13 @@ const CreateAccountForm = ({ onSessionCreated }: CreateAccountFormProps) => {
         return;
       }
 
-      // Le contexte n'est pas encore à jour de façon synchrone juste après
-      // login() : on utilise le token reçu directement pour l'appel suivant.
       login({ ...signupData.data, email: signupData.data.email ?? values.email.trim() });
 
+      // Le cookie posé par le signup authentifie directement cet appel.
       const sessionResponse = await fetch(`${API_BASE}/session/create-session`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${signupData.data.token}`,
-        },
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: values.retroName.trim(),
           formatName: selectedFormat.name,

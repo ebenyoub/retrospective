@@ -2,6 +2,7 @@ import type { Server as HttpServer } from "http";
 import { Server as SocketIOServer, type Socket } from "socket.io";
 import jwt from "jsonwebtoken";
 import { getParticipantsForSession, markParticipantOffline, findParticipantForGuestToken } from "../services/participant.service";
+import { readTokenFromCookieHeader } from "../utils/authCookie";
 import { logger } from "../utils/logger";
 
 let io: SocketIOServer | null = null;
@@ -19,8 +20,10 @@ interface JoinPayload {
 // qu'il connaît soit le jeton invité, soit un JWT valide, avant de le laisser
 // rejoindre la room. Sans cette vérification, n'importe qui pourrait se
 // faire passer pour un autre participant (et le faire passer "hors ligne").
-const canRepresentParticipant = async (payload: JoinPayload): Promise<boolean> => {
-  const { sessionId, participantId, guestToken, token } = payload;
+// Le JWT vient du cookie HttpOnly transporté par le handshake (le JavaScript
+// du navigateur ne peut plus le lire) ; le payload reste accepté en secours.
+const canRepresentParticipant = async (payload: JoinPayload, cookieHeader: string | undefined): Promise<boolean> => {
+  const { sessionId, participantId, guestToken } = payload;
   if (!sessionId || !participantId) return false;
 
   if (guestToken) {
@@ -28,6 +31,7 @@ const canRepresentParticipant = async (payload: JoinPayload): Promise<boolean> =
     return participant !== null && participant.id === participantId;
   }
 
+  const token = readTokenFromCookieHeader(cookieHeader) ?? payload.token;
   if (token) {
     const jwtSecret = process.env.JWT_SECRET;
     if (!jwtSecret) return false;
@@ -51,6 +55,9 @@ export const initSocket = (
       origin: (origin, callback) => {
         callback(originCheck(origin) ? null : new Error("Not allowed by CORS"), true);
       },
+      // Le navigateur n'envoie le cookie d'authentification au handshake
+      // que si le serveur accepte les credentials.
+      credentials: true,
     },
   });
 
@@ -60,7 +67,7 @@ export const initSocket = (
 
     socket.on("session:join", async (payload: JoinPayload) => {
       try {
-        const allowed = await canRepresentParticipant(payload);
+        const allowed = await canRepresentParticipant(payload, socket.handshake.headers.cookie);
         if (!allowed) return;
 
         currentSessionId = payload.sessionId;

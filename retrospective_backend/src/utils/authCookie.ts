@@ -17,6 +17,22 @@ export const authCookieOptions: CookieOptions = {
   secure: process.env.NODE_ENV === "production",
 };
 
+// Pour les sockets : le handshake Socket.IO transporte les cookies dans un
+// simple header texte "a=1; b=2", qu'on découpe à la main (cookie-parser ne
+// s'applique qu'aux requêtes Express).
+export const readTokenFromCookieHeader = (cookieHeader: string | undefined): string | null => {
+  if (!cookieHeader) return null;
+
+  for (const part of cookieHeader.split(";")) {
+    const [name, ...rest] = part.trim().split("=");
+    if (name === AUTH_COOKIE_NAME && rest.length > 0) {
+      return decodeURIComponent(rest.join("="));
+    }
+  }
+
+  return null;
+};
+
 // Le token peut venir du cookie (navigateur) ou du header Authorization
 // (tests Supertest, outils) : le cookie a la priorité.
 export const readAuthToken = (req: Request): string | null => {

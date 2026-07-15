@@ -47,7 +47,9 @@ export const useSessionParticipants = (
 
     void loadInitial();
 
-    const socket: Socket = io(API_BASE, { transports: ["websocket", "polling"] });
+    // withCredentials : le cookie d'authentification HttpOnly accompagne le
+    // handshake, le serveur y lit le JWT de l'utilisateur connecté.
+    const socket: Socket = io(API_BASE, { transports: ["websocket", "polling"], withCredentials: true });
 
     const handleParticipantsUpdated = (next: ParticipantSummary[]) => {
       if (isActive) setParticipants(next);
@@ -62,7 +64,6 @@ export const useSessionParticipants = (
         sessionId: Number(sessionId),
         participantId: self.participantId,
         guestToken: self.guestToken,
-        token: self.token,
       });
     };
 

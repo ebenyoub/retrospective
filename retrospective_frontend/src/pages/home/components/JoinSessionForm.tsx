@@ -56,7 +56,7 @@ const storeGuestIdentity = (data: GuestJoinData) => {
 // Participant avec ou sans compte : s'adapte à l'état d'authentification.
 const JoinSessionForm = ({ onSessionJoined }: JoinSessionFormProps) => {
   const [code, setCode] = useState("");
-  const { isAuthenticated, token } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   const schema = isAuthenticated ? joinConnectedSchema : joinGuestSchema;
 
@@ -74,13 +74,11 @@ const JoinSessionForm = ({ onSessionJoined }: JoinSessionFormProps) => {
   const onSubmit = async (values: JoinSessionValues) => {
     try {
       if (isAuthenticated) {
-        // Utilisateur connecté : rejoint via POST /session/join (avec token JWT, sans pseudo)
+        // Utilisateur connecté : rejoint via POST /session/join (cookie HttpOnly, sans pseudo)
         const response = await fetch(`${API_BASE}/session/join`, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ code: values.code }),
         });
         const data = await readJsonSafely(response);

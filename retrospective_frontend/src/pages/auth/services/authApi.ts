@@ -54,7 +54,8 @@ export const resetPasswordApi = (email: string, newPassword: string, code: strin
     body: JSON.stringify({ email, newPassword, code }),
   });
 
-export const fetchProfileApi = (token: string) =>
-  requestApi<ProfileResponse>(`${API_BASE}/auth/profile`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+export const fetchProfileApi = () =>
+  requestApi<ProfileResponse>(`${API_BASE}/auth/profile`);
+
+export const logoutApi = () =>
+  requestApi<unknown>(`${API_BASE}/auth/logout`, { method: 'POST' });

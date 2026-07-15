@@ -13,7 +13,6 @@ interface UseSessionIdentityOptions {
   sessionId: string;
   isSessionReady: boolean;
   isAuthenticated: boolean;
-  token: string;
   userId: number | null;
   ownerId: number | null;
 }
@@ -32,7 +31,6 @@ export const useSessionIdentity = ({
   sessionId,
   isSessionReady,
   isAuthenticated,
-  token,
   userId,
   ownerId,
 }: UseSessionIdentityOptions) => {
@@ -44,12 +42,12 @@ export const useSessionIdentity = ({
   const [selfParticipantId, setSelfParticipantId] = useState<number | null>(null);
   const [participantRole, setParticipantRole] = useState<SessionRole | null>(null);
 
+  // L'utilisateur connecté est identifié par son cookie HttpOnly (envoyé
+  // automatiquement) : ses "headers d'acteur" se limitent à son numéro de
+  // participant. L'invité, lui, prouve son identité avec son jeton.
   const actorHeaders = useMemo((): Record<string, string> | null => {
-    if (isAuthenticated && token) {
-      return {
-        Authorization: `Bearer ${token}`,
-        ...(selfParticipantId ? { 'x-participant-id': String(selfParticipantId) } : {}),
-      };
+    if (isAuthenticated) {
+      return selfParticipantId ? { 'x-participant-id': String(selfParticipantId) } : {};
     }
 
     if (guestIdentity && selfParticipantId) {
@@ -57,14 +55,14 @@ export const useSessionIdentity = ({
     }
 
     return null;
-  }, [isAuthenticated, token, selfParticipantId, guestIdentity]);
+  }, [isAuthenticated, selfParticipantId, guestIdentity]);
 
   const selfIdentityForSocket = useMemo((): SelfIdentity | null => {
     if (!selfParticipantId) return null;
-    if (isAuthenticated && token) return { participantId: selfParticipantId, token };
+    if (isAuthenticated) return { participantId: selfParticipantId };
     if (guestIdentity) return { participantId: selfParticipantId, guestToken: guestIdentity.guestToken };
     return null;
-  }, [selfParticipantId, isAuthenticated, token, guestIdentity]);
+  }, [selfParticipantId, isAuthenticated, guestIdentity]);
 
   const role = useMemo((): SessionRole | null => {
     if (isAuthenticated && userId && ownerId !== null) {
@@ -76,13 +74,13 @@ export const useSessionIdentity = ({
 
   useEffect(() => {
     if (!isValidSessionId(sessionId)) return;
-    if (!isSessionReady || !isAuthenticated || !token || selfParticipantId) return;
+    if (!isSessionReady || !isAuthenticated || selfParticipantId) return;
 
     let isActive = true;
 
     const ensureSelf = async (): Promise<void> => {
       try {
-        const result = await joinAsSelf(sessionId, token);
+        const result = await joinAsSelf(sessionId);
 
         if (isActive && result.ok) {
           setSelfParticipantId(result.data.id);
@@ -98,7 +96,7 @@ export const useSessionIdentity = ({
     return () => {
       isActive = false;
     };
-  }, [isSessionReady, isAuthenticated, token, sessionId, selfParticipantId]);
+  }, [isSessionReady, isAuthenticated, sessionId, selfParticipantId]);
 
   useEffect(() => {
     if (!isValidSessionId(sessionId)) return;
@@ -148,11 +146,11 @@ export const useSessionIdentity = ({
     if (!selfParticipantId) return;
 
     try {
-      await leaveParticipant(sessionId, selfParticipantId, token, guestIdentity?.guestToken);
+      await leaveParticipant(sessionId, selfParticipantId, guestIdentity?.guestToken);
     } catch (error) {
       console.error('Erreur lors du départ de la session :', error);
     }
-  }, [sessionId, selfParticipantId, token, guestIdentity]);
+  }, [sessionId, selfParticipantId, guestIdentity]);
 
   return {
     actorHeaders,

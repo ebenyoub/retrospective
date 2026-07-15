@@ -25,26 +25,28 @@ const setAuthCookie = (res: Response, token: string) => {
 export const login = async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
-  const data = await loginUser({ email, password });
-  setAuthCookie(res, data.token);
+  // Le token ne quitte le serveur que dans le cookie HttpOnly :
+  // la réponse JSON ne contient que les informations de l'utilisateur.
+  const { token, ...user } = await loginUser({ email, password });
+  setAuthCookie(res, token);
 
   return res.status(200).json({
     success: true,
     message: "Connexion réussie.",
-    data,
+    data: user,
   });
 };
 
 export const signup = async (req: Request, res: Response) => {
   const { username, email, password } = req.body;
 
-  const data = await signupUser({ username, email, password });
-  setAuthCookie(res, data.token);
+  const { token, ...user } = await signupUser({ username, email, password });
+  setAuthCookie(res, token);
 
   return res.status(200).json({
     success: true,
     message: "Connexion réussie.",
-    data,
+    data: user,
   });
 };
 
@@ -64,7 +66,10 @@ export const profile = (req: AuthRequest, res: Response) => {
 
   const data = getProfile({ userId, username });
 
-  return res.json(data);
+  // Même enveloppe que le reste de l'API : sans elle, le frontend
+  // considérait la réponse comme un échec et déconnectait l'utilisateur
+  // à chaque rechargement de page.
+  return res.json({ success: true, data });
 };
 
 export const deleteAccount = async (req: AuthRequest, res: Response) => {

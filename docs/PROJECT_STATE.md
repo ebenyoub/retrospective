@@ -4,6 +4,8 @@
 
 ## Date de dernière mise à jour
 
+2026-07-15 (`AUTH-COOKIE-01 — Migration de l'authentification vers un cookie HttpOnly` terminé en 2 phases : le JWT est posé par le backend en cookie HttpOnly (plus de localStorage ni de header Authorization côté frontend), nouvelle route POST /auth/logout, tous les appels passent en credentials include, sockets authentifiés via le cookie du handshake, et correction du bug de déconnexion au rechargement (le contrôleur profile ne renvoyait pas l'enveloppe success/data attendue par le frontend). 194 tests backend, 140 tests frontend et 23 E2E Playwright au vert.)
+
 2026-07-14 (`US-ARCHI-01 — Séparer complètement les parcours "Utilisateur connecté" et "Participant invité"` terminé : correction finale des redirections d'authentification, masquage de la navbar sur les pages de session, rendu universel de SessionContextBar sur toutes les étapes y compris WaitingStep pour l'accès au menu utilisateur, purge des résidus d'invités lors de la connexion, suppression du champ pseudo pour les connectés, 139 tests unitaires Vitest au vert, et réussite 23/23 de la suite E2E Playwright.)
 
 2026-07-14 (Séparation stricte des parcours Utilisateur connecté vs Participant invité : suppression de la redirection automatique de resolveLandingRoute, masquage du Header global en session et intégration du ProfileMenu dans SessionContextBar pour éviter les doublons, et masquage dynamique du champ pseudo de JoinSessionForm pour les utilisateurs connectés rejoignant via /session/join.)
