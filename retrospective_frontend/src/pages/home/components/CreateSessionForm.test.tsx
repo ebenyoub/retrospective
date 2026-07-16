@@ -54,6 +54,7 @@ describe('CreateSessionForm', () => {
       name: 'Sprint 43',
       formatName: 'Succès / Difficultés / Idées',
       formatColumns: ['Succès', 'Difficultés', 'Idées'],
+      stepDurationMinutes: 5,
     });
   });
 

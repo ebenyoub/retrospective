@@ -70,6 +70,8 @@ describe('SessionDashboard - Distribution des votes (Voting Step)', () => {
   it('rend les votes restants, le timer et le bouton principal dans la barre d\'actions en vote', async () => {
     const fetchMock = createDashboardFetchMock({
       step: 'voting',
+      // Échéance absolue fournie par le backend : le timer affiche le restant.
+      stepEndsAt: new Date(Date.now() + 270 * 1000).toISOString(),
       cardsSequence: [
         {
           ok: true,
@@ -98,7 +100,7 @@ describe('SessionDashboard - Distribution des votes (Voting Step)', () => {
 
     const actionBar = await screen.findByRole('toolbar', { name: "Actions de l'étape" });
     expect(within(actionBar).getByRole('status', { name: '4 votes restants sur 5' })).toBeTruthy();
-    expect(within(actionBar).getByText('04:30')).toBeTruthy();
+    expect(within(actionBar).getByText(/04:(29|30)/)).toBeTruthy();
     expect(within(actionBar).getByRole('button', { name: /Voir les résultats/ })).toBeTruthy();
   });
 

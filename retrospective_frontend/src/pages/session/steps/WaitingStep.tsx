@@ -10,10 +10,12 @@ interface WaitingStepProps {
   selfParticipantId: number | null;
   role: SessionRole | null;
   formatName: string;
+  stepDurationMinutes: number;
   isDesktop: boolean;
   onStart: () => void;
   onLeave: () => void | Promise<void>;
   onSelectFormatPreset: (nextName: string, nextColumns: string[]) => void | Promise<void>;
+  onUpdateStepDuration: (minutes: number) => void;
 }
 
 const WaitingStep = ({
@@ -24,10 +26,12 @@ const WaitingStep = ({
   selfParticipantId,
   role,
   formatName,
+  stepDurationMinutes,
   isDesktop,
   onStart,
   onLeave,
   onSelectFormatPreset,
+  onUpdateStepDuration,
 }: WaitingStepProps) => {
   if (!selfParticipantId) {
     return (
@@ -46,9 +50,11 @@ const WaitingStep = ({
       selfParticipantId={selfParticipantId}
       role={role || 'participant'}
       formatName={formatName}
+      stepDurationMinutes={stepDurationMinutes}
       onStart={onStart}
       onLeave={onLeave}
       onSelectFormatPreset={onSelectFormatPreset}
+      onUpdateStepDuration={onUpdateStepDuration}
       isDesktop={isDesktop}
     />
   );

@@ -10,15 +10,24 @@ test.describe('Parcours d\'authentification et d\'identité étanches', () => {
       }
     });
 
-    // Mock du profil utilisateur connecté
+    // Mock du profil utilisateur connecté (non connecté par défaut)
     await page.route('http://localhost:8000/auth/profile', async (route) => {
+      await route.fulfill({
+        status: 401,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: false,
+          message: 'Non connecté.'
+        }),
+      });
+    });
+
+    // Mock de reprise de session active (renvoie vide par défaut)
+    await page.route('http://localhost:8000/session/resume/active', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({
-          success: true,
-          data: { userId: 1, username: 'JohnDoe', email: 'john@example.com' }
-        }),
+        body: JSON.stringify({ success: true, data: null }),
       });
     });
 
@@ -171,6 +180,17 @@ test.describe('Parcours d\'authentification et d\'identité étanches', () => {
       window.localStorage.setItem('token', 'jwt-token');
     });
 
+    await page.route('http://localhost:8000/auth/profile', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          data: { userId: 1, username: 'JohnDoe', email: 'john@example.com' }
+        }),
+      });
+    });
+
     await page.goto('/');
     const profileBtn = page.getByRole('button', { name: 'JohnDoe' });
     await expect(profileBtn).toBeVisible();
@@ -186,6 +206,17 @@ test.describe('Parcours d\'authentification et d\'identité étanches', () => {
   test('4. Rafraîchissement après connexion', async ({ page }) => {
     await page.addInitScript(() => {
       window.localStorage.setItem('token', 'jwt-token');
+    });
+
+    await page.route('http://localhost:8000/auth/profile', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          data: { userId: 1, username: 'JohnDoe', email: 'john@example.com' }
+        }),
+      });
     });
 
     await page.goto('/');
@@ -223,6 +254,17 @@ test.describe('Parcours d\'authentification et d\'identité étanches', () => {
   test('6. Utilisateur connecté sans champ pseudo', async ({ page }) => {
     await page.addInitScript(() => {
       window.localStorage.setItem('token', 'jwt-token');
+    });
+
+    await page.route('http://localhost:8000/auth/profile', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          data: { userId: 1, username: 'JohnDoe', email: 'john@example.com' }
+        }),
+      });
     });
 
     await page.goto('/');
@@ -273,6 +315,17 @@ test.describe('Parcours d\'authentification et d\'identité étanches', () => {
   test('10. Création et ouverture d\'une session facilitateur', async ({ page }) => {
     await page.addInitScript(() => {
       window.localStorage.setItem('token', 'jwt-token');
+    });
+
+    await page.route('http://localhost:8000/auth/profile', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          data: { userId: 1, username: 'JohnDoe', email: 'john@example.com' }
+        }),
+      });
     });
 
     await page.route('http://localhost:8000/session/create-session', async (route) => {

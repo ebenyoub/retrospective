@@ -34,7 +34,7 @@ const JoinSessionModal = ({ sessionId, sessionName, onJoined }: JoinSessionModal
 
   const onSubmit = async (values: PseudoFormValues) => {
     try {
-      const result = await guestJoin(sessionId, values.pseudo);
+      const result = await guestJoin(sessionId, values.pseudo.trim());
 
       if (!result.ok) {
         const fallback = result.status === 403 ? "Cette session est complète." : "Impossible de rejoindre la session.";

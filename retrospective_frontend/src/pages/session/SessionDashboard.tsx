@@ -1,6 +1,6 @@
 import { useAuth } from '@/context/auth/useAuth';
 import { useToast } from '@/context/toast/useToast';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { getRetroFormatById, DEFAULT_RETRO_FORMAT_ID } from '@/lib/retroFormats';
@@ -62,10 +62,11 @@ const defaultFormatColumns = getRetroFormatById(DEFAULT_RETRO_FORMAT_ID).columns
 const SessionDashboard = () => {
   const { id } = useParams();
   const sessionId = id || '';
-  const { isAuthenticated, userId } = useAuth();
+  const { isAuthenticated, userId, username } = useAuth();
   const { addToast } = useToast();
   const navigate = useNavigate();
   const [isSessionCodeCopied, setIsSessionCodeCopied] = useState(false);
+  const hasShownClosedToastRef = useRef(false);
   const { activeMobileColumn, isMobileViewport, setActiveMobileColumn } = useSessionViewport();
   const panels = useSessionPanels();
   const details = useSessionDetails({ sessionId });
@@ -77,6 +78,7 @@ const SessionDashboard = () => {
     ownerId: details.ownerId,
   });
   const sessionCards = useSessionCards({ sessionId, actorHeaders: identity.actorHeaders, addToast });
+  const activeStep = details.status === 'closed' ? 'results' : details.step;
   const isLoading = useSessionPolling({
     sessionId,
     isAuthenticated,
@@ -89,6 +91,8 @@ const SessionDashboard = () => {
     handleLeaveSession,
     handleTransitionStep,
     handleUpdateFormat,
+    handleUpdateTimer,
+    handleCloseSession,
   } = useSessionActions({
     sessionId,
     isAuthenticated,
@@ -99,7 +103,16 @@ const SessionDashboard = () => {
     setStep: details.setStep,
     setFormatName: details.setFormatName,
     setFormatColumns: details.setFormatColumns,
+    setStepDurationMinutes: details.setStepDurationMinutes,
+    setStepEndsAt: details.setStepEndsAt,
   });
+
+  useEffect(() => {
+    if (details.hasLoadedSession && details.status === 'closed' && !hasShownClosedToastRef.current) {
+      addToast('success', 'Cette rétrospective est terminée. Vous consultez ses résultats.');
+      hasShownClosedToastRef.current = true;
+    }
+  }, [details.hasLoadedSession, details.status, addToast]);
   const writingColumns = useMemo(() => {
     const labels = details.formatColumns.length === 3
       ? details.formatColumns
@@ -112,16 +125,45 @@ const SessionDashboard = () => {
     }));
   }, [details.formatColumns]);
 
-  // `setStep` est extrait seul : useCallback exige une dépendance stable,
-  // ce que `details.setStep` ne garantit pas pour le compilateur React.
-  const { setStep } = details;
-  const handleSessionStarted = useCallback((nextStep: string) => {
+  // `setStep`/`setStepEndsAt`/`setStatus` sont extraits seuls : useCallback exige des
+  // dépendance stables, ce que `details.xxx` ne garantit pas pour le
+  // compilateur React.
+  const { setStep, setStepEndsAt, setStatus } = details;
+  const handleSessionStarted = useCallback((nextStep: string, stepEndsAt: string | null) => {
     setStep(nextStep as SessionStep);
-  }, [setStep]);
+    setStepEndsAt(stepEndsAt);
+  }, [setStep, setStepEndsAt]);
+
+  // L'échéance redéfinie par le facilitateur arrive en direct par socket.
+  const handleTimerUpdated = useCallback((stepEndsAt: string) => {
+    setStepEndsAt(stepEndsAt);
+  }, [setStepEndsAt]);
+
+  const handleSessionClosedBySocket = useCallback(() => {
+    addToast('success', 'Le facilitateur a mis fin à la session. Redirection vers les résultats.');
+    setStatus('closed');
+    hasShownClosedToastRef.current = true;
+  }, [addToast, setStatus]);
 
   const { participants } = useSessionParticipants(sessionId, identity.selfIdentityForSocket, {
     onSessionStarted: handleSessionStarted,
+    onTimerUpdated: handleTimerUpdated,
+    onSessionClosed: handleSessionClosedBySocket,
   });
+
+  // Retour = quitter l'écran SANS perdre sa participation : l'identité
+  // (invitée ou compte) est conservée pour permettre la reprise depuis
+  // l'accueil. "Quitter la session" (menu du badge) reste l'action qui
+  // supprime réellement la participation.
+  const handleGoHome = () => {
+    navigate('/');
+  };
+
+  // Le badge participant n'est affiché que pour les non-facilitateurs :
+  // le facilitateur a déjà son menu de compte dans la barre.
+  const selfDisplayName = identity.role === 'participant'
+    ? (identity.guestIdentity?.displayName ?? (isAuthenticated ? username : null))
+    : null;
 
   const handleCopySessionCode = async () => {
     if (!details.sessionCode) return;
@@ -156,17 +198,21 @@ const SessionDashboard = () => {
         sessionName={details.sessionName}
         sessionId={sessionId}
         sessionCode={details.sessionCode}
-        step={details.step}
+        step={activeStep}
         participantCount={participants.filter((participant) => participant.status === 'online').length}
         isSessionCodeCopied={isSessionCodeCopied}
         isParticipantsOpen={panels.isParticipantsDrawerOpen}
         isDiscussionOpen={panels.isDiscussionDrawerOpen}
-        onBack={handleLeaveSession}
+        selfDisplayName={selfDisplayName}
+        canRenameSelf={!isAuthenticated}
+        onRenameSelf={identity.renameSelf}
+        onLeaveSession={handleLeaveSession}
+        onBack={handleGoHome}
         onCopySessionCode={handleCopySessionCode}
         onToggleParticipants={panels.toggleParticipantsDrawer}
         onToggleDiscussion={panels.toggleDiscussionDrawer}
       />
-      {details.step === 'waiting' ? (
+      {activeStep === 'waiting' ? (
         <WaitingStep
           sessionId={sessionId}
           sessionName={details.sessionName}
@@ -175,19 +221,24 @@ const SessionDashboard = () => {
           selfParticipantId={identity.selfParticipantId}
           role={identity.role}
           formatName={details.formatName}
+          stepDurationMinutes={details.stepDurationMinutes}
           onStart={() => handleTransitionStep('writing')}
           onLeave={handleLeaveSession}
           onSelectFormatPreset={handleUpdateFormat}
+          onUpdateStepDuration={handleUpdateTimer}
           isDesktop={!isMobileViewport}
         />
       ) : (
         <>
           <SessionActionBar
-            step={details.step}
+            step={activeStep}
             cardsCount={sessionCards.cards.length}
             votesLeft={sessionCards.votesLeft}
-            isFacilitator={identity.role === 'facilitator'}
+            isFacilitator={identity.role === 'facilitator' && details.status !== 'closed'}
+            stepEndsAt={details.stepEndsAt}
             onTransitionStep={handleTransitionStep}
+            onUpdateTimer={handleUpdateTimer}
+            onCloseSession={handleCloseSession}
           />
           <ParticipantsDrawer
             participants={participants}
@@ -208,9 +259,9 @@ const SessionDashboard = () => {
             />
           )}
 
-          {details.step === 'results' ? (
+          {activeStep === 'results' ? (
             <ResultsStep cards={sessionCards.cards} formatColumns={details.formatColumns} isDesktop={!isMobileViewport} />
-          ) : details.step === 'voting' ? (
+          ) : activeStep === 'voting' ? (
             <VotingStep
               cards={sessionCards.cards}
               columns={writingColumns}

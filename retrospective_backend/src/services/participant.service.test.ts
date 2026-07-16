@@ -11,6 +11,7 @@ vi.mock("../models/participant.model", () => ({
   findParticipantsBySession: vi.fn(),
   insertParticipant: vi.fn(),
   touchParticipant: vi.fn(),
+  updateParticipantName: vi.fn(),
 }));
 
 vi.mock("../models/session.model", () => ({
@@ -28,15 +29,17 @@ import {
   findParticipantsBySession,
   insertParticipant,
   touchParticipant,
+  updateParticipantName,
 } from "../models/participant.model";
 import { findSessionByCode, findSessionById } from "../models/session.model";
 import {
-  MAX_PARTICIPANTS,
+  checkGuestResume,
   ensureAuthenticatedParticipant,
   getParticipantsForSession,
   joinSessionAsGuestParticipantByCode,
   joinSessionAsGuestParticipant,
   leaveSession,
+  renameParticipant,
   resumeGuestParticipant,
 } from "./participant.service";
 import { AppError } from "../utils/AppError";
@@ -50,6 +53,7 @@ const mockFindParticipantByUserId = findParticipantByUserId as unknown as Mock;
 const mockFindParticipantsBySession = findParticipantsBySession as unknown as Mock;
 const mockInsertParticipant = insertParticipant as unknown as Mock;
 const mockTouchParticipant = touchParticipant as unknown as Mock;
+const mockUpdateParticipantName = updateParticipantName as unknown as Mock;
 const mockFindSessionByCode = findSessionByCode as unknown as Mock;
 const mockFindSessionById = findSessionById as unknown as Mock;
 
@@ -76,8 +80,101 @@ describe("participant.service", () => {
     mockFindParticipantsBySession.mockReset();
     mockInsertParticipant.mockReset();
     mockTouchParticipant.mockReset();
+    mockUpdateParticipantName.mockReset();
     mockFindSessionByCode.mockReset();
     mockFindSessionById.mockReset();
+  });
+
+  describe("renameParticipant", () => {
+    it("permet à l'invité propriétaire du jeton de changer son pseudo", async () => {
+      mockFindParticipantById.mockResolvedValueOnce(baseParticipantRow);
+      mockFindParticipantByName.mockResolvedValueOnce(null);
+
+      const result = await renameParticipant({
+        sessionId: 10,
+        participantId: 1,
+        displayName: "Sarah",
+        requesterUserId: null,
+        requesterGuestToken: "guest-token",
+      });
+
+      expect(mockUpdateParticipantName).toHaveBeenCalledWith(1, "Sarah");
+      expect(result.displayName).toBe("Sarah");
+    });
+
+    it("refuse la modification par un autre participant (403)", async () => {
+      mockFindParticipantById.mockResolvedValueOnce(baseParticipantRow);
+
+      await expect(renameParticipant({
+        sessionId: 10,
+        participantId: 1,
+        displayName: "Sarah",
+        requesterUserId: null,
+        requesterGuestToken: "jeton-de-quelqu-un-d-autre",
+      })).rejects.toMatchObject({ statusCode: 403, code: "PARTICIPANT_FORBIDDEN" });
+
+      expect(mockUpdateParticipantName).not.toHaveBeenCalled();
+    });
+
+    it("refuse un pseudo déjà pris dans la session (409)", async () => {
+      mockFindParticipantById.mockResolvedValueOnce(baseParticipantRow);
+      mockFindParticipantByName.mockResolvedValueOnce({ ...baseParticipantRow, id: 2 });
+
+      await expect(renameParticipant({
+        sessionId: 10,
+        participantId: 1,
+        displayName: "Sarah",
+        requesterUserId: null,
+        requesterGuestToken: "guest-token",
+      })).rejects.toMatchObject({ statusCode: 409, code: "PARTICIPANT_NAME_TAKEN" });
+    });
+
+    it("ne fait rien si le pseudo est inchangé", async () => {
+      mockFindParticipantById.mockResolvedValueOnce(baseParticipantRow);
+
+      const result = await renameParticipant({
+        sessionId: 10,
+        participantId: 1,
+        displayName: "EBNoob",
+        requesterUserId: null,
+        requesterGuestToken: "guest-token",
+      });
+
+      expect(mockUpdateParticipantName).not.toHaveBeenCalled();
+      expect(result.displayName).toBe("EBNoob");
+    });
+  });
+
+  describe("checkGuestResume", () => {
+    it("valide une reprise pour une session ouverte et un jeton correct", async () => {
+      mockFindSessionById.mockResolvedValueOnce({ id: 10, name: "Retro", status: "open" });
+      mockFindParticipantById.mockResolvedValueOnce(baseParticipantRow);
+
+      const result = await checkGuestResume(10, 1, "guest-token");
+
+      expect(result).toEqual({ sessionId: 10, sessionName: "Retro", displayName: "EBNoob" });
+      // La vérification ne remet PAS le participant en ligne.
+      expect(mockTouchParticipant).not.toHaveBeenCalled();
+    });
+
+    it("refuse la reprise si la session est fermée", async () => {
+      mockFindSessionById.mockResolvedValueOnce({ id: 10, name: "Retro", status: "closed" });
+
+      await expect(checkGuestResume(10, 1, "guest-token")).rejects.toMatchObject({
+        statusCode: 404,
+        code: "SESSION_UNAVAILABLE",
+      });
+    });
+
+    it("refuse la reprise avec un jeton invalide", async () => {
+      mockFindSessionById.mockResolvedValueOnce({ id: 10, name: "Retro", status: "open" });
+      mockFindParticipantById.mockResolvedValueOnce(baseParticipantRow);
+
+      await expect(checkGuestResume(10, 1, "mauvais-jeton")).rejects.toMatchObject({
+        statusCode: 404,
+        code: "PARTICIPANT_NOT_FOUND",
+      });
+    });
   });
 
   describe("joinSessionAsGuestParticipant", () => {
@@ -110,17 +207,7 @@ describe("participant.service", () => {
       expect(mockInsertParticipant).not.toHaveBeenCalled();
     });
 
-    it("refuse le 26e participant (capacité 25)", async () => {
-      mockFindSessionById.mockResolvedValueOnce({ id: 10 });
-      mockCountParticipants.mockResolvedValueOnce(MAX_PARTICIPANTS);
 
-      await expect(joinSessionAsGuestParticipant(10, "Nouveau")).rejects.toMatchObject({
-        statusCode: 403,
-        code: "SESSION_FULL",
-      } satisfies Partial<AppError>);
-
-      expect(mockInsertParticipant).not.toHaveBeenCalled();
-    });
 
     it("lève une AppError 404 si la session n'existe pas", async () => {
       mockFindSessionById.mockResolvedValueOnce(null);

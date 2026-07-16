@@ -250,7 +250,7 @@ describe('SessionDashboard - Configuration, Initialisation & Routage', () => {
     expect(within(contextBar).queryByRole('button', { name: /Passer au vote/ })).toBeNull();
   });
 
-  it('permet de quitter une session démarrée depuis le bouton Retour de la barre contexte', async () => {
+  it('le bouton Retour ramène à l\'accueil sans supprimer la participation', async () => {
     const fetchSpy = vi.fn().mockImplementation((url, init) => {
       const method = init?.method ?? 'GET';
       if (method === 'DELETE' && url.endsWith('/session/1/participants/1')) {
@@ -308,7 +308,8 @@ describe('SessionDashboard - Configuration, Initialisation & Routage', () => {
     fireEvent.click(backButton);
 
     expect(await screen.findByText("Page d'accueil")).toBeTruthy();
-    expect(fetchSpy).toHaveBeenCalledWith(
+    // La participation est conservée : aucun DELETE — la reprise reste possible.
+    expect(fetchSpy).not.toHaveBeenCalledWith(
       expect.stringMatching(/\/session\/1\/participants\/1$/),
       expect.objectContaining({ method: 'DELETE' })
     );
@@ -377,5 +378,29 @@ describe('SessionDashboard - Configuration, Initialisation & Routage', () => {
     expect(await screen.findByText('Accueil')).toBeTruthy();
     expect(fetchSpy).not.toHaveBeenCalled();
     expect(addToastMock).toHaveBeenCalledWith('error', 'Session invalide ou non spécifiée.');
+  });
+
+  it("force l'étape résultats et affiche un message informatif si la session est fermée", async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockImplementation((url: string) => {
+        if (url.endsWith('/session/1')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({
+              success: true,
+              data: { id: 1, name: 'Session Fermée', step: 'writing', ownerId: 1, status: 'closed' },
+            }),
+          });
+        }
+        return Promise.resolve(emptyCardsResponse);
+      })
+    );
+
+    renderDashboard();
+
+    expect(await screen.findByText("Aucune carte n'a été ajoutée pendant cette rétrospective.")).toBeTruthy();
+    expect(screen.getAllByText('Résultats').length).toBeGreaterThan(0);
+    expect(addToastMock).toHaveBeenCalledWith('success', 'Cette rétrospective est terminée. Vous consultez ses résultats.');
   });
 });

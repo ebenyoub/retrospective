@@ -93,7 +93,8 @@ describe("session.model", () => {
       1,
       "2026-07-08 11:00:00",
       "Commencer / Arrêter / Continuer",
-      ["Commencer", "Arrêter", "Continuer"]
+      ["Commencer", "Arrêter", "Continuer"],
+      5
     )).resolves.toBe(7);
 
     expect(mockExecute).toHaveBeenCalledWith(
@@ -106,6 +107,7 @@ describe("session.model", () => {
         "2026-07-08 11:00:00",
         "Commencer / Arrêter / Continuer",
         JSON.stringify(["Commencer", "Arrêter", "Continuer"]),
+        5,
       ]
     );
   });

@@ -37,3 +37,13 @@ export const leaveParticipantSchema = z.object({
     guestToken: z.string().trim().min(1).optional(),
   }),
 });
+
+// Changement de pseudo : mêmes règles qu'à l'entrée dans la session.
+// Le jeton invité identifie le demandeur sans compte ; l'utilisateur
+// authentifié est identifié par son cookie.
+export const renameParticipantSchema = z.object({
+  body: z.object({
+    pseudo: pseudoSchema,
+    guestToken: z.string().trim().min(1).optional(),
+  }),
+});

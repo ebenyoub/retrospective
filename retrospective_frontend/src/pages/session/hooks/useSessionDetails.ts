@@ -42,7 +42,10 @@ export const useSessionDetails = ({ sessionId }: UseSessionDetailsOptions) => {
   const [step, setStep] = useState<SessionStep>('waiting');
   const [formatName, setFormatName] = useState<string>(defaultFormat.name);
   const [formatColumns, setFormatColumns] = useState<string[]>(defaultFormat.columns);
+  const [stepDurationMinutes, setStepDurationMinutes] = useState<number>(5);
+  const [stepEndsAt, setStepEndsAt] = useState<string | null>(null);
   const [ownerId, setOwnerId] = useState<number | null>(null);
+  const [status, setStatus] = useState<string>('open');
   const [hasLoadedSession, setHasLoadedSession] = useState<boolean>(false);
 
   const fetchSessionDetails = useCallback(async (): Promise<void> => {
@@ -58,7 +61,10 @@ export const useSessionDetails = ({ sessionId }: UseSessionDetailsOptions) => {
         setStep(result.data.step || 'writing');
         setFormatName(result.data.formatName ?? defaultFormat.name);
         setFormatColumns(normalizeFormatColumns(result.data.formatColumns));
+        setStepDurationMinutes(result.data.stepDurationMinutes ?? 5);
+        setStepEndsAt(result.data.stepEndsAt ?? null);
         setOwnerId(result.data.ownerId);
+        setStatus(result.data.status || 'open');
       }
     } catch (error) {
       console.error('Erreur lors de la récupération des détails de la session :', error);
@@ -78,6 +84,12 @@ export const useSessionDetails = ({ sessionId }: UseSessionDetailsOptions) => {
     setFormatColumns,
     setFormatName,
     setStep,
+    setStepDurationMinutes,
+    setStepEndsAt,
+    setStatus,
     step,
+    stepDurationMinutes,
+    stepEndsAt,
+    status,
   };
 };

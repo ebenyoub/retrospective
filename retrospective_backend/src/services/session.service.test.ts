@@ -11,7 +11,12 @@ vi.mock("../models/session.model", () => ({
   insertSessionUserJoin: vi.fn(),
   findSessionById: vi.fn(),
   updateSessionStep: vi.fn(),
+  updateSessionStepDuration: vi.fn(),
+  updateSessionStepDeadline: vi.fn(),
   updateSessionFormat: vi.fn(),
+  closeSessionById: vi.fn(),
+  updateSessionName: vi.fn(),
+  deleteSessionById: vi.fn(),
 }));
 
 import {
@@ -24,7 +29,12 @@ import {
   insertSessionUserJoin,
   findSessionById,
   updateSessionStep,
+  updateSessionStepDuration,
+  updateSessionStepDeadline,
   updateSessionFormat,
+  closeSessionById,
+  updateSessionName,
+  deleteSessionById,
 } from '../models/session.model';
 import {
   createSessionForUser,
@@ -32,7 +42,11 @@ import {
   joinSessionForUser,
   getSessionDetails,
   updateSessionStepService,
+  updateSessionTimerService,
   updateSessionFormatService,
+  closeSessionService,
+  updateSessionNameService,
+  deleteSessionService,
 } from "./session.service";
 import { AppError } from "../utils/AppError";
 import { DEFAULT_RETRO_FORMAT_PRESET, getRetroFormatColumnLabels } from "../constants/retroFormats";
@@ -46,7 +60,12 @@ const mockInsertSession = insertSession as unknown as Mock;
 const mockInsertSessionUserJoin = insertSessionUserJoin as unknown as Mock;
 const mockFindSessionById = findSessionById as unknown as Mock;
 const mockUpdateSessionStep = updateSessionStep as unknown as Mock;
+const mockUpdateSessionStepDuration = updateSessionStepDuration as unknown as Mock;
+const mockUpdateSessionStepDeadline = updateSessionStepDeadline as unknown as Mock;
 const mockUpdateSessionFormat = updateSessionFormat as unknown as Mock;
+const mockCloseSessionById = closeSessionById as unknown as Mock;
+const mockUpdateSessionName = updateSessionName as unknown as Mock;
+const mockDeleteSessionById = deleteSessionById as unknown as Mock;
 
 const baseSessionRow = {
   id: 7,
@@ -72,7 +91,12 @@ describe("session.service", () => {
     mockInsertSessionUserJoin.mockReset();
     mockFindSessionById.mockReset();
     mockUpdateSessionStep.mockReset();
+    mockUpdateSessionStepDuration.mockReset();
+    mockUpdateSessionStepDeadline.mockReset();
     mockUpdateSessionFormat.mockReset();
+    mockCloseSessionById.mockReset();
+    mockUpdateSessionName.mockReset();
+    mockDeleteSessionById.mockReset();
   });
 
   it("renvoie un tableau vide si le modèle ne renvoie aucune session", async () => {
@@ -158,7 +182,8 @@ describe("session.service", () => {
       1,
       expect.any(String),
       DEFAULT_RETRO_FORMAT_PRESET.name,
-      getRetroFormatColumnLabels(DEFAULT_RETRO_FORMAT_PRESET)
+      getRetroFormatColumnLabels(DEFAULT_RETRO_FORMAT_PRESET),
+      5
     );
     expect(result.statusCode).toBe(201);
     expect(result.message).toBe("Session créée.");
@@ -194,7 +219,8 @@ describe("session.service", () => {
       1,
       expect.any(String),
       formatName,
-      formatColumns
+      formatColumns,
+      5
     );
   });
 
@@ -303,12 +329,79 @@ describe("session.service", () => {
     });
 
     it("met à jour l'étape avec succès si l'utilisateur est le facilitateur", async () => {
-      const mockSession = { id: 7, owner_id: 1 };
+      const mockSession = { id: 7, owner_id: 1, step_duration_minutes: 5 };
       mockFindSessionById.mockResolvedValueOnce(mockSession);
       mockUpdateSessionStep.mockResolvedValueOnce(true);
 
       const result = await updateSessionStepService(7, 1, "writing");
-      expect(result).toBe(true);
+
+      // L'échéance est calculée par le serveur pour les étapes chronométrées.
+      expect(result.stepEndsAt).toEqual(expect.any(String));
+      expect(mockUpdateSessionStep).toHaveBeenCalledWith(7, "writing", expect.any(String));
+    });
+
+    it("ne fixe pas d'échéance pour l'écran des résultats", async () => {
+      const mockSession = { id: 7, owner_id: 1, step_duration_minutes: 5 };
+      mockFindSessionById.mockResolvedValueOnce(mockSession);
+      mockUpdateSessionStep.mockResolvedValueOnce(true);
+
+      const result = await updateSessionStepService(7, 1, "results");
+
+      expect(result.stepEndsAt).toBeNull();
+      expect(mockUpdateSessionStep).toHaveBeenCalledWith(7, "results", null);
+    });
+  });
+
+  describe("updateSessionTimerService", () => {
+    it("lève une AppError 403 si l'utilisateur n'est pas le facilitateur", async () => {
+      mockFindSessionById.mockResolvedValueOnce({ id: 7, owner_id: 2, step: "waiting" });
+
+      await expect(updateSessionTimerService(7, 1, 10)).rejects.toMatchObject({
+        statusCode: 403,
+        code: "FORBIDDEN",
+      });
+    });
+
+    it("en salle d'attente, remplace la durée par défaut des étapes", async () => {
+      mockFindSessionById.mockResolvedValueOnce({ id: 7, owner_id: 1, step: "waiting", step_duration_minutes: 5 });
+      mockUpdateSessionStepDuration.mockResolvedValueOnce(true);
+
+      const result = await updateSessionTimerService(7, 1, 10);
+
+      expect(mockUpdateSessionStepDuration).toHaveBeenCalledWith(7, 10);
+      expect(result).toEqual({ stepEndsAt: null, stepDurationMinutes: 10 });
+    });
+
+    it("pendant une étape chronométrée, redéfinit l'échéance à maintenant + minutes", async () => {
+      mockFindSessionById.mockResolvedValueOnce({ id: 7, owner_id: 1, step: "writing", step_duration_minutes: 5 });
+      mockUpdateSessionStepDeadline.mockResolvedValueOnce(true);
+
+      const before = Date.now();
+      const result = await updateSessionTimerService(7, 1, 10);
+      const after = Date.now();
+
+      expect(mockUpdateSessionStepDeadline).toHaveBeenCalledWith(7, expect.any(String));
+      const endsAt = new Date(result.stepEndsAt as string).getTime();
+      expect(endsAt).toBeGreaterThanOrEqual(before + 10 * 60 * 1000);
+      expect(endsAt).toBeLessThanOrEqual(after + 10 * 60 * 1000);
+    });
+
+    it("refuse la modification sur l'écran des résultats", async () => {
+      mockFindSessionById.mockResolvedValueOnce({ id: 7, owner_id: 1, step: "results", step_duration_minutes: 5 });
+
+      await expect(updateSessionTimerService(7, 1, 10)).rejects.toMatchObject({
+        statusCode: 400,
+        code: "TIMER_STEP_INVALID",
+      });
+    });
+
+    it("refuse une durée hors bornes", async () => {
+      mockFindSessionById.mockResolvedValueOnce({ id: 7, owner_id: 1, step: "waiting", step_duration_minutes: 5 });
+
+      await expect(updateSessionTimerService(7, 1, 0)).rejects.toMatchObject({
+        statusCode: 400,
+        code: "TIMER_DURATION_INVALID",
+      });
     });
   });
 
@@ -350,6 +443,136 @@ describe("session.service", () => {
       expect(mockUpdateSessionFormat).toHaveBeenCalledWith(7, "Succès / Difficultés / Idées", ["Succès", "Difficultés", "Idées"]);
       expect(result.formatName).toBe("Succès / Difficultés / Idées");
       expect(result.formatColumns).toEqual(["Succès", "Difficultés", "Idées"]);
+    });
+  });
+
+  describe("closeSessionService", () => {
+    it("lève une AppError 404 si la session n'existe pas", async () => {
+      mockFindSessionById.mockResolvedValueOnce(null);
+
+      await expect(closeSessionService(7, 1)).rejects.toMatchObject({
+        statusCode: 404,
+        code: "SESSION_NOT_FOUND",
+      });
+    });
+
+    it("lève une AppError 403 si l'utilisateur n'est pas le facilitateur", async () => {
+      mockFindSessionById.mockResolvedValueOnce({ id: 7, owner_id: 2 });
+
+      await expect(closeSessionService(7, 1)).rejects.toMatchObject({
+        statusCode: 403,
+        code: "FORBIDDEN",
+      });
+    });
+
+    it("lève une AppError 500 si la fermeture échoue", async () => {
+      mockFindSessionById.mockResolvedValueOnce({ id: 7, owner_id: 1 });
+      mockCloseSessionById.mockResolvedValueOnce(false);
+
+      await expect(closeSessionService(7, 1)).rejects.toMatchObject({
+        statusCode: 500,
+        code: "SESSION_CLOSE_FAILED",
+      });
+    });
+
+    it("ferme la session avec succès si l'utilisateur est le facilitateur", async () => {
+      mockFindSessionById.mockResolvedValueOnce({ id: 7, owner_id: 1 });
+      mockCloseSessionById.mockResolvedValueOnce(true);
+
+      await expect(closeSessionService(7, 1)).resolves.toBeUndefined();
+      expect(mockCloseSessionById).toHaveBeenCalledWith(7, 1);
+    });
+  });
+
+  describe("updateSessionNameService", () => {
+    it("lève une AppError 404 si la session n'existe pas", async () => {
+      mockFindSessionById.mockResolvedValueOnce(null);
+
+      await expect(updateSessionNameService(7, 1, "Nouveau Nom")).rejects.toMatchObject({
+        statusCode: 404,
+        code: "SESSION_NOT_FOUND",
+      });
+    });
+
+    it("lève une AppError 403 si l'utilisateur n'est pas le facilitateur", async () => {
+      mockFindSessionById.mockResolvedValueOnce({ id: 7, owner_id: 2 });
+
+      await expect(updateSessionNameService(7, 1, "Nouveau Nom")).rejects.toMatchObject({
+        statusCode: 403,
+        code: "FORBIDDEN",
+      });
+    });
+
+    it("lève une AppError 400 si le nom est vide", async () => {
+      mockFindSessionById.mockResolvedValueOnce({ id: 7, owner_id: 1 });
+
+      await expect(updateSessionNameService(7, 1, "")).rejects.toMatchObject({
+        statusCode: 400,
+        code: "SESSION_NAME_REQUIRED",
+      });
+    });
+
+    it("lève une AppError 500 si la mise à jour SQL échoue", async () => {
+      mockFindSessionById.mockResolvedValueOnce({ id: 7, owner_id: 1 });
+      mockUpdateSessionName.mockResolvedValueOnce(false);
+
+      await expect(updateSessionNameService(7, 1, "Nouveau Nom")).rejects.toMatchObject({
+        statusCode: 500,
+        code: "SESSION_RENAME_FAILED",
+      });
+    });
+
+    it("renomme la session avec succès", async () => {
+      mockFindSessionById.mockResolvedValueOnce({ id: 7, owner_id: 1, name: "Ancien Nom" });
+      mockUpdateSessionName.mockResolvedValueOnce(true);
+
+      await expect(updateSessionNameService(7, 1, "Sprint 4 Rétro")).resolves.toBeUndefined();
+      expect(mockUpdateSessionName).toHaveBeenCalledWith(7, 1, "Sprint 4 Rétro");
+    });
+
+    it("ne fait rien et résout avec succès si le nom est identique", async () => {
+      mockFindSessionById.mockResolvedValueOnce({ id: 7, owner_id: 1, name: "Identique" });
+
+      await expect(updateSessionNameService(7, 1, "Identique")).resolves.toBeUndefined();
+      expect(mockUpdateSessionName).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("deleteSessionService", () => {
+    it("lève une AppError 404 si la session n'existe pas", async () => {
+      mockFindSessionById.mockResolvedValueOnce(null);
+
+      await expect(deleteSessionService(7, 1)).rejects.toMatchObject({
+        statusCode: 404,
+        code: "SESSION_NOT_FOUND",
+      });
+    });
+
+    it("lève une AppError 403 si l'utilisateur n'est pas le facilitateur", async () => {
+      mockFindSessionById.mockResolvedValueOnce({ id: 7, owner_id: 2 });
+
+      await expect(deleteSessionService(7, 1)).rejects.toMatchObject({
+        statusCode: 403,
+        code: "FORBIDDEN",
+      });
+    });
+
+    it("lève une AppError 500 si la suppression SQL échoue", async () => {
+      mockFindSessionById.mockResolvedValueOnce({ id: 7, owner_id: 1 });
+      mockDeleteSessionById.mockResolvedValueOnce(false);
+
+      await expect(deleteSessionService(7, 1)).rejects.toMatchObject({
+        statusCode: 500,
+        code: "SESSION_DELETE_FAILED",
+      });
+    });
+
+    it("supprime la session avec succès", async () => {
+      mockFindSessionById.mockResolvedValueOnce({ id: 7, owner_id: 1 });
+      mockDeleteSessionById.mockResolvedValueOnce(true);
+
+      await expect(deleteSessionService(7, 1)).resolves.toBeUndefined();
+      expect(mockDeleteSessionById).toHaveBeenCalledWith(7, 1);
     });
   });
 });

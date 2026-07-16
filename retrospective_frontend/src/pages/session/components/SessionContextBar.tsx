@@ -3,6 +3,7 @@ import Button from '@/components/ui/Button';
 
 import type { SessionStep } from '../types/session.types';
 import StepIndicator from './StepIndicator';
+import ParticipantBadge from './ParticipantBadge';
 import ProfileMenu from '@/components/ProfileMenu';
 import { useAuth } from '@/context/auth/useAuth';
 
@@ -13,6 +14,12 @@ interface SessionContextBarProps {
   step: SessionStep;
   participantCount: number;
   isSessionCodeCopied: boolean;
+  // Badge du participant (pseudo + menu) : absent pour le facilitateur,
+  // qui a déjà son menu de compte.
+  selfDisplayName?: string | null;
+  canRenameSelf?: boolean;
+  onRenameSelf?: (pseudo: string) => Promise<boolean>;
+  onLeaveSession?: () => void | Promise<void>;
   onBack: () => void | Promise<void>;
   onCopySessionCode: () => void;
   onToggleParticipants?: () => void;
@@ -28,6 +35,10 @@ const SessionContextBar = ({
   step,
   participantCount,
   isSessionCodeCopied,
+  selfDisplayName = null,
+  canRenameSelf = false,
+  onRenameSelf,
+  onLeaveSession,
   onBack,
   onCopySessionCode,
   onToggleParticipants,
@@ -123,6 +134,16 @@ const SessionContextBar = ({
           <MessageCircle size={14} aria-hidden="true" />
           <span className="hidden sm:inline">Discussion</span>
         </Button>
+        {selfDisplayName && onRenameSelf && onLeaveSession && (
+          <div className="border-l border-navy-border-med pl-1.5 h-6 flex items-center shrink-0">
+            <ParticipantBadge
+              displayName={selfDisplayName}
+              canRename={canRenameSelf}
+              onRename={onRenameSelf}
+              onLeave={onLeaveSession}
+            />
+          </div>
+        )}
         {isAuthenticated && (
           <div className="border-l border-navy-border-med pl-1.5 h-6 flex items-center shrink-0">
             <ProfileMenu />

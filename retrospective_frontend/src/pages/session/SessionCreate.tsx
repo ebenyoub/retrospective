@@ -62,6 +62,7 @@ const SessionCreate = () => {
         name: values.name,
         formatName: selectedFormat.name,
         formatColumns: selectedFormat.columns,
+        stepDurationMinutes: 5,
       });
 
       if (result.ok) {

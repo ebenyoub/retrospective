@@ -1,4 +1,5 @@
 import type { CookieOptions, Request } from "express";
+import jwt from "jsonwebtoken";
 
 export const AUTH_COOKIE_NAME = "token";
 
@@ -15,6 +16,48 @@ export const authCookieOptions: CookieOptions = {
   httpOnly: true,
   sameSite: "lax",
   secure: process.env.NODE_ENV === "production",
+};
+
+export const RESUME_COOKIE_NAME = "retro_resume";
+export const RESUME_COOKIE_MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24h
+
+export const resumeCookieOptions: CookieOptions = {
+  httpOnly: true,
+  sameSite: "lax",
+  secure: process.env.NODE_ENV === "production",
+  maxAge: RESUME_COOKIE_MAX_AGE_MS,
+};
+
+export const clearResumeCookieOptions: CookieOptions = {
+  httpOnly: true,
+  sameSite: "lax",
+  secure: process.env.NODE_ENV === "production",
+};
+
+export interface ResumeTokenPayload {
+  sessionId: number;
+  participantId: number;
+  displayName: string;
+  guestToken: string | null;
+}
+
+export const signResumeToken = (payload: ResumeTokenPayload): string => {
+  const jwtSecret = process.env.JWT_SECRET;
+  if (!jwtSecret) {
+    throw new Error("JWT_SECRET non défini");
+  }
+  return jwt.sign(payload, jwtSecret, { expiresIn: "24h" });
+};
+
+export const verifyResumeToken = (token: string): ResumeTokenPayload | null => {
+  const jwtSecret = process.env.JWT_SECRET;
+  if (!jwtSecret) return null;
+
+  try {
+    return jwt.verify(token, jwtSecret) as ResumeTokenPayload;
+  } catch {
+    return null;
+  }
 };
 
 // Pour les sockets : le handshake Socket.IO transporte les cookies dans un

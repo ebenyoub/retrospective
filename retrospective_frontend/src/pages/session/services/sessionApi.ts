@@ -36,8 +36,34 @@ export const updateSessionFormat = (
   });
 
 export const updateSessionStep = (sessionId: string, step: SessionStep) =>
-  requestApiCommand(`${API_BASE}/session/${sessionId}/step`, {
+  requestApi<{ step: SessionStep; stepEndsAt: string | null }>(`${API_BASE}/session/${sessionId}/step`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ step }),
+  });
+
+// Réglage du timer par le facilitateur : le backend calcule la nouvelle
+// échéance (ou la nouvelle durée par défaut en salle d'attente).
+export const updateSessionTimer = (sessionId: string, minutes: number) =>
+  requestApi<{ stepEndsAt: string | null; stepDurationMinutes: number }>(`${API_BASE}/session/${sessionId}/timer`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ minutes }),
+  });
+
+export const closeSession = (sessionId: string) =>
+  requestApiCommand(`${API_BASE}/session/${sessionId}/close`, {
+    method: 'POST',
+  });
+
+export const updateSessionName = (sessionId: string, name: string) =>
+  requestApiCommand(`${API_BASE}/session/${sessionId}/name`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name }),
+  });
+
+export const deleteSession = (sessionId: string) =>
+  requestApiCommand(`${API_BASE}/session/${sessionId}`, {
+    method: 'DELETE',
   });

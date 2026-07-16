@@ -30,6 +30,7 @@
 ## Tickets issus de l'audit MVP final — soutenance (2026-07-09)
 
 ### Bugs corrigés dans cette session
+- [x] **Reprise de session par Cookie HttpOnly** : Validation sécurisée du cookie retro_resume côté backend, nettoyage automatique sur session close/inexistante, bouton d'accueil dynamique, et étanchéité du menu participant invité.
 - [x] **B-SIGNUP-01 — Validator mot de passe incohérent** : règle `<= 6` avec message "3 caractères" → corrigé en `< 6` + message "6 caractères minimum" (`Signup.tsx`).
 - [x] **B-AUTH-01 — Logout incomplet** : `token`, `userId`, `username`, `email` pas remis à zéro dans le state React lors du logout → nettoyage complet dans `logout()` (`AuthContext.tsx`).
 - [x] **UX-HOME-01 — Champs décoratifs sans indication** : le formulaire "Créer une rétro" de la home page utilise des champs non fonctionnels → ajout d'une note "Un compte est requis" sous le bouton (`HomeTabsCard.tsx`).

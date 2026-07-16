@@ -23,6 +23,8 @@ const baseProps = {
   onStart: vi.fn(),
   onLeave: vi.fn(),
   onSelectFormatPreset: vi.fn(),
+  stepDurationMinutes: 5,
+  onUpdateStepDuration: vi.fn(),
   isDesktop: true,
 };
 
@@ -48,25 +50,12 @@ describe('WaitingScreen', () => {
     expect(screen.getByText('Hors ligne')).toBeTruthy();
   });
 
-  it('calcule dynamiquement la phrase de capacité (25 max)', () => {
-    const { rerender } = render(
-      <WaitingScreen {...baseProps} role="facilitator" participants={[makeParticipant({ id: 1 })]} />
-    );
-    expect(screen.getByText("Vous pouvez inviter jusqu'à 24 participants supplémentaires.")).toBeTruthy();
 
-    const tenParticipants = Array.from({ length: 10 }, (_, i) => makeParticipant({ id: i + 1, displayName: `P${i}` }));
-    rerender(<WaitingScreen {...baseProps} role="facilitator" participants={tenParticipants} />);
-    expect(screen.getByText("Vous pouvez inviter jusqu'à 15 participants supplémentaires.")).toBeTruthy();
-
-    const twentyFive = Array.from({ length: 25 }, (_, i) => makeParticipant({ id: i + 1, displayName: `P${i}` }));
-    rerender(<WaitingScreen {...baseProps} role="facilitator" participants={twentyFive} />);
-    expect(screen.getByText('La session a atteint sa capacité maximale.')).toBeTruthy();
-  });
 
   it('affiche un résumé unique sans répétition (pas de doublon "participants connectés")', () => {
     render(<WaitingScreen {...baseProps} role="facilitator" participants={[makeParticipant({ id: 1 })]} />);
 
-    expect(screen.getByText('1 participant sur 25 · 1 en ligne')).toBeTruthy();
+    expect(screen.getByText('1 participant · 1 en ligne')).toBeTruthy();
     expect(screen.queryByText(/participants connectés/)).toBeNull();
     expect(screen.queryByText(/inscrits,/)).toBeNull();
   });

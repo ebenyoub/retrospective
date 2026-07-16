@@ -9,13 +9,14 @@ import {
   findParticipantsBySession,
   insertParticipant,
   touchParticipant,
+  updateParticipantName,
   type ParticipantRole,
   type ParticipantRow,
 } from "../models/participant.model";
 import { findSessionByCode, findSessionById } from "../models/session.model";
 import { AppError } from "../utils/AppError";
 
-export const MAX_PARTICIPANTS = 25;
+
 
 export interface ParticipantSummary {
   id: number;
@@ -46,12 +47,7 @@ const assertSessionExists = async (sessionId: number) => {
   return session;
 };
 
-const assertRoomAvailable = async (sessionId: number) => {
-  const total = await countParticipants(sessionId);
-  if (total >= MAX_PARTICIPANTS) {
-    throw new AppError(403, "Cette session est complète.", "SESSION_FULL");
-  }
-};
+
 
 const assertNameAvailable = async (sessionId: number, displayName: string) => {
   const existing = await findParticipantByName(sessionId, displayName);
@@ -82,35 +78,65 @@ export const ensureAuthenticatedParticipant = async ({
   await assertSessionExists(sessionId);
 
   const existing = await findParticipantByUserId(sessionId, userId);
+
   if (existing) {
     await touchParticipant(existing.id, "online");
     return toSummary({ ...existing, status: "online" });
   }
 
-  await assertRoomAvailable(sessionId);
+
 
   // Le nom peut déjà être pris par un invité de cette session : rejoindre
-  // est une action automatique (pas un formulaire), donc on désambiguïse
-  // au lieu de bloquer le facilitateur avec une erreur qu'il ne peut pas corriger.
+  // est une action automatique, donc on désambiguïse le pseudo.
   const nameTaken = await findParticipantByName(sessionId, displayName);
   const finalName = nameTaken
     ? `${displayName.slice(0, 50)}-${crypto.randomBytes(2).toString("hex")}`
     : displayName;
 
-  const participantId = await insertParticipant({
-    sessionId,
-    userId,
-    guestToken: null,
-    displayName: finalName,
-    role,
-  });
+  try {
+    const participantId = await insertParticipant({
+      sessionId,
+      userId,
+      guestToken: null,
+      displayName: finalName,
+      role,
+    });
 
-  const created = await findParticipantById(participantId);
-  if (!created) {
-    throw new AppError(500, "Impossible de rejoindre la session.", "PARTICIPANT_CREATE_FAILED");
+    const created = await findParticipantById(participantId);
+
+    if (!created) {
+      throw new AppError(
+        500,
+        "Impossible de rejoindre la session.",
+        "PARTICIPANT_CREATE_FAILED"
+      );
+    }
+
+    return toSummary(created);
+  } catch (error) {
+    const isDuplicateEntry =
+      (error as { code?: string }).code === "ER_DUP_ENTRY";
+
+    if (!isDuplicateEntry) {
+      throw error;
+    }
+
+    // Un autre appel concurrent a probablement créé la participation
+    // entre la vérification initiale et l'insertion.
+    const participantCreatedConcurrently =
+      await findParticipantByUserId(sessionId, userId);
+
+    if (!participantCreatedConcurrently) {
+      throw error;
+    }
+
+    await touchParticipant(participantCreatedConcurrently.id, "online");
+
+    return toSummary({
+      ...participantCreatedConcurrently,
+      status: "online",
+    });
   }
-
-  return toSummary(created);
 };
 
 export interface GuestJoinResult {
@@ -126,7 +152,7 @@ export const joinSessionAsGuestParticipant = async (
   displayName: string
 ): Promise<GuestJoinResult> => {
   await assertSessionExists(sessionId);
-  await assertRoomAvailable(sessionId);
+
   await assertNameAvailable(sessionId, displayName);
 
   const guestToken = crypto.randomBytes(24).toString("hex");
@@ -188,6 +214,72 @@ export const resumeGuestParticipant = async (
 
 export const markParticipantOffline = async (participantId: number): Promise<void> => {
   await touchParticipant(participantId, "offline");
+};
+
+// Changement de pseudo : seul le propriétaire de la ligne (invité via son
+// jeton, utilisateur via son compte) peut renommer SA participation.
+export const renameParticipant = async ({
+  sessionId,
+  participantId,
+  displayName,
+  requesterUserId,
+  requesterGuestToken,
+}: {
+  sessionId: number;
+  participantId: number;
+  displayName: string;
+  requesterUserId: number | null;
+  requesterGuestToken: string | null;
+}): Promise<ParticipantSummary> => {
+  const participant = await findParticipantById(participantId);
+
+  if (!participant || participant.session_id !== sessionId) {
+    throw new AppError(404, "Participant introuvable.", "PARTICIPANT_NOT_FOUND");
+  }
+
+  const isOwnerOfRow =
+    (requesterUserId !== null && participant.user_id === requesterUserId) ||
+    (requesterGuestToken !== null && participant.guest_token === requesterGuestToken);
+
+  if (!isOwnerOfRow) {
+    throw new AppError(403, "Vous ne pouvez modifier que votre propre pseudo.", "PARTICIPANT_FORBIDDEN");
+  }
+
+  // Pseudo inchangé : rien à faire (et pas de conflit avec soi-même).
+  if (participant.display_name === displayName) {
+    return toSummary(participant);
+  }
+
+  await assertNameAvailable(sessionId, displayName);
+  await updateParticipantName(participantId, displayName);
+
+  return toSummary({ ...participant, display_name: displayName });
+};
+
+// Vérification de reprise depuis l'accueil : valide l'identité invitée SANS
+// remettre le participant "en ligne" (il n'est pas dans la session).
+export const checkGuestResume = async (
+  sessionId: number,
+  participantId: number,
+  guestToken: string | null
+): Promise<{ sessionId: number; sessionName: string; displayName: string }> => {
+  const session = await findSessionById(sessionId);
+
+  if (!session || session.status !== "open") {
+    throw new AppError(404, "Cette session n'est plus disponible.", "SESSION_UNAVAILABLE");
+  }
+
+  const participant = await findParticipantById(participantId);
+
+  if (!participant || participant.session_id !== sessionId || participant.guest_token !== guestToken) {
+    throw new AppError(404, "Participant introuvable.", "PARTICIPANT_NOT_FOUND");
+  }
+
+  return {
+    sessionId: session.id,
+    sessionName: session.name,
+    displayName: participant.display_name,
+  };
 };
 
 // Quitter explicitement : supprime la ligne (contrairement à une simple

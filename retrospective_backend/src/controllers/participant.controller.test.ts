@@ -9,6 +9,7 @@ vi.mock("../services/participant.service", () => ({
   joinSessionAsGuestParticipant: vi.fn(),
   leaveSession: vi.fn(),
   resumeGuestParticipant: vi.fn(),
+  checkGuestResume: vi.fn(),
 }));
 
 vi.mock("../services/session.service", () => ({
@@ -26,6 +27,7 @@ import {
   listParticipants,
   removeParticipant,
   resumeGuest,
+  checkGlobalResume,
 } from "./participant.controller";
 import {
   ensureAuthenticatedParticipant,
@@ -34,6 +36,7 @@ import {
   joinSessionAsGuestParticipant,
   leaveSession,
   resumeGuestParticipant,
+  checkGuestResume,
 } from "../services/participant.service";
 import { getSessionDetails } from "../services/session.service";
 import { emitParticipantsUpdated } from "../realtime/socket";
@@ -45,6 +48,7 @@ const mockJoinSessionAsGuestParticipantByCode = joinSessionAsGuestParticipantByC
 const mockJoinSessionAsGuestParticipant = joinSessionAsGuestParticipant as unknown as Mock;
 const mockLeaveSession = leaveSession as unknown as Mock;
 const mockResumeGuestParticipant = resumeGuestParticipant as unknown as Mock;
+const mockCheckGuestResume = checkGuestResume as unknown as Mock;
 const mockGetSessionDetails = getSessionDetails as unknown as Mock;
 const mockEmitParticipantsUpdated = emitParticipantsUpdated as unknown as Mock;
 
@@ -60,12 +64,15 @@ const createMockResponse = () => {
       res.body = payload;
       return res as unknown as Response;
     },
+    cookie: vi.fn(),
+    clearCookie: vi.fn(),
   };
   return res;
 };
 
 describe("participant.controller", () => {
   beforeEach(() => {
+    process.env.JWT_SECRET = "test-secret";
     mockEnsureAuthenticatedParticipant.mockReset();
     mockGetParticipantsForSession.mockReset();
     mockJoinSessionAsGuestParticipantByCode.mockReset();
@@ -196,5 +203,79 @@ describe("participant.controller", () => {
       requesterGuestToken: "tok",
     });
     expect(mockEmitParticipantsUpdated).toHaveBeenCalledWith(10);
+  });
+
+  describe("checkGlobalResume", () => {
+    beforeEach(() => {
+      process.env.JWT_SECRET = "test-secret";
+      mockCheckGuestResume.mockReset();
+    });
+
+    it("renvoie null si le cookie n'est pas fourni", async () => {
+      const req = { cookies: {} } as unknown as Request;
+      const res = createMockResponse();
+
+      await checkGlobalResume(req, res as unknown as Response);
+
+      expect(res.body).toEqual({ success: true, data: null });
+    });
+
+    it("renvoie null et efface le cookie si le token de reprise est invalide ou expiré", async () => {
+      const req = { cookies: { retro_resume: "invalid-token" } } as unknown as Request;
+      const res = createMockResponse();
+
+      await checkGlobalResume(req, res as unknown as Response);
+
+      expect(res.body).toEqual({ success: true, data: null });
+      expect(res.clearCookie).toHaveBeenCalledWith("retro_resume", expect.any(Object));
+    });
+
+    it("renvoie les données de reprise si le token est valide et la session accessible", async () => {
+      // Nous allons signer un token de test valide
+      const jwt = require("jsonwebtoken");
+      const validToken = jwt.sign(
+        { sessionId: 10, participantId: 1, displayName: "Elyas", guestToken: "secret" },
+        "test-secret"
+      );
+
+      mockCheckGuestResume.mockResolvedValueOnce({
+        sessionId: 10,
+        sessionName: "Super Rétro",
+        displayName: "Elyas",
+      });
+
+      const req = { cookies: { retro_resume: validToken } } as unknown as Request;
+      const res = createMockResponse();
+
+      await checkGlobalResume(req, res as unknown as Response);
+
+      expect(res.body).toEqual({
+        success: true,
+        data: {
+          sessionId: 10,
+          sessionName: "Super Rétro",
+          displayName: "Elyas",
+        },
+      });
+      expect(mockCheckGuestResume).toHaveBeenCalledWith(10, 1, "secret");
+    });
+
+    it("efface le cookie et renvoie null si le service lève une erreur (ex. session fermée)", async () => {
+      const jwt = require("jsonwebtoken");
+      const validToken = jwt.sign(
+        { sessionId: 10, participantId: 1, displayName: "Elyas", guestToken: "secret" },
+        "test-secret"
+      );
+
+      mockCheckGuestResume.mockRejectedValueOnce(new Error("session non dispo"));
+
+      const req = { cookies: { retro_resume: validToken } } as unknown as Request;
+      const res = createMockResponse();
+
+      await checkGlobalResume(req, res as unknown as Response);
+
+      expect(res.body).toEqual({ success: true, data: null });
+      expect(res.clearCookie).toHaveBeenCalledWith("retro_resume", expect.any(Object));
+    });
   });
 });

@@ -107,6 +107,13 @@ export const insertParticipant = async ({
   return result.insertId;
 };
 
+export const updateParticipantName = async (participantId: number, displayName: string): Promise<void> => {
+  await db.execute<ResultSetHeader>(
+    "update session_participants set display_name = ? where id = ?",
+    [displayName, participantId]
+  );
+};
+
 export const touchParticipant = async (participantId: number, status: ParticipantStatus): Promise<void> => {
   await db.execute<ResultSetHeader>(
     "update session_participants set status = ?, last_seen_at = now() where id = ?",

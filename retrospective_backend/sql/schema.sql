@@ -25,6 +25,8 @@ CREATE TABLE IF NOT EXISTS sessions (
   step ENUM('waiting', 'writing', 'voting', 'results') NOT NULL DEFAULT 'waiting',
   format_name VARCHAR(60) NOT NULL DEFAULT 'Commencer / Arrêter / Continuer',
   format_columns JSON NOT NULL DEFAULT (JSON_ARRAY('Commencer', 'Arrêter', 'Continuer')),
+  step_duration_minutes INT NOT NULL DEFAULT 5,
+  step_ends_at DATETIME NULL,
   expires_at DATETIME NOT NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_sessions_owner

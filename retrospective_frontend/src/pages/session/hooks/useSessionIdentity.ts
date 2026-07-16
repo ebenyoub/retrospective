@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   joinAsSelf,
   leaveParticipant,
+  renameParticipant,
   resumeGuestParticipant,
 } from '../services/participantApi';
 import type { GuestJoinResponse, SelfIdentity } from '../types/participant.types';
@@ -142,6 +143,28 @@ export const useSessionIdentity = ({
     setParticipantRole(result.role);
   }, [setGuestIdentity]);
 
+  // Changement de pseudo par le participant lui-même : le backend valide et
+  // diffuse la nouvelle liste ; l'identité invitée locale est mise à jour
+  // pour que la reprise (F5, retour) garde le nouveau pseudo.
+  const renameSelf = useCallback(async (pseudo: string): Promise<boolean> => {
+    if (!selfParticipantId) return false;
+
+    try {
+      const result = await renameParticipant(sessionId, selfParticipantId, pseudo, guestIdentity?.guestToken);
+
+      if (!result.ok) return false;
+
+      if (guestIdentity) {
+        setGuestIdentity({ ...guestIdentity, displayName: result.data.displayName });
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Erreur lors du changement de pseudo :', error);
+      return false;
+    }
+  }, [sessionId, selfParticipantId, guestIdentity, setGuestIdentity]);
+
   const leaveParticipation = useCallback(async (): Promise<void> => {
     if (!selfParticipantId) return;
 
@@ -158,6 +181,7 @@ export const useSessionIdentity = ({
     guestIdentity,
     handleGuestJoined,
     leaveParticipation,
+    renameSelf,
     role,
     selfIdentityForSocket,
     selfParticipantId,

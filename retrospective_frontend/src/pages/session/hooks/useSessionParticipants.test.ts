@@ -98,7 +98,7 @@ describe('useSessionParticipants', () => {
 
     mockSocket.__trigger('session:started', { step: 'writing' });
 
-    expect(onSessionStarted).toHaveBeenCalledWith('writing');
+    expect(onSessionStarted).toHaveBeenCalledWith('writing', null);
   });
 
   it('déconnecte le socket et retire les listeners au démontage (nettoyage)', async () => {

@@ -24,6 +24,7 @@ export const createDashboardFetchMock = (options: {
   step?: 'waiting' | 'writing' | 'voting' | 'results';
   formatName?: string;
   formatColumns?: string[];
+  stepEndsAt?: string | null;
 }) => {
   const {
     cardsSequence,
@@ -34,6 +35,7 @@ export const createDashboardFetchMock = (options: {
     step = 'writing',
     formatName = 'Commencer / Arrêter / Continuer',
     formatColumns = ['Commencer', 'Arrêter', 'Continuer'],
+    stepEndsAt = null,
   } = options;
   let cardsCallIndex = 0;
 
@@ -54,6 +56,8 @@ export const createDashboardFetchMock = (options: {
             ownerId: 1,
             formatName,
             formatColumns,
+            stepDurationMinutes: 5,
+            stepEndsAt,
           },
         }),
       });

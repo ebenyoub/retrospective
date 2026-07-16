@@ -12,6 +12,10 @@ import { DEFAULT_RETRO_FORMAT_ID, RETRO_FORMAT_OPTIONS, getRetroFormatById } fro
 const createSessionSchema = z.object({
   retroName: z.string().trim().min(3, "Le nom de la rétrospective doit contenir au moins 3 caractères."),
   formatId: z.string().min(1, "Le format est requis."),
+  stepDurationMinutes: z.number({ error: "La durée des étapes est requise." })
+    .int("La durée doit être un nombre entier de minutes.")
+    .min(1, "La durée doit être d'au moins 1 minute.")
+    .max(120, "La durée ne peut pas dépasser 120 minutes."),
 });
 
 type CreateSessionValues = z.infer<typeof createSessionSchema>;
@@ -29,7 +33,7 @@ const CreateSessionForm = ({ onSessionCreated }: CreateSessionFormProps) => {
     formState: { errors, isSubmitting },
   } = useForm<CreateSessionValues>({
     resolver: zodResolver(createSessionSchema),
-    defaultValues: { retroName: "", formatId: DEFAULT_RETRO_FORMAT_ID },
+    defaultValues: { retroName: "", formatId: DEFAULT_RETRO_FORMAT_ID, stepDurationMinutes: 5 },
   });
 
   const onSubmit = async (values: CreateSessionValues) => {
@@ -44,6 +48,7 @@ const CreateSessionForm = ({ onSessionCreated }: CreateSessionFormProps) => {
           name: values.retroName.trim(),
           formatName: selectedFormat.name,
           formatColumns: selectedFormat.columns,
+          stepDurationMinutes: values.stepDurationMinutes,
         }),
       });
       const data = await readJsonSafely(response);
@@ -93,6 +98,23 @@ const CreateSessionForm = ({ onSessionCreated }: CreateSessionFormProps) => {
           ))}
         </select>
         <FieldError id="formatId-error" message={errors.formatId?.message} />
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="stepDurationMinutes" className="block font-sans text-xs font-semibold text-slate-400 tracking-wider uppercase">
+          Durée des étapes (minutes)
+        </label>
+        <Input
+          id="stepDurationMinutes"
+          type="number"
+          min={1}
+          max={120}
+          disabled={isSubmitting}
+          aria-invalid={!!errors.stepDurationMinutes}
+          aria-describedby={errors.stepDurationMinutes ? "stepDurationMinutes-error" : undefined}
+          {...register("stepDurationMinutes", { valueAsNumber: true })}
+        />
+        <FieldError id="stepDurationMinutes-error" message={errors.stepDurationMinutes?.message} />
       </div>
 
       <div className="pt-1">

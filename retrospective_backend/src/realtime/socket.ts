@@ -101,7 +101,19 @@ export const emitParticipantsUpdated = async (sessionId: number): Promise<void> 
   io.to(roomName(sessionId)).emit("session:participants-updated", participants);
 };
 
-export const emitSessionStarted = (sessionId: number, step: string): void => {
+export const emitSessionStarted = (sessionId: number, step: string, stepEndsAt: string | null): void => {
   if (!io) return;
-  io.to(roomName(sessionId)).emit("session:started", { step });
+  io.to(roomName(sessionId)).emit("session:started", { step, stepEndsAt });
+};
+
+// Le facilitateur a redéfini le timer : tous les clients reçoivent
+// immédiatement la nouvelle échéance absolue.
+export const emitSessionTimerUpdated = (sessionId: number, stepEndsAt: string): void => {
+  if (!io) return;
+  io.to(roomName(sessionId)).emit("session:timer-updated", { stepEndsAt });
+};
+
+export const emitSessionClosed = (sessionId: number): void => {
+  if (!io) return;
+  io.to(roomName(sessionId)).emit("session:closed");
 };
