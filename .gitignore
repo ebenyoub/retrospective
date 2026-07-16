@@ -11,6 +11,10 @@ dist/
 dist-ssr/
 build/
 
+# Résultats de tests (artefacts locaux)
+test-results/
+playwright-report/
+
 # Logs
 logs
 *.log
