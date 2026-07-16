@@ -4,6 +4,7 @@
 
 ## À faire maintenant
 
+- [ ] **MVP-WRITING-01 — Finaliser le design des cartes et des actions Modifier/Supprimer sur l'écran Écriture** : première tâche MVP après `BACKLOG-REALIGN-01`. Rester strictement sur les cartes et leurs actions visuelles/fonctionnelles ; ne pas démarrer timer, discussion, commentaires, vote, résultats, plan d'action ou résumé.
 - [ ] Analyser le code existant frontend et backend
 - [ ] Remplir `docs/technical/ARCHITECTURE.md` avec l'état réel du code
 - [ ] Remplir `docs/technical/DATABASE.md` avec le schéma existant
@@ -51,7 +52,7 @@
 ## Tickets issus de la salle d'attente temps réel (2026-07-10)
 
 - [x] **TODO-PARTICIPANT-01 — Participant invité limité à la salle d'attente** : résolu — `retro_cards.author_participant_id`/`votes.participant_id` référencent `session_participants` (plus `users.id`), un invité peut écrire des cartes et voter une fois la rétro lancée.
-- [ ] **TODO-FORMAT-01 — Format de rétrospective non reflété sur le tableau d'écriture** : le format choisi (presets ou personnalisé) est persisté (`sessions.format_name`/`format_columns`) et visible dans la salle d'attente, mais `RetroColumn` reste figé sur 3 colonnes `start/stop/continue` (`retro_cards.column_type` est un ENUM à 3 valeurs). Migration de schéma nécessaire pour un tableau réellement dynamique.
+- [x] **TODO-FORMAT-01 — Format de rétrospective non reflété sur le tableau d'écriture** : résolu — le MVP propose exactement 6 formats français à 3 colonnes, le format choisi est persisté (`sessions.format_name`/`format_columns`), la salle d'attente ne propose plus d'ancien format personnalisé, et les écrans Écriture/Résultats affichent les libellés du format réel tout en conservant les clés techniques `start`/`stop`/`continue` pour les cartes.
 - [ ] **TODO-CLEANUP-01 — Comptes techniques invités de l'ancienne implémentation** : avant l'introduction de `session_participants`, une version précédente créait un compte réel dans `users` pour chaque invité (pseudo suivi d'un email `@guest.local`). Ces lignes historiques (créées lors de sessions de test) peuvent être nettoyées en base de dev ; sans impact fonctionnel.
 
 ## Tickets issus de la correction du parcours participant (2026-07-13)

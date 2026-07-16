@@ -1,4 +1,4 @@
-export type SessionRole = 'facilitator' | 'participant';
+import type { SessionRole } from './types/session.types';
 
 export const ROLE_LABEL: Record<SessionRole, string> = {
   facilitator: 'Facilitateur',

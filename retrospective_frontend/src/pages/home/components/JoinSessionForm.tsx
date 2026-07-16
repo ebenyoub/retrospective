@@ -7,15 +7,29 @@ import { Input } from "@/components/ui/FormContainer";
 import { getApiErrorMessage, isApiSuccess, NETWORK_ERROR_MESSAGE, readJsonSafely } from "@/lib/apiError";
 import FieldError from "@/components/ui/FieldError";
 import SessionCodeInput from "./SessionCodeInput";
+import { useAuth } from "@/context/auth/useAuth";
 
 import { API_BASE } from "@/lib/api";
+import { pseudoSchema } from "@/lib/pseudoSchema";
 
-const joinSessionSchema = z.object({
+// Le type du formulaire est commun aux deux modes : le pseudo y est optionnel,
+// c'est le schéma invité qui impose sa présence et ses règles.
+interface JoinSessionValues {
+  code: string;
+  pseudo?: string;
+}
+
+const joinConnectedSchema: z.ZodType<JoinSessionValues, JoinSessionValues> = z.object({
   code: z.string().length(4, "Le code de session est obligatoire."),
-  pseudo: z.string().trim().min(1, "Le prénom ou le pseudo est obligatoire."),
+  pseudo: z.string().optional(),
 });
 
-type JoinSessionValues = z.infer<typeof joinSessionSchema>;
+// Le pseudo suit les mêmes règles que le backend (schéma partagé) : une
+// valeur acceptée ici ne peut plus être rejetée par l'API.
+const joinGuestSchema: z.ZodType<JoinSessionValues, JoinSessionValues> = z.object({
+  code: z.string().length(4, "Le code de session est obligatoire."),
+  pseudo: pseudoSchema,
+});
 
 interface JoinSessionFormProps {
   onSessionJoined: (sessionId: number) => void;
@@ -39,9 +53,12 @@ const storeGuestIdentity = (data: GuestJoinData) => {
   );
 };
 
-// Participant sans compte : code de session + pseudo.
+// Participant avec ou sans compte : s'adapte à l'état d'authentification.
 const JoinSessionForm = ({ onSessionJoined }: JoinSessionFormProps) => {
   const [code, setCode] = useState("");
+  const { isAuthenticated, token } = useAuth();
+
+  const schema = isAuthenticated ? joinConnectedSchema : joinGuestSchema;
 
   const {
     register,
@@ -50,26 +67,47 @@ const JoinSessionForm = ({ onSessionJoined }: JoinSessionFormProps) => {
     setValue,
     formState: { errors, isSubmitting },
   } = useForm<JoinSessionValues>({
-    resolver: zodResolver(joinSessionSchema),
+    resolver: zodResolver(schema),
     defaultValues: { code: "", pseudo: "" },
   });
 
   const onSubmit = async (values: JoinSessionValues) => {
     try {
-      const response = await fetch(`${API_BASE}/session/join-guest`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: values.code, pseudo: values.pseudo.trim() }),
-      });
-      const data = await readJsonSafely(response);
+      if (isAuthenticated) {
+        // Utilisateur connecté : rejoint via POST /session/join (avec token JWT, sans pseudo)
+        const response = await fetch(`${API_BASE}/session/join`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ code: values.code }),
+        });
+        const data = await readJsonSafely(response);
 
-      if (!response.ok || !isApiSuccess<GuestJoinData>(data)) {
-        setError("code", { message: getApiErrorMessage(data, "Code de session invalide.") });
-        return;
+        if (!response.ok || !isApiSuccess<{ joinId: number; sessionId: number }>(data)) {
+          setError("code", { message: getApiErrorMessage(data, "Code de session invalide.") });
+          return;
+        }
+
+        onSessionJoined(data.data.sessionId);
+      } else {
+        // Invité : rejoint via POST /session/join-guest (sans token JWT, avec pseudo)
+        const response = await fetch(`${API_BASE}/session/join-guest`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code: values.code, pseudo: values.pseudo?.trim() }),
+        });
+        const data = await readJsonSafely(response);
+
+        if (!response.ok || !isApiSuccess<GuestJoinData>(data)) {
+          setError("code", { message: getApiErrorMessage(data, "Code de session invalide.") });
+          return;
+        }
+
+        storeGuestIdentity(data.data);
+        onSessionJoined(data.data.sessionId);
       }
-
-      storeGuestIdentity(data.data);
-      onSessionJoined(data.data.sessionId);
     } catch (error) {
       console.error(error);
       setError("root", { message: NETWORK_ERROR_MESSAGE });
@@ -86,8 +124,6 @@ const JoinSessionForm = ({ onSessionJoined }: JoinSessionFormProps) => {
           value={code}
           onChange={(next) => {
             setCode(next);
-            // Ne revalide en direct qu'après une première erreur affichée,
-            // pour ne pas afficher "obligatoire" pendant la saisie du 1er chiffre.
             setValue("code", next, { shouldValidate: Boolean(errors.code) });
           }}
           disabled={isSubmitting}
@@ -97,21 +133,23 @@ const JoinSessionForm = ({ onSessionJoined }: JoinSessionFormProps) => {
         <FieldError id="code-error" message={errors.code?.message} />
       </div>
 
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="pseudo" className="block font-sans text-xs font-semibold text-slate-400 tracking-wider uppercase">
-          Prénom ou pseudo
-        </label>
-        <Input
-          id="pseudo"
-          disabled={isSubmitting}
-          aria-invalid={!!errors.pseudo}
-          aria-describedby={errors.pseudo ? "pseudo-error" : undefined}
-          {...register("pseudo")}
-        />
-        <FieldError id="pseudo-error" message={errors.pseudo?.message} />
-      </div>
+      {!isAuthenticated && (
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="pseudo" className="block font-sans text-xs font-semibold text-slate-400 tracking-wider uppercase">
+            Prénom ou pseudo
+          </label>
+          <Input
+            id="pseudo"
+            disabled={isSubmitting}
+            aria-invalid={!!errors.pseudo}
+            aria-describedby={errors.pseudo ? "pseudo-error" : undefined}
+            {...register("pseudo")}
+          />
+          <FieldError id="pseudo-error" message={errors.pseudo?.message} />
+        </div>
+      )}
 
-      <Button type="submit" variant="success" size="lg" className="w-full" disabled={isSubmitting}>
+      <Button unstyled type="submit" variant="success" size="lg" className="w-full" disabled={isSubmitting}>
         {isSubmitting ? "Connexion..." : "Rejoindre →"}
       </Button>
 

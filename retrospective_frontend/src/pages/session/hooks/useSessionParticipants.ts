@@ -1,24 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { io, type Socket } from "socket.io-client";
-import { isApiSuccess, readJsonSafely } from "@/lib/apiError";
 
 import { API_BASE } from "@/lib/api";
-
-export interface ParticipantSummary {
-  id: number;
-  sessionId: number;
-  displayName: string;
-  role: "facilitator" | "participant";
-  status: "online" | "offline";
-  joinedAt: string;
-  lastSeenAt: string;
-}
-
-export interface SelfIdentity {
-  participantId: number;
-  guestToken?: string;
-  token?: string;
-}
+import { listParticipants } from "../services/participantApi";
+import type { ParticipantSummary, SelfIdentity } from '../types/participant.types';
 
 interface UseSessionParticipantsOptions {
   onSessionStarted?: (step: string) => void;
@@ -51,10 +36,9 @@ export const useSessionParticipants = (
 
     const loadInitial = async () => {
       try {
-        const response = await fetch(`${API_BASE}/session/${sessionId}/participants`);
-        const data = await readJsonSafely(response);
-        if (isActive && response.ok && isApiSuccess<ParticipantSummary[]>(data)) {
-          setParticipants(data.data);
+        const result = await listParticipants(sessionId);
+        if (isActive && result.ok) {
+          setParticipants(result.data);
         }
       } catch (error) {
         console.error("Erreur lors du chargement des participants :", error);

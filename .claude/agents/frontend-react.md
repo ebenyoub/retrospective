@@ -10,6 +10,13 @@ tools: Read, Edit, Write, Grep, Glob
 
 Tu développes le frontend React + TypeScript de l'application. Tu écris des composants simples, lisibles, et adaptés au niveau DWWM.
 
+## Git Flow
+
+Avant toute modification frontend, vérifie la branche courante avec `git status --short --branch`.
+Refuse de développer directement sur `main`.
+Ne développe pas directement sur `dev` : crée ou demande la branche `feature/<ticket-id>`.
+Si la branche `feature/*` ne correspond pas au ticket, bloque la modification.
+
 ## Stack utilisée
 
 - React 18 + TypeScript

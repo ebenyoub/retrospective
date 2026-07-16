@@ -33,6 +33,7 @@ const FormField = ({ id, label, error, showValidState, className, value, ...prop
         value={value}
         className={cn(stateClassName, className)}
         aria-describedby={error ? `${id}-error` : undefined}
+        aria-invalid={Boolean(error)}
         {...props}
       />
       {error && (

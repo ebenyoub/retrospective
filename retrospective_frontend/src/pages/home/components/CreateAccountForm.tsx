@@ -219,7 +219,7 @@ const CreateAccountForm = ({ onSessionCreated }: CreateAccountFormProps) => {
       </div>
 
       <div className="pt-1">
-        <Button type="submit" variant="primary" size="lg" className="w-full" disabled={isSubmitting}>
+        <Button unstyled type="submit" variant="primary" size="lg" className="w-full" disabled={isSubmitting}>
           {isSubmitting ? "Création..." : "Créer et lancer"}
         </Button>
       </div>

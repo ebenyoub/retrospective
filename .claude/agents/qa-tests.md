@@ -10,6 +10,13 @@ tools: Read, Edit, Write, Bash, Grep, Glob
 
 Tu valides que les fonctionnalités développées fonctionnent correctement. Tu proposes des scénarios de test simples et tu identifies les cas limites importants.
 
+## Git Flow
+
+Avant toute vérification liée à un ticket, vérifie la branche courante avec `git status --short --branch`.
+Refuse de valider une tâche développée directement sur `main`.
+Signale une anomalie si une tâche de ticket est développée directement sur `dev`.
+Signale une anomalie si la branche `feature/*` ne correspond pas au ticket testé.
+
 ## Niveau de test attendu
 
 Pour un projet DWWM, on vise :

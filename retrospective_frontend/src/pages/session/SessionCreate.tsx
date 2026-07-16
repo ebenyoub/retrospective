@@ -9,9 +9,10 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/context/toast/useToast";
 import useFormValidation from "@/hooks/useFormValidation";
 import type { ValidationSchema } from "@/hooks/useFormValidation";
-import { getApiErrorMessage, isApiSuccess, NETWORK_ERROR_MESSAGE, readJsonSafely } from "@/lib/apiError";
-import { API_BASE } from "@/lib/api";
+import { getApiErrorMessage, NETWORK_ERROR_MESSAGE } from "@/lib/apiError";
 import { DEFAULT_RETRO_FORMAT_ID, RETRO_FORMAT_OPTIONS, getRetroFormatById } from "@/lib/retroFormats";
+import { createSession } from "./services/sessionApi";
+import type { CreatedSession } from './types/session.types';
 
 interface CreateSessionValues {
   name: string;
@@ -32,7 +33,7 @@ const SessionCreate = () => {
   const { token } = useAuth();
   const { addToast } = useToast();
   const navigate = useNavigate();
-  const [createdSession, setCreatedSession] = useState<{ sessionId: number; code: string; name: string } | null>(null);
+  const [createdSession, setCreatedSession] = useState<CreatedSession | null>(null);
 
   const {
     values,
@@ -59,26 +60,17 @@ const SessionCreate = () => {
     try {
       setIsLoading(true);
 
-      const response = await fetch(`${API_BASE}/session/create-session`, {
-        method: "POST",
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          name: values.name,
-          formatName: selectedFormat.name,
-          formatColumns: selectedFormat.columns,
-        })
+      const result = await createSession(token, {
+        name: values.name,
+        formatName: selectedFormat.name,
+        formatColumns: selectedFormat.columns,
       });
 
-      const data = await readJsonSafely(response);
-
-      if (response.ok && isApiSuccess<{ sessionId: number; code: string; name: string }>(data)) {
-        setCreatedSession(data.data);
+      if (result.ok) {
+        setCreatedSession(result.data);
         addToast("success", "Session créée avec succès !");
       } else {
-        addToast("error", getApiErrorMessage(data, "Impossible de créer la session."));
+        addToast("error", getApiErrorMessage(result.payload, "Impossible de créer la session."));
       }
     } catch (error) {
       console.error(error);
@@ -128,10 +120,10 @@ const SessionCreate = () => {
               </select>
               {errors.formatId && <p className="text-sm text-red-400">{errors.formatId}</p>}
             </div>
-            <Button type="submit" className="w-full justify-center">
+            <Button unstyled type="submit" className="w-full justify-center">
               Créer la session
             </Button>
-            <Button type="button" onClick={() => navigate('/sessions')} className="w-full justify-center mt-2 bg-slate-800 text-slate-200 border border-white/10 hover:bg-slate-700">
+            <Button unstyled type="button" onClick={() => navigate('/sessions')} className="w-full justify-center mt-2 bg-slate-800 text-slate-200 border border-white/10 hover:bg-slate-700">
               Voir mes sessions
             </Button>
           </FormContainer>
@@ -150,10 +142,10 @@ const SessionCreate = () => {
             </p>
 
             <div className="flex flex-col gap-3 w-full">
-              <Button onClick={() => navigate(`/session/${createdSession.sessionId}`)} className="w-full justify-center bg-blue-500 text-white hover:bg-blue-400 font-semibold py-2">
+              <Button unstyled onClick={() => navigate(`/session/${createdSession.sessionId}`)} className="w-full justify-center bg-blue-500 text-white hover:bg-blue-400 font-semibold py-2">
                 Accéder au tableau
               </Button>
-              <Button onClick={() => navigate('/sessions')} className="w-full justify-center bg-slate-800 text-slate-200 border border-white/10 hover:bg-slate-700 py-2">
+              <Button unstyled onClick={() => navigate('/sessions')} className="w-full justify-center bg-slate-800 text-slate-200 border border-white/10 hover:bg-slate-700 py-2">
                 Retour à mes sessions
               </Button>
             </div>

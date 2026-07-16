@@ -1,4 +1,4 @@
-export type SessionStep = 'waiting' | 'writing' | 'voting' | 'results';
+import type { SessionStep } from './types/session.types';
 
 export const SESSION_STEP_LABELS: Record<SessionStep, string> = {
   waiting: "Salle d'attente",

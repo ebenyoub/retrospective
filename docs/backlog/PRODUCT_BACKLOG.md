@@ -11,6 +11,7 @@
 | :--- | :--- |
 | ⬜ À faire | Pas encore démarré |
 | 🔵 En cours | En cours de développement ou de rédaction |
+| 🟡 Partiellement terminé | Base technique ou UI présente, mais fonctionnalité produit non complète |
 | ✅ Terminé | Livré, validé techniquement (tests) et fonctionnellement |
 
 ---
@@ -31,106 +32,103 @@ Fonctionnalités explicitement justifiées par le cahier des charges, les User S
 | **US-08** | Distribution de votes | User Story (`US-08`), Cahier des charges (4.) | Cœur métier : priorisation démocratique des sujets de discussion. | ✅ Terminé |
 | **US-09** | Vue des résultats | User Story (`US-09`), Cahier des charges (4.) | Permet la synthèse finale des cartes triées par votes. | ✅ Terminé |
 | **US-10** | Rôles & Transitions d'étape | Cahier des charges (3. Facilitateur), Figma (`App.tsx`) | Permet au facilitateur de guider la session (salle d'attente -> écriture -> vote -> résultats). | ✅ Terminé |
-| **T-FIG-01**| Timer d'étape visuel | Figma (`screens/WritingScreen.tsx`/`VoteScreen.tsx`) | Puce visuelle `TimerChip` pour le respect du temps d'étape. | ✅ Terminé |
+| **T-FIG-01**| Timer d'étape visuel et fonctionnel | Figma (`screens/WritingScreen.tsx`/`VoteScreen.tsx`) | Timer visible et réellement utile pour piloter le temps de l'étape. | ✅ Terminé |
 | **T-FIG-02**| Menu d'actions `…` | Figma (Bouton de sortie de session en cours) | Permet aux participants de quitter la session à tout moment. | ✅ Terminé |
 | **T-NAV-01**| Navigation de retour | Correction d'agencement (Cahier des charges : 14. Interface claire) | Bloque la boucle de redirection automatique vers la session active. | ✅ Terminé |
 | **T-UX-01** | Affichage du quota de votes restants | Figma (`VoteScreen.tsx` : pastilles + texte) | **Indispensable** pour permettre au participant de piloter la consommation de ses 5 votes au cours de la phase. | ✅ Terminé |
 | **T-DOC-02**| Finalisation docs techniques (`API.md`/`DATABASE.md`) | Référentiel jury DWWM (Livrables académiques obligatoires) | Indispensable pour la validation du titre professionnel. | ✅ Terminé |
 
-### Chantier prioritaire — Écran Écriture : zone sous le header principal
+### Roadmap MVP par User Story — 2026-07-14
 
-> Découpage validé le 2026-07-13 à partir du prototype Figma Make (`Shell.tsx`, `WritingScreen.tsx`, `VoteScreen.tsx`, `DiscussionPanel.tsx`, `CommentsModal.tsx`), de l'état réel du code et des documents de suivi.
-> Le prototype contient deux barres sous le header principal : une barre de contexte de session puis une barre d'actions d'étape. Aucune de ces barres n'est validée comme terminée à ce stade.
+> `BACKLOG-REALIGN-01` corrige l'écart entre "fonctionnalité techniquement présente" et "fonctionnalité produit terminée".
+> Une User Story large reste 🟡 tant que toutes ses sous-tâches MVP ne sont pas livrées, testées et validées.
+> L'orchestrateur exécute en priorité la première tâche `P0` non terminée dans l'ordre d'implémentation MVP.
 
-#### **T-SESSION-BAR-01 — SessionContextBar**
+#### **US-07 — Écriture des cartes**
 
-| Champ | Valeur |
-| :--- | :--- |
-| Identifiant | **T-SESSION-BAR-01** |
-| Titre | SessionContextBar fidèle au prototype |
-| Priorité | P0 |
-| Statut | ✅ Terminé — validé utilisateur |
-| Objectif | Obtenir la première barre sous le header principal : contexte de session uniquement, sans compteur de cartes, timer ni bouton principal. |
-| Critères d'acceptation | Le bouton Retour est visible et fonctionnel ; le breadcrumb reprend la structure du prototype (`Range ta chambre / session / étape`) ; le nom de session a une taille et une troncature conformes ; le `StepIndicator` est centré sur desktop ; le code de session, Participants et Discussion sont positionnés à droite ; la barre reste lisible en responsive ; aucun élément de `SessionActionBar` n'est rendu dans cette barre. |
-| Fichiers probablement concernés | `retrospective_frontend/src/pages/session/SessionDashboard.tsx`, `retrospective_frontend/src/pages/session/components/SessionContextBar.tsx`, `retrospective_frontend/src/pages/session/components/StepIndicator.tsx`, `retrospective_frontend/src/pages/session/sessionStep.ts`, `retrospective_frontend/src/pages/session/SessionDashboard.test.tsx` |
-| Dépendances | Aucune tâche fonctionnelle ; doit reprendre l'état non commité actuel sans considérer la barre comme validée. |
-| Tests attendus | Tests React sur le rendu de la barre, le bouton Retour, le code de session, le placement logique des déclencheurs Participants/Discussion et l'absence du compteur/timer/bouton principal dans cette barre ; vérification visuelle Figma desktop/mobile. |
-| Source justifiant la tâche | Figma (`figma_make/src/app/components/Shell.tsx` — `NavBar`) ; cahier des charges (interface claire et simple) ; backlog initial via `T-NAV-01` pour la navigation de retour ; évolution ultérieure : aucun nouveau comportement hors Figma. |
+| ID | Priorité | Objectif | Critères d'acceptation courts | Statut |
+| :--- | :--- | :--- | :--- | :--- |
+| **US-07-DONE-01** | P0 | Création des cartes dans les 3 colonnes techniques. | Une carte peut être créée dans chaque colonne technique. | ✅ Terminé |
+| **TODO-FORMAT-01** | P0 | Formats MVP dynamiques à 3 colonnes. | Le format choisi est persisté et affiché en Écriture/Résultats. | ✅ Terminé |
+| **MVP-WRITING-01** | P0 | Finaliser le design des cartes et actions Modifier/Supprimer. | Les actions ne cassent plus le design, restent accessibles et ne régressent pas. | ✅ Terminé |
+| **MVP-TIMER-01** | P0 | Rendre le timer d'étape fonctionnel. | Le timer démarre, se met à jour et reste cohérent avec l'étape. | ✅ Terminé |
+| **MVP-PARTICIPANTS-01** | P1 | Corriger l'UX du drawer Participants. | Le drawer affiche les vrais participants et respecte l'UX cible desktop/mobile. | ✅ Terminé |
+| **MVP-DISCUSSION-01** | P1 | Finaliser Discussion. | Le panneau affiche des messages réels ou un périmètre produit borné explicitement. | ✅ Terminé |
+| **MVP-COMMENTS-01** | P1 | Implémenter les commentaires de cartes utilisables. | Les commentaires peuvent être consultés/ajoutés sans données fictives. | ✅ Terminé |
+| **MVP-WRITING-STATE-01** | P2 | Finaliser états chargement/erreur/vides. | Les états sont clairs, non bloquants et testés. | ✅ Terminé |
 
-#### **T-SESSION-BAR-02 — SessionActionBar**
+#### **US-08 — Distribution de votes**
 
-| Champ | Valeur |
-| :--- | :--- |
-| Identifiant | **T-SESSION-BAR-02** |
-| Titre | SessionActionBar fidèle au prototype |
-| Priorité | P0 |
-| Statut | ✅ Terminé — validé utilisateur |
-| Objectif | Obtenir la seconde barre sous le header principal : actions d'étape uniquement. |
-| Critères d'acceptation | Le compteur total de cartes est rendu dans cette barre en étape écriture ; l'indicateur de votes restants reste rendu dans cette barre en étape vote ; le timer est rendu dans cette barre ; le bouton principal facilitateur est rendu dans cette barre ; aucune troisième ligne ou troisième navbar n'apparaît ; la barre reproduit la sub-toolbar Figma des écrans `WritingScreen` et `VoteScreen` ; aucun élément de contexte de session n'y est déplacé. |
-| Fichiers probablement concernés | `retrospective_frontend/src/pages/session/SessionDashboard.tsx`, `retrospective_frontend/src/pages/session/components/SessionActionBar.tsx`, `retrospective_frontend/src/pages/session/components/TimerChip.tsx`, `retrospective_frontend/src/pages/session/SessionDashboard.test.tsx` |
-| Dépendances | **T-SESSION-BAR-01** validée pour éviter de redéplacer des éléments entre les deux barres. |
-| Tests attendus | Tests React sur compteur, votes restants, timer, bouton principal selon l'étape et le rôle ; test d'absence de troisième barre ; vérification visuelle Figma desktop/mobile. |
-| Source justifiant la tâche | Figma (`WritingScreen.tsx` et `VoteScreen.tsx` — sub-toolbar) ; User Stories `US-07`, `US-08`, `US-10` ; cahier des charges (ajout de cartes, vote, démarrage/clôture de session) ; backlog initial via tâches Figma timer/quota. |
+| ID | Priorité | Objectif | Critères d'acceptation courts | Statut |
+| :--- | :--- | :--- | :--- | :--- |
+| **US-08-DONE-01** | P0 | Backend de vote avec limite de 5 votes. | Le backend empêche le dépassement du quota. | ✅ Terminé |
+| **US-08-DONE-02** | P0 | Bouton de vote et compteur sur les cartes. | Le participant peut voter et voir le compteur. | ✅ Terminé |
+| **T-UX-01** | P0 | Quota de votes restants visible. | Le quota reste visible pendant la phase de vote. | ✅ Terminé |
+| **MVP-VOTE-01** | P0 | Finaliser la salle de vote complète. | La salle de vote est conforme au prototype et validée avec Playwright. | ✅ Terminé |
+| **MVP-VOTE-TRANSITION-01** | P1 | Vérifier les votes lors des transitions. | Aucun vote ne régresse entre écriture, vote et résultats. | ✅ Terminé |
 
-#### **T-SESSION-BAR-03 — ParticipantsDrawer**
+#### **US-09 — Vue des résultats**
 
-| Champ | Valeur |
-| :--- | :--- |
-| Identifiant | **T-SESSION-BAR-03** |
-| Titre | Panneau Participants depuis le déclencheur |
-| Priorité | P1 |
-| Statut | ✅ Terminé — validé utilisateur |
-| Objectif | Ouvrir un panneau Participants depuis le déclencheur de `SessionContextBar` et afficher les vraies données de session. |
-| Critères d'acceptation | Le déclencheur Participants ouvre/ferme le panneau ; le panneau affiche les vrais participants issus de `useSessionParticipants`/API, avec nom, rôle et statut disponibles ; desktop et mobile respectent le prototype ; fermeture accessible au clic et au clavier ; aucune donnée mockée n'est affichée comme réelle. |
-| Fichiers probablement concernés | `retrospective_frontend/src/pages/session/components/SessionContextBar.tsx`, nouveau composant probable `ParticipantsDrawer.tsx`, `retrospective_frontend/src/pages/session/hooks/useSessionParticipants.ts`, `retrospective_frontend/src/pages/session/SessionDashboard.tsx`, tests associés. |
-| Dépendances | **T-SESSION-BAR-01** validée ; données participants existantes déjà disponibles côté application. |
-| Tests attendus | Tests React ouverture/fermeture, comptage, rendu des vrais participants, accessibilité du déclencheur et du panneau ; vérification visuelle Figma desktop/mobile. |
-| Source justifiant la tâche | Figma (`Shell.tsx` — `ParticipantsSidebar`) ; cahier des charges (participants rejoignent une session) ; User Story `US-06` ; backlog initial `TODO-SESSION-01` déjà livré côté données mais pas sous forme de drawer Figma. |
+| ID | Priorité | Objectif | Critères d'acceptation courts | Statut |
+| :--- | :--- | :--- | :--- | :--- |
+| **US-09-DONE-01** | P0 | Cartes triées par votes décroissants. | Les cartes les plus votées remontent en premier. | ✅ Terminé |
+| **US-09-DONE-02** | P0 | Top 3, statistiques et libellés de format. | Les résultats affichent votes, cartes et colonnes du format choisi. | ✅ Terminé |
+| **MVP-RESULTS-01** | P0 | Finaliser l'écran Résultats. | L'écran est validé desktop/mobile avec données réelles et états limites. | ✅ Terminé |
 
-#### **T-SESSION-BAR-04 — DiscussionDrawer**
+#### **US-10 — Rôles & transitions d'étape**
 
-| Champ | Valeur |
-| :--- | :--- |
-| Identifiant | **T-SESSION-BAR-04** |
-| Titre | Panneau Discussion depuis le déclencheur |
-| Priorité | P2 |
-| Statut | ✅ Terminé — validé utilisateur |
-| Objectif | Ouvrir le fil de discussion depuis le déclencheur de `SessionContextBar` et préparer l'intégration des messages/commentaires. |
-| Critères d'acceptation | Le déclencheur Discussion ouvre/ferme un panneau conforme au prototype ; le panneau distingue clairement état vide, liste de messages et zone de saisie selon le périmètre validé ; le ticket ne crée pas encore les commentaires de cartes ; aucune donnée mockée n'est présentée comme réelle ; le comportement à implémenter est borné avant développement si une route backend manque. |
-| Fichiers probablement concernés | `retrospective_frontend/src/pages/session/components/SessionContextBar.tsx`, nouveau composant probable `DiscussionDrawer.tsx`, `retrospective_frontend/src/pages/session/SessionDashboard.tsx`, tests associés ; backend uniquement si une décision produit valide la persistance des messages. |
-| Dépendances | **T-SESSION-BAR-01** validée ; décision de périmètre sur données réelles de discussion si nécessaire. |
-| Tests attendus | Tests React ouverture/fermeture, état vide, accessibilité, absence de mélange avec Participants ; tests API/backend seulement si persistance validée. |
-| Source justifiant la tâche | Figma (`DiscussionPanel.tsx`) ; Product Backlog évolution `US-11` / backlog d'origine `B20` hors scope MVP ; évolution ultérieure validable après les deux barres. |
+| ID | Priorité | Objectif | Critères d'acceptation courts | Statut |
+| :--- | :--- | :--- | :--- | :--- |
+| **US-10-DONE-01** | P0 | Rôle facilitateur/participant connu par la session. | Les permissions de base sont identifiées. | ✅ Terminé |
+| **US-10-DONE-02** | P0 | Passage salle d'attente -> écriture. | Le facilitateur lance l'écriture et les participants suivent. | ✅ Terminé |
+| **MVP-TRANSITION-01** | P0 | Valider toutes les transitions d'étape. | Écriture -> Vote -> Résultats fonctionne pour plusieurs navigateurs. | ✅ Terminé |
+| **MVP-PERMISSION-01** | P1 | Vérifier les permissions par rôle sur chaque étape. | Les participants ne déclenchent pas les actions facilitateur. | ✅ Terminé |
 
-#### **T-SESSION-BAR-05 — Commentaires des cartes**
+#### **US-11 — Plan d'action & Résumé produit**
 
-| Champ | Valeur |
-| :--- | :--- |
-| Identifiant | **T-SESSION-BAR-05** |
-| Titre | Connexion des cartes au fil de discussion/commentaires |
-| Priorité | P2 |
-| Statut | ✅ Terminé — périmètre UI sans backend |
-| Objectif | Connecter les cartes au fil de discussion ou à un modal de commentaires uniquement si cette fonctionnalité est confirmée par les sources projet. |
-| Critères d'acceptation | Le ticket commence par confirmer le périmètre exact : commentaires par carte, discussion globale, ou lien entre les deux ; les cartes affichent un compteur réel seulement si une source de données existe ; l'ouverture depuis une carte respecte le prototype ; aucune table/route n'est ajoutée sans validation du périmètre ; aucun comportement de vote/édition/suppression existant ne régresse. |
-| Fichiers probablement concernés | `retrospective_frontend/src/pages/session/components/RetroCardItem.tsx`, `RetroColumn.tsx`, `SessionDashboard.tsx`, nouveau composant probable de commentaires, tests associés ; backend et SQL uniquement si validés. |
-| Dépendances | **T-SESSION-BAR-04** ou décision produit explicite sur les commentaires ; ne pas démarrer avant confirmation du périmètre. |
-| Tests attendus | Tests React compteur/ouverture/fermeture, non-régression cartes ; tests backend/API seulement si données persistées ; vérification visuelle Figma. |
-| Source justifiant la tâche | Figma (`CommentsModal.tsx`, `commentCount` dans `WritingScreen.tsx`/`VoteScreen.tsx`) ; Product Backlog évolution `US-12` ; évolution ultérieure, non MVP par défaut. |
+| ID | Priorité | Objectif | Critères d'acceptation courts | Statut |
+| :--- | :--- | :--- | :--- | :--- |
+| **MVP-ACTION-01** | P1 | Ajouter le plan d'action. | Le facilitateur peut consulter/préparer les actions prévues par le prototype. | ❌ Reporté |
+| **MVP-SUMMARY-01** | P1 | Ajouter l'écran résumé. | Le résumé final clôture la rétrospective proprement. | ❌ Reporté |
+| **MVP-E2E-01** | P0 | Vérifier le parcours produit complet. | Playwright couvre création -> résumé sans rupture majeure. | ✅ Terminé |
 
-#### **T-SESSION-BAR-06 — Revue UI finale de l'écran Écriture**
+### Ordre d'implémentation MVP
 
-| Champ | Valeur |
-| :--- | :--- |
-| Identifiant | **T-SESSION-BAR-06** |
-| Titre | Revue UI finale de l'écran Écriture |
-| Priorité | P1 |
-| Statut | ✅ Terminé — revue finale validée |
-| Objectif | Comparer l'écran complet au prototype après validation des composants précédents et corriger uniquement les derniers écarts démontrés. |
-| Critères d'acceptation | L'écran complet est comparé au prototype sur desktop et mobile ; seules les divergences restantes de l'écran Écriture sont corrigées ; les tâches validées précédentes ne sont pas modifiées sauf régression démontrée ; aucun nouveau regroupement fonctionnel n'est introduit ; la revue vérifie l'absence de troisième barre et la non-régression des cartes, colonnes, votes et résultats. |
-| Fichiers probablement concernés | `retrospective_frontend/src/pages/session/SessionDashboard.tsx`, composants sous `retrospective_frontend/src/pages/session/components/`, tests de non-régression, documentation de suivi. |
-| Dépendances | **T-SESSION-BAR-01** et **T-SESSION-BAR-02** validées ; **T-SESSION-BAR-03/04/05** selon périmètre retenu. |
-| Tests attendus | Tests frontend ciblés ; build/lint frontend ; vérification visuelle Figma desktop/mobile ; revue du diff uniquement. |
-| Source justifiant la tâche | Figma (`Shell.tsx`, `WritingScreen.tsx`, `VoteScreen.tsx`) ; cahier des charges (interface claire et responsive) ; évolution ultérieure de stabilisation visuelle. |
+| Ordre | ID | Parent | Priorité | Objectif | Statut |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | **MVP-WRITING-01** | US-07 | P0 | Finaliser le design des cartes et des actions Modifier/Supprimer. | ✅ Terminé |
+| 2 | **MVP-TIMER-01** | US-07 / US-10 | P0 | Rendre le timer d'étape fonctionnel. | ✅ Terminé |
+| 3 | **MVP-VOTE-01** | US-08 | P0 | Finaliser la salle de vote complète. | ✅ Terminé |
+| 3.1 | **MVP-VOTE-02** | US-08 | P0 | Validation E2E de la salle de vote. | ✅ Terminé |
+| 4 | **MVP-RESULTS-01** | US-09 | P0 | Finaliser l'écran Résultats. | ✅ Terminé |
+| 4.1 | **MVP-RESULTS-02** | US-09 | P0 | Validation E2E de l'écran Résultats. | ✅ Terminé |
+| 5 | **MVP-TRANSITION-01** | US-10 | P0 | Valider toutes les transitions d'étape. | ✅ Terminé |
+| 5.1 | **MVP-TRANSITION-02** | US-10 | P0 | Validation E2E de l'enchaînement des étapes. | ✅ Terminé |
+| 6 | **MVP-E2E-01** | US-11 | P0 | Vérifier le parcours produit complet. | ✅ Terminé |
+| 6.1 | **MVP-E2E-02** | US-11 | P0 | Validation E2E du parcours produit complet. | ✅ Terminé |
+| 7 | **MVP-PARTICIPANTS-01** | US-07 | P1 | Corriger l'UX du drawer Participants. | ✅ Terminé |
+| 7.1 | **MVP-PARTICIPANTS-02** | US-07 | P1 | Validation E2E du drawer Participants. | ✅ Terminé |
+| 8 | **MVP-DISCUSSION-01** | US-07 | P1 | Finaliser Discussion. | ✅ Terminé |
+| 8.1 | **MVP-DISCUSSION-02** | US-07 | P1 | Validation E2E du drawer Discussion. | ✅ Terminé |
+| 9 | **MVP-COMMENTS-01** | US-07 | P1 | Implémenter les commentaires de cartes. | ✅ Terminé |
+| 9.1 | **MVP-COMMENTS-02** | US-07 | P1 | Validation E2E de la modal Commentaires. | ✅ Terminé |
+| 10 | **MVP-ACTION-01** | US-11 | P1 | Ajouter le plan d'action. | ❌ Reporté |
+| 11 | **MVP-SUMMARY-01** | US-11 | P1 | Ajouter l'écran résumé. | ❌ Reporté |
+| 12 | **MVP-WRITING-STATE-01** | US-07 | P2 | Finaliser les états chargement/erreur/vides. | ✅ Terminé |
+| 12.1 | **MVP-WRITING-STATE-02** | US-07 | P2 | Validation E2E des états de chargement et vides. | ✅ Terminé |
+
+### Historique des chantiers techniques
+
+> Ces tickets servent d'historique. L'orchestrateur ne doit plus les choisir comme prochaines tâches MVP.
+
+| ID | Résultat | Statut actuel |
+| :--- | :--- | :--- |
+| **T-SESSION-BAR-01** | `SessionContextBar` isolée : retour, breadcrumb, étape, code, déclencheurs. | ✅ Base validée |
+| **T-SESSION-BAR-02** | `SessionActionBar` isolée : compteur, timer visuel, bouton principal. | ✅ Base validée |
+| **T-SESSION-BAR-03** | Participants affichés dans un drawer avec données réelles. | 🟡 À reprendre via `MVP-PARTICIPANTS-01` |
+| **T-SESSION-BAR-04** | Discussion affichée dans un drawer sans données fictives. | 🟡 À reprendre via `MVP-DISCUSSION-01` |
+| **T-SESSION-BAR-05** | Modal de commentaires sans persistance fictive. | 🟡 À reprendre via `MVP-COMMENTS-01` |
+| **T-SESSION-BAR-06** | Revue UI finale de base de l'écran Écriture. | ✅ Historique validé |
 
 ---
 

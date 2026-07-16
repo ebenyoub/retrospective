@@ -1,7 +1,7 @@
 import { AuthContext, type AuthLoginData } from "@/context/auth/useAuth";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { API_BASE } from "@/lib/api";
+import { fetchProfileApi } from "@/pages/auth/services/authApi";
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [token, setToken] = useState(localStorage.getItem('token') || "")
@@ -15,6 +15,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // Ne navigue pas : chaque page appelante décide où rediriger après connexion
   // (session active, liste des sessions, accueil...).
   const login = (data: AuthLoginData) => {
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('retro:guest:')) {
+        localStorage.removeItem(key);
+      }
+    }
     localStorage.setItem('token', data.token);
     setToken(data.token);
     setIsAuthenticated(true);
@@ -24,6 +30,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }
 
   const logout = useCallback(() => {
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('retro:guest:')) {
+        localStorage.removeItem(key);
+      }
+    }
     localStorage.removeItem('token');
     setToken("");
     setIsAuthenticated(false);
@@ -48,18 +60,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (!isAuthenticated) return;
 
       try {
-        const response = await fetch(`${API_BASE}/auth/profile`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const result = await fetchProfileApi(token);
 
-        if (!response.ok) {
+        if (!result.ok) {
           logout();
           return;
         }
 
-        const user = await response.json();
-        setUserId(user.userId);
-        setUsername(user.username);
+        setUserId(result.data.userId);
+        setUsername(result.data.username);
       } catch (error) {
         console.error("Erreur fetchProfile :", error);
         logout();

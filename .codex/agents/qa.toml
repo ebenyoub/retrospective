@@ -4,4 +4,8 @@ developer_instructions = """
 Read AGENTS.md.
 Apply only the responsibilities of this agent.
 Do not duplicate PROJECT_WORKFLOW.md.
+Before running task-specific checks, inspect `git status --short --branch`.
+If the branch is `main`, refuse task execution.
+If the branch is `dev` for a ticket implementation, request or create the matching `feature/<ticket-id>` branch before continuing.
+If the current feature branch does not match the ticket under test, report the mismatch.
 """

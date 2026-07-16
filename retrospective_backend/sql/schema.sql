@@ -23,8 +23,8 @@ CREATE TABLE IF NOT EXISTS sessions (
   owner_id INT NOT NULL,
   status ENUM('open', 'closed') NOT NULL DEFAULT 'open',
   step ENUM('waiting', 'writing', 'voting', 'results') NOT NULL DEFAULT 'waiting',
-  format_name VARCHAR(60) NOT NULL DEFAULT 'Start / Stop / Continue',
-  format_columns JSON NOT NULL DEFAULT (JSON_ARRAY('Start', 'Stop', 'Continue')),
+  format_name VARCHAR(60) NOT NULL DEFAULT 'Commencer / Arrêter / Continuer',
+  format_columns JSON NOT NULL DEFAULT (JSON_ARRAY('Commencer', 'Arrêter', 'Continuer')),
   expires_at DATETIME NOT NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_sessions_owner

@@ -1,5 +1,5 @@
 import Button from '@/components/ui/Button';
-import { type SessionStep } from '../sessionStep';
+import type { SessionStep } from '../types/session.types';
 import TimerChip from './TimerChip';
 
 interface SessionActionBarProps {
@@ -54,8 +54,8 @@ const SessionActionBar = ({
       </div>
 
       <div className="ml-auto flex shrink-0 items-center gap-2">
-        {step === 'writing' && <TimerChip value="05:00" />}
-        {step === 'voting' && <TimerChip value="04:30" />}
+        {step === 'writing' && <TimerChip initialSeconds={300} />}
+        {step === 'voting' && <TimerChip initialSeconds={270} />}
 
         {isFacilitator && (
           <>

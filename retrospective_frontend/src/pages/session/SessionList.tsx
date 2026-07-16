@@ -2,21 +2,12 @@ import Container from '@/components/ui/Container';
 import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
 import { useAuth } from '@/context/auth/useAuth';
-import { getApiErrorMessage, isApiSuccess, NETWORK_ERROR_MESSAGE, readJsonSafely } from '@/lib/apiError';
-import { API_BASE } from '@/lib/api';
+import { getApiErrorMessage, NETWORK_ERROR_MESSAGE } from '@/lib/apiError';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ROLE_LABEL, type SessionRole } from './sessionRole';
-
-interface SessionListItem {
-  id: number;
-  name: string;
-  code: string;
-  status: string;
-  expiresAt: string;
-  createdAt: string;
-  role: SessionRole;
-}
+import { ROLE_LABEL } from './sessionRole';
+import { listSessions } from './services/sessionApi';
+import type { SessionListItem } from './types/session.types';
 
 const SessionList = () => {
   const { token } = useAuth();
@@ -33,16 +24,12 @@ const SessionList = () => {
       setErrorMessage("");
 
       try {
-        const response = await fetch(`${API_BASE}/session`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const result = await listSessions(token);
 
-        const data = await readJsonSafely(response);
-
-        if (response.ok && isApiSuccess<SessionListItem[]>(data)) {
-          setSessions(data.data);
+        if (result.ok) {
+          setSessions(result.data);
         } else {
-          setErrorMessage(getApiErrorMessage(data, "Impossible de charger les sessions."));
+          setErrorMessage(getApiErrorMessage(result.payload, "Impossible de charger les sessions."));
         }
       } catch (error) {
         console.error('Erreur lors du chargement des sessions :', error);
@@ -85,7 +72,7 @@ const SessionList = () => {
         </div>
       )}
 
-      <Button onClick={() => navigate('/', { state: { fromSessions: true } })} className="w-fit">
+      <Button unstyled onClick={() => navigate('/')} className="w-fit">
         Retour
       </Button>
     </Container>

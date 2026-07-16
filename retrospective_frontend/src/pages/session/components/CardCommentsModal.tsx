@@ -1,6 +1,9 @@
 import { MessageCircle, Send, X } from 'lucide-react';
+import Button from '@/components/ui/Button';
+import EmptyState from '@/components/ui/EmptyState';
+import IconButton from '@/components/ui/IconButton';
 
-import type { RetroCard } from './RetroCardItem';
+import type { RetroCard } from '../types/card.types';
 
 interface CardCommentsModalProps {
   card: RetroCard;
@@ -14,24 +17,100 @@ const columnLabel: Record<RetroCard['columnType'], string> = {
   continue: 'Positif',
 };
 
+import { useEffect, useRef } from 'react';
+
+const FOCUSABLE_SELECTOR = [
+  'button:not([disabled])',
+  'a[href]',
+  'input:not([disabled])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+].join(',');
+
 const CardCommentsModal = ({ card, isDesktop, onClose }: CardCommentsModalProps) => {
+  const panelRef = useRef<HTMLElement>(null);
+  const onCloseRef = useRef(onClose);
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  useEffect(() => {
+    const previouslyFocused = document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null;
+    
+    const panel = panelRef.current;
+    // On focalise le panneau ou le bouton fermer
+    if (panel) {
+      const focusableElements = Array.from(panel.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR));
+      if (focusableElements.length > 0) {
+        focusableElements[0].focus();
+      } else {
+        panel.focus();
+      }
+    }
+
+    const handleKeyDown = (event: KeyboardEvent): void => {
+      if (event.key === 'Escape') {
+        onCloseRef.current();
+        return;
+      }
+
+      if (event.key !== 'Tab' || !panel) return;
+
+      const focusableElements = Array.from(
+        panel.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)
+      ).filter(el => !el.hasAttribute('disabled'));
+
+      if (focusableElements.length === 0) {
+        event.preventDefault();
+        panel.focus();
+        return;
+      }
+
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+
+      if (event.shiftKey && (document.activeElement === firstElement || document.activeElement === panel)) {
+        event.preventDefault();
+        lastElement.focus();
+      } else if (!event.shiftKey && document.activeElement === lastElement) {
+        event.preventDefault();
+        firstElement.focus();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      previouslyFocused?.focus();
+    };
+  }, []);
+
   return (
     <div
       className={`fixed inset-0 z-[60] flex bg-black/60 backdrop-blur-sm ${
         isDesktop ? 'items-center justify-center p-6' : 'items-end'
       }`}
-      role="presentation"
-      onClick={onClose}
     >
+      <div
+        aria-hidden="true"
+        onClick={onClose}
+        className="absolute inset-0 cursor-default"
+      />
       <section
+        ref={panelRef}
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-labelledby="card-comments-title"
-        onClick={(event) => event.stopPropagation()}
-        className={`flex max-h-[85vh] flex-col overflow-hidden border border-navy-border bg-navy-mid shadow-2xl ${
+        className={`relative z-10 flex max-h-[85vh] w-full flex-col overflow-hidden border border-navy-border bg-navy-mid shadow-2xl focus:outline-none ${
           isDesktop
-            ? 'w-full max-w-[520px] rounded-2xl'
-            : 'max-h-[85vh] w-full rounded-t-2xl'
+            ? 'max-w-[520px] rounded-2xl'
+            : 'rounded-t-2xl'
         }`}
       >
         <header className="flex flex-shrink-0 items-start justify-between gap-3 border-b border-navy-border px-4 py-4">
@@ -52,28 +131,26 @@ const CardCommentsModal = ({ card, isDesktop, onClose }: CardCommentsModalProps)
               Commentaires
             </p>
           </div>
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="sm"
             onClick={onClose}
             aria-label="Fermer les commentaires"
             className="inline-flex h-8 flex-shrink-0 items-center gap-1.5 rounded-lg border border-navy-border-med bg-transparent px-2.5 font-sans text-xs font-medium text-slate-400 transition-colors hover:bg-navy-surface hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
           >
             <X size={14} aria-hidden="true" />
             <span>Fermer</span>
-          </button>
+          </Button>
         </header>
 
-        <div className="flex flex-1 flex-col justify-center overflow-y-auto px-6 py-8 text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-navy-border-med bg-navy-surface text-slate-500">
-            <MessageCircle size={20} aria-hidden="true" />
-          </div>
-          <p className="font-sans text-sm font-semibold text-slate-300">
-            Aucun commentaire disponible
-          </p>
-          <p className="mx-auto mt-2 max-w-[300px] font-sans text-xs leading-5 text-slate-500">
-            Les commentaires liés à cette carte apparaîtront ici dès qu'ils seront disponibles.
-          </p>
-        </div>
+        <EmptyState
+          icon={<MessageCircle size={20} aria-hidden="true" />}
+          title="Aucun commentaire disponible"
+          description="Les commentaires liés à cette carte apparaîtront ici dès qu'ils seront disponibles."
+          variant="panel"
+          descriptionClassName="max-w-[300px]"
+        />
 
         <div className="flex flex-shrink-0 items-end gap-2 border-t border-navy-border px-4 py-3">
           <textarea
@@ -83,14 +160,15 @@ const CardCommentsModal = ({ card, isDesktop, onClose }: CardCommentsModalProps)
             placeholder="Aucun commentaire disponible"
             className="min-h-[42px] flex-1 resize-none rounded-lg border border-navy-border-med bg-navy-surface px-3 py-2 font-sans text-sm text-slate-500 placeholder:text-slate-600 disabled:cursor-not-allowed disabled:opacity-70"
           />
-          <button
-            type="button"
+          <IconButton
             disabled
             aria-label="Envoyer le commentaire"
-            className="flex h-10 w-10 flex-shrink-0 cursor-not-allowed items-center justify-center rounded-lg bg-navy-surface-med text-slate-600"
+            variant="ghost"
+            size="md"
+            className="border-0 bg-navy-surface-med text-slate-600 hover:bg-navy-surface-med hover:text-slate-600 disabled:opacity-100"
           >
             <Send size={15} aria-hidden="true" />
-          </button>
+          </IconButton>
         </div>
       </section>
     </div>

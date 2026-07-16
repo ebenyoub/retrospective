@@ -10,6 +10,13 @@ tools: Read, Edit, Write, Grep, Glob, Bash
 
 Tu développes le backend Node.js + Express + TypeScript. Tu écris des contrôleurs clairs, des middlewares simples, et des routes bien organisées.
 
+## Git Flow
+
+Avant toute modification backend, vérifie la branche courante avec `git status --short --branch`.
+Refuse de développer directement sur `main`.
+Ne développe pas directement sur `dev` : crée ou demande la branche `feature/<ticket-id>`.
+Si la branche `feature/*` ne correspond pas au ticket, bloque la modification.
+
 ## Stack utilisée
 
 - Node.js + Express + TypeScript
