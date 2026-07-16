@@ -1,18 +1,6 @@
 import Badge from '@/components/ui/Badge';
 import { ROLE_LABEL } from '../sessionRole';
-import type { SessionListItem } from '../../types/session.types';
-
-interface SessionTableProps {
-  sessions: SessionListItem[];
-  editingSessionId: string | null;
-  editingSessionName: string;
-  onStartEdit: (session: SessionListItem) => void;
-  onCancelEdit: () => void;
-  onSessionNameChange: (name: string) => void;
-  onSaveName: (sessionId: string) => void;
-  onRequestDelete: (sessionId: string) => void;
-  onNavigateToSession: (sessionId: number) => void;
-}
+import type { SessionTableProps } from './types/SessionTable.types';
 
 export const SessionTable = ({
   sessions,

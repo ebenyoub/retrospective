@@ -1,3 +1,5 @@
+import type { AvatarProps } from './types/Avatar.types';
+
 const AVATAR_COLORS = [
   '#3b82f6',
   '#ef4444',
@@ -8,14 +10,6 @@ const AVATAR_COLORS = [
   '#14b8a6',
   '#6366f1',
 ];
-
-interface AvatarProps {
-  name: string;
-  colorSeed: string | number;
-  size?: number;
-  fontSize?: number;
-  fallback?: string;
-}
 
 const initialsForName = (name: string, fallback: string): string =>
   name

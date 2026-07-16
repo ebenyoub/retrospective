@@ -1,14 +1,13 @@
 import Button from "@/components/ui/Button";
 import Container from "@/components/ui/Container";
-import FormContainer, { FormTitle } from "@/components/ui/FormContainer";
+import Form, { FormTitle } from "@/components/ui/Form";
 import FormField from "@/components/ui/FormField";
 import SpinContainer from "@/components/ui/SpinContainer";
 import { getApiErrorMessage, NETWORK_ERROR_MESSAGE } from "@/lib/apiError";
 import React, { useState, type ChangeEvent } from "react";
 import { useNavigate, NavLink } from "react-router-dom";
 import { forgotApi, verifyCodeApi, resetPasswordApi } from "@/pages/auth/services/authApi";
-
-type Step = 'EMAIL' | 'CODE' | 'NEW_PASSWORD';
+import type { Step } from "@/pages/auth/types/Forgot.types";
 
 const Forgot = () => {
   const [step, setStep] = useState<Step>('EMAIL');
@@ -142,7 +141,7 @@ const Forgot = () => {
 
         {/* --- FORMULAIRE 1 : EMAIL --- */}
         {step === 'EMAIL' && (
-          <FormContainer onSubmit={handleEmailSubmit} aria-busy={isLoading}>
+          <Form onSubmit={handleEmailSubmit} aria-busy={isLoading}>
             <FormTitle>Récupération du mot de passe</FormTitle>
             <FormField
               id="email"
@@ -165,12 +164,12 @@ const Forgot = () => {
                     Retour à la connexion
                 </NavLink>
             </div>
-          </FormContainer>
+          </Form>
         )}
 
         {/* --- FORMULAIRE 2 : CODE --- */}
         {step === 'CODE' && (
-          <FormContainer onSubmit={handleCodeSubmit} aria-busy={isLoading}>
+          <Form onSubmit={handleCodeSubmit} aria-busy={isLoading}>
             <FormTitle>Code de vérification</FormTitle>
             <p className="text-gray-400 text-sm text-center mb-4">
               Envoyé à : <span className="text-white font-semibold">{email}</span>
@@ -202,12 +201,12 @@ const Forgot = () => {
             >
               Ce n'est pas le bon email ?
             </button>
-          </FormContainer>
+          </Form>
         )}
 
         {/* --- FORMULAIRE 3 : NOUVEAU PASSWORD (Placeholder) --- */}
         {step === 'NEW_PASSWORD' && (
-          <FormContainer onSubmit={handlePasswordSubmit} aria-busy={isLoading}>
+          <Form onSubmit={handlePasswordSubmit} aria-busy={isLoading}>
             <FormTitle>Nouveau mot de passe</FormTitle>
             <FormField
               id="new-password"
@@ -231,7 +230,7 @@ const Forgot = () => {
               error={inputErrors.confirmation}
             />
             <Button type="submit" disabled={isLoading}>Modifier</Button>
-          </FormContainer>
+          </Form>
         )}
 
       </SpinContainer>

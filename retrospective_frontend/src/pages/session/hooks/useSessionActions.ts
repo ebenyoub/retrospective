@@ -1,23 +1,9 @@
 import { useCallback } from 'react';
-import type { NavigateFunction } from 'react-router-dom';
 
 import { getApiErrorMessage, NETWORK_ERROR_MESSAGE } from '@/lib/apiError';
 import { updateSessionFormat, updateSessionStep, updateSessionTimer, closeSession } from '../services/sessionApi';
 import type { SessionStep } from '../types/session.types';
-
-interface UseSessionActionsOptions {
-  sessionId: string;
-  isAuthenticated: boolean;
-  navigate: NavigateFunction;
-  addToast: (type: 'success' | 'error', message: string) => void;
-  leaveParticipation: () => Promise<void>;
-  clearGuestIdentity: () => void;
-  setStep: (step: SessionStep) => void;
-  setFormatName: (name: string) => void;
-  setFormatColumns: (columns: string[]) => void;
-  setStepDurationMinutes: (minutes: number) => void;
-  setStepEndsAt: (endsAt: string | null) => void;
-}
+import type { UseSessionActionsOptions } from './types/useSessionActions.types';
 
 export const useSessionActions = ({
   sessionId,

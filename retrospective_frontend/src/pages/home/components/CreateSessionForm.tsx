@@ -2,12 +2,13 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Button from "@/components/ui/Button";
-import { Input } from "@/components/ui/FormContainer";
+import { FormField, FormLabel, FormInput } from "@/components/ui/Form";
 import { getApiErrorMessage, isApiSuccess, NETWORK_ERROR_MESSAGE, readJsonSafely } from "@/lib/apiError";
 import FieldError from "@/components/ui/FieldError";
 
 import { API_BASE } from "@/lib/api";
 import { DEFAULT_RETRO_FORMAT_ID, RETRO_FORMAT_OPTIONS, getRetroFormatById } from "@/lib/retroFormats";
+import type { CreateSessionFormProps } from "./types/CreateSessionForm.types";
 
 const createSessionSchema = z.object({
   retroName: z.string().trim().min(3, "Le nom de la rétrospective doit contenir au moins 3 caractères."),
@@ -20,11 +21,6 @@ const createSessionSchema = z.object({
 
 type CreateSessionValues = z.infer<typeof createSessionSchema>;
 
-interface CreateSessionFormProps {
-  onSessionCreated: (sessionId: number) => void;
-}
-
-// Facilitateur déjà connecté : uniquement le nom de la rétrospective.
 const CreateSessionForm = ({ onSessionCreated }: CreateSessionFormProps) => {
   const {
     register,
@@ -67,11 +63,9 @@ const CreateSessionForm = ({ onSessionCreated }: CreateSessionFormProps) => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4" noValidate aria-busy={isSubmitting}>
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="retroName" className="block font-sans text-xs font-semibold text-slate-400 tracking-wider uppercase">
-          Nom de la rétro
-        </label>
-        <Input
+      <FormField>
+        <FormLabel htmlFor="retroName">Nom de la rétro</FormLabel>
+        <FormInput
           id="retroName"
           disabled={isSubmitting}
           aria-invalid={!!errors.retroName}
@@ -79,12 +73,10 @@ const CreateSessionForm = ({ onSessionCreated }: CreateSessionFormProps) => {
           {...register("retroName")}
         />
         <FieldError id="retroName-error" message={errors.retroName?.message} />
-      </div>
+      </FormField>
 
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="formatId" className="block font-sans text-xs font-semibold text-slate-400 tracking-wider uppercase">
-          Format de rétro
-        </label>
+      <FormField>
+        <FormLabel htmlFor="formatId">Format de rétro</FormLabel>
         <select
           id="formatId"
           disabled={isSubmitting}
@@ -98,13 +90,11 @@ const CreateSessionForm = ({ onSessionCreated }: CreateSessionFormProps) => {
           ))}
         </select>
         <FieldError id="formatId-error" message={errors.formatId?.message} />
-      </div>
+      </FormField>
 
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="stepDurationMinutes" className="block font-sans text-xs font-semibold text-slate-400 tracking-wider uppercase">
-          Durée des étapes (minutes)
-        </label>
-        <Input
+      <FormField>
+        <FormLabel htmlFor="stepDurationMinutes">Durée des étapes (minutes)</FormLabel>
+        <FormInput
           id="stepDurationMinutes"
           type="number"
           min={1}
@@ -115,7 +105,7 @@ const CreateSessionForm = ({ onSessionCreated }: CreateSessionFormProps) => {
           {...register("stepDurationMinutes", { valueAsNumber: true })}
         />
         <FieldError id="stepDurationMinutes-error" message={errors.stepDurationMinutes?.message} />
-      </div>
+      </FormField>
 
       <div className="pt-1">
         <Button unstyled type="submit" variant="primary" size="lg" className="w-full" disabled={isSubmitting}>

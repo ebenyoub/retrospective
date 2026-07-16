@@ -4,10 +4,7 @@ import HomeHero from "./components/HomeHero";
 import HomeTabsCard from "./components/HomeTabsCard";
 import ResumeSessionCard from "./components/ResumeSessionCard";
 import HomeSessionList from "./components/HomeSessionList";
-
-interface HomeLocationState {
-  tab?: "create" | "join";
-}
+import type { HomeLocationState } from "./types/Home.types";
 
 const Home = () => {
   const location = useLocation();

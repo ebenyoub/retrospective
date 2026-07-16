@@ -3,10 +3,7 @@ import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import IconButton from './IconButton';
-
-interface ModalContextType {
-  onClose: () => void;
-}
+import type { ModalContextType, ModalProps } from './types/Modal.types';
 
 const ModalContext = createContext<ModalContextType | null>(null);
 
@@ -17,11 +14,6 @@ const useModal = () => {
   }
   return context;
 };
-
-interface ModalProps extends React.HTMLAttributes<HTMLDivElement> {
-  isOpen: boolean;
-  onClose: () => void;
-}
 
 const Modal = ({ isOpen, onClose, children, className, ...props }: ModalProps) => {
   useEffect(() => {

@@ -1,4 +1,4 @@
-import FormContainer, { FormTitle } from '@/components/ui/FormContainer';
+import Form, { FormTitle } from '@/components/ui/Form';
 import FormField from '@/components/ui/FormField';
 import SpinContainer from '@/components/ui/SpinContainer';
 import Container from '@/components/ui/Container';
@@ -6,10 +6,11 @@ import Button from '@/components/ui/Button';
 import { useAuth } from '@/context/auth/useAuth';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useToast } from '@/context/toast/useToast';
-import type { ValidationSchema } from '@/hooks/useFormValidation';
+import type { ValidationSchema } from '@/hooks/types/useFormValidation.types';
 import useFormValidation from '@/hooks/useFormValidation';
 import { getApiErrorMessage, NETWORK_ERROR_MESSAGE } from '@/lib/apiError';
-import { loginApi, type LoginValues } from '@/pages/auth/services/authApi';
+import { loginApi } from '@/pages/auth/services/authApi';
+import type { LoginValues } from '../types/auth.types';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -74,7 +75,7 @@ const Login: React.FC = () => {
     return (
         <Container className='flex justify-center items-center min-h-[60vh]'>
             <SpinContainer onSpin={isLoading} className="w-full max-w-md">
-                <FormContainer onSubmit={handleSubmit} aria-busy={isLoading}>
+                <Form onSubmit={handleSubmit} aria-busy={isLoading}>
                     <FormTitle>Connexion</FormTitle>
                     <FormField
                         id="email"
@@ -118,7 +119,7 @@ const Login: React.FC = () => {
                             Retour à l'accueil
                         </NavLink>
                     </div>
-                </FormContainer>
+                </Form>
             </SpinContainer>
         </Container>
     );

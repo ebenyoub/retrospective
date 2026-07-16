@@ -1,17 +1,6 @@
 import Button from '@/components/ui/Button';
-import type { SessionStep } from '../types/session.types';
 import TimerChip from './TimerChip';
-
-interface SessionActionBarProps {
-  step: SessionStep;
-  cardsCount: number;
-  votesLeft: number;
-  isFacilitator: boolean;
-  stepEndsAt: string | null;
-  onTransitionStep: (nextStep: SessionStep) => void;
-  onUpdateTimer: (minutes: number) => Promise<boolean>;
-  onCloseSession: () => void | Promise<void>;
-}
+import type { SessionActionBarProps } from './types/SessionActionBar.types';
 
 const SessionActionBar = ({
   step,

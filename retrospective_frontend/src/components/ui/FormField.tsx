@@ -1,14 +1,6 @@
 import { cn } from '@/lib/utils';
-import { FormGroup, Input } from './FormContainer';
-import type { InputHTMLAttributes } from 'react';
-
-interface FormFieldProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'id'> {
-  id: string;
-  label: string;
-  error?: string;
-  /** Bordure grise/verte/rouge selon l'état du champ (Login/Signup). Par défaut : rouge sur erreur uniquement. */
-  showValidState?: boolean;
-}
+import { FormGroup, FormInput as Input } from './Form';
+import type { FormFieldProps } from './types/FormField.types';
 
 const FormField = ({ id, label, error, showValidState, className, value, ...props }: FormFieldProps) => {
   const isEmpty = typeof value === 'string' && value.trim() === '';

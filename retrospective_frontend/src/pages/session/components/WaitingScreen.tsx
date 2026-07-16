@@ -4,26 +4,9 @@ import Button from '@/components/ui/Button';
 import IconButton from '@/components/ui/IconButton';
 import type { ParticipantSummary } from '../types/participant.types';
 import RetroFormatSelector from './RetroFormatSelector';
-
-
+import type { WaitingScreenProps } from './types/WaitingScreen.types';
 
 const pluralize = (count: number, singular: string, plural: string): string => (count <= 1 ? singular : plural);
-
-interface WaitingScreenProps {
-  sessionId: string | number;
-  sessionName: string;
-  sessionCode: string;
-  participants: ParticipantSummary[];
-  selfParticipantId: number | null;
-  role: 'facilitator' | 'participant';
-  formatName: string;
-  stepDurationMinutes: number;
-  onStart: () => void;
-  onLeave: () => void;
-  onSelectFormatPreset: (name: string, columns: string[]) => void;
-  onUpdateStepDuration: (minutes: number) => void;
-  isDesktop: boolean;
-}
 
 // Durée des étapes : saisie inline réservée au facilitateur. La valeur est
 // envoyée au backend, qui reste la source de vérité du timer.

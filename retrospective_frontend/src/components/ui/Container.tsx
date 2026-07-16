@@ -1,6 +1,5 @@
 import { cn } from "@/lib/utils";
-
-export type ContainerProps = React.ComponentProps<"div">
+import type { ContainerProps } from "./types/Container.types";
 
 const Container = ({ className, children, ...props }: ContainerProps) => {
     return (

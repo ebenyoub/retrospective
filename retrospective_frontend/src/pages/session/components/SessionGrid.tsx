@@ -1,19 +1,7 @@
 import Badge from '@/components/ui/Badge';
 import Card, { CardContent, CardFooter } from '@/components/ui/Card';
 import { ROLE_LABEL } from '../sessionRole';
-import type { SessionListItem } from '../../types/session.types';
-
-interface SessionGridProps {
-  sessions: SessionListItem[];
-  editingSessionId: string | null;
-  editingSessionName: string;
-  onStartEdit: (session: SessionListItem) => void;
-  onCancelEdit: () => void;
-  onSessionNameChange: (name: string) => void;
-  onSaveName: (sessionId: string) => void;
-  onRequestDelete: (sessionId: string) => void;
-  onNavigateToSession: (sessionId: number) => void;
-}
+import type { SessionGridProps } from './types/SessionGrid.types';
 
 export const SessionGrid = ({
   sessions,

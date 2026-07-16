@@ -1,22 +1,17 @@
 import Container from "@/components/ui/Container";
-import FormContainer from "@/components/ui/FormContainer";
-import FormField from "@/components/ui/FormField";
+import Form, { FormField, FormLabel, FormInput, FormTitle } from "@/components/ui/Form";
 import Button from "@/components/ui/Button";
 import SpinContainer from "@/components/ui/SpinContainer";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/context/toast/useToast";
 import useFormValidation from "@/hooks/useFormValidation";
-import type { ValidationSchema } from "@/hooks/useFormValidation";
+import type { ValidationSchema } from "@/hooks/types/useFormValidation.types";
 import { getApiErrorMessage, NETWORK_ERROR_MESSAGE } from "@/lib/apiError";
 import { DEFAULT_RETRO_FORMAT_ID, RETRO_FORMAT_OPTIONS, getRetroFormatById } from "@/lib/retroFormats";
 import { createSession } from "./services/sessionApi";
 import type { CreatedSession } from './types/session.types';
-
-interface CreateSessionValues {
-  name: string;
-  formatId: string;
-}
+import type { CreateSessionValues } from './types/SessionCreate.types';
 
 const createSessionValidationSchema: ValidationSchema<CreateSessionValues> = {
   name: [
@@ -83,25 +78,27 @@ const SessionCreate = () => {
     <Container className="flex justify-center mt-10 sm:mt-20">
       <SpinContainer onSpin={isLoading} className="w-full max-w-md">
         {!createdSession ? (
-          <FormContainer onSubmit={handleSubmit}>
-            <h1 className="text-xl font-bold text-slate-50 mb-6 text-center">Créer une session</h1>
-            <FormField
-              id="name"
-              name="name"
-              label="Nom de la session"
-              type="text"
-              value={values.name}
-              placeholder="Rétrospective Sprint 5"
-              disabled={isLoading}
-              onChange={handleInputChange}
-              onBlur={handleInputChange}
-              error={errors.name}
-              showValidState
-            />
-            <div className="mb-4 flex flex-col gap-1.5">
-              <label htmlFor="formatId" className="block font-sans text-xs font-semibold text-slate-400 tracking-wider uppercase">
-                Format de rétro
-              </label>
+          <Form onSubmit={handleSubmit}>
+            <FormTitle className="mb-6">Créer une session</FormTitle>
+
+            <FormField>
+              <FormLabel htmlFor="name">Nom de la session</FormLabel>
+              <FormInput
+                id="name"
+                name="name"
+                type="text"
+                value={values.name}
+                placeholder="Rétrospective Sprint 5"
+                disabled={isLoading}
+                onChange={handleInputChange}
+                onBlur={handleInputChange}
+                className={errors.name ? 'border-red-500' : ''}
+              />
+              {errors.name && <small className="text-red-500 text-xs mt-1">{errors.name}</small>}
+            </FormField>
+
+            <FormField>
+              <FormLabel htmlFor="formatId">Format de rétro</FormLabel>
               <select
                 id="formatId"
                 name="formatId"
@@ -117,15 +114,16 @@ const SessionCreate = () => {
                   </option>
                 ))}
               </select>
-              {errors.formatId && <p className="text-sm text-red-400">{errors.formatId}</p>}
-            </div>
+              {errors.formatId && <small className="text-red-500 text-xs mt-1">{errors.formatId}</small>}
+            </FormField>
+
             <Button unstyled type="submit" className="w-full justify-center">
               Créer la session
             </Button>
             <Button unstyled type="button" onClick={() => navigate('/sessions')} className="w-full justify-center mt-2 bg-slate-800 text-slate-200 border border-white/10 hover:bg-slate-700">
               Voir mes sessions
             </Button>
-          </FormContainer>
+          </Form>
         ) : (
           <div className="flex flex-col items-center justify-center p-6 bg-slate-900 border border-white/10 rounded-xl shadow-2xl text-center">
             <h2 className="text-2xl font-extrabold text-green-400 mb-2">Félicitations !</h2>

@@ -1,19 +1,7 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef } from 'react';
 
 import { cn } from '@/lib/utils';
-
-type DrawerSide = 'right' | 'bottom' | 'full';
-type DrawerSize = 'sm' | 'md';
-
-interface DrawerProps {
-  open: boolean;
-  onClose: () => void;
-  labelledBy: string;
-  overlayLabel: string;
-  children: ReactNode;
-  side?: DrawerSide;
-  size?: DrawerSize;
-}
+import type { DrawerProps, DrawerSide, DrawerSize } from './types/Drawer.types';
 
 const FOCUSABLE_SELECTOR = [
   'button:not([disabled])',

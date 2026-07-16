@@ -1,14 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { NavigateFunction } from 'react-router-dom';
-
-interface UseSessionPollingOptions {
-  sessionId: string;
-  isAuthenticated: boolean;
-  navigate: NavigateFunction;
-  addToast: (type: 'error', message: string) => void;
-  fetchSessionDetails: () => Promise<void>;
-  fetchCards: () => Promise<void>;
-}
+import type { UseSessionPollingOptions } from './types/useSessionPolling.types';
 
 export const useSessionPolling = ({
   sessionId,

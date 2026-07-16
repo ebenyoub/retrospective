@@ -3,6 +3,7 @@ import { useCallback, useState } from 'react';
 import { DEFAULT_RETRO_FORMAT_ID, getRetroFormatById } from '@/lib/retroFormats';
 import { getSessionDetails } from '../services/sessionApi';
 import type { SessionDetails, SessionStep } from '../types/session.types';
+import type { UseSessionDetailsOptions } from './types/useSessionDetails.types';
 
 const defaultFormat = getRetroFormatById(DEFAULT_RETRO_FORMAT_ID);
 const legacyDefaultFormatColumns = ['Start', 'Stop', 'Continue'];
@@ -31,10 +32,6 @@ const normalizeFormatColumns = (columns: SessionDetails['formatColumns']): strin
 
   return defaultFormat.columns;
 };
-
-interface UseSessionDetailsOptions {
-  sessionId: string;
-}
 
 export const useSessionDetails = ({ sessionId }: UseSessionDetailsOptions) => {
   const [sessionName, setSessionName] = useState<string>('');

@@ -15,35 +15,22 @@ import {
   closeSessionById,
   updateSessionName,
   deleteSessionById,
-  type SessionRole,
 } from '../models/session.model';
 import { AppError } from "../utils/AppError";
 import { logger } from "../utils/logger";
-import { SessionType } from "../types";
 import {
   DEFAULT_RETRO_FORMAT_PRESET,
   getRetroFormatColumnLabels,
   isValidRetroFormatSelection,
 } from "../constants/retroFormats";
-
-export interface SessionListItem {
-  id: number;
-  name: string;
-  code: string;
-  status: string;
-  step: "waiting" | "writing" | "voting" | "results";
-  expiresAt: Date;
-  createdAt: Date;
-  role: SessionRole;
-}
-
-interface CreateSessionInput {
-  userId?: number;
-  name?: unknown;
-  formatName?: unknown;
-  formatColumns?: unknown;
-  stepDurationMinutes?: unknown;
-}
+import type {
+  CreatedSessionResult,
+  CreateSessionInput,
+  JoinSessionInput,
+  JoinSessionResult,
+  SessionDetails,
+  SessionListItem,
+} from "./types/session.service.types";
 
 // Bornes de la durée d'une étape (en minutes), partagées par la création
 // et l'ajustement du timer.
@@ -60,31 +47,6 @@ const isValidStepDuration = (value: unknown): value is number =>
 // L'échéance est calculée par le serveur : c'est la seule horloge de référence.
 const computeStepEndsAtIso = (minutes: number): string =>
   new Date(Date.now() + minutes * 60 * 1000).toISOString();
-
-interface CreatedSessionResult {
-  statusCode: 200 | 201;
-  message: string;
-  data: SessionType | {
-    sessionId: number;
-    name: string;
-    code: string;
-    expiresAt: string;
-  };
-}
-
-interface JoinSessionInput {
-  userId?: number;
-  code: unknown;
-}
-
-interface JoinSessionResult {
-  statusCode: 200 | 201;
-  message: string;
-  data: {
-    joinId: number;
-    sessionId: number;
-  };
-}
 
 export const getSessionsForUser = async (userId: number): Promise<SessionListItem[]> => {
   const rows = await findSessionsForUser(userId);
@@ -225,21 +187,6 @@ export const joinSessionForUser = async ({ userId, code }: JoinSessionInput): Pr
     data: { joinId: insertResult.insertId, sessionId },
   };
 };
-
-export interface SessionDetails {
-  id: number;
-  name: string;
-  code: string;
-  status: string;
-  step: "waiting" | "writing" | "voting" | "results";
-  ownerId: number;
-  formatName: string;
-  formatColumns: string[];
-  stepDurationMinutes: number;
-  stepEndsAt: Date | null;
-  expiresAt: Date;
-  createdAt: Date;
-}
 
 export const getSessionDetails = async (sessionId: number): Promise<SessionDetails> => {
   const session = await findSessionById(sessionId);

@@ -8,34 +8,13 @@ import {
 } from "../models/auth.model";
 import { AppError } from "../utils/AppError";
 import { logger } from "../utils/logger";
-
-interface LoginInput {
-  email: unknown;
-  password: unknown;
-}
-
-interface SignupInput {
-  username: unknown;
-  email: unknown;
-  password: unknown;
-}
-
-interface DeleteAccountInput {
-  userId?: number;
-  username?: string;
-}
-
-interface ProfileInput {
-  userId: number;
-  username: string;
-}
-
-interface AuthResult {
-  token: string;
-  userId: number;
-  username: string;
-  email?: string;
-}
+import type {
+  AuthResult,
+  DeleteAccountInput,
+  LoginInput,
+  ProfileInput,
+  SignupInput,
+} from "./types/auth.service.types";
 
 export const signAuthToken = (userId: number, username: string): string => {
   const jwtSecret = process.env.JWT_SECRET as string;

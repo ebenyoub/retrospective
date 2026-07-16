@@ -3,12 +3,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { getApiErrorMessage, NETWORK_ERROR_MESSAGE } from '@/lib/apiError';
 import { createCard, deleteCard, getCards, updateCard, voteForCard } from '../services/cardApi';
 import type { RetroCard } from '../types/card.types';
-
-interface UseSessionCardsOptions {
-  sessionId: string;
-  actorHeaders: Record<string, string> | null;
-  addToast: (type: 'error', message: string) => void;
-}
+import type { UseSessionCardsOptions } from './types/useSessionCards.types';
 
 export const useSessionCards = ({ sessionId, actorHeaders, addToast }: UseSessionCardsOptions) => {
   const [cards, setCards] = useState<RetroCard[]>([]);

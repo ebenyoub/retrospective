@@ -1,24 +1,7 @@
 import { ResultSetHeader, RowDataPacket } from "mysql2";
 import db from './db';
 import { JoinRow, SessionLookupRow, SessionType } from "../types";
-
-export type SessionRole = "facilitator" | "participant";
-
-export interface SessionRow extends RowDataPacket {
-  id: number;
-  name: string;
-  code: string;
-  status: string;
-  step: "waiting" | "writing" | "voting" | "results";
-  expires_at: Date;
-  created_at: Date;
-  role: SessionRole;
-}
-
-export interface ExpiredSessionsResult {
-  affectedRows: number;
-  changedRows: number;
-}
+import type { ExpiredSessionsResult, SessionRow } from "./types/session.model.types";
 
 const SESSION_COLUMNS = "id, name, code, owner_id, status, step, format_name, format_columns, step_duration_minutes, step_ends_at, created_at, expires_at";
 

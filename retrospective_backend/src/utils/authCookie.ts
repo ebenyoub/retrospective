@@ -1,5 +1,6 @@
 import type { CookieOptions, Request } from "express";
 import jwt from "jsonwebtoken";
+import type { ResumeTokenPayload } from "./types/authCookie.types";
 
 export const AUTH_COOKIE_NAME = "token";
 
@@ -33,13 +34,6 @@ export const clearResumeCookieOptions: CookieOptions = {
   sameSite: "lax",
   secure: process.env.NODE_ENV === "production",
 };
-
-export interface ResumeTokenPayload {
-  sessionId: number;
-  participantId: number;
-  displayName: string;
-  guestToken: string | null;
-}
 
 export const signResumeToken = (payload: ResumeTokenPayload): string => {
   const jwtSecret = process.env.JWT_SECRET;

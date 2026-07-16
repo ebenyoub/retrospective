@@ -2,24 +2,18 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Button from "@/components/ui/Button";
-import { Input } from "@/components/ui/FormContainer";
+import { FormField, FormLabel, FormInput } from "@/components/ui/Form";
 import FieldError from "@/components/ui/FieldError";
 import { getApiErrorMessage, NETWORK_ERROR_MESSAGE } from "@/lib/apiError";
 import { pseudoSchema } from "@/lib/pseudoSchema";
 import { guestJoin } from "../services/participantApi";
-import type { GuestJoinResponse } from '../types/participant.types';
+import type { JoinSessionModalProps } from './types/JoinSessionModal.types';
 
 const pseudoFormSchema = z.object({
   pseudo: pseudoSchema,
 });
 
 type PseudoFormValues = z.infer<typeof pseudoFormSchema>;
-
-interface JoinSessionModalProps {
-  sessionId: string;
-  sessionName?: string;
-  onJoined: (result: GuestJoinResponse) => void;
-}
 
 const JoinSessionModal = ({ sessionId, sessionName, onJoined }: JoinSessionModalProps) => {
   const {
@@ -65,11 +59,9 @@ const JoinSessionModal = ({ sessionId, sessionName, onJoined }: JoinSessionModal
         </p>
 
         <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="pseudo" className="block font-sans text-xs font-semibold text-slate-400 tracking-wider uppercase">
-              Pseudo
-            </label>
-            <Input
+          <FormField>
+            <FormLabel htmlFor="pseudo">Pseudo</FormLabel>
+            <FormInput
               id="pseudo"
               placeholder="Ex : EBNoob"
               autoFocus
@@ -79,7 +71,7 @@ const JoinSessionModal = ({ sessionId, sessionName, onJoined }: JoinSessionModal
               {...register("pseudo")}
             />
             <FieldError id="pseudo-error" message={errors.pseudo?.message} />
-          </div>
+          </FormField>
 
           <Button unstyled type="submit" variant="primary" size="lg" className="w-full" disabled={isSubmitting}>
             {isSubmitting ? "Connexion..." : "Rejoindre la session"}

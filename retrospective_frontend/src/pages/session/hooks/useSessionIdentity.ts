@@ -9,14 +9,7 @@ import {
 import type { GuestJoinResponse, SelfIdentity } from '../types/participant.types';
 import type { SessionRole } from '../types/session.types';
 import { useGuestParticipant } from './useGuestParticipant';
-
-interface UseSessionIdentityOptions {
-  sessionId: string;
-  isSessionReady: boolean;
-  isAuthenticated: boolean;
-  userId: number | null;
-  ownerId: number | null;
-}
+import type { UseSessionIdentityOptions } from './types/useSessionIdentity.types';
 
 const isValidSessionId = (sessionId: string): boolean => {
   const sessionIdNumber = Number(sessionId);

@@ -1,23 +1,7 @@
 import { requestApi } from '@/pages/session/services/http';
 import { API_BASE } from '@/lib/api';
-import type { AuthLoginData } from '@/context/auth/useAuth';
-
-export interface LoginValues {
-  email: string;
-  password: string;
-}
-
-export interface SignupValues {
-  username: string;
-  email: string;
-  password: string;
-  confirm: string;
-}
-
-export interface ProfileResponse {
-  userId: number;
-  username: string;
-}
+import type { AuthLoginData } from '@/context/auth/types/auth.types';
+import type { LoginValues, SignupValues, ProfileResponse } from '../types/auth.types';
 
 export const loginApi = (values: LoginValues) =>
   requestApi<AuthLoginData>(`${API_BASE}/auth/login`, {

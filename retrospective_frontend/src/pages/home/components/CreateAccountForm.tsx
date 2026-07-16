@@ -3,13 +3,15 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { NavLink } from "react-router-dom";
 import Button from "@/components/ui/Button";
-import { Input } from "@/components/ui/FormContainer";
-import { useAuth, type AuthLoginData } from "@/context/auth/useAuth";
+import { FormField, FormLabel, FormInput } from "@/components/ui/Form";
+import { useAuth } from "@/context/auth/useAuth";
+import type { AuthLoginData } from "@/context/auth/types/auth.types";
 import { getApiErrorMessage, isApiSuccess, NETWORK_ERROR_MESSAGE, readJsonSafely } from "@/lib/apiError";
 import FieldError from "@/components/ui/FieldError";
 
 import { API_BASE } from "@/lib/api";
 import { DEFAULT_RETRO_FORMAT_ID, RETRO_FORMAT_OPTIONS, getRetroFormatById } from "@/lib/retroFormats";
+import type { CreateAccountFormProps } from "./types/CreateAccountForm.types";
 
 const createAccountSchema = z
   .object({
@@ -32,11 +34,6 @@ const createAccountSchema = z
 
 type CreateAccountValues = z.infer<typeof createAccountSchema>;
 
-interface CreateAccountFormProps {
-  onSessionCreated: (sessionId: number) => void;
-}
-
-// Visiteur non connecté : compte + première rétrospective en un seul envoi.
 const CreateAccountForm = ({ onSessionCreated }: CreateAccountFormProps) => {
   const { login } = useAuth();
 
@@ -64,7 +61,6 @@ const CreateAccountForm = ({ onSessionCreated }: CreateAccountFormProps) => {
 
     try {
       const username = `${values.prenom.trim()} ${values.nom.trim()}`;
-      // credentials : la réponse du signup pose le cookie d'authentification.
       const signupResponse = await fetch(`${API_BASE}/auth/signup`, {
         method: "POST",
         credentials: "include",
@@ -84,7 +80,6 @@ const CreateAccountForm = ({ onSessionCreated }: CreateAccountFormProps) => {
 
       login({ ...signupData.data, email: signupData.data.email ?? values.email.trim() });
 
-      // Le cookie posé par le signup authentifie directement cet appel.
       const sessionResponse = await fetch(`${API_BASE}/session/create-session`, {
         method: "POST",
         credentials: "include",
@@ -115,11 +110,9 @@ const CreateAccountForm = ({ onSessionCreated }: CreateAccountFormProps) => {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4" noValidate aria-busy={isSubmitting}>
       <div className="grid grid-cols-2 gap-3">
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="prenom" className="block font-sans text-xs font-semibold text-slate-400 tracking-wider uppercase">
-            Prénom
-          </label>
-          <Input
+        <FormField>
+          <FormLabel htmlFor="prenom">Prénom</FormLabel>
+          <FormInput
             id="prenom"
             disabled={isSubmitting}
             aria-invalid={!!errors.prenom}
@@ -127,13 +120,11 @@ const CreateAccountForm = ({ onSessionCreated }: CreateAccountFormProps) => {
             {...register("prenom")}
           />
           <FieldError id="prenom-error" message={errors.prenom?.message} />
-        </div>
+        </FormField>
 
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="nom" className="block font-sans text-xs font-semibold text-slate-400 tracking-wider uppercase">
-            Nom
-          </label>
-          <Input
+        <FormField>
+          <FormLabel htmlFor="nom">Nom</FormLabel>
+          <FormInput
             id="nom"
             disabled={isSubmitting}
             aria-invalid={!!errors.nom}
@@ -141,14 +132,12 @@ const CreateAccountForm = ({ onSessionCreated }: CreateAccountFormProps) => {
             {...register("nom")}
           />
           <FieldError id="nom-error" message={errors.nom?.message} />
-        </div>
+        </FormField>
       </div>
 
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="email" className="block font-sans text-xs font-semibold text-slate-400 tracking-wider uppercase">
-          Email
-        </label>
-        <Input
+      <FormField>
+        <FormLabel htmlFor="email">Email</FormLabel>
+        <FormInput
           id="email"
           type="email"
           placeholder="retro@exemple.com"
@@ -158,13 +147,11 @@ const CreateAccountForm = ({ onSessionCreated }: CreateAccountFormProps) => {
           {...register("email")}
         />
         <FieldError id="email-error" message={errors.email?.message} />
-      </div>
+      </FormField>
 
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="password" className="block font-sans text-xs font-semibold text-slate-400 tracking-wider uppercase">
-          Mot de passe
-        </label>
-        <Input
+      <FormField>
+        <FormLabel htmlFor="password">Mot de passe</FormLabel>
+        <FormInput
           id="password"
           type="password"
           disabled={isSubmitting}
@@ -173,13 +160,11 @@ const CreateAccountForm = ({ onSessionCreated }: CreateAccountFormProps) => {
           {...register("password")}
         />
         <FieldError id="password-error" message={errors.password?.message} />
-      </div>
+      </FormField>
 
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="confirmPassword" className="block font-sans text-xs font-semibold text-slate-400 tracking-wider uppercase">
-          Confirmation du mot de passe
-        </label>
-        <Input
+      <FormField>
+        <FormLabel htmlFor="confirmPassword">Confirmation du mot de passe</FormLabel>
+        <FormInput
           id="confirmPassword"
           type="password"
           disabled={isSubmitting}
@@ -188,13 +173,11 @@ const CreateAccountForm = ({ onSessionCreated }: CreateAccountFormProps) => {
           {...register("confirmPassword")}
         />
         <FieldError id="confirmPassword-error" message={errors.confirmPassword?.message} />
-      </div>
+      </FormField>
 
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="retroName" className="block font-sans text-xs font-semibold text-slate-400 tracking-wider uppercase">
-          Nom de la rétro
-        </label>
-        <Input
+      <FormField>
+        <FormLabel htmlFor="retroName">Nom de la rétro</FormLabel>
+        <FormInput
           id="retroName"
           disabled={isSubmitting}
           aria-invalid={!!errors.retroName}
@@ -202,12 +185,10 @@ const CreateAccountForm = ({ onSessionCreated }: CreateAccountFormProps) => {
           {...register("retroName")}
         />
         <FieldError id="retroName-error" message={errors.retroName?.message} />
-      </div>
+      </FormField>
 
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="formatId" className="block font-sans text-xs font-semibold text-slate-400 tracking-wider uppercase">
-          Format de rétro
-        </label>
+      <FormField>
+        <FormLabel htmlFor="formatId">Format de rétro</FormLabel>
         <select
           id="formatId"
           disabled={isSubmitting}
@@ -221,13 +202,11 @@ const CreateAccountForm = ({ onSessionCreated }: CreateAccountFormProps) => {
           ))}
         </select>
         <FieldError id="formatId-error" message={errors.formatId?.message} />
-      </div>
+      </FormField>
 
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="stepDurationMinutes" className="block font-sans text-xs font-semibold text-slate-400 tracking-wider uppercase">
-          Durée des étapes (minutes)
-        </label>
-        <Input
+      <FormField>
+        <FormLabel htmlFor="stepDurationMinutes">Durée des étapes (minutes)</FormLabel>
+        <FormInput
           id="stepDurationMinutes"
           type="number"
           min={1}
@@ -238,7 +217,7 @@ const CreateAccountForm = ({ onSessionCreated }: CreateAccountFormProps) => {
           {...register("stepDurationMinutes", { valueAsNumber: true })}
         />
         <FieldError id="stepDurationMinutes-error" message={errors.stepDurationMinutes?.message} />
-      </div>
+      </FormField>
 
       <div className="pt-1">
         <Button unstyled type="submit" variant="primary" size="lg" className="w-full" disabled={isSubmitting}>

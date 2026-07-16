@@ -1,16 +1,5 @@
-import type { ReactNode } from 'react';
-
 import { cn } from '@/lib/utils';
-
-type EmptyStateVariant = 'default' | 'panel';
-
-interface EmptyStateProps {
-  icon: ReactNode;
-  title: string;
-  description?: string;
-  variant?: EmptyStateVariant;
-  descriptionClassName?: string;
-}
+import type { EmptyStateProps, EmptyStateVariant } from './types/EmptyState.types';
 
 const containerClassName: Record<EmptyStateVariant, string> = {
   default: 'flex flex-col items-center justify-center gap-2.5 px-5 py-10 text-center select-none animate-fade-in',

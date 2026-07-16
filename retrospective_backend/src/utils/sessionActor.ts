@@ -1,20 +1,11 @@
 import type { Request } from "express";
-import jwt, { type JwtPayload } from "jsonwebtoken";
-import { ensureAuthenticatedParticipant, resumeGuestParticipant, type ParticipantSummary } from "../services/participant.service";
+import jwt from "jsonwebtoken";
+import { ensureAuthenticatedParticipant, resumeGuestParticipant } from "../services/participant.service";
+import type { ParticipantSummary } from "../services/types/participant.service.types";
 import { getSessionDetails } from "../services/session.service";
 import { AppError } from "./AppError";
 import { readAuthToken } from "./authCookie";
-
-interface AuthPayload extends JwtPayload {
-  userId?: number;
-  username?: string;
-}
-
-export interface SessionActor {
-  participantId: number;
-  displayName: string;
-  role: "facilitator" | "participant";
-}
+import type { AuthPayload, SessionActor } from "./types/sessionActor.types";
 
 const toActor = (participant: ParticipantSummary): SessionActor => ({
   participantId: participant.id,

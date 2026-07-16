@@ -1,9 +1,5 @@
 import { cn } from '@/lib/utils';
-import React from 'react';
-
-export type ContainerProps = React.ComponentProps<"div"> & {
-    onSpin?: boolean;
-}
+import type { ContainerProps } from './types/SpinContainer.types';
 
 const SpinContainer = ({ children, className, onSpin, ...props }: ContainerProps) => {
 

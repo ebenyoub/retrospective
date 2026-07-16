@@ -4,12 +4,7 @@ import { io, type Socket } from "socket.io-client";
 import { API_BASE } from "@/lib/api";
 import { listParticipants } from "../services/participantApi";
 import type { ParticipantSummary, SelfIdentity } from '../types/participant.types';
-
-interface UseSessionParticipantsOptions {
-  onSessionStarted?: (step: string, stepEndsAt: string | null) => void;
-  onTimerUpdated?: (stepEndsAt: string) => void;
-  onSessionClosed?: () => void;
-}
+import type { UseSessionParticipantsOptions } from './types/useSessionParticipants.types';
 
 // Source de vérité = backend : liste initiale par API, puis mises à jour en
 // direct par socket. Un socket dédié est ouvert par montage (fermé au

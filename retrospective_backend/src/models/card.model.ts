@@ -1,23 +1,7 @@
-import { ResultSetHeader, RowDataPacket } from "mysql2";
+import { ResultSetHeader } from "mysql2";
 import db from "./db";
 import { SessionLookupRow } from "../types";
-
-export interface CardRow extends RowDataPacket {
-  id: number;
-  session_id: number;
-  author_participant_id: number;
-  author_name: string;
-  column_type: string;
-  content: string;
-  created_at: Date;
-  votes_count: number;
-  voted_by_me?: number;
-}
-
-export interface CardOwnerRow extends RowDataPacket {
-  id: number;
-  author_participant_id: number;
-}
+import type { CardOwnerRow, CardRow } from "./types/card.model.types";
 
 export const findSessionById = async (sessionId: number | string): Promise<SessionLookupRow | null> => {
   const [rows] = await db.execute<SessionLookupRow[]>(

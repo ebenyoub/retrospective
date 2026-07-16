@@ -3,12 +3,7 @@ import Button from '@/components/ui/Button';
 import Drawer from '@/components/ui/Drawer';
 import EmptyState from '@/components/ui/EmptyState';
 import IconButton from '@/components/ui/IconButton';
-
-interface DiscussionDrawerProps {
-  isOpen: boolean;
-  isDesktop: boolean;
-  onClose: () => void;
-}
+import type { DiscussionDrawerProps } from './types/DiscussionDrawer.types';
 
 const DiscussionDrawer = ({ isOpen, isDesktop, onClose }: DiscussionDrawerProps) => {
   return (

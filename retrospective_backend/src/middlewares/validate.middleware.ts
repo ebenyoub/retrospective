@@ -1,12 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { ZodError, type ZodTypeAny } from "zod";
 import { AppError } from "../utils/AppError";
-
-interface ValidatedRequestParts {
-  body?: Request["body"];
-  query?: Request["query"];
-  params?: Request["params"];
-}
+import type { ValidatedRequestParts } from "./types/validate.middleware.types";
 
 export const validate = (schema: ZodTypeAny) => {
   return async (req: Request, res: Response, next: NextFunction) => {

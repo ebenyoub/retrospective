@@ -4,12 +4,8 @@ import { useAuth } from "@/context/auth/useAuth";
 import CreateAccountForm from "./CreateAccountForm";
 import CreateSessionForm from "./CreateSessionForm";
 import JoinSessionForm from "./JoinSessionForm";
-
-type Tab = "create" | "join";
-
-interface HomeTabsCardProps {
-  initialTab?: Tab;
-}
+import Card, { CardContent } from "@/components/ui/Card";
+import type { HomeTabsCardProps, Tab } from "./types/HomeTabsCard.types";
 
 const HomeTabsCard = ({ initialTab = "create" }: HomeTabsCardProps) => {
   const { isAuthenticated } = useAuth();
@@ -19,7 +15,7 @@ const HomeTabsCard = ({ initialTab = "create" }: HomeTabsCardProps) => {
   const goToSession = (sessionId: number) => navigate(`/session/${sessionId}`);
 
   return (
-    <div className="w-full rounded-figma-xl border border-navy-border bg-navy-mid overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.25)]">
+    <Card className="w-full overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.25)] bg-navy-mid border-navy-border">
       <div className="flex border-b border-navy-border">
         <button
           type="button"
@@ -47,7 +43,7 @@ const HomeTabsCard = ({ initialTab = "create" }: HomeTabsCardProps) => {
         </button>
       </div>
 
-      <div className="px-6 pt-6 pb-5">
+      <CardContent className="px-6 pt-6 pb-5">
         {tab === "create" ? (
           isAuthenticated ? (
             <CreateSessionForm onSessionCreated={goToSession} />
@@ -57,8 +53,8 @@ const HomeTabsCard = ({ initialTab = "create" }: HomeTabsCardProps) => {
         ) : (
           <JoinSessionForm onSessionJoined={goToSession} />
         )}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 

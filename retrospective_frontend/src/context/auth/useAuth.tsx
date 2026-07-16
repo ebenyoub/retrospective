@@ -1,19 +1,5 @@
 import { createContext, useContext } from "react";
-
-export interface AuthLoginData {
-  userId: number;
-  username: string;
-  email: string;
-}
-
-export interface AuthContextType {
-  isAuthenticated: boolean;
-  userId: number | null;
-  username: string;
-  email: string;
-  login: (data: AuthLoginData) => void;
-  logout: () => Promise<void>;
-}
+import type { AuthContextType } from './types/auth.types';
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 

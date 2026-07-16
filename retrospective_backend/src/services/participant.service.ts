@@ -10,24 +10,11 @@ import {
   insertParticipant,
   touchParticipant,
   updateParticipantName,
-  type ParticipantRole,
-  type ParticipantRow,
 } from "../models/participant.model";
+import type { ParticipantRole, ParticipantRow } from "../models/types/participant.model.types";
 import { findSessionByCode, findSessionById } from "../models/session.model";
 import { AppError } from "../utils/AppError";
-
-
-
-export interface ParticipantSummary {
-  id: number;
-  sessionId: number;
-  displayName: string;
-  role: ParticipantRole;
-  status: "online" | "offline";
-  joinedAt: Date;
-  lastSeenAt: Date;
-  isSelf?: boolean;
-}
+import type { GuestJoinResult, ParticipantSummary } from "./types/participant.service.types";
 
 const toSummary = (row: ParticipantRow): ParticipantSummary => ({
   id: row.id,
@@ -138,11 +125,6 @@ export const ensureAuthenticatedParticipant = async ({
     });
   }
 };
-
-export interface GuestJoinResult {
-  participant: ParticipantSummary;
-  guestToken: string;
-}
 
 // Participant invité : aucun compte créé. Le pseudo est conservé tel quel
 // (pas de suffixe automatique) ; s'il est déjà pris dans CETTE session, on

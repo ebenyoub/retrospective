@@ -1,12 +1,6 @@
-import { ResultSetHeader, RowDataPacket } from "mysql2/promise";
+import { ResultSetHeader } from "mysql2/promise";
 import db from "./db";
-
-export interface AuthUserRow extends RowDataPacket {
-  id: number;
-  username: string;
-  hash_password: string;
-  email: string;
-}
+import type { AuthUserRow } from "./types/auth.model.types";
 
 export const findUserByEmail = async (email: string): Promise<AuthUserRow | null> => {
   const [users] = await db.execute<AuthUserRow[]>(

@@ -1,12 +1,5 @@
 import { useEffect, useState, type KeyboardEvent } from 'react';
-
-interface TimerChipProps {
-  // Échéance absolue (ISO) fournie par le backend : la seule source de vérité.
-  endsAt: string | null;
-  // Seul le facilitateur peut cliquer sur le compteur pour le modifier.
-  isEditable?: boolean;
-  onSubmitMinutes?: (minutes: number) => Promise<boolean>;
-}
+import type { TimerChipProps } from './types/TimerChip.types';
 
 // Temps restant en secondes jusqu'à l'échéance, borné à 0.
 const computeRemainingSeconds = (endsAt: string | null): number => {

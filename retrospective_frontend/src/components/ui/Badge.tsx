@@ -1,9 +1,5 @@
 import { cn } from '@/lib/utils';
-import type { HTMLAttributes } from 'react';
-
-interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
-  variant?: 'default' | 'success' | 'danger';
-}
+import type { BadgeProps } from './types/Badge.types';
 
 const Badge = ({ className, variant = 'default', ...props }: BadgeProps) => {
   const variantClasses = {

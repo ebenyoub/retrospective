@@ -1,12 +1,6 @@
 import type { ChangeEvent } from "react";
 import { RETRO_FORMAT_OPTIONS } from "@/lib/retroFormats";
-
-interface RetroFormatSelectorProps {
-  formatName: string;
-  isFacilitator: boolean;
-  disabled?: boolean;
-  onSelectPreset: (name: string, columns: string[]) => void;
-}
+import type { RetroFormatSelectorProps } from './types/RetroFormatSelector.types';
 
 // Le format n'est modifiable que par le facilitateur (vérifié aussi côté
 // backend, voir PATCH /session/:id/format) : un participant ne voit qu'un

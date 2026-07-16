@@ -3,19 +3,7 @@ import { useState, type FormEvent } from "react";
 import Button from '@/components/ui/Button';
 import IconButton from '@/components/ui/IconButton';
 import Avatar from "@/components/ui/Avatar";
-import type { RetroCard } from '../types/card.types';
-
-interface RetroCardItemProps {
-  card: RetroCard;
-  accentClassName: string;
-  currentUserId: number | null;
-  onVote: (cardId: number) => Promise<void> | void;
-  onUpdateCard?: (cardId: number, content: string) => Promise<boolean> | boolean;
-  onDeleteCard?: (cardId: number) => Promise<void> | void;
-  onOpenComments?: (card: RetroCard) => void;
-  canVote?: boolean;
-  canEdit?: boolean;
-}
+import type { RetroCardItemProps } from './types/RetroCardItem.types';
 
 const RetroCardItem = ({ card, accentClassName, currentUserId, onVote, onUpdateCard, onDeleteCard, onOpenComments, canVote = true, canEdit = true }: RetroCardItemProps) => {
   const [isEditing, setIsEditing] = useState(false);

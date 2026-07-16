@@ -5,12 +5,9 @@ import {
   findExistingVote,
   insertVote,
 } from "../models/vote.model";
+import type { CastVoteResult } from "./types/vote.service.types";
 
 export const MAX_VOTES_PER_SESSION = 5;
-
-export interface CastVoteResult {
-  voteId: number;
-}
 
 export const castVote = async (participantId: number, cardId: number): Promise<CastVoteResult> => {
   const sessionId = await findCardSessionId(cardId);

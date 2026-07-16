@@ -4,17 +4,11 @@ import jwt from "jsonwebtoken";
 import { getParticipantsForSession, markParticipantOffline, findParticipantForGuestToken } from "../services/participant.service";
 import { readTokenFromCookieHeader } from "../utils/authCookie";
 import { logger } from "../utils/logger";
+import type { JoinPayload } from "./types/socket.types";
 
 let io: SocketIOServer | null = null;
 
 const roomName = (sessionId: number): string => `session:${sessionId}`;
-
-interface JoinPayload {
-  sessionId: number;
-  participantId: number;
-  guestToken?: string;
-  token?: string;
-}
 
 // Un socket ne peut représenter qu'un seul participant à la fois : on vérifie
 // qu'il connaît soit le jeton invité, soit un JWT valide, avant de le laisser

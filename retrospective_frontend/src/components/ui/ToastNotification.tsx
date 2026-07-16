@@ -1,4 +1,4 @@
-import type { Toast } from '@/context/toast/ToastContext';
+import type { Toast } from '@/context/toast/types/toast.types';
 import { ToastStyled } from './ToastStyled';
 import { cn } from '@/lib/utils';
 

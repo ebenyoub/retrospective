@@ -1,4 +1,5 @@
-import { AuthContext, type AuthLoginData } from "@/context/auth/useAuth";
+import { AuthContext } from "@/context/auth/useAuth";
+import type { AuthLoginData } from "./types/auth.types";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchProfileApi, logoutApi } from "@/pages/auth/services/authApi";

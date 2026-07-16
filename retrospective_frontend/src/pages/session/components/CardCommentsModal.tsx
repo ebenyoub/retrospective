@@ -4,12 +4,7 @@ import EmptyState from '@/components/ui/EmptyState';
 import IconButton from '@/components/ui/IconButton';
 
 import type { RetroCard } from '../types/card.types';
-
-interface CardCommentsModalProps {
-  card: RetroCard;
-  isDesktop: boolean;
-  onClose: () => void;
-}
+import type { CardCommentsModalProps } from './types/CardCommentsModal.types';
 
 const columnLabel: Record<RetroCard['columnType'], string> = {
   start: 'Idées',

@@ -1,32 +1,11 @@
 import { ArrowLeft, Check, Copy, MessageCircle, Users } from 'lucide-react';
 import Button from '@/components/ui/Button';
 
-import type { SessionStep } from '../types/session.types';
 import StepIndicator from './StepIndicator';
 import ParticipantBadge from './ParticipantBadge';
 import ProfileMenu from '@/components/ProfileMenu';
 import { useAuth } from '@/context/auth/useAuth';
-
-interface SessionContextBarProps {
-  sessionName: string;
-  sessionId: string;
-  sessionCode: string;
-  step: SessionStep;
-  participantCount: number;
-  isSessionCodeCopied: boolean;
-  // Badge du participant (pseudo + menu) : absent pour le facilitateur,
-  // qui a déjà son menu de compte.
-  selfDisplayName?: string | null;
-  canRenameSelf?: boolean;
-  onRenameSelf?: (pseudo: string) => Promise<boolean>;
-  onLeaveSession?: () => void | Promise<void>;
-  onBack: () => void | Promise<void>;
-  onCopySessionCode: () => void;
-  onToggleParticipants?: () => void;
-  onToggleDiscussion?: () => void;
-  isParticipantsOpen?: boolean;
-  isDiscussionOpen?: boolean;
-}
+import type { SessionContextBarProps } from './types/SessionContextBar.types';
 
 const SessionContextBar = ({
   sessionName,
