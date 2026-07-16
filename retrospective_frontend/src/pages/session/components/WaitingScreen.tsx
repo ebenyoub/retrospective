@@ -1,8 +1,11 @@
-import { useState } from 'react';
-import type { ParticipantSummary } from '../hooks/useSessionParticipants';
+import { useEffect, useState } from 'react';
+import Avatar from '@/components/ui/Avatar';
+import Button from '@/components/ui/Button';
+import IconButton from '@/components/ui/IconButton';
+import type { ParticipantSummary } from '../types/participant.types';
 import RetroFormatSelector from './RetroFormatSelector';
 
-export const MAX_PARTICIPANTS = 25;
+
 
 const pluralize = (count: number, singular: string, plural: string): string => (count <= 1 ? singular : plural);
 
@@ -14,39 +17,58 @@ interface WaitingScreenProps {
   selfParticipantId: number | null;
   role: 'facilitator' | 'participant';
   formatName: string;
+  stepDurationMinutes: number;
   onStart: () => void;
   onLeave: () => void;
   onSelectFormatPreset: (name: string, columns: string[]) => void;
+  onUpdateStepDuration: (minutes: number) => void;
   isDesktop: boolean;
 }
 
-const AVATAR_COLORS = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#6366f1'];
+// Durée des étapes : saisie inline réservée au facilitateur. La valeur est
+// envoyée au backend, qui reste la source de vérité du timer.
+const StepDurationEditor = ({ minutes, onSubmit }: { minutes: number; onSubmit: (minutes: number) => void }) => {
+  const [value, setValue] = useState(String(minutes));
 
-const colorForName = (name: string): string => {
-  let hash = 0;
-  for (let i = 0; i < name.length; i += 1) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+  // Se resynchronise si la valeur serveur change (polling).
+  useEffect(() => {
+    setValue(String(minutes));
+  }, [minutes]);
+
+  const commit = () => {
+    const next = Number(value);
+
+    if (!Number.isInteger(next) || next < 1 || next > 120 || next === minutes) {
+      setValue(String(minutes));
+      return;
+    }
+
+    onSubmit(next);
+  };
+
+  return (
+    <span className="flex items-center gap-1.5">
+      <input
+        type="number"
+        min={1}
+        max={120}
+        value={value}
+        onChange={(event) => setValue(event.target.value)}
+        onBlur={commit}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') event.currentTarget.blur();
+        }}
+        aria-label="Durée des étapes en minutes"
+        className="w-14 rounded-[8px] border border-navy-border-med bg-navy-surface px-2 py-1 text-right font-mono text-xs font-semibold text-slate-200 outline-none transition-colors focus:border-blue-400"
+      />
+      <span className="font-sans text-xs text-slate-400">min</span>
+    </span>
+  );
 };
 
-const initialsForName = (name: string): string =>
-  name
-    .split(' ')
-    .filter(Boolean)
-    .map((part) => part[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase() || '?';
-
-const Avatar = ({ name, isOnline }: { name: string; isOnline: boolean }) => (
+const ParticipantAvatar = ({ name, isOnline }: { name: string; isOnline: boolean }) => (
   <div className="relative flex-shrink-0 w-10 h-10">
-    <div
-      className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold select-none"
-      style={{ background: colorForName(name) }}
-    >
-      {initialsForName(name)}
-    </div>
+    <Avatar name={name} colorSeed={name} size={40} fontSize={14} />
     <span
       aria-hidden="true"
       className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-navy-mid ${
@@ -61,7 +83,7 @@ const ParticipantCard = ({ participant, isSelf }: { participant: ParticipantSumm
 
   return (
     <div className="cursor-default bg-navy-mid border border-white/10 rounded-[12px] px-4 py-3.5 flex items-center gap-3 shadow-[0_1px_0_rgba(255,255,255,0.04)]">
-      <Avatar name={participant.displayName} isOnline={isOnline} />
+      <ParticipantAvatar name={participant.displayName} isOnline={isOnline} />
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5 flex-wrap">
           <p className="font-sans text-sm font-medium text-slate-100 truncate m-0">
@@ -105,9 +127,11 @@ export const WaitingScreen = ({
   selfParticipantId,
   role,
   formatName,
+  stepDurationMinutes,
   onStart,
   onLeave,
   onSelectFormatPreset,
+  onUpdateStepDuration,
   isDesktop,
 }: WaitingScreenProps) => {
   const [linkCopied, setLinkCopied] = useState(false);
@@ -118,13 +142,7 @@ export const WaitingScreen = ({
   const sessionUrl = `${window.location.origin}/session/${sessionId}`;
   const isFacilitator = role === 'facilitator';
 
-  const remainingSeats = MAX_PARTICIPANTS - participants.length;
-  const capacityMessage =
-    remainingSeats <= 0
-      ? 'La session a atteint sa capacité maximale.'
-      : `Vous pouvez inviter jusqu'à ${remainingSeats} ${pluralize(remainingSeats, 'participant supplémentaire', 'participants supplémentaires')}.`;
-
-  const summaryText = `${participants.length} ${pluralize(participants.length, 'participant', 'participants')} sur ${MAX_PARTICIPANTS} · ${onlineCount} en ligne`;
+  const summaryText = `${participants.length} ${pluralize(participants.length, 'participant', 'participants')} · ${onlineCount} en ligne`;
   const statusLabel = isFacilitator ? 'Prêt à lancer' : 'En attente du facilitateur';
 
   const handleCopyLink = async () => {
@@ -158,19 +176,32 @@ export const WaitingScreen = ({
     </div>
   );
 
+  // Seul le facilitateur peut modifier la durée ; les participants la voient.
+  const durationRow = (
+    <div className="flex items-center justify-between py-2 border-b border-navy-border">
+      <span className="font-sans text-xs text-slate-500">Durée des étapes</span>
+      {isFacilitator ? (
+        <StepDurationEditor minutes={stepDurationMinutes} onSubmit={onUpdateStepDuration} />
+      ) : (
+        <span className="font-sans text-xs font-semibold text-slate-200">{stepDurationMinutes} min</span>
+      )}
+    </div>
+  );
+
   const codeRow = (
     <div className="flex items-center justify-between py-2 border-b border-navy-border">
       <span className="font-sans text-xs text-slate-500">Code session</span>
       <span className="flex items-center gap-2">
         <span className="font-sans text-xs text-slate-200 font-mono font-semibold tracking-wider">{sessionCode}</span>
-        <button
-          type="button"
+        <IconButton
           onClick={handleCopyCode}
           aria-label={codeCopied ? 'Code copié' : 'Copier le code de session'}
-          className="text-slate-500 hover:text-slate-200 cursor-pointer transition-colors p-1 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+          variant="ghost"
+          size="xs"
+          className="h-auto w-auto rounded border-0 p-1"
         >
           {codeCopied ? <CheckIcon /> : <CopyIcon />}
-        </button>
+        </IconButton>
       </span>
     </div>
   );
@@ -206,8 +237,10 @@ export const WaitingScreen = ({
   const actions = (
     <div className="flex flex-col gap-2.5">
       {isFacilitator ? (
-        <button
+        <Button
           type="button"
+          variant="primary"
+          size="lg"
           onClick={onStart}
           className="w-full bg-slate-50 text-navy hover:bg-slate-200 rounded-[12px] h-[44px] px-6 text-sm font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-navy-mid"
         >
@@ -215,7 +248,7 @@ export const WaitingScreen = ({
             <path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
           </svg>
           <span>Lancer la rétro</span>
-        </button>
+        </Button>
       ) : (
         <div className="text-center bg-navy-mid border border-navy-border rounded-[12px] p-4 animate-pulse">
           <span className="font-sans text-xs text-yellow-500 font-semibold">
@@ -223,8 +256,10 @@ export const WaitingScreen = ({
           </span>
         </div>
       )}
-      <button
+      <Button
         type="button"
+        variant="danger"
+        size="md"
         onClick={onLeave}
         className="w-full bg-[#7f1d1d] border border-[#991b1b] text-[#fca5a5] hover:bg-[#991b1b] rounded-[10px] h-[36px] px-4 text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-navy-mid"
       >
@@ -232,7 +267,7 @@ export const WaitingScreen = ({
           <path d="M11 11l3-3-3-3M14 8H6M6 13H3a1 1 0 01-1-1V4a1 1 0 011-1h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
         <span>Quitter la session</span>
-      </button>
+      </Button>
     </div>
   );
 
@@ -253,19 +288,22 @@ export const WaitingScreen = ({
                 <span className="text-slate-500 flex-shrink-0"><CopyIcon /></span>
                 <span className="font-mono text-xs text-slate-400 truncate">{sessionUrl.replace(/^https?:\/\//, '')}</span>
               </div>
-              <button
+              <Button
                 type="button"
+                variant="secondary"
+                size="sm"
                 onClick={handleCopyLink}
                 aria-label={linkCopied ? 'Lien copié' : 'Copier le lien d\'invitation'}
-                className="flex-shrink-0 bg-navy-surface-med border border-navy-border-med text-slate-200 hover:bg-white/10 rounded-[8px] px-3 py-1.5 text-xs font-semibold cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+                className="h-auto flex-shrink-0 bg-navy-surface-med border border-navy-border-med text-slate-200 hover:bg-white/10 rounded-[8px] px-3 py-1.5 text-xs font-semibold cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
               >
                 {linkCopied ? 'Copié !' : 'Copier'}
-              </button>
+              </Button>
             </div>
 
             <div className="mb-8">
               {codeRow}
               {formatRow}
+              {durationRow}
             </div>
           </div>
 
@@ -278,7 +316,7 @@ export const WaitingScreen = ({
             <span className="font-mono text-[11px] text-slate-500 font-bold">{participants.length}</span>
           </div>
           {participantsList}
-          <p className="mt-5 font-sans text-[11px] text-slate-600 select-none">{capacityMessage}</p>
+
         </div>
       </div>
     );
@@ -301,19 +339,22 @@ export const WaitingScreen = ({
             <span className="text-slate-500 flex-shrink-0"><CopyIcon /></span>
             <span className="font-mono text-xs text-slate-400 truncate">{sessionUrl.replace(/^https?:\/\//, '')}</span>
           </div>
-          <button
+          <Button
             type="button"
+            variant="secondary"
+            size="sm"
             onClick={handleCopyLink}
             aria-label={linkCopied ? 'Lien copié' : 'Copier le lien d\'invitation'}
-            className="flex-shrink-0 bg-navy-surface-med border border-navy-border-med text-slate-200 hover:bg-white/10 rounded-[8px] px-3 py-1.5 text-xs font-semibold cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+            className="h-auto flex-shrink-0 bg-navy-surface-med border border-navy-border-med text-slate-200 hover:bg-white/10 rounded-[8px] px-3 py-1.5 text-xs font-semibold cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
           >
             {linkCopied ? 'Copié !' : 'Copier'}
-          </button>
+          </Button>
         </div>
 
         <div className="mb-6">
           {codeRow}
           {formatRow}
+          {durationRow}
         </div>
 
         <div className="mb-6">
@@ -326,7 +367,7 @@ export const WaitingScreen = ({
               <ParticipantCard key={participant.id} participant={participant} isSelf={participant.id === selfParticipantId} />
             ))}
           </div>
-          <p className="mt-3 font-sans text-[11px] text-slate-600 select-none">{capacityMessage}</p>
+
         </div>
 
         {actions}

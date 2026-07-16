@@ -2,6 +2,7 @@ import express from 'express';
 import { createServer } from 'http';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
 
 import { logger } from './src/utils/logger';
@@ -26,8 +27,12 @@ app.use(cors({
 
     callback(new Error('Not allowed by CORS'));
   },
+  // Nécessaire pour que le navigateur accepte d'envoyer et de recevoir
+  // le cookie d'authentification entre les deux origines (5173 -> 3000).
+  credentials: true,
 }));
 app.use(express.json());
+app.use(cookieParser());
 app.use(morgan('dev'));
 
 app.use('/auth', authRoutes);

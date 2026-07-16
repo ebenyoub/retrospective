@@ -9,7 +9,21 @@ export const createSessionSchema = z.object({
       .optional(),
     formatColumns: z.array(
       z.string().trim().min(1, "Le nom de la colonne est requis.").max(30, "Le nom de la colonne ne peut pas dépasser 30 caractères.")
-    ).length(3, "Le format doit contenir exactement 3 colonnes.").optional()
+    ).length(3, "Le format doit contenir exactement 3 colonnes.").optional(),
+    stepDurationMinutes: z.number({ error: "La durée des étapes doit être un nombre." })
+      .int("La durée des étapes doit être un nombre entier de minutes.")
+      .min(1, "La durée des étapes doit être d'au moins 1 minute.")
+      .max(120, "La durée des étapes ne peut pas dépasser 120 minutes.")
+      .optional()
+  })
+});
+
+export const updateSessionTimerSchema = z.object({
+  body: z.object({
+    minutes: z.number({ error: "La durée est requise." })
+      .int("La durée doit être un nombre entier de minutes.")
+      .min(1, "La durée doit être d'au moins 1 minute.")
+      .max(120, "La durée ne peut pas dépasser 120 minutes.")
   })
 });
 

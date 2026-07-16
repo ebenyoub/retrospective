@@ -3,6 +3,7 @@ import jwt, { type JwtPayload } from "jsonwebtoken";
 import { ensureAuthenticatedParticipant, resumeGuestParticipant, type ParticipantSummary } from "../services/participant.service";
 import { getSessionDetails } from "../services/session.service";
 import { AppError } from "./AppError";
+import { readAuthToken } from "./authCookie";
 
 interface AuthPayload extends JwtPayload {
   userId?: number;
@@ -30,8 +31,8 @@ const readParticipantId = (req: Request): number | null => {
 };
 
 const readAuthPayload = (req: Request): AuthPayload | null => {
-  const header = req.headers.authorization;
-  if (!header || !header.startsWith("Bearer ")) return null;
+  const token = readAuthToken(req);
+  if (!token) return null;
 
   const jwtSecret = process.env.JWT_SECRET;
   if (!jwtSecret) {
@@ -39,7 +40,7 @@ const readAuthPayload = (req: Request): AuthPayload | null => {
   }
 
   try {
-    const decoded = jwt.verify(header.split(" ")[1], jwtSecret);
+    const decoded = jwt.verify(token, jwtSecret);
     return typeof decoded === "object" ? (decoded as AuthPayload) : null;
   } catch {
     throw new AppError(401, "Token invalide.", "AUTH_TOKEN_INVALID");

@@ -20,6 +20,10 @@ const createAccountSchema = z
     confirmPassword: z.string().min(1, "La confirmation est obligatoire."),
     retroName: z.string().trim().min(3, "Le nom de la rétrospective doit contenir au moins 3 caractères."),
     formatId: z.string().min(1, "Le format est requis."),
+    stepDurationMinutes: z.number({ error: "La durée des étapes est requise." })
+      .int("La durée doit être un nombre entier de minutes.")
+      .min(1, "La durée doit être d'au moins 1 minute.")
+      .max(120, "La durée ne peut pas dépasser 120 minutes."),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Les mots de passe ne correspondent pas.",
@@ -51,6 +55,7 @@ const CreateAccountForm = ({ onSessionCreated }: CreateAccountFormProps) => {
       confirmPassword: "",
       retroName: "",
       formatId: DEFAULT_RETRO_FORMAT_ID,
+      stepDurationMinutes: 5,
     },
   });
 
@@ -59,8 +64,10 @@ const CreateAccountForm = ({ onSessionCreated }: CreateAccountFormProps) => {
 
     try {
       const username = `${values.prenom.trim()} ${values.nom.trim()}`;
+      // credentials : la réponse du signup pose le cookie d'authentification.
       const signupResponse = await fetch(`${API_BASE}/auth/signup`, {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, email: values.email.trim(), password: values.password }),
       });
@@ -75,20 +82,18 @@ const CreateAccountForm = ({ onSessionCreated }: CreateAccountFormProps) => {
         return;
       }
 
-      // Le contexte n'est pas encore à jour de façon synchrone juste après
-      // login() : on utilise le token reçu directement pour l'appel suivant.
       login({ ...signupData.data, email: signupData.data.email ?? values.email.trim() });
 
+      // Le cookie posé par le signup authentifie directement cet appel.
       const sessionResponse = await fetch(`${API_BASE}/session/create-session`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${signupData.data.token}`,
-        },
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: values.retroName.trim(),
           formatName: selectedFormat.name,
           formatColumns: selectedFormat.columns,
+          stepDurationMinutes: values.stepDurationMinutes,
         }),
       });
       const sessionData = await readJsonSafely(sessionResponse);
@@ -218,8 +223,25 @@ const CreateAccountForm = ({ onSessionCreated }: CreateAccountFormProps) => {
         <FieldError id="formatId-error" message={errors.formatId?.message} />
       </div>
 
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="stepDurationMinutes" className="block font-sans text-xs font-semibold text-slate-400 tracking-wider uppercase">
+          Durée des étapes (minutes)
+        </label>
+        <Input
+          id="stepDurationMinutes"
+          type="number"
+          min={1}
+          max={120}
+          disabled={isSubmitting}
+          aria-invalid={!!errors.stepDurationMinutes}
+          aria-describedby={errors.stepDurationMinutes ? "stepDurationMinutes-error" : undefined}
+          {...register("stepDurationMinutes", { valueAsNumber: true })}
+        />
+        <FieldError id="stepDurationMinutes-error" message={errors.stepDurationMinutes?.message} />
+      </div>
+
       <div className="pt-1">
-        <Button type="submit" variant="primary" size="lg" className="w-full" disabled={isSubmitting}>
+        <Button unstyled type="submit" variant="primary" size="lg" className="w-full" disabled={isSubmitting}>
           {isSubmitting ? "Création..." : "Créer et lancer"}
         </Button>
       </div>

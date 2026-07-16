@@ -11,6 +11,8 @@ const Header = () => {
     const isHomePage = pathname === "/";
     const isSessionPage = pathname.startsWith("/session/");
 
+    if (isSessionPage) return null;
+
     return (
         <header className="sticky top-0 z-40 flex-shrink-0 flex w-full items-center bg-navy-mid border-b border-navy-border h-[52px] md:h-[56px] px-3 md:px-5">
             <div className="flex w-full items-center justify-between gap-3">
@@ -25,7 +27,7 @@ const Header = () => {
                 {/* Navigation / Actions */}
                 <nav className="flex items-center gap-2">
                     {!isAuthenticated ? (
-                        !isHomePage && !isSessionPage && (
+                        !isHomePage && (
                             <>
                                 <NavLink
                                     to="/signup"

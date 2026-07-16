@@ -56,18 +56,21 @@ describe('useSessionParticipants', () => {
     );
     vi.stubGlobal('fetch', fetchMock);
 
-    const self = { participantId: 1, token: 'tok' };
+    const self = { participantId: 1 };
     const { result } = renderHook(() => useSessionParticipants('1', self));
 
     await waitFor(() => expect(result.current.participants).toHaveLength(1));
-    expect(fetchMock).toHaveBeenCalledWith('http://localhost:8000/session/1/participants');
+    // L'authentification passe par le cookie (credentials), plus par un token.
+    expect(fetchMock).toHaveBeenCalledWith(
+      'http://localhost:8000/session/1/participants',
+      expect.objectContaining({ credentials: 'include' })
+    );
 
     mockSocket.__trigger('connect');
     expect(mockSocket.emit).toHaveBeenCalledWith('session:join', {
       sessionId: 1,
       participantId: 1,
       guestToken: undefined,
-      token: 'tok',
     });
   });
 
@@ -95,7 +98,7 @@ describe('useSessionParticipants', () => {
 
     mockSocket.__trigger('session:started', { step: 'writing' });
 
-    expect(onSessionStarted).toHaveBeenCalledWith('writing');
+    expect(onSessionStarted).toHaveBeenCalledWith('writing', null);
   });
 
   it('déconnecte le socket et retire les listeners au démontage (nettoyage)', async () => {

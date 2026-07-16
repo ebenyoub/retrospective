@@ -1,27 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { io, type Socket } from "socket.io-client";
-import { isApiSuccess, readJsonSafely } from "@/lib/apiError";
 
 import { API_BASE } from "@/lib/api";
-
-export interface ParticipantSummary {
-  id: number;
-  sessionId: number;
-  displayName: string;
-  role: "facilitator" | "participant";
-  status: "online" | "offline";
-  joinedAt: string;
-  lastSeenAt: string;
-}
-
-export interface SelfIdentity {
-  participantId: number;
-  guestToken?: string;
-  token?: string;
-}
+import { listParticipants } from "../services/participantApi";
+import type { ParticipantSummary, SelfIdentity } from '../types/participant.types';
 
 interface UseSessionParticipantsOptions {
-  onSessionStarted?: (step: string) => void;
+  onSessionStarted?: (step: string, stepEndsAt: string | null) => void;
+  onTimerUpdated?: (stepEndsAt: string) => void;
+  onSessionClosed?: () => void;
 }
 
 // Source de vérité = backend : liste initiale par API, puis mises à jour en
@@ -39,8 +26,12 @@ export const useSessionParticipants = (
   // fois que le composant appelant recrée sa fonction de callback. La mise à
   // jour se fait dans un effet (jamais pendant le rendu).
   const onSessionStartedRef = useRef(options.onSessionStarted);
+  const onTimerUpdatedRef = useRef(options.onTimerUpdated);
+  const onSessionClosedRef = useRef(options.onSessionClosed);
   useEffect(() => {
     onSessionStartedRef.current = options.onSessionStarted;
+    onTimerUpdatedRef.current = options.onTimerUpdated;
+    onSessionClosedRef.current = options.onSessionClosed;
   });
 
   useEffect(() => {
@@ -51,10 +42,9 @@ export const useSessionParticipants = (
 
     const loadInitial = async () => {
       try {
-        const response = await fetch(`${API_BASE}/session/${sessionId}/participants`);
-        const data = await readJsonSafely(response);
-        if (isActive && response.ok && isApiSuccess<ParticipantSummary[]>(data)) {
-          setParticipants(data.data);
+        const result = await listParticipants(sessionId);
+        if (isActive && result.ok) {
+          setParticipants(result.data);
         }
       } catch (error) {
         console.error("Erreur lors du chargement des participants :", error);
@@ -63,14 +53,21 @@ export const useSessionParticipants = (
 
     void loadInitial();
 
-    const socket: Socket = io(API_BASE, { transports: ["websocket", "polling"] });
+    // withCredentials : le cookie d'authentification HttpOnly accompagne le
+    // handshake, le serveur y lit le JWT de l'utilisateur connecté.
+    const socket: Socket = io(API_BASE, { transports: ["websocket", "polling"], withCredentials: true });
 
     const handleParticipantsUpdated = (next: ParticipantSummary[]) => {
       if (isActive) setParticipants(next);
     };
 
-    const handleSessionStarted = ({ step }: { step: string }) => {
-      if (isActive) onSessionStartedRef.current?.(step);
+    const handleSessionStarted = ({ step, stepEndsAt }: { step: string; stepEndsAt?: string | null }) => {
+      if (isActive) onSessionStartedRef.current?.(step, stepEndsAt ?? null);
+    };
+
+    // Le facilitateur a redéfini le timer : nouvelle échéance pour tous.
+    const handleTimerUpdated = ({ stepEndsAt }: { stepEndsAt: string }) => {
+      if (isActive) onTimerUpdatedRef.current?.(stepEndsAt);
     };
 
     const handleConnect = () => {
@@ -78,19 +75,26 @@ export const useSessionParticipants = (
         sessionId: Number(sessionId),
         participantId: self.participantId,
         guestToken: self.guestToken,
-        token: self.token,
       });
+    };
+
+    const handleSessionClosed = () => {
+      if (isActive) onSessionClosedRef.current?.();
     };
 
     socket.on("connect", handleConnect);
     socket.on("session:participants-updated", handleParticipantsUpdated);
     socket.on("session:started", handleSessionStarted);
+    socket.on("session:timer-updated", handleTimerUpdated);
+    socket.on("session:closed", handleSessionClosed);
 
     return () => {
       isActive = false;
       socket.off("connect", handleConnect);
       socket.off("session:participants-updated", handleParticipantsUpdated);
       socket.off("session:started", handleSessionStarted);
+      socket.off("session:timer-updated", handleTimerUpdated);
+      socket.off("session:closed", handleSessionClosed);
       socket.disconnect();
     };
   }, [sessionId, self]);

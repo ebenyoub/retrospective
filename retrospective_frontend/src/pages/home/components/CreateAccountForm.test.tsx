@@ -116,6 +116,7 @@ describe('CreateAccountForm', () => {
       name: 'Sprint 43',
       formatName: 'Bien passé / À améliorer / Prochaines actions',
       formatColumns: ['Bien passé', 'À améliorer', 'Prochaines actions'],
+      stepDurationMinutes: 5,
     });
   });
 

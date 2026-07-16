@@ -10,6 +10,8 @@ export interface SessionType {
   step: "waiting" | "writing" | "voting" | "results";
   format_name: string;
   format_columns: string[];
+  step_duration_minutes: number;
+  step_ends_at: Date | null;
   created_at: Date;
   expires_at: Date;
 }

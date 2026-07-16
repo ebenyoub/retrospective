@@ -12,11 +12,17 @@ vi.mock("../services/session.service", () => ({
   getSessionsForUser: vi.fn(),
   getSessionDetails: vi.fn(),
   updateSessionStepService: vi.fn(),
+  updateSessionTimerService: vi.fn(),
   updateSessionFormatService: vi.fn(),
+  closeSessionService: vi.fn(),
+  updateSessionNameService: vi.fn(),
+  deleteSessionService: vi.fn(),
 }));
 
 vi.mock("../realtime/socket", () => ({
   emitSessionStarted: vi.fn(),
+  emitSessionTimerUpdated: vi.fn(),
+  emitSessionClosed: vi.fn(),
 }));
 
 import {
@@ -26,6 +32,10 @@ import {
   getSession,
   updateSessionStep,
   updateSessionFormat,
+  updateSessionTimer,
+  closeSession,
+  updateSessionName,
+  deleteSession,
 } from "./session.controller";
 import {
   createSessionForUser,
@@ -33,9 +43,13 @@ import {
   getSessionsForUser,
   getSessionDetails,
   updateSessionStepService,
+  updateSessionTimerService,
   updateSessionFormatService,
+  closeSessionService,
+  updateSessionNameService,
+  deleteSessionService,
 } from "../services/session.service";
-import { emitSessionStarted } from "../realtime/socket";
+import { emitSessionStarted, emitSessionTimerUpdated, emitSessionClosed } from "../realtime/socket";
 import type { AuthRequest } from "../types";
 
 const mockCreateSessionForUser = createSessionForUser as unknown as Mock;
@@ -43,8 +57,14 @@ const mockJoinSessionForUser = joinSessionForUser as unknown as Mock;
 const mockGetSessionsForUser = getSessionsForUser as unknown as Mock;
 const mockGetSessionDetails = getSessionDetails as unknown as Mock;
 const mockUpdateSessionStepService = updateSessionStepService as unknown as Mock;
+const mockUpdateSessionTimerService = updateSessionTimerService as unknown as Mock;
 const mockUpdateSessionFormatService = updateSessionFormatService as unknown as Mock;
+const mockCloseSessionService = closeSessionService as unknown as Mock;
+const mockUpdateSessionNameService = updateSessionNameService as unknown as Mock;
+const mockDeleteSessionService = deleteSessionService as unknown as Mock;
 const mockEmitSessionStarted = emitSessionStarted as unknown as Mock;
+const mockEmitSessionTimerUpdated = emitSessionTimerUpdated as unknown as Mock;
+const mockEmitSessionClosed = emitSessionClosed as unknown as Mock;
 
 const createMockResponse = () => {
   const res = {
@@ -76,8 +96,14 @@ describe("session.controller", () => {
     mockGetSessionsForUser.mockReset();
     mockGetSessionDetails.mockReset();
     mockUpdateSessionStepService.mockReset();
+    mockUpdateSessionTimerService.mockReset();
     mockUpdateSessionFormatService.mockReset();
+    mockCloseSessionService.mockReset();
+    mockUpdateSessionNameService.mockReset();
+    mockDeleteSessionService.mockReset();
     mockEmitSessionStarted.mockReset();
+    mockEmitSessionTimerUpdated.mockReset();
+    mockEmitSessionClosed.mockReset();
   });
 
   describe("createSession", () => {
@@ -206,7 +232,7 @@ describe("session.controller", () => {
 
   describe("updateSessionStep", () => {
     it("met à jour l'étape et renvoie 200", async () => {
-      mockUpdateSessionStepService.mockResolvedValueOnce(true);
+      mockUpdateSessionStepService.mockResolvedValueOnce({ stepEndsAt: "2026-07-15T15:05:00.000Z" });
       const req = createMockRequest(1, { sessionId: "7" }, { step: "writing" });
       const res = createMockResponse();
 
@@ -216,10 +242,39 @@ describe("session.controller", () => {
       expect(res.body).toEqual({
         success: true,
         message: "Étape de la session mise à jour.",
-        data: { step: "writing" },
+        data: { step: "writing", stepEndsAt: "2026-07-15T15:05:00.000Z" },
       });
       expect(mockUpdateSessionStepService).toHaveBeenCalledWith(7, 1, "writing");
-      expect(mockEmitSessionStarted).toHaveBeenCalledWith(7, "writing");
+      // L'échéance calculée par le serveur est diffusée à toute la room.
+      expect(mockEmitSessionStarted).toHaveBeenCalledWith(7, "writing", "2026-07-15T15:05:00.000Z");
+    });
+  });
+
+  describe("updateSessionTimer", () => {
+    it("met à jour le timer et diffuse la nouvelle échéance", async () => {
+      mockUpdateSessionTimerService.mockResolvedValueOnce({
+        stepEndsAt: "2026-07-15T15:10:00.000Z",
+        stepDurationMinutes: 5,
+      });
+      const req = createMockRequest(1, { sessionId: "7" }, { minutes: 10 });
+      const res = createMockResponse();
+
+      await updateSessionTimer(req, res as unknown as Response);
+
+      expect(res.statusCode).toBe(200);
+      expect(mockUpdateSessionTimerService).toHaveBeenCalledWith(7, 1, 10);
+      expect(mockEmitSessionTimerUpdated).toHaveBeenCalledWith(7, "2026-07-15T15:10:00.000Z");
+    });
+
+    it("en salle d'attente (pas d'échéance), ne diffuse rien", async () => {
+      mockUpdateSessionTimerService.mockResolvedValueOnce({ stepEndsAt: null, stepDurationMinutes: 10 });
+      const req = createMockRequest(1, { sessionId: "7" }, { minutes: 10 });
+      const res = createMockResponse();
+
+      await updateSessionTimer(req, res as unknown as Response);
+
+      expect(res.statusCode).toBe(200);
+      expect(mockEmitSessionTimerUpdated).not.toHaveBeenCalled();
     });
   });
 
@@ -239,6 +294,89 @@ describe("session.controller", () => {
         data: updatedSession,
       });
       expect(mockUpdateSessionFormatService).toHaveBeenCalledWith(7, 1, "Succès / Difficultés / Idées", ["Succès", "Difficultés", "Idées"]);
+    });
+  });
+
+  describe("closeSession", () => {
+    it("ferme la session et renvoie 200", async () => {
+      mockCloseSessionService.mockResolvedValueOnce(undefined);
+      const req = createMockRequest(1, { sessionId: "7" });
+      const res = createMockResponse();
+
+      await closeSession(req, res as unknown as Response);
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body).toEqual({
+        success: true,
+        message: "La session a été fermée avec succès.",
+      });
+      expect(mockCloseSessionService).toHaveBeenCalledWith(7, 1);
+      expect(mockEmitSessionClosed).toHaveBeenCalledWith(7);
+    });
+
+    it("lève une erreur si l'ID de session est absent", async () => {
+      const req = createMockRequest(1, { sessionId: "" });
+      const res = createMockResponse();
+
+      await expect(closeSession(req, res as unknown as Response)).rejects.toMatchObject({
+        statusCode: 400,
+        code: "SESSION_ID_REQUIRED",
+      });
+      expect(mockCloseSessionService).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("updateSessionName", () => {
+    it("renomme la session et renvoie 200", async () => {
+      mockUpdateSessionNameService.mockResolvedValueOnce(undefined);
+      const req = createMockRequest(1, { sessionId: "7" }, { name: "Sprint 42 Rétro" });
+      const res = createMockResponse();
+
+      await updateSessionName(req, res as unknown as Response);
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body).toEqual({
+        success: true,
+        message: "Le nom de la session a été mis à jour avec succès.",
+      });
+      expect(mockUpdateSessionNameService).toHaveBeenCalledWith(7, 1, "Sprint 42 Rétro");
+    });
+
+    it("lève une erreur si l'ID de session est absent", async () => {
+      const req = createMockRequest(1, { sessionId: "" }, { name: "Sprint 42 Rétro" });
+      const res = createMockResponse();
+
+      await expect(updateSessionName(req, res as unknown as Response)).rejects.toMatchObject({
+        statusCode: 400,
+        code: "SESSION_ID_REQUIRED",
+      });
+    });
+  });
+
+  describe("deleteSession", () => {
+    it("supprime la session et renvoie 200", async () => {
+      mockDeleteSessionService.mockResolvedValueOnce(undefined);
+      const req = createMockRequest(1, { sessionId: "7" });
+      const res = createMockResponse();
+
+      await deleteSession(req, res as unknown as Response);
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body).toEqual({
+        success: true,
+        message: "La session a été supprimée avec succès.",
+      });
+      expect(mockDeleteSessionService).toHaveBeenCalledWith(7, 1);
+    });
+
+    it("lève une erreur si l'ID de session est absent", async () => {
+      const req = createMockRequest(1, { sessionId: "" });
+      const res = createMockResponse();
+
+      await expect(deleteSession(req, res as unknown as Response)).rejects.toMatchObject({
+        statusCode: 400,
+        code: "SESSION_ID_REQUIRED",
+      });
     });
   });
 });

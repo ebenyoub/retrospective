@@ -3,10 +3,10 @@ import Container from "@/components/ui/Container";
 import FormContainer, { FormTitle } from "@/components/ui/FormContainer";
 import FormField from "@/components/ui/FormField";
 import SpinContainer from "@/components/ui/SpinContainer";
-import { getApiErrorMessage, isApiSuccess, NETWORK_ERROR_MESSAGE, readJsonSafely } from "@/lib/apiError";
-import { API_BASE } from "@/lib/api";
+import { getApiErrorMessage, NETWORK_ERROR_MESSAGE } from "@/lib/apiError";
 import React, { useState, type ChangeEvent } from "react";
 import { useNavigate, NavLink } from "react-router-dom";
+import { forgotApi, verifyCodeApi, resetPasswordApi } from "@/pages/auth/services/authApi";
 
 type Step = 'EMAIL' | 'CODE' | 'NEW_PASSWORD';
 
@@ -41,18 +41,12 @@ const Forgot = () => {
 
     try {
       setIsLoading(true);
-      const response = await fetch(`${API_BASE}/auth/forgot`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email })
-      });
+      const result = await forgotApi(email);
 
-      const data = await readJsonSafely(response);
-
-      if (response.ok && isApiSuccess(data)) {
+      if (result.ok) {
         setStep('CODE');
       } else {
-        setGlobalError(getApiErrorMessage(data, "Impossible d'envoyer le code."));
+        setGlobalError(getApiErrorMessage(result.payload, "Impossible d'envoyer le code."));
       }
     } catch (err) {
       setGlobalError(NETWORK_ERROR_MESSAGE);
@@ -75,18 +69,12 @@ const Forgot = () => {
 
     setIsLoading(true);
     try {
-      const response = await fetch(`${API_BASE}/auth/verify-code`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, code })
-      });
+      const result = await verifyCodeApi(email, code);
 
-      const data = await readJsonSafely(response);
-
-      if (response.ok && isApiSuccess(data)) {
+      if (result.ok) {
         setStep('NEW_PASSWORD');
       } else {
-        setGlobalError(getApiErrorMessage(data, "Code invalide."));
+        setGlobalError(getApiErrorMessage(result.payload, "Code invalide."));
       }
     } catch (err) {
       console.error(err);
@@ -122,18 +110,12 @@ const Forgot = () => {
     try {
       setIsLoading(true);
 
-      const response = await fetch(`${API_BASE}/auth/reset-password`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, newPassword, code })
-      })
+      const result = await resetPasswordApi(email, newPassword, code);
 
-      const data = await readJsonSafely(response);
-
-      if (response.ok && isApiSuccess(data)) {
+      if (result.ok) {
         navigate("/login");
       } else {
-        setGlobalError(getApiErrorMessage(data, "Erreur lors du changement de mot de passe."));
+        setGlobalError(getApiErrorMessage(result.payload, "Erreur lors du changement de mot de passe."));
       }
     } catch (error) {
       console.error(error);
@@ -150,14 +132,17 @@ const Forgot = () => {
       <SpinContainer onSpin={isLoading} className="w-full max-w-md">
 
         {globalError && (
-          <div className="mb-4 p-3 bg-red-500/20 border border-red-500 text-red-200 rounded text-center text-sm">
+          <div
+            role="alert"
+            className="mb-4 p-3 bg-red-500/20 border border-red-500 text-red-200 rounded text-center text-sm"
+          >
             {globalError}
           </div>
         )}
 
         {/* --- FORMULAIRE 1 : EMAIL --- */}
         {step === 'EMAIL' && (
-          <FormContainer onSubmit={handleEmailSubmit}>
+          <FormContainer onSubmit={handleEmailSubmit} aria-busy={isLoading}>
             <FormTitle>Récupération du mot de passe</FormTitle>
             <FormField
               id="email"
@@ -185,7 +170,7 @@ const Forgot = () => {
 
         {/* --- FORMULAIRE 2 : CODE --- */}
         {step === 'CODE' && (
-          <FormContainer onSubmit={handleCodeSubmit}>
+          <FormContainer onSubmit={handleCodeSubmit} aria-busy={isLoading}>
             <FormTitle>Code de vérification</FormTitle>
             <p className="text-gray-400 text-sm text-center mb-4">
               Envoyé à : <span className="text-white font-semibold">{email}</span>
@@ -222,7 +207,7 @@ const Forgot = () => {
 
         {/* --- FORMULAIRE 3 : NOUVEAU PASSWORD (Placeholder) --- */}
         {step === 'NEW_PASSWORD' && (
-          <FormContainer onSubmit={handlePasswordSubmit}>
+          <FormContainer onSubmit={handlePasswordSubmit} aria-busy={isLoading}>
             <FormTitle>Nouveau mot de passe</FormTitle>
             <FormField
               id="new-password"

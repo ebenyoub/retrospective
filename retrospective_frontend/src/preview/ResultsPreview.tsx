@@ -4,7 +4,7 @@ import { createRoot } from 'react-dom/client';
 import '../App.css';
 
 import SessionResults from '../pages/session/components/SessionResults';
-import type { RetroCard } from '../pages/session/components/RetroCardItem';
+import type { RetroCard } from '../pages/session/types/card.types';
 
 // Aperçu VISUEL UNIQUEMENT (non livré) pour comparer avec le prototype Figma.
 // Paramètres d'URL : ?cards=0|1|6|many
@@ -83,7 +83,7 @@ function Preview() {
   return (
     <div className="flex flex-col h-screen bg-navy overflow-hidden">
       <Toolbar />
-      <SessionResults cards={cards} isDesktop={isDesktop} />
+      <SessionResults cards={cards} formatColumns={['Commencer', 'Arrêter', 'Continuer']} isDesktop={isDesktop} />
     </div>
   );
 }

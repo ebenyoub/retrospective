@@ -1,6 +1,7 @@
 import { Response, NextFunction } from "express";
 import jwt, { TokenExpiredError, type JwtPayload } from "jsonwebtoken";
 import { logger } from "../utils/logger";
+import { readAuthToken } from "../utils/authCookie";
 import { AuthRequest } from "../types";
 
 // Ré-export pour compatibilité : le type de référence vit dans `../types`.
@@ -8,14 +9,12 @@ export type { AuthRequest };
 
 export const auth = (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const header = req.headers.authorization;
+    const token = readAuthToken(req);
 
-    if (!header || !header.startsWith("Bearer ")) {
+    if (!token) {
       logger.warn("❌ Token manquant.")
       return res.status(401).json({ message: "Token manquant" });
     }
-
-    const token = header.split(" ")[1];
 
     const jwtSecret = process.env.JWT_SECRET;
     if (!jwtSecret) {

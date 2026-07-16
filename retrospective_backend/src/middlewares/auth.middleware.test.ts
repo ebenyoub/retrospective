@@ -22,9 +22,10 @@ const createMockResponse = () => {
   return res;
 };
 
-const createMockRequest = (authorizationHeader?: string): AuthRequest =>
+const createMockRequest = (authorizationHeader?: string, cookies?: Record<string, string>): AuthRequest =>
   ({
     headers: { authorization: authorizationHeader },
+    cookies,
   }) as unknown as AuthRequest;
 
 describe("auth.middleware", () => {
@@ -64,5 +65,29 @@ describe("auth.middleware", () => {
 
     expect(next).toHaveBeenCalledOnce();
     expect(res.statusCode).toBe(0);
+  });
+
+  it("appelle next() si le token est valide dans le cookie", () => {
+    const token = jwt.sign({ userId: 1, username: "Elyas" }, TEST_SECRET);
+    const req = createMockRequest(undefined, { token });
+    const res = createMockResponse();
+    const next = vi.fn() as unknown as NextFunction;
+
+    auth(req, res as unknown as Response, next);
+
+    expect(next).toHaveBeenCalledOnce();
+    expect(res.statusCode).toBe(0);
+  });
+
+  it("donne la priorité au cookie sur le header Authorization", () => {
+    const validToken = jwt.sign({ userId: 1, username: "Elyas" }, TEST_SECRET);
+    const req = createMockRequest(`Bearer ${validToken}`, { token: "cookie-invalide" });
+    const res = createMockResponse();
+    const next = vi.fn() as unknown as NextFunction;
+
+    auth(req, res as unknown as Response, next);
+
+    expect(res.statusCode).toBe(401);
+    expect(next).not.toHaveBeenCalled();
   });
 });

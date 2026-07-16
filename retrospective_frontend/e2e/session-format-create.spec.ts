@@ -47,7 +47,10 @@ test.describe('création de session avec format MVP', () => {
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
-          body: JSON.stringify({ userId: 1, username: 'Facilitateur' }),
+          body: JSON.stringify({
+            success: true,
+            data: { userId: 1, username: 'Facilitateur' },
+          }),
         });
       });
 
@@ -116,6 +119,14 @@ test.describe('création de session avec format MVP', () => {
         });
       });
 
+      await page.route('**/session/resume/active', async (route) => {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ success: true, data: null }),
+        });
+      });
+
       await page.goto('/session');
 
       await page.getByLabel('Nom de la session').fill('Sprint format');
@@ -127,6 +138,7 @@ test.describe('création de session avec format MVP', () => {
         name: 'Sprint format',
         formatName: format.name,
         formatColumns: format.columns,
+        stepDurationMinutes: 5,
       });
 
       await page.getByRole('button', { name: 'Accéder au tableau' }).click();

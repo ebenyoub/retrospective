@@ -4,7 +4,7 @@ import { ToastProvider } from '@/context/toast/ToastContext';
 import CreateSessionForm from './CreateSessionForm';
 
 vi.mock('@/context/auth/useAuth', () => ({
-  useAuth: () => ({ token: 'existing-token' }),
+  useAuth: () => ({ isAuthenticated: true }),
 }));
 
 const jsonResponse = (body: unknown, ok = true) => ({ ok, json: async () => body });
@@ -45,14 +45,16 @@ describe('CreateSessionForm', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Créer et lancer' }));
 
     await vi.waitFor(() => expect(onSessionCreated).toHaveBeenCalledWith(7));
+    // L'authentification passe par le cookie (credentials), plus par un header.
     expect(fetchMock).toHaveBeenCalledWith(
       'http://localhost:8000/session/create-session',
-      expect.objectContaining({ headers: expect.objectContaining({ Authorization: 'Bearer existing-token' }) })
+      expect.objectContaining({ credentials: 'include' })
     );
     expect(JSON.parse(String(fetchMock.mock.calls[0][1].body))).toEqual({
       name: 'Sprint 43',
       formatName: 'Succès / Difficultés / Idées',
       formatColumns: ['Succès', 'Difficultés', 'Idées'],
+      stepDurationMinutes: 5,
     });
   });
 

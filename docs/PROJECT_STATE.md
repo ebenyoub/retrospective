@@ -4,6 +4,52 @@
 
 ## Date de dernière mise à jour
 
+2026-07-16 (Nettoyage de branche : le travail de fonctionnalités (TIMER-01, reprise de session, fermeture de session) laissé non commité par une session Antigravity interrompue a été séparé de la réorganisation mécanique des tests/types qui s'y était mélangée sur `feature/TIMER-01`. Le code applicatif est commité seul sur `feature/TIMER-01` (232 tests backend, 166 tests frontend au vert), et la réorganisation — déplacement des tests dans des sous-dossiers `tests/`, extraction des types dans `types/*.types.ts`, remplacement de `FormContainer` par les primitives `Form`/`Card`/`Modal` — est finalisée et commitée séparément sur `chore/frontend-tests-types-structure` (211 tests frontend au vert). Au passage : suppression de logs de debug oubliés, correction d'un import de test à la casse invalide, finalisation d'une extraction de types Toast restée à moitié faite, et ajout de `test-results/` au `.gitignore`.)
+
+2026-07-16 (Suppression complète de la limite de 25 participants par session et implémentation de la fermeture/terminaison de session. Le facilitateur dispose désormais d'un bouton "Terminer la session" dans sa barre d'actions à chaque étape. Les participants (invités et connectés) sont automatiquement redirigés vers l'accueil si la session est fermée (notifiée en direct via Socket.IO ou détectée par polling). Tous les tests unitaires et d'intégration backend (218 passés) et frontend (152 passés) sont au vert.)
+
+2026-07-15 (Reprise de session via cookie HttpOnly et nettoyage automatique validé côté backend. Plus de confiance aveugle au sessionId du localStorage, l'API globale /session/resume/active vérifie la validité du cookie retro_resume (existence, état de session ouvert, correspondance du participant), nettoie le cookie si obsolète ou expiré, et met à jour le menu participant invité sans impacter les comptes connectés. 213 tests backend et 153 tests frontend au vert.)
+
+2026-07-15 (`TIMER-01 — Timer universel synchronisé` implémenté, en attente de validation fonctionnelle : le backend devient la source de vérité du temps (colonnes step_duration_minutes et step_ends_at, échéance calculée par le serveur à chaque changement d'étape), durée saisie à la création (formulaires Home), modifiable en salle d'attente et en cours d'étape par le facilitateur (compteur cliquable, champ inline), diffusion immédiate par socket (session:timer-updated + échéance dans session:started), TimerChip recalcule le restant depuis l'échéance commune. 202 tests backend, 145 tests frontend, 23 E2E au vert.)
+
+2026-07-15 (`AUTH-COOKIE-01 — Migration de l'authentification vers un cookie HttpOnly` terminé en 2 phases : le JWT est posé par le backend en cookie HttpOnly (plus de localStorage ni de header Authorization côté frontend), nouvelle route POST /auth/logout, tous les appels passent en credentials include, sockets authentifiés via le cookie du handshake, et correction du bug de déconnexion au rechargement (le contrôleur profile ne renvoyait pas l'enveloppe success/data attendue par le frontend). 194 tests backend, 140 tests frontend et 23 E2E Playwright au vert.)
+
+2026-07-14 (`US-ARCHI-01 — Séparer complètement les parcours "Utilisateur connecté" et "Participant invité"` terminé : correction finale des redirections d'authentification, masquage de la navbar sur les pages de session, rendu universel de SessionContextBar sur toutes les étapes y compris WaitingStep pour l'accès au menu utilisateur, purge des résidus d'invités lors de la connexion, suppression du champ pseudo pour les connectés, 139 tests unitaires Vitest au vert, et réussite 23/23 de la suite E2E Playwright.)
+
+2026-07-14 (Séparation stricte des parcours Utilisateur connecté vs Participant invité : suppression de la redirection automatique de resolveLandingRoute, masquage du Header global en session et intégration du ProfileMenu dans SessionContextBar pour éviter les doublons, et masquage dynamique du champ pseudo de JoinSessionForm pour les utilisateurs connectés rejoignant via /session/join.)
+
+2026-07-14 (`MVP-WRITING-STATE-02 — Validation E2E des états de chargement et vides` terminé : création de session-writing-states.spec.ts pour valider l'affichage du texte de chargement initial et des EmptyStates associés aux 3 colonnes vides.)
+
+2026-07-14 (`MVP-COMMENTS-02 — Validation E2E de la modal Commentaires` terminé : création de session-comments.spec.ts pour vérifier le focus trap à l'ouverture, l'état vide, les contrôles désactivés, la fermeture via Escape et la restauration du focus.)
+
+2026-07-14 (`MVP-DISCUSSION-02 — Validation E2E du drawer Discussion` terminé : complétion de session-drawers.spec.ts pour vérifier le titre d'état vide, la désactivation des contrôles et la rouverture sans régression.)
+
+2026-07-14 (`MVP-PARTICIPANTS-02 — Validation E2E du drawer Participants` terminé : complétion de session-drawers.spec.ts pour valider le badge Hôte, les rôles Facilitateur/Participant, et les statuts En ligne/Hors ligne.)
+
+2026-07-14 (`MVP-E2E-02 — Validation E2E du parcours produit complet` terminé : création de session-full-journey.spec.ts couvrant l'inscription, la création de session, l'écriture, le vote et l'affichage final des résultats.)
+
+2026-07-14 (`MVP-TRANSITION-02 — Validation E2E de l'enchaînement des étapes` terminé : création de session-transition.spec.ts couvrant le parcours complet waiting -> writing -> voting -> results sous le contrôle du facilitateur.)
+
+2026-07-14 (`MVP-RESULTS-02 — Validation E2E de l'écran Résultats` terminé : création de session-results.spec.ts couvrant l'accès à l'étape, l'affichage des médailles du Top 3, le tri et le respect des libellés dynamiques du format.)
+
+2026-07-14 (`MVP-VOTE-02 — Validation E2E de la salle de vote` terminé : création de session-voting.spec.ts couvrant le quota, les boutons de vote et la mise à jour dynamique de la page. Résolution d'un bug latent sur le mock de /auth/profile qui n'était pas correctement enveloppé pour requestApi, restaurant la totalité des tests Playwright au vert.)
+
+2026-07-14 (`AUTH-02 — Audit et correction accessibilité` terminé : mise en accessibilité complète des formulaires du module Auth et Forgot. Centralisation de aria-invalid dans FormField.tsx, et ajout de role="alert" pour l'erreur globale et aria-busy pour l'attente réseau.)
+
+2026-07-14 (`MVP-TIMER-01 — Rendre le timer d'étape fonctionnel` terminé : le composant TimerChip a été rendu dynamique en local via un intervalle dégressif réinitialisé à chaque transition d'étape.)
+
+2026-07-14 (`AUTH-01 — Création de la couche authApi` terminé : extraction de l'intégralité des 5 requêtes fetch brutes du module Auth et du profil vers un service dédié authApi.ts s'appuyant sur requestApi générique. Suppression de la duplication des interfaces de types LoginValues et SignupValues.)
+
+2026-07-14 (`ARCH-SESSION-09 — Accessibilité de CardCommentsModal` terminé : modal de commentaires mis en conformité a11y selon les standards W3C/WAI-ARIA et l'implémentation du Drawer. Ajout du focus trap, gestion de la touche Échap, restauration automatique du focus au démontage et correction de la sémantique de l'overlay de clic extérieur. Clôture définitive du chantier session par une décision d'architecture dans DECISIONS.md.)
+
+2026-07-14 (`T-QUALITY-01 — Découpage des tests frontend` terminé : le fichier monolithique `SessionDashboard.test.tsx` de 1900+ lignes a été découpé par responsabilité en 6 fichiers de tests d'intégration ciblés. Les mocks et helpers de rendu communs ont été mutualisés dans le répertoire `src/pages/session/tests/sessionTestUtils.tsx`. La couverture de tests et le comportement d'intégration sont préservés avec 139 tests verts.)
+
+2026-07-14 (`BACKLOG-STRUCTURE-01 — Hiérarchie du Product Backlog` : les tickets MVP sont rattachés à leurs User Stories parentes, la roadmap devient `Ordre d'implémentation MVP`, les anciens `T-SESSION-BAR-*` passent en historique technique, et les tickets actifs portent une priorité `P0/P1/P2`)
+
+2026-07-14 (`BACKLOG-REALIGN-01 — Réalignement MVP produit` : Product Backlog réaligné avec l'état réel du produit ; les User Stories larges `US-07`, `US-08`, `US-09` et `US-10` repassent en partiellement terminées tant que les sous-fonctionnalités produit ne sont pas livrées et validées ; prochain ticket MVP identifié : `MVP-WRITING-01`)
+
+2026-07-14 (`TODO-FORMAT-01 — Formats MVP 3 colonnes` terminé : les 6 formats validés en français sont la seule source de vérité, la création de session persiste le format choisi, la salle d'attente permet uniquement ces 6 formats, les écrans Écriture et Résultats affichent les libellés du format réel tout en conservant les clés techniques `start`/`stop`/`continue` pour les cartes, et les anciennes sessions sans format exploitable restent compatibles avec le format par défaut)
+
 2026-07-14 (`TODO-DOCS-01 — Régénérer secrets` terminé : `docker-compose.yml` ne porte plus de valeur Gmail/JWT de production en dur, `.env.example` et docs sécurité/déploiement/jury documentent la génération hors dépôt avec `openssl rand -base64 48` et le stockage en variables d'environnement)
 
 2026-07-13 (`T-SESSION-BAR-06 — Revue UI finale de l'écran Écriture` terminé : écran complet comparé au prototype sur desktop/mobile avec Playwright ; aucune correction fonctionnelle supplémentaire nécessaire après validation des composants précédents ; test ciblé, lint et TypeScript OK)
@@ -30,7 +76,7 @@
 
 ## État global
 
-🟢 MVP prêt et stabilisé côté fonctionnalités et design. Le parcours participant complet (code + pseudo → salle d'attente → écriture → vote → résultats) est désormais **fonctionnel de bout en bout et aligné visuellement sur Figma**, y compris en navigation directe via lien d'invitation. La salle d'attente et le changement d'étape sont **synchronisés en temps réel** (Socket.IO) avec une vraie source de vérité backend (`session_participants`), et un polling de secours de 4s assure la robustesse pour les cartes et les votes. Capacité de session portée à 25 personnes. Le facilitateur dispose de presets et d'un configurateur de format de colonnes. Le menu « Profil » et le menu d'actions de session `…` respectent l'accessibilité. L'ensemble des 185 tests backend et 109 tests frontend sont au vert, TypeScript compile proprement et ESLint ne lève aucune erreur. L'application est validée en conditions réelles et prête à l'emploi.
+🟡 MVP produit en cours. Les fondations techniques sont solides (authentification, sessions, participants, cartes, votes, formats MVP à 3 colonnes, résultats partiels), mais le produit n'est pas encore terminé au sens utilisateur. Les écrans Écriture, Vote et Résultats contiennent encore des sous-fonctionnalités à livrer ou à valider : timer fonctionnel, commentaires réels, discussion réelle, UX Participants, design final des cartes, validation complète du vote, transitions d'étape, plan d'action, écran résumé et parcours Playwright complet. L'orchestrateur doit suivre le Product Backlog réaligné et ne plus considérer le MVP comme terminé tant que ces sous-tâches ne sont pas validées.
 
 ## Fonctionnalités livrées
 
@@ -41,10 +87,10 @@
 | Gestion des sessions (créer/rejoindre par code) | ✅ Livré | 2026-07-07 |
 | Lister ses sessions (`GET /session`, US-05) | ✅ Backend + page `SessionList.tsx` | 2026-07-08 |
 | Page d'accueil (Home) | ✅ Livré (reconstruite depuis `figma_make.zip`) | 2026-07-07 |
-| Tableau de rétrospective — 3 colonnes, ajout/modification de carte | ✅ Livré | 2026-07-08 |
-| Système de votes (backend + bouton frontend) | ✅ Livré | 2026-07-08 |
-| Vue des résultats triée par votes (US-09) | ✅ Livré | 2026-07-08 |
-| Fidélité visuelle page résultats (Top 3, stats, 3 colonnes catégories, cartes compactes) | 🟡 Développé, en attente de validation visuelle | 2026-07-13 |
+| Tableau de rétrospective — 3 colonnes, ajout/modification de carte | 🟡 Partiel : création et édition présentes, design/actions/commentaires à finaliser | 2026-07-14 |
+| Système de votes (backend + bouton frontend) | 🟡 Partiel : logique présente, salle de vote et validations E2E à finaliser | 2026-07-14 |
+| Vue des résultats triée par votes (US-09) | 🟡 Partiel : tri/top/statistiques présents, revue finale et états limites à valider | 2026-07-14 |
+| Fidélité visuelle page résultats (Top 3, stats, 3 colonnes catégories, cartes compactes) | 🟡 Développé, validation produit finale restante | 2026-07-14 |
 | Rôle affiché sur le tableau (Facilitateur/Participant) | ✅ Livré | 2026-07-08 |
 | Suppression de sa propre carte | ✅ Backend + frontend, PR #11 mergée dans `dev` | 2026-07-08 |
 | Modification de sa propre carte | ✅ Backend + frontend, PR #13 mergée dans `dev` | 2026-07-08 |
@@ -72,8 +118,9 @@
 | Audit styles Tailwind/Figma | ✅ Tailwind v4 confirmé partout (tokens `@theme`), CSS mort supprimé, spin-card re-thémé aux couleurs Figma et limité au chargement, lien "Mot de passe oublié ?" aligné | 2026-07-09 |
 | Parcours de création de compte + première rétro combiné sur l'accueil | ✅ `CreateAccountForm`/`CreateSessionForm`/`JoinSessionForm` (React Hook Form + Zod), connexion par email, redirection post-connexion selon sessions actives | 2026-07-09 |
 | **Salle d'attente temps réel** | ✅ Table `session_participants` (source de vérité unique, facilitateur + invités), Socket.IO (`session:join`/`session:participants-updated`/`session:started`), plus de redirection `/login` pour un invité, modale de pseudo (RHF + Zod), pseudo conservé tel quel (unicité par session, erreur claire si pris), pas de doublon au refresh (jeton invité en `localStorage`, isolé de l'auth) | 2026-07-10 |
-| Capacité de session portée à 25 (facilitateur inclus) | ✅ Vérifiée backend (`participant.service.ts`) et frontend, phrase dynamique sous la liste, message clair si complète | 2026-07-10 |
-| Format de rétrospective sélectionnable | ✅ 4 presets + format personnalisé (2 à 5 colonnes, modale), persistance `sessions.format_name`/`format_columns`, réservé au facilitateur (vérifié backend) | 2026-07-10 |
+| Capacité de session illimitée (suppression de la limite de 25) | ✅ Plus aucune limite de participants côté backend et frontend | 2026-07-16 |
+| Fermeture ou terminaison de session par le facilitateur | ✅ Bouton "Terminer la session", propagation Socket.IO/polling et redirection auto | 2026-07-16 |
+| Format de rétrospective sélectionnable | ✅ 6 formats MVP français, exactement 3 colonnes, persistance `sessions.format_name`/`format_columns`, affichage cohérent en salle d'attente, écriture et résultats | 2026-07-14 |
 | Cartes de participants accessibles/lisibles | ✅ Graisse modérée, badge « Facilitateur » (pas « Admin »), statut texte + couleur, focus visible, résumé unique dans la barre latérale (suppression des répétitions) | 2026-07-10 |
 | Copie du code de session | ✅ Bouton dédié avec retour visuel, `aria-label`, API Clipboard | 2026-07-10 |
 | Menu Profil déroulant accessible | ✅ Remplace la page `/profile` : clic, clic extérieur, Échap, navigation clavier, ARIA, focus rendu au bouton | 2026-07-10 |
@@ -131,30 +178,20 @@
 
 ## Ce qui est en cours
 
-- Chantier "zone sous le header principal" recadré dans le Product Backlog officiel. Le prototype Figma contient exactement deux barres sous le header principal :
-  - `SessionContextBar` : retour, breadcrumb, nom de session, `StepIndicator`, code de session, déclencheurs Participants et Discussion.
-  - `SessionActionBar` : compteur total de cartes ou votes restants, timer, bouton principal de l'étape.
-- `T-SESSION-BAR-01 — SessionContextBar` est terminé et validé utilisateur.
-- `T-SESSION-BAR-02 — SessionActionBar` est terminé et validé utilisateur : la seconde barre contient le compteur total de cartes en écriture, les votes restants en vote, le timer et le bouton principal facilitateur, sans troisième ligne de barre d'actions.
-- `T-SESSION-BAR-03 — ParticipantsDrawer` est terminé : le déclencheur Participants ouvre un panneau responsive alimenté par les vraies données de session.
-- `T-SESSION-BAR-04 — DiscussionDrawer` est terminé : le déclencheur Discussion ouvre un panneau responsive, sans message fictif ni backend ajouté.
-- `T-SESSION-BAR-05 — Commentaires des cartes` est terminé dans le périmètre UI : ouverture depuis une carte, modal conforme, pas de compteur ou commentaire fictif.
-- `T-SESSION-BAR-06 — Revue UI finale de l'écran Écriture` est terminé : aucun écart restant ne justifie de reprendre les composants validés.
+- `BACKLOG-REALIGN-01` a réaligné le backlog avec l'état produit réel : les blocs `US-07`, `US-08`, `US-09` et `US-10` ne sont plus considérés terminés tant que leurs sous-fonctionnalités MVP ne sont pas livrées et validées.
+- La zone sous le header principal a une base UI validée, mais plusieurs comportements produit restent partiels : Participants, Discussion et Commentaires ne doivent plus être considérés terminés au sens MVP complet.
+- Le ticket prioritaire suivant est `MVP-WRITING-01 — Finaliser le design des cartes et des actions Modifier/Supprimer sur l'écran Écriture`.
 
 ## Prochaine étape
 
-**La page Écriture est terminée pour le chantier "zone sous le header principal".**
-- Ne pas revenir sur `SessionContextBar`, `SessionActionBar`, `ParticipantsDrawer`, `DiscussionDrawer` ou commentaires de cartes sauf régression démontrée.
+**MVP-WRITING-01 — Finaliser le design des cartes et des actions Modifier/Supprimer sur l'écran Écriture.**
 
-**Finalisation soutenance.**
-- Parcours facilitateur + participant invité vérifié en conditions réelles le 2026-07-13 (Docker Compose + Playwright, 2 contextes navigateur), **y compris l'ouverture directe du lien d'invitation** (sans passer par l'accueil) : création de compte + rétro, invitation, jointure sans compte, synchronisation temps réel, écriture de carte, lancement de la rétro synchronisé, code de session visible en permanence.
-- Restent : documents jury (`docs/jury/`).
+Cette tâche est la première sous-tâche MVP après réalignement. Elle doit rester limitée à l'écran Écriture et ne pas lancer Timer, Discussion, Commentaires, Vote, Résultats, Plan d'action ou Résumé.
 
 ## Dette technique restante
 
 ### Non bloquant, peut attendre
 - Responsive avancé — le responsive basique MVP est livré ; il peut rester du polish visuel fin hors périmètre.
-- **Format de rétrospective non reflété sur le tableau d'écriture** : le format choisi (presets ou personnalisé) est persisté et visible dans la salle d'attente, mais `RetroColumn`/`retro_cards.column_type` restent figés sur 3 colonnes `start/stop/continue`. Voir décision du 2026-07-10.
 - Compteur "7 participants connectés" en dur sur l'accueil (`HomeHero`) — supprimé lors d'une tâche précédente puis code source à revérifier si réintroduit ; à confirmer qu'aucune valeur fictive ne subsiste avant la soutenance.
 
 ### Potentiellement bloquant pour la soutenance (à ne pas oublier)

@@ -1,5 +1,5 @@
-import Avatar from './Avatar';
-import type { RetroCard } from './RetroCardItem';
+import Avatar from '@/components/ui/Avatar';
+import type { RetroCard } from '../types/card.types';
 
 // Catégories affichées dans les résultats. Les clés restent techniques
 // (`start` / `stop` / `continue`) mais les libellés viennent du format choisi.
@@ -89,7 +89,7 @@ const ResultCard = ({ card, category, maxVotes }: { card: RetroCard; category: R
     style={{ borderLeftColor: category.color }}
   >
     <div className="mb-1.5 flex items-center gap-[7px]">
-      <Avatar name={card.authorName} id={card.authorId} size={18} />
+      <Avatar name={card.authorName} colorSeed={card.authorId} size={18} fallback="P" />
       <span className="text-[11px] text-slate-500">{card.authorName}</span>
     </div>
     <p className="mb-2 text-[13px] leading-[1.45] text-slate-200 break-words">{card.content}</p>

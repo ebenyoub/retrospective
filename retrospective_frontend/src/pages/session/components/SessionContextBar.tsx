@@ -1,7 +1,11 @@
 import { ArrowLeft, Check, Copy, MessageCircle, Users } from 'lucide-react';
+import Button from '@/components/ui/Button';
 
-import { type SessionStep } from '../sessionStep';
+import type { SessionStep } from '../types/session.types';
 import StepIndicator from './StepIndicator';
+import ParticipantBadge from './ParticipantBadge';
+import ProfileMenu from '@/components/ProfileMenu';
+import { useAuth } from '@/context/auth/useAuth';
 
 interface SessionContextBarProps {
   sessionName: string;
@@ -10,6 +14,12 @@ interface SessionContextBarProps {
   step: SessionStep;
   participantCount: number;
   isSessionCodeCopied: boolean;
+  // Badge du participant (pseudo + menu) : absent pour le facilitateur,
+  // qui a déjà son menu de compte.
+  selfDisplayName?: string | null;
+  canRenameSelf?: boolean;
+  onRenameSelf?: (pseudo: string) => Promise<boolean>;
+  onLeaveSession?: () => void | Promise<void>;
   onBack: () => void | Promise<void>;
   onCopySessionCode: () => void;
   onToggleParticipants?: () => void;
@@ -25,6 +35,10 @@ const SessionContextBar = ({
   step,
   participantCount,
   isSessionCodeCopied,
+  selfDisplayName = null,
+  canRenameSelf = false,
+  onRenameSelf,
+  onLeaveSession,
   onBack,
   onCopySessionCode,
   onToggleParticipants,
@@ -33,6 +47,7 @@ const SessionContextBar = ({
   isDiscussionOpen = false,
 }: SessionContextBarProps) => {
   const displayName = sessionName || `Session ${sessionId}`;
+  const { isAuthenticated } = useAuth();
 
   return (
     <nav
@@ -40,15 +55,17 @@ const SessionContextBar = ({
       className="grid min-h-[52px] flex-shrink-0 grid-cols-1 items-center gap-2 border-b border-navy-border bg-navy-mid px-3 py-2 md:h-14 md:min-h-14 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:items-stretch md:gap-2 md:px-5 md:py-0"
     >
       <div className="flex min-w-0 items-center gap-1.5 md:h-full" aria-label="Fil de contexte">
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="sm"
           onClick={onBack}
           aria-label="Retour"
           className="inline-flex h-[30px] shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border border-navy-border bg-transparent px-2.5 font-sans text-xs font-medium leading-none text-slate-400 transition-colors select-none hover:bg-navy-surface hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-navy-mid"
         >
           <ArrowLeft size={14} aria-hidden="true" />
           <span className="hidden sm:inline">Retour</span>
-        </button>
+        </Button>
         <span className="inline-flex h-[30px] shrink-0 items-center font-sans text-[15px] font-extrabold leading-none text-green-figma">
           Range ta chambre
         </span>
@@ -64,8 +81,10 @@ const SessionContextBar = ({
 
       <div className="flex min-w-0 items-center justify-start gap-1.5 md:h-full md:justify-end" aria-label="Accès rapides de session">
         {sessionCode && (
-          <button
+          <Button
             type="button"
+            variant="secondary"
+            size="sm"
             onClick={onCopySessionCode}
             aria-label={isSessionCodeCopied ? 'Code copié' : 'Copier le code de session'}
             className={`flex h-[30px] items-center gap-1.5 rounded-lg border px-3 font-mono text-[11px] leading-none transition-colors cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-navy-mid ${
@@ -76,10 +95,12 @@ const SessionContextBar = ({
           >
             {isSessionCodeCopied ? <Check size={12} aria-hidden="true" /> : <Copy size={12} aria-hidden="true" />}
             <span>{isSessionCodeCopied ? 'Copié !' : sessionCode}</span>
-          </button>
+          </Button>
         )}
-        <button
+        <Button
           type="button"
+          variant={isParticipantsOpen ? 'secondary' : 'ghost'}
+          size="sm"
           onClick={onToggleParticipants}
           aria-label="Participants"
           aria-expanded={isParticipantsOpen}
@@ -96,9 +117,11 @@ const SessionContextBar = ({
               {participantCount}
             </span>
           )}
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
+          variant={isDiscussionOpen ? 'secondary' : 'ghost'}
+          size="sm"
           onClick={onToggleDiscussion}
           aria-label="Discussion"
           aria-expanded={isDiscussionOpen}
@@ -110,7 +133,22 @@ const SessionContextBar = ({
         >
           <MessageCircle size={14} aria-hidden="true" />
           <span className="hidden sm:inline">Discussion</span>
-        </button>
+        </Button>
+        {selfDisplayName && onRenameSelf && onLeaveSession && (
+          <div className="border-l border-navy-border-med pl-1.5 h-6 flex items-center shrink-0">
+            <ParticipantBadge
+              displayName={selfDisplayName}
+              canRename={canRenameSelf}
+              onRename={onRenameSelf}
+              onLeave={onLeaveSession}
+            />
+          </div>
+        )}
+        {isAuthenticated && (
+          <div className="border-l border-navy-border-med pl-1.5 h-6 flex items-center shrink-0">
+            <ProfileMenu />
+          </div>
+        )}
       </div>
     </nav>
   );
