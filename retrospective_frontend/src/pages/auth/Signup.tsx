@@ -11,7 +11,7 @@ import { getApiErrorMessage, NETWORK_ERROR_MESSAGE } from '@/lib/apiError';
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { signupApi } from '@/pages/auth/services/authApi';
-import type { SignupValues } from '../types/auth.types';
+import type { SignupValues } from './types/auth.types';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 

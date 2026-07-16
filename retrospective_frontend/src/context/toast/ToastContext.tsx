@@ -6,7 +6,7 @@ import React, {
 
 import ToastNotification from '@/components/ui/ToastNotification';
 import { ToastContext } from './useToast';
-import type { Toast } from './types/toast.types';
+import type { Toast, ToastType } from './types/toast.types';
 
 export const ToastProvider: React.FC<{
   children: React.ReactNode;

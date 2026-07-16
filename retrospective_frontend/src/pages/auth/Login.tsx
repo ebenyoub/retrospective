@@ -10,7 +10,7 @@ import type { ValidationSchema } from '@/hooks/types/useFormValidation.types';
 import useFormValidation from '@/hooks/useFormValidation';
 import { getApiErrorMessage, NETWORK_ERROR_MESSAGE } from '@/lib/apiError';
 import { loginApi } from '@/pages/auth/services/authApi';
-import type { LoginValues } from '../types/auth.types';
+import type { LoginValues } from './types/auth.types';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 

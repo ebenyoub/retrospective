@@ -7,6 +7,7 @@ export interface SessionDetails {
   name: string;
   code: string;
   step?: SessionStep;
+  status?: string;
   ownerId: number;
   formatName?: string;
   formatColumns?: string[] | string;
