@@ -111,3 +111,8 @@ export const emitSessionClosed = (sessionId: number): void => {
   if (!io) return;
   io.to(roomName(sessionId)).emit("session:closed");
 };
+
+export const emitMessageAdded = (sessionId: number, message: any): void => {
+  if (!io) return;
+  io.to(roomName(sessionId)).emit("session:message-added", message);
+};

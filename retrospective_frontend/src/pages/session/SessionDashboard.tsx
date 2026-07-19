@@ -149,11 +149,16 @@ const SessionDashboard = () => {
     hasShownClosedToastRef.current = true;
   }, [addToast, setStatus]);
 
-  const { participants } = useSessionParticipants(sessionId, identity.selfIdentityForSocket, {
-    onSessionStarted: handleSessionStarted,
-    onTimerUpdated: handleTimerUpdated,
-    onSessionClosed: handleSessionClosedBySocket,
-  });
+  const { participants, messages, setMessages } = useSessionParticipants(
+    sessionId,
+    identity.selfIdentityForSocket,
+    {
+      onSessionStarted: handleSessionStarted,
+      onTimerUpdated: handleTimerUpdated,
+      onSessionClosed: handleSessionClosedBySocket,
+      actorHeaders: identity.actorHeaders ?? EMPTY_HEADERS,
+    }
+  );
 
   // Retour = quitter l'écran SANS perdre sa participation : l'identité
   // (invitée ou compte) est conservée pour permettre la reprise depuis
@@ -262,6 +267,13 @@ const SessionDashboard = () => {
             isOpen={panels.isDiscussionDrawerOpen}
             isDesktop={!isMobileViewport}
             onClose={panels.closeDiscussionDrawer}
+            messages={messages}
+            sessionId={sessionId}
+            actorHeaders={identity.actorHeaders ?? EMPTY_HEADERS}
+            onMessageSent={(msg) => setMessages((prev) => {
+              if (prev.some((m) => m.id === msg.id)) return prev;
+              return [...prev, msg];
+            })}
           />
 
           {activeStep === 'results' ? (
@@ -275,7 +287,6 @@ const SessionDashboard = () => {
               currentUserId={identity.selfParticipantId}
               onSelectMobileColumn={setActiveMobileColumn}
               onVote={sessionCards.handleVote}
-              onOpenComments={panels.openComments}
               onUpdateCard={sessionCards.handleUpdateCard}
               onDeleteCard={sessionCards.handleDeleteCard}
             />
@@ -289,7 +300,6 @@ const SessionDashboard = () => {
               onSelectMobileColumn={setActiveMobileColumn}
               onAddCard={sessionCards.handleAddCard}
               onVote={sessionCards.handleVote}
-              onOpenComments={panels.openComments}
               onUpdateCard={sessionCards.handleUpdateCard}
               onDeleteCard={sessionCards.handleDeleteCard}
             />

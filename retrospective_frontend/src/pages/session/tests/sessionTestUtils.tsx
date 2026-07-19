@@ -24,6 +24,8 @@ export const createDashboardFetchMock = (options: {
   commentsResponse?: unknown;
   createCommentResponse?: unknown;
   deleteCommentResponse?: unknown;
+  messagesResponse?: unknown;
+  createMessageResponse?: unknown;
   step?: 'waiting' | 'writing' | 'voting' | 'results';
   formatName?: string;
   formatColumns?: string[];
@@ -38,6 +40,8 @@ export const createDashboardFetchMock = (options: {
     commentsResponse = emptyCardsResponse,
     createCommentResponse,
     deleteCommentResponse,
+    messagesResponse = emptyCardsResponse,
+    createMessageResponse,
     step = 'writing',
     formatName = 'Commencer / Arrêter / Continuer',
     formatColumns = ['Commencer', 'Arrêter', 'Continuer'],
@@ -85,6 +89,12 @@ export const createDashboardFetchMock = (options: {
     }
     if (url.endsWith('/session')) {
       return Promise.resolve(emptyRoleResponse);
+    }
+    if (method === 'GET' && url.includes('/chat/messages')) {
+      return Promise.resolve(messagesResponse);
+    }
+    if (method === 'POST' && url.includes('/chat/messages')) {
+      return Promise.resolve(createMessageResponse);
     }
     if (method === 'POST' && url.includes('/vote')) {
       return Promise.resolve(voteResponse);

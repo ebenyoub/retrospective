@@ -135,9 +135,9 @@ test('ouvre et ferme les drawers au clavier et au clic extérieur', async ({ pag
   // Vérification de l'état vide
   await expect(discussionDrawer.getByText('Aucun message pour le moment')).toBeVisible();
 
-  // Vérification des contrôles désactivés (périmètre borné)
+  // Vérification des contrôles (chat actif)
   const messageInput = discussionDrawer.getByRole('textbox', { name: 'Écrire un message' });
-  await expect(messageInput).toBeDisabled();
+  await expect(messageInput).toBeEnabled();
 
   const sendButton = discussionDrawer.getByRole('button', { name: 'Envoyer le message' });
   await expect(sendButton).toBeDisabled();

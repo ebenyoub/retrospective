@@ -9,7 +9,6 @@ const VotingStep = ({
   currentUserId,
   onSelectMobileColumn,
   onVote,
-  onOpenComments,
   onUpdateCard,
   onDeleteCard,
 }: VotingStepProps) => (
@@ -23,7 +22,6 @@ const VotingStep = ({
     canEdit={false}
     onSelectMobileColumn={onSelectMobileColumn}
     onVote={onVote}
-    onOpenComments={onOpenComments}
     onUpdateCard={onUpdateCard}
     onDeleteCard={onDeleteCard}
   />

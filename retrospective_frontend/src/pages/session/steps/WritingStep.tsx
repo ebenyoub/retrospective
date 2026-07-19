@@ -10,7 +10,6 @@ const WritingStep = ({
   onSelectMobileColumn,
   onAddCard,
   onVote,
-  onOpenComments,
   onUpdateCard,
   onDeleteCard,
 }: WritingStepProps) => (
@@ -25,7 +24,6 @@ const WritingStep = ({
     onSelectMobileColumn={onSelectMobileColumn}
     onAddCard={onAddCard}
     onVote={onVote}
-    onOpenComments={onOpenComments}
     onUpdateCard={onUpdateCard}
     onDeleteCard={onDeleteCard}
   />

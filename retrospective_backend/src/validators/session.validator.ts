@@ -60,6 +60,15 @@ export const createCommentSchema = z.object({
   })
 });
 
+export const createMessageSchema = z.object({
+  body: z.object({
+    content: z.string({ error: "Le message est obligatoire." }).trim()
+      .min(1, "Le message ne peut pas être vide.")
+      .max(500, "Le message ne peut pas dépasser 500 caractères.")
+  })
+});
+
+
 export const updateSessionStepSchema = z.object({
   body: z.object({
     step: z.enum(["waiting", "writing", "voting", "results"], {

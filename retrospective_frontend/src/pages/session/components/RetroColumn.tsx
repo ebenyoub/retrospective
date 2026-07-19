@@ -17,7 +17,6 @@ const RetroColumn = ({
   currentUserId,
   onAddCard,
   onVote,
-  onOpenComments,
   onUpdateCard,
   onDeleteCard,
   canVote = true,
@@ -50,7 +49,6 @@ const RetroColumn = ({
               accentClassName={accentClassName}
               currentUserId={currentUserId}
               onVote={onVote}
-              onOpenComments={onOpenComments}
               onUpdateCard={onUpdateCard}
               onDeleteCard={onDeleteCard}
               canVote={canVote}

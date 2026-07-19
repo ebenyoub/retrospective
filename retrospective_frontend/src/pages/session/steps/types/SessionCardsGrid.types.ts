@@ -12,7 +12,6 @@ export interface SessionCardsGridProps {
   onSelectMobileColumn: (columnType: RetroCard['columnType']) => void;
   onAddCard?: (columnType: RetroCard['columnType'], content: string) => Promise<void> | void;
   onVote: (cardId: number) => Promise<void> | void;
-  onOpenComments: (card: RetroCard) => void;
   onUpdateCard: (cardId: number, content: string) => Promise<boolean> | boolean;
   onDeleteCard: (cardId: number) => Promise<void> | void;
 }

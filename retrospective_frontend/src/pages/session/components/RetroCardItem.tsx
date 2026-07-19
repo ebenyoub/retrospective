@@ -6,7 +6,7 @@ import Avatar from "@/components/ui/Avatar";
 import type { RetroCardItemProps } from './types/RetroCardItem.types';
 import CardCommentsSection from './CardCommentsSection';
 
-const RetroCardItem = ({ card, accentClassName, currentUserId, onVote, onUpdateCard, onDeleteCard, onOpenComments, canVote = true, canEdit = true }: RetroCardItemProps) => {
+const RetroCardItem = ({ card, accentClassName, currentUserId, onVote, onUpdateCard, onDeleteCard, canVote = true, canEdit = true }: RetroCardItemProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [draftContent, setDraftContent] = useState(card.content);
   const [isCommentsExpanded, setIsCommentsExpanded] = useState(false);

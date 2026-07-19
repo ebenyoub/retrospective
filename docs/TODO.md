@@ -76,7 +76,7 @@
 - [x] **T-SESSION-BAR-01 — SessionContextBar** : terminé et validé utilisateur. Première barre sous le header principal : retour, breadcrumb, nom de session, `StepIndicator`, code, déclencheurs Participants/Discussion. Aucun compteur, timer ou bouton principal dans cette barre.
 - [x] **T-SESSION-BAR-02 — SessionActionBar** : terminé et validé utilisateur. Seconde barre uniquement après validation de `SessionContextBar` : compteur total de cartes ou votes restants, timer, bouton principal, sans troisième barre.
 - [x] **T-SESSION-BAR-03 — ParticipantsDrawer** : terminé. Panneau Participants déclenché depuis `SessionContextBar`, avec vraies données.
-- [x] **T-SESSION-BAR-04 — DiscussionDrawer** : terminé. Panneau Discussion déclenché depuis `SessionContextBar`, périmètre données borné sans backend.
+- [x] **T-SESSION-BAR-04 — DiscussionDrawer (Chat)** : terminé. Panneau Discussion déclenché depuis `SessionContextBar`, avec persistance réelle en base et synchronisation temps réel via Socket.IO (US-11).
 - [x] **T-SESSION-BAR-05 — Commentaires des cartes** : UI livrée le 2026-07-14 sans persistance ; persistance réelle ajoutée le 2026-07-16 via `MVP-COMMENTS-01` (table `card_comments`, routes dédiées).
 - [x] **T-SESSION-BAR-06 — Revue UI finale écran Écriture** : terminé. Comparaison globale au prototype après validation des composants précédents.
 

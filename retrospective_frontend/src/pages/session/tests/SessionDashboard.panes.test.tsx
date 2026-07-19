@@ -146,9 +146,9 @@ describe('SessionDashboard - Tiroirs et Modals (Panes)', () => {
 
     const drawer = await screen.findByRole('dialog', { name: 'Discussion' });
     expect(discussionButton.getAttribute('aria-expanded')).toBe('true');
-    expect(within(drawer).getByText('0 message')).toBeTruthy();
+    expect(within(drawer).getByText('0 messages')).toBeTruthy();
     expect(within(drawer).getByText('Aucun message pour le moment')).toBeTruthy();
-    expect((within(drawer).getByRole('textbox', { name: 'Écrire un message' }) as HTMLTextAreaElement).disabled).toBe(true);
+    expect((within(drawer).getByRole('textbox', { name: 'Écrire un message' }) as HTMLTextAreaElement).disabled).toBe(false);
     expect((within(drawer).getByRole('button', { name: 'Envoyer le message' }) as HTMLButtonElement).disabled).toBe(true);
     expect(screen.queryByRole('dialog', { name: 'Participants (1)' })).toBeNull();
 
@@ -160,6 +160,53 @@ describe('SessionDashboard - Tiroirs et Modals (Panes)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Fermer le panneau Discussion' }));
     expect(screen.queryByRole('dialog', { name: 'Discussion' })).toBeNull();
   });
+
+  it('permet d\'écrire et d\'envoyer un message au sein du chat', async () => {
+    const fetchMock = createDashboardFetchMock({
+      cardsSequence: [emptyCardsResponse],
+      createMessageResponse: {
+        ok: true,
+        json: async () => ({
+          success: true,
+          data: {
+            id: 100,
+            sessionId: 1,
+            authorId: 1,
+            authorName: 'Elyas',
+            content: 'Mon super message',
+            createdAt: new Date().toISOString(),
+          },
+        }),
+      },
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderDashboard();
+
+    const discussionButton = await screen.findByRole('button', { name: 'Discussion' });
+    fireEvent.click(discussionButton);
+
+    const drawer = await screen.findByRole('dialog', { name: 'Discussion' });
+    const textarea = within(drawer).getByRole('textbox', { name: 'Écrire un message' }) as HTMLTextAreaElement;
+    const sendButton = within(drawer).getByRole('button', { name: 'Envoyer le message' }) as HTMLButtonElement;
+
+    expect(textarea.disabled).toBe(false);
+    expect(sendButton.disabled).toBe(true);
+
+    fireEvent.change(textarea, { target: { value: 'Mon super message' } });
+    expect(sendButton.disabled).toBe(false);
+
+    fireEvent.click(sendButton);
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining('/session/1/chat/messages'),
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ content: 'Mon super message' }),
+      })
+    );
+  });
+
 
   it('ne superpose pas les panneaux Participants et Discussion', async () => {
     const fetchMock = createDashboardFetchMock({ cardsSequence: [emptyCardsResponse] });

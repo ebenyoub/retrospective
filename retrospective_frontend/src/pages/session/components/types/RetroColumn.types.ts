@@ -14,7 +14,6 @@ export interface RetroColumnProps {
   currentUserId: number | null;
   onAddCard?: (content: string) => Promise<void> | void;
   onVote: (cardId: number) => Promise<void> | void;
-  onOpenComments?: (card: RetroCard) => void;
   onUpdateCard?: (cardId: number, content: string) => Promise<boolean> | boolean;
   onDeleteCard?: (cardId: number) => Promise<void> | void;
   canVote?: boolean;

@@ -3,7 +3,9 @@ import { io, type Socket } from "socket.io-client";
 
 import { API_BASE } from "@/lib/api";
 import { listParticipants } from "../services/participantApi";
+import { getMessages } from "../services/messageApi";
 import type { ParticipantSummary, SelfIdentity } from '../types/participant.types';
+import type { SessionMessage } from "../types/message.types";
 import type { UseSessionParticipantsOptions } from './types/useSessionParticipants.types';
 
 // Source de vérité = backend : liste initiale par API, puis mises à jour en
@@ -16,6 +18,8 @@ export const useSessionParticipants = (
   options: UseSessionParticipantsOptions = {}
 ) => {
   const [participants, setParticipants] = useState<ParticipantSummary[]>([]);
+  const [messages, setMessages] = useState<SessionMessage[]>([]);
+  const actorHeaders = options.actorHeaders ?? {};
 
   // Ref plutôt que dépendance d'effet : évite de rouvrir un socket à chaque
   // fois que le composant appelant recrée sa fonction de callback. La mise à
@@ -47,7 +51,19 @@ export const useSessionParticipants = (
       }
     };
 
+    const loadMessages = async () => {
+      try {
+        const result = await getMessages(sessionId, actorHeaders);
+        if (isActive && result.ok) {
+          setMessages(result.data);
+        }
+      } catch (error) {
+        console.error("Erreur lors du chargement des messages :", error);
+      }
+    };
+
     void loadInitial();
+    void loadMessages();
 
     // withCredentials : le cookie d'authentification HttpOnly accompagne le
     // handshake, le serveur y lit le JWT de l'utilisateur connecté.
@@ -78,11 +94,21 @@ export const useSessionParticipants = (
       if (isActive) onSessionClosedRef.current?.();
     };
 
+    const handleMessageAdded = (message: SessionMessage) => {
+      if (isActive) {
+        setMessages((previous) => {
+          if (previous.some((m) => m.id === message.id)) return previous;
+          return [...previous, message];
+        });
+      }
+    };
+
     socket.on("connect", handleConnect);
     socket.on("session:participants-updated", handleParticipantsUpdated);
     socket.on("session:started", handleSessionStarted);
     socket.on("session:timer-updated", handleTimerUpdated);
     socket.on("session:closed", handleSessionClosed);
+    socket.on("session:message-added", handleMessageAdded);
 
     return () => {
       isActive = false;
@@ -91,9 +117,10 @@ export const useSessionParticipants = (
       socket.off("session:started", handleSessionStarted);
       socket.off("session:timer-updated", handleTimerUpdated);
       socket.off("session:closed", handleSessionClosed);
+      socket.off("session:message-added", handleMessageAdded);
       socket.disconnect();
     };
-  }, [sessionId, self]);
+  }, [sessionId, self, options.actorHeaders]);
 
-  return { participants };
+  return { participants, messages, setMessages };
 };

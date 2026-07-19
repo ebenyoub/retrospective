@@ -9,7 +9,6 @@ export interface VotingStepProps {
   currentUserId: number | null;
   onSelectMobileColumn: (columnType: RetroCard['columnType']) => void;
   onVote: (cardId: number) => Promise<void> | void;
-  onOpenComments: (card: RetroCard) => void;
   onUpdateCard: (cardId: number, content: string) => Promise<boolean> | boolean;
   onDeleteCard: (cardId: number) => Promise<void> | void;
 }

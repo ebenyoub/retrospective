@@ -51,9 +51,12 @@ describe('useSessionParticipants', () => {
   });
 
   it('récupère la liste initiale par API puis rejoint la room via socket', async () => {
-    const fetchMock = vi.fn().mockResolvedValueOnce(
-      jsonResponse({ success: true, data: [{ id: 1, displayName: 'Elyas' }] })
-    );
+    const fetchMock = vi.fn().mockImplementation((url: string) => {
+      if (url.includes('/participants')) {
+        return Promise.resolve(jsonResponse({ success: true, data: [{ id: 1, displayName: 'Elyas' }] }));
+      }
+      return Promise.resolve(jsonResponse({ success: true, data: [] }));
+    });
     vi.stubGlobal('fetch', fetchMock);
 
     const self = { participantId: 1 };
@@ -75,7 +78,7 @@ describe('useSessionParticipants', () => {
   });
 
   it("met à jour la liste quand l'événement session:participants-updated arrive", async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(jsonResponse({ success: true, data: [] })));
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse({ success: true, data: [] })));
 
     const self = { participantId: 2, guestToken: 'gtok' };
     const { result } = renderHook(() => useSessionParticipants('1', self));
@@ -88,7 +91,7 @@ describe('useSessionParticipants', () => {
   });
 
   it('appelle onSessionStarted quand le socket reçoit session:started', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(jsonResponse({ success: true, data: [] })));
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse({ success: true, data: [] })));
     const onSessionStarted = vi.fn();
     const self = { participantId: 1, token: 'tok' };
 
@@ -102,7 +105,7 @@ describe('useSessionParticipants', () => {
   });
 
   it('déconnecte le socket et retire les listeners au démontage (nettoyage)', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(jsonResponse({ success: true, data: [] })));
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse({ success: true, data: [] })));
 
     // Référence stable entre les rendus, comme le fait SessionDashboard via
     // useMemo : sinon un objet recréé à chaque rendu rouvrirait le socket.

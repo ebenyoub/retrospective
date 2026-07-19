@@ -12,7 +12,6 @@ const SessionCardsGrid = ({
   onSelectMobileColumn,
   onAddCard,
   onVote,
-  onOpenComments,
   onUpdateCard,
   onDeleteCard,
 }: SessionCardsGridProps) => (
@@ -68,7 +67,6 @@ const SessionCardsGrid = ({
           currentUserId={currentUserId}
           onAddCard={onAddCard ? (content) => onAddCard(column.key, content) : undefined}
           onVote={onVote}
-          onOpenComments={onOpenComments}
           onUpdateCard={onUpdateCard}
           onDeleteCard={onDeleteCard}
           canVote={canVote}
