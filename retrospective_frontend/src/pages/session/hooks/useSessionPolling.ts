@@ -1,14 +1,8 @@
 import { useEffect, useState } from 'react';
 import type { UseSessionPollingOptions } from './types/useSessionPolling.types';
 
-export const useSessionPolling = ({
-  sessionId,
-  isAuthenticated,
-  navigate,
-  addToast,
-  fetchSessionDetails,
-  fetchCards,
-}: UseSessionPollingOptions): boolean => {
+export const useSessionPolling = (props: UseSessionPollingOptions): boolean => {
+  const { sessionId, isAuthenticated, navigate, addToast, fetchSessionDetails, fetchCards } = props;
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {

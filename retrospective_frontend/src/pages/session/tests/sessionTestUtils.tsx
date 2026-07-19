@@ -21,6 +21,9 @@ export const createDashboardFetchMock = (options: {
   addCardResponse?: unknown;
   updateCardResponse?: unknown;
   deleteCardResponse?: unknown;
+  commentsResponse?: unknown;
+  createCommentResponse?: unknown;
+  deleteCommentResponse?: unknown;
   step?: 'waiting' | 'writing' | 'voting' | 'results';
   formatName?: string;
   formatColumns?: string[];
@@ -32,6 +35,9 @@ export const createDashboardFetchMock = (options: {
     addCardResponse,
     updateCardResponse,
     deleteCardResponse,
+    commentsResponse = emptyCardsResponse,
+    createCommentResponse,
+    deleteCommentResponse,
     step = 'writing',
     formatName = 'Commencer / Arrêter / Continuer',
     formatColumns = ['Commencer', 'Arrêter', 'Continuer'],
@@ -82,6 +88,15 @@ export const createDashboardFetchMock = (options: {
     }
     if (method === 'POST' && url.includes('/vote')) {
       return Promise.resolve(voteResponse);
+    }
+    if (method === 'GET' && url.includes('/comments')) {
+      return Promise.resolve(commentsResponse);
+    }
+    if (method === 'POST' && url.includes('/comments')) {
+      return Promise.resolve(createCommentResponse);
+    }
+    if (method === 'DELETE' && url.includes('/comments')) {
+      return Promise.resolve(deleteCommentResponse);
     }
     if (method === 'POST' && url.endsWith('/cards')) {
       return Promise.resolve(addCardResponse);

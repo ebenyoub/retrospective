@@ -48,6 +48,7 @@ function makeCards(count: number): RetroCard[] {
       content: contents[i % contents.length],
       createdAt: '2026-07-13T10:00:00.000Z',
       votesCount: count === 1 ? 1 : (i * 3 + 1) % 8,
+      commentsCount: 0,
     });
   }
   return cards;

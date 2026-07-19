@@ -23,6 +23,7 @@ export const useSessionParticipants = (
   const onSessionStartedRef = useRef(options.onSessionStarted);
   const onTimerUpdatedRef = useRef(options.onTimerUpdated);
   const onSessionClosedRef = useRef(options.onSessionClosed);
+  
   useEffect(() => {
     onSessionStartedRef.current = options.onSessionStarted;
     onTimerUpdatedRef.current = options.onTimerUpdated;

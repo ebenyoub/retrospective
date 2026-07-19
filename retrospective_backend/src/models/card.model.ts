@@ -34,7 +34,8 @@ export const findCardsBySessionId = async (
     `select rc.id, rc.session_id, rc.author_participant_id, sp.display_name as author_name,
             rc.column_type, rc.content, rc.created_at,
             count(v.id) as votes_count,
-            exists(select 1 from votes v2 where v2.card_id = rc.id and v2.participant_id = ?) as voted_by_me
+            exists(select 1 from votes v2 where v2.card_id = rc.id and v2.participant_id = ?) as voted_by_me,
+            (select count(*) from card_comments cc where cc.card_id = rc.id) as comments_count
      from retro_cards rc
      inner join session_participants sp on sp.id = rc.author_participant_id
      left join votes v on v.card_id = rc.id

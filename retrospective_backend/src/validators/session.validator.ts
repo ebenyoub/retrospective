@@ -52,6 +52,14 @@ export const updateCardSchema = z.object({
   })
 });
 
+export const createCommentSchema = z.object({
+  body: z.object({
+    content: z.string({ error: "Le commentaire est obligatoire." }).trim()
+      .min(1, "Le commentaire ne peut pas être vide.")
+      .max(280, "Le commentaire ne peut pas dépasser 280 caractères.")
+  })
+});
+
 export const updateSessionStepSchema = z.object({
   body: z.object({
     step: z.enum(["waiting", "writing", "voting", "results"], {
