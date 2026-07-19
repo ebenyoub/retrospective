@@ -181,7 +181,7 @@ describe('SessionDashboard - Tiroirs et Modals (Panes)', () => {
     expect(screen.queryByRole('dialog', { name: 'Discussion' })).toBeNull();
   });
 
-  it('ouvre le modal de commentaires depuis une carte sans compteur fictif', async () => {
+  it('ouvre la section de commentaires depuis une carte sans compteur fictif', async () => {
     const fetchMock = createDashboardFetchMock({
       cardsSequence: [
         {
@@ -211,19 +211,145 @@ describe('SessionDashboard - Tiroirs et Modals (Panes)', () => {
     await screen.findByText('Carte à commenter');
     expect(screen.getByText('2 votes')).toBeTruthy();
 
-    const commentsButton = screen.getByRole('button', { name: 'Ouvrir les commentaires' });
+    const commentsButton = screen.getByRole('button', { name: 'Commentaires' });
     expect(commentsButton.textContent).toBe('Commentaires');
 
     fireEvent.click(commentsButton);
 
-    const modal = await screen.findByRole('dialog', { name: 'Carte à commenter' });
-    expect(within(modal).getByText('Idées')).toBeTruthy();
-    expect(within(modal).getByText('Elyas')).toBeTruthy();
-    expect(within(modal).getByText('Aucun commentaire disponible')).toBeTruthy();
-    expect((within(modal).getByRole('textbox', { name: 'Écrire un commentaire' }) as HTMLTextAreaElement).disabled).toBe(true);
-    expect((within(modal).getByRole('button', { name: 'Envoyer le commentaire' }) as HTMLButtonElement).disabled).toBe(true);
+    const section = await screen.findByRole('region', { name: 'Discussion' });
+    await within(section).findByText('Aucun commentaire pour le moment.');
+    expect((within(section).getByRole('textbox', { name: 'Écrire un commentaire' }) as HTMLTextAreaElement).disabled).toBe(false);
+    expect((within(section).getByRole('button', { name: 'Envoyer le commentaire' }) as HTMLButtonElement).disabled).toBe(true);
 
-    fireEvent.click(within(modal).getByRole('button', { name: 'Fermer les commentaires' }));
-    expect(screen.queryByRole('dialog', { name: 'Carte à commenter' })).toBeNull();
+    fireEvent.click(commentsButton);
+    expect(screen.queryByRole('region', { name: 'Discussion' })).toBeNull();
+  });
+
+  it('affiche les commentaires existants et permet d\'en ajouter un', async () => {
+    const fetchMock = createDashboardFetchMock({
+      cardsSequence: [
+        {
+          ok: true,
+          json: async () => ({
+            success: true,
+            data: [
+              {
+                id: 1,
+                sessionId: 1,
+                authorId: 1,
+                authorName: 'Elyas',
+                columnType: 'start',
+                content: 'Carte à commenter',
+                createdAt: '2026-07-07T10:00:00.000Z',
+                votesCount: 2,
+                commentsCount: 1,
+              },
+            ],
+          }),
+        },
+      ],
+      commentsResponse: {
+        ok: true,
+        json: async () => ({
+          success: true,
+          data: [
+            {
+              id: 5,
+              cardId: 1,
+              authorId: 2,
+              authorName: 'Sarah',
+              content: 'Un premier commentaire',
+              createdAt: '2026-07-07T10:05:00.000Z',
+            },
+          ],
+        }),
+      },
+      createCommentResponse: {
+        ok: true,
+        json: async () => ({
+          success: true,
+          data: {
+            id: 6,
+            cardId: 1,
+            authorId: 1,
+            authorName: 'Elyas',
+            content: 'Une précision utile',
+            createdAt: '2026-07-07T10:06:00.000Z',
+          },
+        }),
+      },
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderDashboard();
+
+    await screen.findByText('Carte à commenter');
+    fireEvent.click(screen.getByRole('button', { name: 'Commentaires' }));
+
+    const section = await screen.findByRole('region', { name: 'Discussion' });
+    await within(section).findByText('Un premier commentaire');
+    expect(within(section).getByText('Sarah')).toBeTruthy();
+
+    const textarea = within(section).getByRole('textbox', { name: 'Écrire un commentaire' });
+    fireEvent.change(textarea, { target: { value: 'Une précision utile' } });
+    fireEvent.click(within(section).getByRole('button', { name: 'Envoyer le commentaire' }));
+
+    await within(section).findByText('Une précision utile');
+  });
+
+  it("permet à l'auteur de supprimer son propre commentaire", async () => {
+    const fetchMock = createDashboardFetchMock({
+      cardsSequence: [
+        {
+          ok: true,
+          json: async () => ({
+            success: true,
+            data: [
+              {
+                id: 1,
+                sessionId: 1,
+                authorId: 1,
+                authorName: 'Elyas',
+                columnType: 'start',
+                content: 'Carte à commenter',
+                createdAt: '2026-07-07T10:00:00.000Z',
+                votesCount: 2,
+                commentsCount: 1,
+              },
+            ],
+          }),
+        },
+      ],
+      commentsResponse: {
+        ok: true,
+        json: async () => ({
+          success: true,
+          data: [
+            {
+              id: 5,
+              cardId: 1,
+              authorId: 1,
+              authorName: 'Elyas',
+              content: 'Mon commentaire',
+              createdAt: '2026-07-07T10:05:00.000Z',
+            },
+          ],
+        }),
+      },
+      deleteCommentResponse: { ok: true, json: async () => ({ success: true }) },
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderDashboard();
+
+    await screen.findByText('Carte à commenter');
+    fireEvent.click(screen.getByRole('button', { name: 'Commentaires' }));
+
+    const section = await screen.findByRole('region', { name: 'Discussion' });
+    await within(section).findByText('Mon commentaire');
+
+    fireEvent.click(within(section).getByRole('button', { name: 'Supprimer le commentaire' }));
+
+    await within(section).findByText('Aucun commentaire pour le moment.');
   });
 });

@@ -10,6 +10,7 @@ export interface CardRow extends RowDataPacket {
   created_at: Date;
   votes_count: number;
   voted_by_me?: number;
+  comments_count: number;
 }
 
 export interface CardOwnerRow extends RowDataPacket {

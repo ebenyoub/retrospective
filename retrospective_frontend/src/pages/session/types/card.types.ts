@@ -8,4 +8,5 @@ export interface RetroCard {
   createdAt: string;
   votesCount: number;
   votedByMe?: boolean;
+  commentsCount: number;
 }

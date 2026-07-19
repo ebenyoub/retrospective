@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { getRetroFormatById, DEFAULT_RETRO_FORMAT_ID } from '@/lib/retroFormats';
-import CardCommentsModal from './components/CardCommentsModal';
+import { SessionContext } from './context/SessionContext';
 import DiscussionDrawer from './components/DiscussionDrawer';
 import ParticipantsDrawer from './components/ParticipantsDrawer';
 import SessionActionBar from './components/SessionActionBar';
@@ -24,6 +24,10 @@ import ResultsStep from './steps/ResultsStep';
 import VotingStep from './steps/VotingStep';
 import WaitingStep from './steps/WaitingStep';
 import WritingStep from './steps/WritingStep';
+
+// Référence stable pour éviter de recréer un objet à chaque rendu tant que
+// l'identité (auth ou invité) n'est pas encore résolue.
+const EMPTY_HEADERS: Record<string, string> = {};
 
 const COLUMNS: Omit<SessionBoardColumn, 'title'>[] = [
   {
@@ -193,7 +197,15 @@ const SessionDashboard = () => {
   }
 
   return (
-    <div className="flex flex-col flex-1 overflow-hidden">
+    <SessionContext.Provider
+      value={{
+        sessionId,
+        actorHeaders: identity.actorHeaders ?? EMPTY_HEADERS,
+        selfParticipantId: identity.selfParticipantId,
+        onCommentsChanged: sessionCards.fetchCards,
+      }}
+    >
+      <div className="flex flex-col flex-1 overflow-hidden">
       <SessionContextBar
         sessionName={details.sessionName}
         sessionId={sessionId}
@@ -251,13 +263,6 @@ const SessionDashboard = () => {
             isDesktop={!isMobileViewport}
             onClose={panels.closeDiscussionDrawer}
           />
-          {panels.commentsCard && (
-            <CardCommentsModal
-              card={panels.commentsCard}
-              isDesktop={!isMobileViewport}
-              onClose={panels.closeComments}
-            />
-          )}
 
           {activeStep === 'results' ? (
             <ResultsStep cards={sessionCards.cards} formatColumns={details.formatColumns} isDesktop={!isMobileViewport} />
@@ -292,6 +297,7 @@ const SessionDashboard = () => {
         </>
       )}
     </div>
+    </SessionContext.Provider>
   );
 };
 

@@ -64,6 +64,7 @@ export const getCards = async ({ sessionId, participantId }: GetCardsInput) => {
     createdAt: card.created_at,
     votesCount: card.votes_count,
     votedByMe: !!card.voted_by_me,
+    commentsCount: card.comments_count,
   }));
 };
 
