@@ -1,16 +1,6 @@
 import { RowDataPacket } from "mysql2/promise";
 import db from "./db";
-
-export interface PasswordResetUserRow extends RowDataPacket {
-  id: number;
-  username: string;
-  hash_password: string;
-  email?: string;
-}
-
-export interface PasswordTokenRow extends RowDataPacket {
-  token: string;
-}
+import type { PasswordResetUserRow, PasswordTokenRow } from "./types/passwordReset.model.types";
 
 export const findUserByEmail = async (email: string): Promise<PasswordResetUserRow | null> => {
   const [users] = await db.execute<PasswordResetUserRow[]>(

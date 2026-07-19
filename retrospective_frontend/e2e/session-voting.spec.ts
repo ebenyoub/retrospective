@@ -16,6 +16,14 @@ const prepareVotingSession = async (page: Page, votedState: { voted: boolean }):
     });
   });
 
+  await page.route('**/session/resume/active', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ success: true, data: null }),
+    });
+  });
+
   await page.route('http://localhost:8000/session/300', async (route) => {
     await route.fulfill({
       status: 200,
@@ -94,7 +102,7 @@ test('visualise la barre de quota et effectue un vote sur une carte', async ({ p
   await prepareVotingSession(page, votedState);
 
   // Mock du endpoint de vote
-  await page.route('http://localhost:8000/session/300/cards/1/vote', async (route) => {
+  await page.route('**/session/300/cards/1/vote', async (route) => {
     votedState.voted = true;
     votePayloadCaptured = true;
     await route.fulfill({

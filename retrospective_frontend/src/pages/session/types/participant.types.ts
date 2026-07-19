@@ -23,8 +23,9 @@ export interface GuestIdentity {
   displayName: string;
 }
 
+// L'utilisateur connecté est authentifié par son cookie HttpOnly (envoyé
+// automatiquement au handshake socket) : seul l'invité porte un jeton.
 export interface SelfIdentity {
   participantId: number;
   guestToken?: string;
-  token?: string;
 }

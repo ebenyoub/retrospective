@@ -25,6 +25,8 @@ CREATE TABLE IF NOT EXISTS sessions (
   step ENUM('waiting', 'writing', 'voting', 'results') NOT NULL DEFAULT 'waiting',
   format_name VARCHAR(60) NOT NULL DEFAULT 'Commencer / Arrêter / Continuer',
   format_columns JSON NOT NULL DEFAULT (JSON_ARRAY('Commencer', 'Arrêter', 'Continuer')),
+  step_duration_minutes INT NOT NULL DEFAULT 5,
+  step_ends_at DATETIME NULL,
   expires_at DATETIME NOT NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_sessions_owner
@@ -106,6 +108,36 @@ CREATE TABLE IF NOT EXISTS votes (
   UNIQUE KEY unique_vote (card_id, participant_id),
   INDEX idx_votes_card (card_id),
   INDEX idx_votes_participant (participant_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS card_comments (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  card_id INT NOT NULL,
+  author_participant_id INT NOT NULL,
+  content VARCHAR(280) NOT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_card_comments_card
+    FOREIGN KEY (card_id) REFERENCES retro_cards(id)
+    ON DELETE CASCADE,
+  CONSTRAINT fk_card_comments_author_participant
+    FOREIGN KEY (author_participant_id) REFERENCES session_participants(id)
+    ON DELETE CASCADE,
+  INDEX idx_card_comments_card (card_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS session_messages (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  session_id INT NOT NULL,
+  author_participant_id INT NOT NULL,
+  content VARCHAR(500) NOT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_session_messages_session
+    FOREIGN KEY (session_id) REFERENCES sessions(id)
+    ON DELETE CASCADE,
+  CONSTRAINT fk_session_messages_author_participant
+    FOREIGN KEY (author_participant_id) REFERENCES session_participants(id)
+    ON DELETE CASCADE,
+  INDEX idx_session_messages_session (session_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 SET FOREIGN_KEY_CHECKS = 1;

@@ -1,7 +1,4 @@
-interface FieldErrorProps {
-  id: string;
-  message?: string;
-}
+import type { FieldErrorProps } from './types/FieldError.types';
 
 // Message d'erreur sous un champ de formulaire, relié au champ via aria-describedby.
 const FieldError = ({ id, message }: FieldErrorProps) => {

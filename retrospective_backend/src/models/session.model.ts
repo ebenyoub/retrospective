@@ -1,26 +1,9 @@
 import { ResultSetHeader, RowDataPacket } from "mysql2";
 import db from './db';
 import { JoinRow, SessionLookupRow, SessionType } from "../types";
+import type { ExpiredSessionsResult, SessionRow } from "./types/session.model.types";
 
-export type SessionRole = "facilitator" | "participant";
-
-export interface SessionRow extends RowDataPacket {
-  id: number;
-  name: string;
-  code: string;
-  status: string;
-  step: "waiting" | "writing" | "voting" | "results";
-  expires_at: Date;
-  created_at: Date;
-  role: SessionRole;
-}
-
-export interface ExpiredSessionsResult {
-  affectedRows: number;
-  changedRows: number;
-}
-
-const SESSION_COLUMNS = "id, name, code, owner_id, status, step, format_name, format_columns, created_at, expires_at";
+const SESSION_COLUMNS = "id, name, code, owner_id, status, step, format_name, format_columns, step_duration_minutes, step_ends_at, created_at, expires_at";
 
 export const findSessionsForUser = async (userId: number): Promise<SessionRow[]> => {
   const [sessions] = await db.execute<SessionRow[]>(
@@ -85,11 +68,12 @@ export const insertSession = async (
   userId: number,
   expiresAtMysql: string,
   formatName: string,
-  formatColumns: string[]
+  formatColumns: string[],
+  stepDurationMinutes: number
 ): Promise<number> => {
   const [result] = await db.execute<ResultSetHeader>(
-    'insert into sessions (name, code, owner_id, status, expires_at, format_name, format_columns) values(?, ?, ?, ?, ?, ?, ?)',
-    [name, code, userId, 'open', expiresAtMysql, formatName, JSON.stringify(formatColumns)]
+    'insert into sessions (name, code, owner_id, status, expires_at, format_name, format_columns, step_duration_minutes) values(?, ?, ?, ?, ?, ?, ?, ?)',
+    [name, code, userId, 'open', expiresAtMysql, formatName, JSON.stringify(formatColumns), stepDurationMinutes]
   );
 
   return result.insertId;
@@ -142,11 +126,38 @@ export const findSessionById = async (sessionId: number): Promise<(RowDataPacket
 
 export const updateSessionStep = async (
   sessionId: number,
-  step: "waiting" | "writing" | "voting" | "results"
+  step: "waiting" | "writing" | "voting" | "results",
+  stepEndsAtMysql: string | null
 ): Promise<boolean> => {
   const [result] = await db.execute<ResultSetHeader>(
-    'update sessions set step = ? where id = ?',
-    [step, sessionId]
+    'update sessions set step = ?, step_ends_at = ? where id = ?',
+    [step, stepEndsAtMysql, sessionId]
+  );
+
+  return result.affectedRows > 0;
+};
+
+// Salle d'attente : le facilitateur remplace la durée par défaut des étapes.
+export const updateSessionStepDuration = async (
+  sessionId: number,
+  stepDurationMinutes: number
+): Promise<boolean> => {
+  const [result] = await db.execute<ResultSetHeader>(
+    'update sessions set step_duration_minutes = ? where id = ?',
+    [stepDurationMinutes, sessionId]
+  );
+
+  return result.affectedRows > 0;
+};
+
+// Étape en cours : le facilitateur redéfinit l'échéance du timer.
+export const updateSessionStepDeadline = async (
+  sessionId: number,
+  stepEndsAtMysql: string
+): Promise<boolean> => {
+  const [result] = await db.execute<ResultSetHeader>(
+    'update sessions set step_ends_at = ? where id = ?',
+    [stepEndsAtMysql, sessionId]
   );
 
   return result.affectedRows > 0;
@@ -160,6 +171,43 @@ export const updateSessionFormat = async (
   const [result] = await db.execute<ResultSetHeader>(
     'update sessions set format_name = ?, format_columns = ? where id = ?',
     [formatName, JSON.stringify(formatColumns), sessionId]
+  );
+
+  return result.affectedRows > 0;
+};
+
+export const closeSessionById = async (
+  sessionId: number,
+  ownerId: number
+): Promise<boolean> => {
+  const [result] = await db.execute<ResultSetHeader>(
+    'update sessions set status = "closed" where id = ? and owner_id = ?',
+    [sessionId, ownerId]
+  );
+
+  return result.affectedRows > 0;
+};
+
+export const updateSessionName = async (
+  sessionId: number,
+  ownerId: number,
+  name: string
+): Promise<boolean> => {
+  const [result] = await db.execute<ResultSetHeader>(
+    'update sessions set name = ? where id = ? and owner_id = ?',
+    [name, sessionId, ownerId]
+  );
+
+  return result.affectedRows > 0;
+};
+
+export const deleteSessionById = async (
+  sessionId: number,
+  ownerId: number
+): Promise<boolean> => {
+  const [result] = await db.execute<ResultSetHeader>(
+    'delete from sessions where id = ? and owner_id = ?',
+    [sessionId, ownerId]
   );
 
   return result.affectedRows > 0;

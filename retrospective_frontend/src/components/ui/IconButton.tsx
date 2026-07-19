@@ -1,12 +1,6 @@
 import { cn } from '@/lib/utils';
 import React from 'react';
-
-interface IconButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'aria-label' | 'children'> {
-  'aria-label': string;
-  children: React.ReactNode;
-  variant?: 'default' | 'ghost' | 'danger';
-  size?: 'xs' | 'sm' | 'md';
-}
+import type { IconButtonProps } from './types/IconButton.types';
 
 const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
   ({ children, className, variant = 'default', size = 'sm', type = 'button', ...props }, ref) => {

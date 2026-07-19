@@ -1,14 +1,7 @@
 import { useRef, type ChangeEvent, type ClipboardEvent, type KeyboardEvent } from "react";
+import type { SessionCodeInputProps } from "./types/SessionCodeInput.types";
 
 const CODE_LENGTH = 4;
-
-interface SessionCodeInputProps {
-  value: string;
-  onChange: (code: string) => void;
-  disabled?: boolean;
-  hasError?: boolean;
-  describedBy?: string;
-}
 
 // Saisie du code de session en 4 cases individuelles : clavier, retour
 // arrière et collage du code complet sont pris en charge.

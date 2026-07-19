@@ -1,20 +1,6 @@
 import { ResultSetHeader, RowDataPacket } from "mysql2";
 import db from "./db";
-
-export type ParticipantRole = "facilitator" | "participant";
-export type ParticipantStatus = "online" | "offline";
-
-export interface ParticipantRow extends RowDataPacket {
-  id: number;
-  session_id: number;
-  user_id: number | null;
-  guest_token: string | null;
-  display_name: string;
-  role: ParticipantRole;
-  status: ParticipantStatus;
-  joined_at: Date;
-  last_seen_at: Date;
-}
+import type { InsertParticipantInput, ParticipantRole, ParticipantRow, ParticipantStatus } from "./types/participant.model.types";
 
 const PARTICIPANT_COLUMNS = "id, session_id, user_id, guest_token, display_name, role, status, joined_at, last_seen_at";
 
@@ -83,14 +69,6 @@ export const findParticipantsBySession = async (sessionId: number): Promise<Part
   return rows;
 };
 
-interface InsertParticipantInput {
-  sessionId: number;
-  userId: number | null;
-  guestToken: string | null;
-  displayName: string;
-  role: ParticipantRole;
-}
-
 export const insertParticipant = async ({
   sessionId,
   userId,
@@ -105,6 +83,13 @@ export const insertParticipant = async ({
   );
 
   return result.insertId;
+};
+
+export const updateParticipantName = async (participantId: number, displayName: string): Promise<void> => {
+  await db.execute<ResultSetHeader>(
+    "update session_participants set display_name = ? where id = ?",
+    [displayName, participantId]
+  );
 };
 
 export const touchParticipant = async (participantId: number, status: ParticipantStatus): Promise<void> => {

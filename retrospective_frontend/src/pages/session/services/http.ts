@@ -8,7 +8,9 @@ export const requestApi = async <TData>(
   url: string,
   init?: RequestInit
 ): Promise<ApiResponse<TData>> => {
-  const response = init ? await fetch(url, init) : await fetch(url);
+  // credentials: 'include' — l'authentification passe par un cookie HttpOnly,
+  // que le navigateur n'envoie entre deux origines que si on le demande.
+  const response = await fetch(url, { credentials: 'include', ...init });
   const payload = await readJsonSafely(response);
 
   if (response.ok && isApiSuccess<TData>(payload)) {

@@ -1,17 +1,6 @@
-import { ResultSetHeader, RowDataPacket } from "mysql2";
+import { ResultSetHeader } from "mysql2";
 import db from "./db";
-
-interface CardSessionRow extends RowDataPacket {
-  session_id: number;
-}
-
-interface ExistingVoteRow extends RowDataPacket {
-  id: number;
-}
-
-interface VoteCountRow extends RowDataPacket {
-  count: number;
-}
+import type { CardSessionRow, ExistingVoteRow, VoteCountRow } from "./types/vote.model.types";
 
 export const findCardSessionId = async (cardId: number): Promise<number | null> => {
   const [rows] = await db.execute<CardSessionRow[]>(

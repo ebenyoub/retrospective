@@ -1,20 +1,10 @@
-import React, { useCallback, useState } from 'react';
-
-type FieldValidator<TValues, K extends keyof TValues> = (
-    values: TValues[K],
-    allValues: TValues
-) => string | undefined;
-
-export type ValidationSchema<TValues extends Record<keyof TValues, unknown>> = {
-    [K in keyof TValues]?: FieldValidator<TValues, K>[];
-};
-
-type Errors<TValues extends { [key: string]: unknown }> = {
-    [K in keyof TValues]?: string;
-}
-
-type FormControlElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
-type FormControlEvent = React.ChangeEvent<FormControlElement> | React.FocusEvent<FormControlElement>;
+import { useCallback, useState } from 'react';
+import type {
+    Errors,
+    FieldValidator,
+    FormControlEvent,
+    ValidationSchema,
+} from './types/useFormValidation.types';
 
 const useFormValidation = <TValues extends Record<keyof TValues, unknown>>(
     initialValues: TValues,

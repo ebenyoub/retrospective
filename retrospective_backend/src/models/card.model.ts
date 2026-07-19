@@ -1,23 +1,7 @@
-import { ResultSetHeader, RowDataPacket } from "mysql2";
+import { ResultSetHeader } from "mysql2";
 import db from "./db";
 import { SessionLookupRow } from "../types";
-
-export interface CardRow extends RowDataPacket {
-  id: number;
-  session_id: number;
-  author_participant_id: number;
-  author_name: string;
-  column_type: string;
-  content: string;
-  created_at: Date;
-  votes_count: number;
-  voted_by_me?: number;
-}
-
-export interface CardOwnerRow extends RowDataPacket {
-  id: number;
-  author_participant_id: number;
-}
+import type { CardOwnerRow, CardRow } from "./types/card.model.types";
 
 export const findSessionById = async (sessionId: number | string): Promise<SessionLookupRow | null> => {
   const [rows] = await db.execute<SessionLookupRow[]>(
@@ -50,7 +34,8 @@ export const findCardsBySessionId = async (
     `select rc.id, rc.session_id, rc.author_participant_id, sp.display_name as author_name,
             rc.column_type, rc.content, rc.created_at,
             count(v.id) as votes_count,
-            exists(select 1 from votes v2 where v2.card_id = rc.id and v2.participant_id = ?) as voted_by_me
+            exists(select 1 from votes v2 where v2.card_id = rc.id and v2.participant_id = ?) as voted_by_me,
+            (select count(*) from card_comments cc where cc.card_id = rc.id) as comments_count
      from retro_cards rc
      inner join session_participants sp on sp.id = rc.author_participant_id
      left join votes v on v.card_id = rc.id

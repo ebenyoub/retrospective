@@ -1,9 +1,5 @@
 import { SESSION_STEP_LABELS, SESSION_STEPS } from '../sessionStep';
-import type { SessionStep } from '../types/session.types';
-
-interface StepIndicatorProps {
-  currentStep: SessionStep;
-}
+import type { StepIndicatorProps } from './types/StepIndicator.types';
 
 const StepIndicator = ({ currentStep }: StepIndicatorProps) => {
   const currentIndex = SESSION_STEPS.indexOf(currentStep);

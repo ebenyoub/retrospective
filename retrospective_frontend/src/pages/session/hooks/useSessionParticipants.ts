@@ -3,11 +3,10 @@ import { io, type Socket } from "socket.io-client";
 
 import { API_BASE } from "@/lib/api";
 import { listParticipants } from "../services/participantApi";
+import { getMessages } from "../services/messageApi";
 import type { ParticipantSummary, SelfIdentity } from '../types/participant.types';
-
-interface UseSessionParticipantsOptions {
-  onSessionStarted?: (step: string) => void;
-}
+import type { SessionMessage } from "../types/message.types";
+import type { UseSessionParticipantsOptions } from './types/useSessionParticipants.types';
 
 // Source de vérité = backend : liste initiale par API, puis mises à jour en
 // direct par socket. Un socket dédié est ouvert par montage (fermé au
@@ -19,13 +18,20 @@ export const useSessionParticipants = (
   options: UseSessionParticipantsOptions = {}
 ) => {
   const [participants, setParticipants] = useState<ParticipantSummary[]>([]);
+  const [messages, setMessages] = useState<SessionMessage[]>([]);
+  const actorHeaders = options.actorHeaders ?? {};
 
   // Ref plutôt que dépendance d'effet : évite de rouvrir un socket à chaque
   // fois que le composant appelant recrée sa fonction de callback. La mise à
   // jour se fait dans un effet (jamais pendant le rendu).
   const onSessionStartedRef = useRef(options.onSessionStarted);
+  const onTimerUpdatedRef = useRef(options.onTimerUpdated);
+  const onSessionClosedRef = useRef(options.onSessionClosed);
+  
   useEffect(() => {
     onSessionStartedRef.current = options.onSessionStarted;
+    onTimerUpdatedRef.current = options.onTimerUpdated;
+    onSessionClosedRef.current = options.onSessionClosed;
   });
 
   useEffect(() => {
@@ -45,16 +51,35 @@ export const useSessionParticipants = (
       }
     };
 
-    void loadInitial();
+    const loadMessages = async () => {
+      try {
+        const result = await getMessages(sessionId, actorHeaders);
+        if (isActive && result.ok) {
+          setMessages(result.data);
+        }
+      } catch (error) {
+        console.error("Erreur lors du chargement des messages :", error);
+      }
+    };
 
-    const socket: Socket = io(API_BASE, { transports: ["websocket", "polling"] });
+    void loadInitial();
+    void loadMessages();
+
+    // withCredentials : le cookie d'authentification HttpOnly accompagne le
+    // handshake, le serveur y lit le JWT de l'utilisateur connecté.
+    const socket: Socket = io(API_BASE, { transports: ["websocket", "polling"], withCredentials: true });
 
     const handleParticipantsUpdated = (next: ParticipantSummary[]) => {
       if (isActive) setParticipants(next);
     };
 
-    const handleSessionStarted = ({ step }: { step: string }) => {
-      if (isActive) onSessionStartedRef.current?.(step);
+    const handleSessionStarted = ({ step, stepEndsAt }: { step: string; stepEndsAt?: string | null }) => {
+      if (isActive) onSessionStartedRef.current?.(step, stepEndsAt ?? null);
+    };
+
+    // Le facilitateur a redéfini le timer : nouvelle échéance pour tous.
+    const handleTimerUpdated = ({ stepEndsAt }: { stepEndsAt: string }) => {
+      if (isActive) onTimerUpdatedRef.current?.(stepEndsAt);
     };
 
     const handleConnect = () => {
@@ -62,22 +87,40 @@ export const useSessionParticipants = (
         sessionId: Number(sessionId),
         participantId: self.participantId,
         guestToken: self.guestToken,
-        token: self.token,
       });
+    };
+
+    const handleSessionClosed = () => {
+      if (isActive) onSessionClosedRef.current?.();
+    };
+
+    const handleMessageAdded = (message: SessionMessage) => {
+      if (isActive) {
+        setMessages((previous) => {
+          if (previous.some((m) => m.id === message.id)) return previous;
+          return [...previous, message];
+        });
+      }
     };
 
     socket.on("connect", handleConnect);
     socket.on("session:participants-updated", handleParticipantsUpdated);
     socket.on("session:started", handleSessionStarted);
+    socket.on("session:timer-updated", handleTimerUpdated);
+    socket.on("session:closed", handleSessionClosed);
+    socket.on("session:message-added", handleMessageAdded);
 
     return () => {
       isActive = false;
       socket.off("connect", handleConnect);
       socket.off("session:participants-updated", handleParticipantsUpdated);
       socket.off("session:started", handleSessionStarted);
+      socket.off("session:timer-updated", handleTimerUpdated);
+      socket.off("session:closed", handleSessionClosed);
+      socket.off("session:message-added", handleMessageAdded);
       socket.disconnect();
     };
-  }, [sessionId, self]);
+  }, [sessionId, self, options.actorHeaders]);
 
-  return { participants };
+  return { participants, messages, setMessages };
 };

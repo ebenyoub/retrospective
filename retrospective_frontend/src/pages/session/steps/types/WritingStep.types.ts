@@ -1,0 +1,15 @@
+import type { SessionBoardColumn } from '../../types/board.types';
+import type { RetroCard } from '../../types/card.types';
+
+export interface WritingStepProps {
+  cards: RetroCard[];
+  columns: SessionBoardColumn[];
+  activeMobileColumn: RetroCard['columnType'];
+  isMobileViewport: boolean;
+  currentUserId: number | null;
+  onSelectMobileColumn: (columnType: RetroCard['columnType']) => void;
+  onAddCard: (columnType: RetroCard['columnType'], content: string) => Promise<void> | void;
+  onVote: (cardId: number) => Promise<void> | void;
+  onUpdateCard: (cardId: number, content: string) => Promise<boolean> | boolean;
+  onDeleteCard: (cardId: number) => Promise<void> | void;
+}

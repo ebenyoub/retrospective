@@ -1,13 +1,6 @@
 import { cn } from '@/lib/utils';
 import React from 'react';
-
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  children: React.ReactNode;
-  variant?: "primary" | "secondary" | "ghost" | "danger" | "success";
-  size?: "sm" | "md" | "lg";
-  unstyled?: boolean;
-  type?: "submit" | "reset" | "button" | undefined
-}
+import type { ButtonProps } from './types/Button.types';
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ children, className, variant = "secondary", size = "md", unstyled = false, ...props }, ref) => {

@@ -1,22 +1,5 @@
 import RetroColumn from '../components/RetroColumn';
-import type { SessionBoardColumn } from '../types/board.types';
-import type { RetroCard } from '../types/card.types';
-
-interface SessionCardsGridProps {
-  cards: RetroCard[];
-  columns: SessionBoardColumn[];
-  activeMobileColumn: RetroCard['columnType'];
-  isMobileViewport: boolean;
-  currentUserId: number | null;
-  canVote: boolean;
-  canEdit: boolean;
-  onSelectMobileColumn: (columnType: RetroCard['columnType']) => void;
-  onAddCard?: (columnType: RetroCard['columnType'], content: string) => Promise<void> | void;
-  onVote: (cardId: number) => Promise<void> | void;
-  onOpenComments: (card: RetroCard) => void;
-  onUpdateCard: (cardId: number, content: string) => Promise<boolean> | boolean;
-  onDeleteCard: (cardId: number) => Promise<void> | void;
-}
+import type { SessionCardsGridProps } from './types/SessionCardsGrid.types';
 
 const SessionCardsGrid = ({
   cards,
@@ -29,7 +12,6 @@ const SessionCardsGrid = ({
   onSelectMobileColumn,
   onAddCard,
   onVote,
-  onOpenComments,
   onUpdateCard,
   onDeleteCard,
 }: SessionCardsGridProps) => (
@@ -85,7 +67,6 @@ const SessionCardsGrid = ({
           currentUserId={currentUserId}
           onAddCard={onAddCard ? (content) => onAddCard(column.key, content) : undefined}
           onVote={onVote}
-          onOpenComments={onOpenComments}
           onUpdateCard={onUpdateCard}
           onDeleteCard={onDeleteCard}
           canVote={canVote}

@@ -54,7 +54,7 @@ Fonctionnalités explicitement justifiées par le cahier des charges, les User S
 | **MVP-TIMER-01** | P0 | Rendre le timer d'étape fonctionnel. | Le timer démarre, se met à jour et reste cohérent avec l'étape. | ✅ Terminé |
 | **MVP-PARTICIPANTS-01** | P1 | Corriger l'UX du drawer Participants. | Le drawer affiche les vrais participants et respecte l'UX cible desktop/mobile. | ✅ Terminé |
 | **MVP-DISCUSSION-01** | P1 | Finaliser Discussion. | Le panneau affiche des messages réels ou un périmètre produit borné explicitement. | ✅ Terminé |
-| **MVP-COMMENTS-01** | P1 | Implémenter les commentaires de cartes utilisables. | Les commentaires peuvent être consultés/ajoutés sans données fictives. | ✅ Terminé |
+| **MVP-COMMENTS-01** | P1 | Implémenter les commentaires de cartes utilisables. | Les commentaires peuvent être consultés/ajoutés sans données fictives. | ✅ Terminé (2026-07-16, réellement implémenté : table `card_comments`, routes dédiées, suppression par l'auteur) |
 | **MVP-WRITING-STATE-01** | P2 | Finaliser états chargement/erreur/vides. | Les états sont clairs, non bloquants et testés. | ✅ Terminé |
 
 #### **US-08 — Distribution de votes**
@@ -127,7 +127,7 @@ Fonctionnalités explicitement justifiées par le cahier des charges, les User S
 | **T-SESSION-BAR-02** | `SessionActionBar` isolée : compteur, timer visuel, bouton principal. | ✅ Base validée |
 | **T-SESSION-BAR-03** | Participants affichés dans un drawer avec données réelles. | 🟡 À reprendre via `MVP-PARTICIPANTS-01` |
 | **T-SESSION-BAR-04** | Discussion affichée dans un drawer sans données fictives. | 🟡 À reprendre via `MVP-DISCUSSION-01` |
-| **T-SESSION-BAR-05** | Modal de commentaires sans persistance fictive. | 🟡 À reprendre via `MVP-COMMENTS-01` |
+| **T-SESSION-BAR-05** | Modal de commentaires sans persistance fictive. | ✅ Repris et terminé via `MVP-COMMENTS-01` (2026-07-16) |
 | **T-SESSION-BAR-06** | Revue UI finale de base de l'écran Écriture. | ✅ Historique validé |
 
 ---
@@ -138,8 +138,7 @@ Fonctionnalités issues du prototype Figma ou des chantiers de stabilisation tec
 
 | ID | User Story / Tâche | Origine | Justification Évolution | Statut |
 | :--- | :--- | :--- | :--- | :--- |
-| **US-11** | Chat de discussion de session | Figma (`components/DiscussionPanel`), Backlog (`B20` Hors scope) | Communication écrite annexe ; le débat a lieu à l'oral pendant la réunion. | ⬜ À faire |
-| **US-12** | Commentaires sur les cartes | Figma (`components/CommentsModal` / `commentCount`) | Questions asynchrones ; le détail est clarifié de vive voix. | ⬜ À faire |
+| **US-11** | Chat de discussion de session | Figma (`components/DiscussionPanel`), Backlog (`B20` Hors scope) | Communication écrite annexe ; le débat a lieu à l'oral pendant la réunion. | ✅ Terminé |
 | **US-13** | Plan d'action & Écran résumé | Figma (`screens/ActionScreen.tsx` / `SummaryScreen.tsx`) | Suivi post-réunion ; le workflow du MVP s'arrête proprement aux résultats. | ⬜ À faire |
 | **T-UI-01** | Homogénéisation des Toasts (Tailwind) | Audit technique ultérieur (2026-07-09) | Polish visuel mineur ; les alertes de l'application sont déjà fonctionnelles. | ⬜ À faire |
 | **T-ARCHI-01**| Migration des formulaires vers RHF | Audit technique ultérieur (2026-07-13) | Harmonisation interne du code ; la validation manuelle actuelle est déjà OK. | ⬜ À faire |

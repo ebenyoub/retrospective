@@ -4,13 +4,7 @@ import Drawer from '@/components/ui/Drawer';
 import IconButton from '@/components/ui/IconButton';
 
 import type { ParticipantSummary } from '../types/participant.types';
-
-interface ParticipantsDrawerProps {
-  participants: ParticipantSummary[];
-  isOpen: boolean;
-  isDesktop: boolean;
-  onClose: () => void;
-}
+import type { ParticipantsDrawerProps } from './types/ParticipantsDrawer.types';
 
 const statusLabel: Record<ParticipantSummary['status'], string> = {
   online: 'En ligne',

@@ -9,37 +9,18 @@ import {
   updateCardContent,
 } from "../models/card.model";
 import { AppError } from "../utils/AppError";
-
-type ColumnType = "start" | "stop" | "continue";
+import type {
+  ColumnType,
+  CreateCardInput,
+  DeleteCardInput,
+  GetCardsInput,
+  UpdateCardInput,
+} from "./types/card.service.types";
 
 const VALID_COLUMN_TYPES: ColumnType[] = ["start", "stop", "continue"];
 
 const isValidColumnType = (value: unknown): value is ColumnType =>
   typeof value === "string" && VALID_COLUMN_TYPES.includes(value as ColumnType);
-
-interface CreateCardInput {
-  participantId: number;
-  sessionId: string;
-  content: unknown;
-  columnType: unknown;
-}
-
-interface GetCardsInput {
-  sessionId: string;
-  participantId?: number | null;
-}
-
-interface UpdateCardInput {
-  participantId: number;
-  sessionId: number;
-  cardId: number;
-  content: unknown;
-}
-
-interface DeleteCardInput {
-  participantId: number;
-  cardId: string;
-}
 
 export const createCard = async ({
   participantId,
@@ -83,6 +64,7 @@ export const getCards = async ({ sessionId, participantId }: GetCardsInput) => {
     createdAt: card.created_at,
     votesCount: card.votes_count,
     votedByMe: !!card.voted_by_me,
+    commentsCount: card.comments_count,
   }));
 };
 

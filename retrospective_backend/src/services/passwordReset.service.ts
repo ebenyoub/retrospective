@@ -11,21 +11,7 @@ import {
 } from "../models/passwordReset.model";
 import { AppError } from "../utils/AppError";
 import { logger } from "../utils/logger";
-
-interface ForgotPasswordInput {
-  email: unknown;
-}
-
-interface VerifyCodeInput {
-  email: unknown;
-  code: unknown;
-}
-
-interface ResetPasswordInput {
-  email: unknown;
-  code: unknown;
-  newPassword: unknown;
-}
+import type { ForgotPasswordInput, ResetPasswordInput, VerifyCodeInput } from "./types/passwordReset.service.types";
 
 export const requestPasswordReset = async ({ email }: ForgotPasswordInput): Promise<void> => {
   if (!email || typeof email !== "string") {

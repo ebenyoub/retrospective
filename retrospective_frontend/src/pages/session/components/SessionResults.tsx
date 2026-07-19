@@ -1,16 +1,6 @@
 import Avatar from '@/components/ui/Avatar';
 import type { RetroCard } from '../types/card.types';
-
-// Catégories affichées dans les résultats. Les clés restent techniques
-// (`start` / `stop` / `continue`) mais les libellés viennent du format choisi.
-interface ResultCategory {
-  key: RetroCard['columnType'];
-  label: string;
-  emoji: string;
-  color: string;
-  badgeBg: string;
-  badgeText: string;
-}
+import type { ResultCategory, SessionResultsProps } from './types/SessionResults.types';
 
 const DEFAULT_CATEGORY_LABELS = ['Commencer', 'Arrêter', 'Continuer'];
 
@@ -101,12 +91,6 @@ const ResultCard = ({ card, category, maxVotes }: { card: RetroCard; category: R
     </div>
   </article>
 );
-
-interface SessionResultsProps {
-  cards: RetroCard[];
-  formatColumns: string[];
-  isDesktop: boolean;
-}
 
 const SessionResults = ({ cards, formatColumns, isDesktop }: SessionResultsProps) => {
   const categories = buildCategories(formatColumns);

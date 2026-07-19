@@ -30,6 +30,7 @@
 ## Tickets issus de l'audit MVP final — soutenance (2026-07-09)
 
 ### Bugs corrigés dans cette session
+- [x] **Reprise de session par Cookie HttpOnly** : Validation sécurisée du cookie retro_resume côté backend, nettoyage automatique sur session close/inexistante, bouton d'accueil dynamique, et étanchéité du menu participant invité.
 - [x] **B-SIGNUP-01 — Validator mot de passe incohérent** : règle `<= 6` avec message "3 caractères" → corrigé en `< 6` + message "6 caractères minimum" (`Signup.tsx`).
 - [x] **B-AUTH-01 — Logout incomplet** : `token`, `userId`, `username`, `email` pas remis à zéro dans le state React lors du logout → nettoyage complet dans `logout()` (`AuthContext.tsx`).
 - [x] **UX-HOME-01 — Champs décoratifs sans indication** : le formulaire "Créer une rétro" de la home page utilise des champs non fonctionnels → ajout d'une note "Un compte est requis" sous le bouton (`HomeTabsCard.tsx`).
@@ -47,7 +48,7 @@
 - [ ] **Toast en styled-components avec fond blanc** (`ToastStyled.tsx` + icônes Font Awesome via CDN dans `index.html`) : seul composant hors Tailwind, style clair qui détonne sur le thème sombre Figma. Décider : réécrire le toast en Tailwind avec les tokens du thème (et retirer `styled-components` + le CDN Font Awesome), ou l'assumer tel quel devant le jury.
 - [ ] **Compteur de votes restants absent** : la maquette Figma affiche "5 votes restants" pendant la phase de vote ; l'application n'informe l'utilisateur qu'au moment du refus du 6e vote. Amélioration UX à chiffrer.
 - [x] **Liste des participants avec avatars** : implémentée le 2026-07-10 (temps réel, avatars à initiales, statut, rôle).
-- [ ] **Éléments maquette encore hors périmètre MVP** (à assumer à l'oral, pas à corriger) : chat "Discussion", timer d'étape, commentaires sur cartes, code à 6 caractères (le MVP utilise 4 chiffres).
+- [ ] **Éléments maquette encore hors périmètre MVP** (à assumer à l'oral, pas à corriger) : chat "Discussion", timer d'étape, code à 6 caractères (le MVP utilise 4 chiffres).
 
 ## Tickets issus de la salle d'attente temps réel (2026-07-10)
 
@@ -75,8 +76,8 @@
 - [x] **T-SESSION-BAR-01 — SessionContextBar** : terminé et validé utilisateur. Première barre sous le header principal : retour, breadcrumb, nom de session, `StepIndicator`, code, déclencheurs Participants/Discussion. Aucun compteur, timer ou bouton principal dans cette barre.
 - [x] **T-SESSION-BAR-02 — SessionActionBar** : terminé et validé utilisateur. Seconde barre uniquement après validation de `SessionContextBar` : compteur total de cartes ou votes restants, timer, bouton principal, sans troisième barre.
 - [x] **T-SESSION-BAR-03 — ParticipantsDrawer** : terminé. Panneau Participants déclenché depuis `SessionContextBar`, avec vraies données.
-- [x] **T-SESSION-BAR-04 — DiscussionDrawer** : terminé. Panneau Discussion déclenché depuis `SessionContextBar`, périmètre données borné sans backend.
-- [x] **T-SESSION-BAR-05 — Commentaires des cartes** : terminé dans le périmètre UI confirmé par Figma, sans compteur ni persistance fictifs.
+- [x] **T-SESSION-BAR-04 — DiscussionDrawer (Chat)** : terminé. Panneau Discussion déclenché depuis `SessionContextBar`, avec persistance réelle en base et synchronisation temps réel via Socket.IO (US-11).
+- [x] **T-SESSION-BAR-05 — Commentaires des cartes** : UI livrée le 2026-07-14 sans persistance ; persistance réelle ajoutée le 2026-07-16 via `MVP-COMMENTS-01` (table `card_comments`, routes dédiées).
 - [x] **T-SESSION-BAR-06 — Revue UI finale écran Écriture** : terminé. Comparaison globale au prototype après validation des composants précédents.
 
 ## Tickets issus de l'audit de conformité skills (2026-07-13)

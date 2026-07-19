@@ -1,36 +1,35 @@
 import Button from '@/components/ui/Button';
-import type { SessionStep } from '../types/session.types';
 import TimerChip from './TimerChip';
-
-interface SessionActionBarProps {
-  step: SessionStep;
-  cardsCount: number;
-  votesLeft: number;
-  isFacilitator: boolean;
-  onTransitionStep: (nextStep: SessionStep) => void;
-}
+import type { SessionActionBarProps } from './types/SessionActionBar.types';
 
 const SessionActionBar = ({
   step,
   cardsCount,
   votesLeft,
   isFacilitator,
+  stepEndsAt,
   onTransitionStep,
+  onUpdateTimer,
+  onCloseSession,
 }: SessionActionBarProps) => {
-  if (step === 'results') return null;
+  if (step === 'results' && !isFacilitator) return null;
 
   return (
     <div
       role="toolbar"
       aria-label="Actions de l'étape"
-      className="flex h-12 flex-shrink-0 items-center gap-3 border-b border-navy-border bg-navy-surface px-3 md:h-[50px] md:px-5"
+      className="flex h-12 shrink-0 items-center gap-3 border-b border-navy-border bg-navy-surface px-3 md:h-[50px] md:px-5"
     >
       <div className="flex min-w-0 flex-1 items-center">
-        {step === 'voting' ? (
+        {step === 'results' ? (
+          <span className="font-sans text-xs leading-none text-slate-400 select-none">
+            Rétrospective terminée
+          </span>
+        ) : step === 'voting' ? (
           <div
             role="status"
             aria-label={`${votesLeft} votes restants sur 5`}
-            className="flex h-[28px] shrink-0 items-center gap-2 rounded-lg border border-navy-border-med bg-navy-surface px-2.5"
+            className="flex h-7 shrink-0 items-center gap-2 rounded-lg border border-navy-border-med bg-navy-surface px-2.5"
           >
             <div className="flex gap-[3px]" aria-hidden="true">
               {Array.from({ length: 5 }).map((_, i) => (
@@ -54,11 +53,20 @@ const SessionActionBar = ({
       </div>
 
       <div className="ml-auto flex shrink-0 items-center gap-2">
-        {step === 'writing' && <TimerChip initialSeconds={300} />}
-        {step === 'voting' && <TimerChip initialSeconds={270} />}
+        {(step === 'writing' || step === 'voting') && stepEndsAt && (
+          <TimerChip endsAt={stepEndsAt} isEditable={isFacilitator} onSubmitMinutes={onUpdateTimer} />
+        )}
 
         {isFacilitator && (
           <>
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={onCloseSession}
+              className="bg-[#7f1d1d] border border-[#991b1b] text-[#fca5a5] hover:bg-[#991b1b] rounded-[10px] h-[36px]"
+            >
+              Terminer la session
+            </Button>
             {step === 'writing' && (
               <Button variant="primary" size="sm" onClick={() => onTransitionStep('voting')}>
                 Passer au vote →

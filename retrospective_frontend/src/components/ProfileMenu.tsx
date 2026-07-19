@@ -1,12 +1,7 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/auth/useAuth";
-
-interface MenuItem {
-  label: string;
-  action: () => void;
-  isDanger?: boolean;
-}
+import type { MenuItem } from "./types/ProfileMenu.types";
 
 // Menu déroulant accessible (pattern WAI-ARIA "menu button") : remplace la
 // page intermédiaire /profile et le bouton Déconnexion séparé de la navbar.

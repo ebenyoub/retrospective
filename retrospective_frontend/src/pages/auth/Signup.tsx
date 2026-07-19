@@ -1,15 +1,17 @@
-import Button from '@/components/ui/Button';
-import Container from '@/components/ui/Container';
-import FormContainer, { FormTitle } from '@/components/ui/FormContainer';
+import Form, { FormTitle } from '@/components/ui/Form';
 import FormField from '@/components/ui/FormField';
 import SpinContainer from '@/components/ui/SpinContainer';
+import Container from '@/components/ui/Container';
+import Button from '@/components/ui/Button';
 import { useAuth } from '@/context/auth/useAuth';
 import { useToast } from '@/context/toast/useToast';
-import useFormValidation, { type ValidationSchema } from '@/hooks/useFormValidation';
+import useFormValidation from '@/hooks/useFormValidation';
+import type { ValidationSchema } from '@/hooks/types/useFormValidation.types';
 import { getApiErrorMessage, NETWORK_ERROR_MESSAGE } from '@/lib/apiError';
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { signupApi, type SignupValues } from '@/pages/auth/services/authApi';
+import { signupApi } from '@/pages/auth/services/authApi';
+import type { SignupValues } from './types/auth.types';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -32,7 +34,6 @@ const signupValidationSchema: ValidationSchema<SignupValues> = {
     ],
     password: [
         (value) => value.trim() === "" ? "Le mot de passe est requis." : undefined,
-        // Même règle que le backend (auth.validator.ts : min 8).
         (value) => value.trim().length < 8 ? "Le mot de passe doit contenir au moins 8 caractères." : undefined,
         validateConfirmPassword
     ],
@@ -92,7 +93,7 @@ const Signup: React.FC = () => {
 return (
     <Container className='flex justify-center items-center min-h-[60vh]'>
         <SpinContainer onSpin={isLoading} className="w-full max-w-md">
-            <FormContainer onSubmit={handleSubmit} aria-busy={isLoading}>
+            <Form onSubmit={handleSubmit} aria-busy={isLoading}>
                 <FormTitle>S'enregistrer</FormTitle>
 
                 <FormField
@@ -164,7 +165,7 @@ return (
                     </NavLink>
                 </div>
 
-            </FormContainer>
+            </Form>
         </SpinContainer>
     </Container>
 );

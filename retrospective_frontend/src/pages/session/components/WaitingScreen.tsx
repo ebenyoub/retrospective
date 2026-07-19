@@ -1,27 +1,53 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Avatar from '@/components/ui/Avatar';
 import Button from '@/components/ui/Button';
 import IconButton from '@/components/ui/IconButton';
 import type { ParticipantSummary } from '../types/participant.types';
 import RetroFormatSelector from './RetroFormatSelector';
-
-export const MAX_PARTICIPANTS = 25;
+import type { WaitingScreenProps } from './types/WaitingScreen.types';
 
 const pluralize = (count: number, singular: string, plural: string): string => (count <= 1 ? singular : plural);
 
-interface WaitingScreenProps {
-  sessionId: string | number;
-  sessionName: string;
-  sessionCode: string;
-  participants: ParticipantSummary[];
-  selfParticipantId: number | null;
-  role: 'facilitator' | 'participant';
-  formatName: string;
-  onStart: () => void;
-  onLeave: () => void;
-  onSelectFormatPreset: (name: string, columns: string[]) => void;
-  isDesktop: boolean;
-}
+// Durée des étapes : saisie inline réservée au facilitateur. La valeur est
+// envoyée au backend, qui reste la source de vérité du timer.
+const StepDurationEditor = ({ minutes, onSubmit }: { minutes: number; onSubmit: (minutes: number) => void }) => {
+  const [value, setValue] = useState(String(minutes));
+
+  // Se resynchronise si la valeur serveur change (polling).
+  useEffect(() => {
+    setValue(String(minutes));
+  }, [minutes]);
+
+  const commit = () => {
+    const next = Number(value);
+
+    if (!Number.isInteger(next) || next < 1 || next > 120 || next === minutes) {
+      setValue(String(minutes));
+      return;
+    }
+
+    onSubmit(next);
+  };
+
+  return (
+    <span className="flex items-center gap-1.5">
+      <input
+        type="number"
+        min={1}
+        max={120}
+        value={value}
+        onChange={(event) => setValue(event.target.value)}
+        onBlur={commit}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') event.currentTarget.blur();
+        }}
+        aria-label="Durée des étapes en minutes"
+        className="w-14 rounded-[8px] border border-navy-border-med bg-navy-surface px-2 py-1 text-right font-mono text-xs font-semibold text-slate-200 outline-none transition-colors focus:border-blue-400"
+      />
+      <span className="font-sans text-xs text-slate-400">min</span>
+    </span>
+  );
+};
 
 const ParticipantAvatar = ({ name, isOnline }: { name: string; isOnline: boolean }) => (
   <div className="relative flex-shrink-0 w-10 h-10">
@@ -84,9 +110,11 @@ export const WaitingScreen = ({
   selfParticipantId,
   role,
   formatName,
+  stepDurationMinutes,
   onStart,
   onLeave,
   onSelectFormatPreset,
+  onUpdateStepDuration,
   isDesktop,
 }: WaitingScreenProps) => {
   const [linkCopied, setLinkCopied] = useState(false);
@@ -97,13 +125,7 @@ export const WaitingScreen = ({
   const sessionUrl = `${window.location.origin}/session/${sessionId}`;
   const isFacilitator = role === 'facilitator';
 
-  const remainingSeats = MAX_PARTICIPANTS - participants.length;
-  const capacityMessage =
-    remainingSeats <= 0
-      ? 'La session a atteint sa capacité maximale.'
-      : `Vous pouvez inviter jusqu'à ${remainingSeats} ${pluralize(remainingSeats, 'participant supplémentaire', 'participants supplémentaires')}.`;
-
-  const summaryText = `${participants.length} ${pluralize(participants.length, 'participant', 'participants')} sur ${MAX_PARTICIPANTS} · ${onlineCount} en ligne`;
+  const summaryText = `${participants.length} ${pluralize(participants.length, 'participant', 'participants')} · ${onlineCount} en ligne`;
   const statusLabel = isFacilitator ? 'Prêt à lancer' : 'En attente du facilitateur';
 
   const handleCopyLink = async () => {
@@ -134,6 +156,18 @@ export const WaitingScreen = ({
         isFacilitator={isFacilitator}
         onSelectPreset={onSelectFormatPreset}
       />
+    </div>
+  );
+
+  // Seul le facilitateur peut modifier la durée ; les participants la voient.
+  const durationRow = (
+    <div className="flex items-center justify-between py-2 border-b border-navy-border">
+      <span className="font-sans text-xs text-slate-500">Durée des étapes</span>
+      {isFacilitator ? (
+        <StepDurationEditor minutes={stepDurationMinutes} onSubmit={onUpdateStepDuration} />
+      ) : (
+        <span className="font-sans text-xs font-semibold text-slate-200">{stepDurationMinutes} min</span>
+      )}
     </div>
   );
 
@@ -252,6 +286,7 @@ export const WaitingScreen = ({
             <div className="mb-8">
               {codeRow}
               {formatRow}
+              {durationRow}
             </div>
           </div>
 
@@ -264,7 +299,7 @@ export const WaitingScreen = ({
             <span className="font-mono text-[11px] text-slate-500 font-bold">{participants.length}</span>
           </div>
           {participantsList}
-          <p className="mt-5 font-sans text-[11px] text-slate-600 select-none">{capacityMessage}</p>
+
         </div>
       </div>
     );
@@ -302,6 +337,7 @@ export const WaitingScreen = ({
         <div className="mb-6">
           {codeRow}
           {formatRow}
+          {durationRow}
         </div>
 
         <div className="mb-6">
@@ -314,7 +350,7 @@ export const WaitingScreen = ({
               <ParticipantCard key={participant.id} participant={participant} isSelf={participant.id === selfParticipantId} />
             ))}
           </div>
-          <p className="mt-3 font-sans text-[11px] text-slate-600 select-none">{capacityMessage}</p>
+
         </div>
 
         {actions}

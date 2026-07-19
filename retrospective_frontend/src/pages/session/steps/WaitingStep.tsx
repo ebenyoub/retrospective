@@ -1,20 +1,5 @@
-import type { ParticipantSummary } from '../types/participant.types';
-import type { SessionRole } from '../types/session.types';
 import { WaitingScreen } from '../components/WaitingScreen';
-
-interface WaitingStepProps {
-  sessionId: string;
-  sessionName: string;
-  sessionCode: string;
-  participants: ParticipantSummary[];
-  selfParticipantId: number | null;
-  role: SessionRole | null;
-  formatName: string;
-  isDesktop: boolean;
-  onStart: () => void;
-  onLeave: () => void | Promise<void>;
-  onSelectFormatPreset: (nextName: string, nextColumns: string[]) => void | Promise<void>;
-}
+import type { WaitingStepProps } from './types/WaitingStep.types';
 
 const WaitingStep = ({
   sessionId,
@@ -24,10 +9,12 @@ const WaitingStep = ({
   selfParticipantId,
   role,
   formatName,
+  stepDurationMinutes,
   isDesktop,
   onStart,
   onLeave,
   onSelectFormatPreset,
+  onUpdateStepDuration,
 }: WaitingStepProps) => {
   if (!selfParticipantId) {
     return (
@@ -46,9 +33,11 @@ const WaitingStep = ({
       selfParticipantId={selfParticipantId}
       role={role || 'participant'}
       formatName={formatName}
+      stepDurationMinutes={stepDurationMinutes}
       onStart={onStart}
       onLeave={onLeave}
       onSelectFormatPreset={onSelectFormatPreset}
+      onUpdateStepDuration={onUpdateStepDuration}
       isDesktop={isDesktop}
     />
   );

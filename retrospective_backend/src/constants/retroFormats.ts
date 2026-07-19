@@ -1,15 +1,4 @@
-export type RetroColumnKey = "start" | "stop" | "continue";
-
-export interface RetroFormatColumn {
-  key: RetroColumnKey;
-  label: string;
-}
-
-export interface RetroFormatPreset {
-  id: string;
-  name: string;
-  columns: RetroFormatColumn[];
-}
+import type { RetroColumnKey, RetroFormatPreset } from './types/retroFormats.types';
 
 export const RETRO_COLUMN_KEYS: RetroColumnKey[] = ["start", "stop", "continue"];
 

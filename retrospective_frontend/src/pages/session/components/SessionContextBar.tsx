@@ -1,25 +1,11 @@
 import { ArrowLeft, Check, Copy, MessageCircle, Users } from 'lucide-react';
 import Button from '@/components/ui/Button';
 
-import type { SessionStep } from '../types/session.types';
 import StepIndicator from './StepIndicator';
+import ParticipantBadge from './ParticipantBadge';
 import ProfileMenu from '@/components/ProfileMenu';
 import { useAuth } from '@/context/auth/useAuth';
-
-interface SessionContextBarProps {
-  sessionName: string;
-  sessionId: string;
-  sessionCode: string;
-  step: SessionStep;
-  participantCount: number;
-  isSessionCodeCopied: boolean;
-  onBack: () => void | Promise<void>;
-  onCopySessionCode: () => void;
-  onToggleParticipants?: () => void;
-  onToggleDiscussion?: () => void;
-  isParticipantsOpen?: boolean;
-  isDiscussionOpen?: boolean;
-}
+import type { SessionContextBarProps } from './types/SessionContextBar.types';
 
 const SessionContextBar = ({
   sessionName,
@@ -28,6 +14,10 @@ const SessionContextBar = ({
   step,
   participantCount,
   isSessionCodeCopied,
+  selfDisplayName = null,
+  canRenameSelf = false,
+  onRenameSelf,
+  onLeaveSession,
   onBack,
   onCopySessionCode,
   onToggleParticipants,
@@ -123,6 +113,16 @@ const SessionContextBar = ({
           <MessageCircle size={14} aria-hidden="true" />
           <span className="hidden sm:inline">Discussion</span>
         </Button>
+        {selfDisplayName && onRenameSelf && onLeaveSession && (
+          <div className="border-l border-navy-border-med pl-1.5 h-6 flex items-center shrink-0">
+            <ParticipantBadge
+              displayName={selfDisplayName}
+              canRename={canRenameSelf}
+              onRename={onRenameSelf}
+              onLeave={onLeaveSession}
+            />
+          </div>
+        )}
         {isAuthenticated && (
           <div className="border-l border-navy-border-med pl-1.5 h-6 flex items-center shrink-0">
             <ProfileMenu />
