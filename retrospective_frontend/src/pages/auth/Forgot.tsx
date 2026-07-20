@@ -1,48 +1,68 @@
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import Button from "@/components/ui/Button";
 import Container from "@/components/ui/Container";
 import Form, { FormTitle } from "@/components/ui/Form";
 import FormField from "@/components/ui/FormField";
 import SpinContainer from "@/components/ui/SpinContainer";
 import { getApiErrorMessage, NETWORK_ERROR_MESSAGE } from "@/lib/apiError";
-import React, { useState, type ChangeEvent } from "react";
+import { useState } from "react";
 import { useNavigate, NavLink } from "react-router-dom";
 import { forgotApi, verifyCodeApi, resetPasswordApi } from "@/pages/auth/services/authApi";
 import type { Step } from "@/pages/auth/types/Forgot.types";
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const emailSchema = z.object({
+  email: z.string().refine((value) => EMAIL_REGEX.test(value), "Veuillez entrer un email valide."),
+});
+type EmailFormValues = z.infer<typeof emailSchema>;
+
+const codeSchema = z.object({
+  code: z.string().refine((value) => value.trim().length === 4, "Le code doit contenir 4 chiffres exactement"),
+});
+type CodeFormValues = z.infer<typeof codeSchema>;
+
+interface PasswordFormValues {
+  newPassword: string;
+  confirmation: string;
+}
+
 const Forgot = () => {
   const [step, setStep] = useState<Step>('EMAIL');
-
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmation, setConfirmation] = useState("");
-
-  const [isLoading, setIsLoading] = useState(false);
   const [globalError, setGlobalError] = useState("");
-  const [inputErrors, setInputErrors] = useState<{ [key: string]: string }>({});
   const navigate = useNavigate();
 
+  const emailForm = useForm<EmailFormValues>({
+    resolver: zodResolver(emailSchema),
+    defaultValues: { email: "" },
+  });
+
+  const codeForm = useForm<CodeFormValues>({
+    resolver: zodResolver(codeSchema),
+    defaultValues: { code: "" },
+  });
+
+  const passwordForm = useForm<PasswordFormValues>({
+    defaultValues: { newPassword: "", confirmation: "" },
+  });
+
+  const isLoading = emailForm.formState.isSubmitting
+    || codeForm.formState.isSubmitting
+    || passwordForm.formState.isSubmitting;
+
   // --- ENVOI DE L'EMAIL ---
-  const handleEmailSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setInputErrors({});
+  const onEmailSubmit = async (values: EmailFormValues) => {
     setGlobalError("");
 
-
-    const errors: { [key: string]: string } = {};
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) errors.email = "Veuillez entrer un email valide.";
-
-    if (Object.keys(errors).length > 0) {
-      setInputErrors(errors);
-      return;
-    }
-
     try {
-      setIsLoading(true);
-      const result = await forgotApi(email);
+      const result = await forgotApi(values.email);
 
       if (result.ok) {
+        setEmail(values.email);
         setStep('CODE');
       } else {
         setGlobalError(getApiErrorMessage(result.payload, "Impossible d'envoyer le code."));
@@ -50,27 +70,18 @@ const Forgot = () => {
     } catch (err) {
       setGlobalError(NETWORK_ERROR_MESSAGE);
       console.error(err);
-    } finally {
-      setIsLoading(false);
     }
   };
 
   // --- VÉRIFICATION DU CODE ---
-  const handleCodeSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setInputErrors({});
+  const onCodeSubmit = async (values: CodeFormValues) => {
     setGlobalError("");
 
-    if (code.trim().length !== 4) {
-      setInputErrors({ code: "Le code doit contenir 4 chiffres exactement" });
-      return;
-    }
-
-    setIsLoading(true);
     try {
-      const result = await verifyCodeApi(email, code);
+      const result = await verifyCodeApi(email, values.code);
 
       if (result.ok) {
+        setCode(values.code);
         setStep('NEW_PASSWORD');
       } else {
         setGlobalError(getApiErrorMessage(result.payload, "Code invalide."));
@@ -78,38 +89,39 @@ const Forgot = () => {
     } catch (err) {
       console.error(err);
       setGlobalError(NETWORK_ERROR_MESSAGE);
-    } finally {
-      setIsLoading(false);
     }
   };
 
   // --- Étape 3 : MODIFICATION DU MOT DE PASSE ---
-
-  const handlePasswordSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setInputErrors({});
+  // Validation manuelle (pas de schéma Zod) : la règle "mots de passe non
+  // identiques" doit remplacer entièrement les erreurs de champ (longueur,
+  // champs vides) plutôt que coexister avec elles, comportement intentionnel
+  // du code d'origine qu'un schéma déclaratif classique ne reproduit pas.
+  const onPasswordSubmit = async (values: PasswordFormValues) => {
+    passwordForm.clearErrors();
     setGlobalError("");
 
-    const errors: { [key: string]: string } = {};
+    const fieldErrors: Partial<Record<keyof PasswordFormValues, string>> = {};
 
-    if (newPassword.length < 8) errors.newPassword = "8 caractères minimum."
-    if (!newPassword) errors.newPassword = "Veuillez remplir tous les champs.";
-    if (confirmation.length < 8) errors.confirmation = "8 caractères minimum."
-    if (!confirmation) errors.confirmation = "Veuillez remplir tous les champs.";
-    if (newPassword !== confirmation) {
+    if (values.newPassword.length < 8) fieldErrors.newPassword = "8 caractères minimum.";
+    if (!values.newPassword) fieldErrors.newPassword = "Veuillez remplir tous les champs.";
+    if (values.confirmation.length < 8) fieldErrors.confirmation = "8 caractères minimum.";
+    if (!values.confirmation) fieldErrors.confirmation = "Veuillez remplir tous les champs.";
+
+    if (values.newPassword !== values.confirmation) {
       setGlobalError("Les mots de passe ne sont pas identiques");
       return;
     }
 
-    if (Object.keys(errors).length > 0) {
-      setInputErrors(errors);
+    if (Object.keys(fieldErrors).length > 0) {
+      (Object.keys(fieldErrors) as Array<keyof PasswordFormValues>).forEach((field) => {
+        passwordForm.setError(field, { message: fieldErrors[field] });
+      });
       return;
     }
 
     try {
-      setIsLoading(true);
-
-      const result = await resetPasswordApi(email, newPassword, code);
+      const result = await resetPasswordApi(email, values.newPassword, code);
 
       if (result.ok) {
         navigate("/login");
@@ -119,11 +131,8 @@ const Forgot = () => {
     } catch (error) {
       console.error(error);
       setGlobalError(NETWORK_ERROR_MESSAGE);
-    } finally {
-      setIsLoading(false);
     }
-  }
-
+  };
 
   // --- RENDER ---
   return (
@@ -141,19 +150,18 @@ const Forgot = () => {
 
         {/* --- FORMULAIRE 1 : EMAIL --- */}
         {step === 'EMAIL' && (
-          <Form onSubmit={handleEmailSubmit} aria-busy={isLoading}>
+          <Form onSubmit={emailForm.handleSubmit(onEmailSubmit)} aria-busy={isLoading}>
             <FormTitle>Récupération du mot de passe</FormTitle>
             <FormField
               id="email"
               label="Adresse e-mail"
               type="text"
-              value={email}
               autoComplete="email"
               autoFocus
               disabled={isLoading}
-              onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
               placeholder="exemple@email.com"
-              error={inputErrors.email}
+              error={emailForm.formState.errors.email?.message}
+              {...emailForm.register("email")}
             />
             <Button disabled={isLoading}>
               {isLoading ? "Envoi..." : "Recevoir un code"}
@@ -169,7 +177,7 @@ const Forgot = () => {
 
         {/* --- FORMULAIRE 2 : CODE --- */}
         {step === 'CODE' && (
-          <Form onSubmit={handleCodeSubmit} aria-busy={isLoading}>
+          <Form onSubmit={codeForm.handleSubmit(onCodeSubmit)} aria-busy={isLoading}>
             <FormTitle>Code de vérification</FormTitle>
             <p className="text-gray-400 text-sm text-center mb-4">
               Envoyé à : <span className="text-white font-semibold">{email}</span>
@@ -181,13 +189,12 @@ const Forgot = () => {
               type="text"
               inputMode="numeric"
               maxLength={4}
-              value={code}
               autoFocus
               disabled={isLoading}
-              onChange={(e: ChangeEvent<HTMLInputElement>) => setCode(e.target.value)}
               placeholder="1234"
               className="text-center tracking-widest text-lg"
-              error={inputErrors.code}
+              error={codeForm.formState.errors.code?.message}
+              {...codeForm.register("code")}
             />
 
             <Button disabled={isLoading}>
@@ -204,30 +211,28 @@ const Forgot = () => {
           </Form>
         )}
 
-        {/* --- FORMULAIRE 3 : NOUVEAU PASSWORD (Placeholder) --- */}
+        {/* --- FORMULAIRE 3 : NOUVEAU PASSWORD --- */}
         {step === 'NEW_PASSWORD' && (
-          <Form onSubmit={handlePasswordSubmit} aria-busy={isLoading}>
+          <Form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} aria-busy={isLoading}>
             <FormTitle>Nouveau mot de passe</FormTitle>
             <FormField
               id="new-password"
               label="Nouveau mot de passe"
               type="password"
-              value={newPassword}
               autoComplete="new-password"
               autoFocus
               disabled={isLoading}
-              onChange={(e: ChangeEvent<HTMLInputElement>) => setNewPassword(e.target.value)}
-              error={inputErrors.newPassword}
+              error={passwordForm.formState.errors.newPassword?.message}
+              {...passwordForm.register("newPassword")}
             />
             <FormField
               id="confirm"
               label="Confirmation du nouveau mot de passe"
               type="password"
-              value={confirmation}
               autoComplete="confirm"
               disabled={isLoading}
-              onChange={(e: ChangeEvent<HTMLInputElement>) => setConfirmation(e.target.value)}
-              error={inputErrors.confirmation}
+              error={passwordForm.formState.errors.confirmation?.message}
+              {...passwordForm.register("confirmation")}
             />
             <Button type="submit" disabled={isLoading}>Modifier</Button>
           </Form>
