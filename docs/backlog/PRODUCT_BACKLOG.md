@@ -145,7 +145,7 @@ Fonctionnalités issues du prototype Figma ou des chantiers de stabilisation tec
 | **T-UI-01** | Homogénéisation des Toasts (Tailwind) | Audit technique ultérieur (2026-07-09) | Polish visuel mineur ; les alertes de l'application sont déjà fonctionnelles. | ✅ Terminé (2026-07-19 : `ToastStyled.tsx`/`ToastNotification.tsx` alignés sur le thème navy de l'app) |
 | **T-ARCHI-01**| Migration des formulaires vers RHF | Audit technique ultérieur (2026-07-13) | Harmonisation interne du code ; la validation manuelle actuelle est déjà OK. | ⬜ À faire |
 | **T-PART-02**| Expiration du jeton invité | Audit technique ultérieur (2026-07-13) | Optimisation de sécurité de BDD en production. | ✅ Terminé (2026-07-20 : jeton invité limité à 24h depuis la jointure, alignée sur le cookie de reprise) |
-| **T-CLEANUP-01**| Nettoyage des anciens invités | Audit technique ultérieur (2026-07-10) | Nettoyage de données de test en base de développement. | ⬜ À faire |
+| **T-CLEANUP-01**| Nettoyage des anciens invités | Audit technique ultérieur (2026-07-10) | Nettoyage de données de test en base de développement. | ✅ Terminé (2026-07-20 : script SQL manuel `cleanup_dev_test_guests.sql`, 65 lignes supprimées sur la base de dev) |
 
 ---
 
