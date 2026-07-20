@@ -183,7 +183,7 @@ describe('SessionDashboard - Configuration, Initialisation & Routage', () => {
         if (url.endsWith('/session/1')) {
           return Promise.resolve({
             ok: true,
-            json: async () => ({ success: true, data: { id: 1, name: 'Retro', code: '4242', step: 'writing', ownerId: 1 } }),
+            json: async () => ({ success: true, data: { id: 1, name: 'Retro', joinCode: '4242', step: 'writing', ownerId: 1 } }),
           });
         }
         return Promise.resolve({ ok: true, json: async () => ({ success: true, data: [] }) });
@@ -211,7 +211,7 @@ describe('SessionDashboard - Configuration, Initialisation & Routage', () => {
               data: {
                 id: 1,
                 name: 'Rétro sprint 12',
-                code: '4242',
+                joinCode: '4242',
                 step: 'writing',
                 ownerId: 1,
               },
@@ -264,7 +264,7 @@ describe('SessionDashboard - Configuration, Initialisation & Routage', () => {
             data: {
               id: 1,
               name: 'Tableau de rétrospective — session 1',
-              code: '4242',
+              joinCode: '4242',
               step: 'writing',
               ownerId: 1,
             },

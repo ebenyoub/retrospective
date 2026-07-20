@@ -1,11 +1,12 @@
-export type SessionStep = 'waiting' | 'writing' | 'voting' | 'results';
+export type SessionStep = 'waiting' | 'writing' | 'voting' | 'results' | 'action' | 'summary';
 
 export type SessionRole = 'facilitator' | 'participant';
 
 export interface SessionDetails {
   id: number;
   name: string;
-  code: string;
+  // Absent (null) dès que la session est clôturée : le code n'existe plus.
+  joinCode: string | null;
   step?: SessionStep;
   status?: string;
   ownerId: number;
@@ -26,14 +27,15 @@ export interface CreateSessionPayload {
 
 export interface CreatedSession {
   sessionId: number;
-  code: string;
+  joinCode: string;
   name: string;
 }
 
 export interface SessionListItem {
   id: number;
   name: string;
-  code: string;
+  // Absent (null) dès que la session est clôturée : le code n'existe plus.
+  joinCode: string | null;
   status: string;
   expiresAt: string;
   createdAt: string;

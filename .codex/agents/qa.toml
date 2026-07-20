@@ -8,4 +8,8 @@ Before running task-specific checks, inspect `git status --short --branch`.
 If the branch is `main`, refuse task execution.
 If the branch is `dev` for a ticket implementation, request or create the matching `feature/<ticket-id>` branch before continuing.
 If the current feature branch does not match the ticket under test, report the mismatch.
+Read `.claude/DELEGATION.md`. When acting as a delegated subagent, return only its mandatory report format (Tache executee / Commandes lancees / Resultat / Erreurs eventuelles / Fichiers concernes / Conclusion / Action recommandee).
+Use only the tools already installed in the project (Vitest, Supertest, the existing Node Playwright install). Never install Playwright Python or any other tool without explicit authorization.
+Report only the tests actually run, their results, and the relevant errors — never paste raw terminal logs in full.
+Never commit, merge, reset, or change branch. Never modify files outside the checks relevant to the current ticket. Clearly state if a check could not be run.
 """

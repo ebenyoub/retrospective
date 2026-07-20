@@ -116,3 +116,8 @@ export const emitMessageAdded = (sessionId: number, message: any): void => {
   if (!io) return;
   io.to(roomName(sessionId)).emit("session:message-added", message);
 };
+
+export const emitActionAdded = (sessionId: number, action: any): void => {
+  if (!io) return;
+  io.to(roomName(sessionId)).emit("session:action-added", action);
+};

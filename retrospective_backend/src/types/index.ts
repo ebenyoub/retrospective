@@ -4,16 +4,18 @@ import { Request } from 'express';
 export interface SessionType {
   id: number;
   name: string;
-  code: string;
+  // Code temporaire de jointure : null dès que la session est clôturée (voir closed_at).
+  join_code: string | null;
   owner_id: number;
   status: string;
-  step: "waiting" | "writing" | "voting" | "results";
+  step: "waiting" | "writing" | "voting" | "results" | "action" | "summary";
   format_name: string;
   format_columns: string[];
   step_duration_minutes: number;
   step_ends_at: Date | null;
   created_at: Date;
   expires_at: Date;
+  closed_at: Date | null;
 }
 
 

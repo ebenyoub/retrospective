@@ -58,7 +58,13 @@ export const useSessionActions = ({
         setStepEndsAt(result.data.stepEndsAt);
         addToast(
           'success',
-          `Session passée à l'étape : ${nextStep === 'writing' ? 'Écriture' : nextStep === 'voting' ? 'Vote' : 'Résultats'}`
+          `Session passée à l'étape : ${
+            nextStep === 'writing' ? 'Écriture'
+              : nextStep === 'voting' ? 'Vote'
+              : nextStep === 'results' ? 'Résultats'
+              : nextStep === 'action' ? "Plan d'action"
+              : 'Résumé'
+          }`
         );
       } else {
         addToast('error', getApiErrorMessage(result.payload, 'Impossible de changer d\'étape.'));

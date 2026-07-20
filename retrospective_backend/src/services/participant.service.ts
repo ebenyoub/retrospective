@@ -12,8 +12,10 @@ import {
   updateParticipantName,
 } from "../models/participant.model";
 import type { ParticipantRole, ParticipantRow } from "../models/types/participant.model.types";
-import { findSessionByCode, findSessionById } from "../models/session.model";
+import { closeSessionIfExpiredByCode, findSessionByCode, findSessionById } from "../models/session.model";
+import { assertSessionOpen, toMysqlDateTime } from "./session.service";
 import { AppError } from "../utils/AppError";
+import { RESUME_COOKIE_MAX_AGE_MS } from "../utils/authCookie";
 import type { GuestJoinResult, ParticipantSummary } from "./types/participant.service.types";
 
 const toSummary = (row: ParticipantRow): ParticipantSummary => ({
@@ -34,12 +36,33 @@ const assertSessionExists = async (sessionId: number) => {
   return session;
 };
 
+// Un invité ne peut jamais rejoindre une session clôturée (contrairement à
+// assertSessionExists, réservée à ensureAuthenticatedParticipant, qui doit
+// rester permissive : elle est aussi appelée pour de simples lectures via
+// resolveSessionActor, qui gère elle-même la vérification d'ouverture).
+const assertSessionJoinable = async (sessionId: number) => {
+  const session = await assertSessionExists(sessionId);
+  assertSessionOpen(session);
+  return session;
+};
+
 
 
 const assertNameAvailable = async (sessionId: number, displayName: string) => {
   const existing = await findParticipantByName(sessionId, displayName);
   if (existing) {
     throw new AppError(409, "Ce pseudo est déjà utilisé dans cette session.", "PARTICIPANT_NAME_TAKEN");
+  }
+};
+
+// Un jeton invité n'est valable que 24h après la jointure (même durée que le
+// cookie de reprise, voir authCookie.ts) : au-delà, il faut rejoindre à
+// nouveau. Sans cette limite, un jeton stocké en localStorage resterait
+// utilisable indéfiniment tant que la session reste ouverte (T-PART-02).
+const assertGuestTokenNotExpired = (participant: ParticipantRow): void => {
+  const joinedAtMs = new Date(participant.joined_at).getTime();
+  if (Date.now() - joinedAtMs > RESUME_COOKIE_MAX_AGE_MS) {
+    throw new AppError(401, "Votre session invitée a expiré, veuillez rejoindre à nouveau.", "GUEST_TOKEN_EXPIRED");
   }
 };
 
@@ -62,6 +85,10 @@ export const ensureAuthenticatedParticipant = async ({
   displayName: string;
   role: ParticipantRole;
 }): Promise<ParticipantSummary> => {
+  // Existence seulement (pas d'ouverture) : réutilisée pour de simples
+  // lectures via resolveSessionActor. Le blocage d'une vraie nouvelle
+  // jointure sur session close est fait explicitement par joinAsSelf
+  // (controller) et par resolveSessionActor (options.requireOpen).
   await assertSessionExists(sessionId);
 
   const existing = await findParticipantByUserId(sessionId, userId);
@@ -133,7 +160,7 @@ export const joinSessionAsGuestParticipant = async (
   sessionId: number,
   displayName: string
 ): Promise<GuestJoinResult> => {
-  await assertSessionExists(sessionId);
+  await assertSessionJoinable(sessionId);
 
   await assertNameAvailable(sessionId, displayName);
 
@@ -168,6 +195,9 @@ export const joinSessionAsGuestParticipantByCode = async (
   code: string,
   displayName: string
 ): Promise<GuestJoinResult> => {
+  const nowUtc = toMysqlDateTime(new Date().toISOString());
+  await closeSessionIfExpiredByCode(code, nowUtc);
+
   const session = await findSessionByCode(code);
 
   if (!session) {
@@ -179,6 +209,10 @@ export const joinSessionAsGuestParticipantByCode = async (
 
 // Reprise après refresh/reconnexion : le navigateur présente l'identifiant de
 // participant + le jeton reçu au premier join, sans recréer de ligne.
+// Existence seulement (pas d'ouverture) : réutilisée pour de simples lectures
+// via resolveSessionActor (options.requireOpen gère le blocage en écriture).
+// Le blocage d'une vraie reprise explicite (POST /participants/resume) sur
+// une session close est fait par le contrôleur participant.controller.ts.
 export const resumeGuestParticipant = async (
   sessionId: number,
   participantId: number,
@@ -189,6 +223,8 @@ export const resumeGuestParticipant = async (
   if (!participant || participant.session_id !== sessionId || participant.guest_token !== guestToken) {
     throw new AppError(404, "Participant introuvable.", "PARTICIPANT_NOT_FOUND");
   }
+
+  assertGuestTokenNotExpired(participant);
 
   await touchParticipant(participant.id, "online");
   return toSummary({ ...participant, status: "online" });
@@ -227,6 +263,12 @@ export const renameParticipant = async ({
     throw new AppError(403, "Vous ne pouvez modifier que votre propre pseudo.", "PARTICIPANT_FORBIDDEN");
   }
 
+  // Un jeton invité périmé ne doit pas non plus permettre de renommer la
+  // participation (même limite que la lecture/écriture, voir T-PART-02).
+  if (requesterGuestToken !== null && participant.guest_token === requesterGuestToken) {
+    assertGuestTokenNotExpired(participant);
+  }
+
   // Pseudo inchangé : rien à faire (et pas de conflit avec soi-même).
   if (participant.display_name === displayName) {
     return toSummary(participant);
@@ -256,6 +298,8 @@ export const checkGuestResume = async (
   if (!participant || participant.session_id !== sessionId || participant.guest_token !== guestToken) {
     throw new AppError(404, "Participant introuvable.", "PARTICIPANT_NOT_FOUND");
   }
+
+  assertGuestTokenNotExpired(participant);
 
   return {
     sessionId: session.id,
@@ -289,6 +333,14 @@ export const leaveSession = async ({
 
   if (!isOwnerOfRow) {
     throw new AppError(403, "Vous ne pouvez quitter que votre propre participation.", "PARTICIPANT_FORBIDDEN");
+  }
+
+  // Cohérence avec les autres usages du jeton invité (T-PART-02) : même un
+  // simple "quitter" ne doit pas rester actionnable indéfiniment avec un
+  // jeton périmé. Un invité dans ce cas peut rejoindre à nouveau pour partir
+  // proprement ; sinon le ménage par inactivité (US-14) nettoie la ligne.
+  if (requesterGuestToken !== null && participant.guest_token === requesterGuestToken) {
+    assertGuestTokenNotExpired(participant);
   }
 
   await deleteParticipant(participantId);

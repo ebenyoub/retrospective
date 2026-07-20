@@ -3,6 +3,7 @@ import { useToast } from '@/context/toast/useToast';
 import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import { getApiErrorMessage, NETWORK_ERROR_MESSAGE } from '@/lib/apiError';
 import { getRetroFormatById, DEFAULT_RETRO_FORMAT_ID } from '@/lib/retroFormats';
 import { SessionContext } from './context/SessionContext';
 import DiscussionDrawer from './components/DiscussionDrawer';
@@ -18,9 +19,13 @@ import { useSessionPanels } from './hooks/useSessionPanels';
 import { useSessionParticipants } from './hooks/useSessionParticipants';
 import { useSessionPolling } from './hooks/useSessionPolling';
 import { useSessionViewport } from './hooks/useSessionViewport';
+import { createAction } from './services/actionApi';
+import type { CreateActionPayload } from './services/actionApi';
 import type { SessionBoardColumn } from './types/board.types';
 import type { SessionStep } from './types/session.types';
+import ActionStep from './steps/ActionStep';
 import ResultsStep from './steps/ResultsStep';
+import SummaryStep from './steps/SummaryStep';
 import VotingStep from './steps/VotingStep';
 import WaitingStep from './steps/WaitingStep';
 import WritingStep from './steps/WritingStep';
@@ -149,7 +154,7 @@ const SessionDashboard = () => {
     hasShownClosedToastRef.current = true;
   }, [addToast, setStatus]);
 
-  const { participants, messages, setMessages } = useSessionParticipants(
+  const { participants, messages, setMessages, actions, setActions } = useSessionParticipants(
     sessionId,
     identity.selfIdentityForSocket,
     {
@@ -159,6 +164,26 @@ const SessionDashboard = () => {
       actorHeaders: identity.actorHeaders ?? EMPTY_HEADERS,
     }
   );
+
+  const handleAddAction = useCallback(async (payload: CreateActionPayload): Promise<void> => {
+    if (!sessionId || !identity.actorHeaders) return;
+
+    try {
+      const result = await createAction(sessionId, identity.actorHeaders, payload);
+
+      if (result.ok) {
+        setActions((previous) => {
+          if (previous.some((a) => a.id === result.data.id)) return previous;
+          return [...previous, result.data];
+        });
+      } else {
+        addToast('error', getApiErrorMessage(result.payload, "Impossible d'ajouter l'action."));
+      }
+    } catch (error) {
+      console.error("Erreur lors de l'ajout de l'action :", error);
+      addToast('error', NETWORK_ERROR_MESSAGE);
+    }
+  }, [sessionId, identity.actorHeaders, setActions, addToast]);
 
   // Retour = quitter l'écran SANS perdre sa participation : l'identité
   // (invitée ou compte) est conservée pour permettre la reprise depuis
@@ -251,6 +276,7 @@ const SessionDashboard = () => {
             step={activeStep}
             cardsCount={sessionCards.cards.length}
             votesLeft={sessionCards.votesLeft}
+            actionsCount={actions.length}
             isFacilitator={identity.role === 'facilitator' && details.status !== 'closed'}
             stepEndsAt={details.stepEndsAt}
             onTransitionStep={handleTransitionStep}
@@ -263,47 +289,72 @@ const SessionDashboard = () => {
             isDesktop={!isMobileViewport}
             onClose={panels.closeParticipantsDrawer}
           />
-          <DiscussionDrawer
-            isOpen={panels.isDiscussionDrawerOpen}
-            isDesktop={!isMobileViewport}
-            onClose={panels.closeDiscussionDrawer}
-            messages={messages}
-            sessionId={sessionId}
-            actorHeaders={identity.actorHeaders ?? EMPTY_HEADERS}
-            onMessageSent={(msg) => setMessages((prev) => {
-              if (prev.some((m) => m.id === msg.id)) return prev;
-              return [...prev, msg];
-            })}
-          />
 
-          {activeStep === 'results' ? (
-            <ResultsStep cards={sessionCards.cards} formatColumns={details.formatColumns} isDesktop={!isMobileViewport} />
-          ) : activeStep === 'voting' ? (
-            <VotingStep
-              cards={sessionCards.cards}
-              columns={writingColumns}
-              activeMobileColumn={activeMobileColumn}
-              isMobileViewport={isMobileViewport}
-              currentUserId={identity.selfParticipantId}
-              onSelectMobileColumn={setActiveMobileColumn}
-              onVote={sessionCards.handleVote}
-              onUpdateCard={sessionCards.handleUpdateCard}
-              onDeleteCard={sessionCards.handleDeleteCard}
+          {/* Discussion en docké (desktop) : panneau à côté des cartes, pas
+              par-dessus — on peut lire/commenter tout en discutant. */}
+          <div className="flex flex-1 overflow-hidden">
+            <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+              {activeStep === 'summary' ? (
+                <SummaryStep
+                  sessionName={details.sessionName}
+                  cards={sessionCards.cards}
+                  actions={actions}
+                  participants={participants}
+                  formatColumns={details.formatColumns}
+                  isDesktop={!isMobileViewport}
+                />
+              ) : activeStep === 'action' ? (
+                <ActionStep
+                  actions={actions}
+                  cards={sessionCards.cards}
+                  formatColumns={details.formatColumns}
+                  isFacilitator={identity.role === 'facilitator' && details.status !== 'closed'}
+                  isDesktop={!isMobileViewport}
+                  onAddAction={handleAddAction}
+                />
+              ) : activeStep === 'results' ? (
+                <ResultsStep cards={sessionCards.cards} formatColumns={details.formatColumns} isDesktop={!isMobileViewport} />
+              ) : activeStep === 'voting' ? (
+                <VotingStep
+                  cards={sessionCards.cards}
+                  columns={writingColumns}
+                  activeMobileColumn={activeMobileColumn}
+                  isMobileViewport={isMobileViewport}
+                  currentUserId={identity.selfParticipantId}
+                  onSelectMobileColumn={setActiveMobileColumn}
+                  onVote={sessionCards.handleVote}
+                  onUpdateCard={sessionCards.handleUpdateCard}
+                  onDeleteCard={sessionCards.handleDeleteCard}
+                />
+              ) : (
+                <WritingStep
+                  cards={sessionCards.cards}
+                  columns={writingColumns}
+                  activeMobileColumn={activeMobileColumn}
+                  isMobileViewport={isMobileViewport}
+                  currentUserId={identity.selfParticipantId}
+                  onSelectMobileColumn={setActiveMobileColumn}
+                  onAddCard={sessionCards.handleAddCard}
+                  onVote={sessionCards.handleVote}
+                  onUpdateCard={sessionCards.handleUpdateCard}
+                  onDeleteCard={sessionCards.handleDeleteCard}
+                />
+              )}
+            </div>
+
+            <DiscussionDrawer
+              isOpen={panels.isDiscussionDrawerOpen}
+              isDesktop={!isMobileViewport}
+              onClose={panels.closeDiscussionDrawer}
+              messages={messages}
+              sessionId={sessionId}
+              actorHeaders={identity.actorHeaders ?? EMPTY_HEADERS}
+              onMessageSent={(msg) => setMessages((prev) => {
+                if (prev.some((m) => m.id === msg.id)) return prev;
+                return [...prev, msg];
+              })}
             />
-          ) : (
-            <WritingStep
-              cards={sessionCards.cards}
-              columns={writingColumns}
-              activeMobileColumn={activeMobileColumn}
-              isMobileViewport={isMobileViewport}
-              currentUserId={identity.selfParticipantId}
-              onSelectMobileColumn={setActiveMobileColumn}
-              onAddCard={sessionCards.handleAddCard}
-              onVote={sessionCards.handleVote}
-              onUpdateCard={sessionCards.handleUpdateCard}
-              onDeleteCard={sessionCards.handleDeleteCard}
-            />
-          )}
+          </div>
         </>
       )}
     </div>

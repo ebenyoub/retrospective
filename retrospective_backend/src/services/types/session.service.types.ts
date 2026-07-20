@@ -4,9 +4,10 @@ import type { SessionRole } from "../../models/types/session.model.types";
 export interface SessionListItem {
   id: number;
   name: string;
-  code: string;
+  // Absent (null) dès que la session est clôturée : plus de code à afficher.
+  joinCode: string | null;
   status: string;
-  step: "waiting" | "writing" | "voting" | "results";
+  step: "waiting" | "writing" | "voting" | "results" | "action" | "summary";
   expiresAt: Date;
   createdAt: Date;
   role: SessionRole;
@@ -26,7 +27,7 @@ export interface CreatedSessionResult {
   data: SessionType | {
     sessionId: number;
     name: string;
-    code: string;
+    joinCode: string;
     expiresAt: string;
   };
 }
@@ -48,14 +49,16 @@ export interface JoinSessionResult {
 export interface SessionDetails {
   id: number;
   name: string;
-  code: string;
+  // Absent (null) dès que la session est clôturée : plus de code à afficher.
+  joinCode: string | null;
   status: string;
-  step: "waiting" | "writing" | "voting" | "results";
+  step: "waiting" | "writing" | "voting" | "results" | "action" | "summary";
   ownerId: number;
   formatName: string;
   formatColumns: string[];
   stepDurationMinutes: number;
   stepEndsAt: Date | null;
   expiresAt: Date;
+  closedAt: Date | null;
   createdAt: Date;
 }

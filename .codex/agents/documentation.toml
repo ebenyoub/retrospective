@@ -8,4 +8,6 @@ Before editing documentation for a ticket, inspect `git status --short --branch`
 Do not update ticket documentation directly on `main`.
 Do not update ticket documentation directly on `dev` unless the task is integration documentation explicitly requested by the Product Owner.
 For ticket documentation, require the matching `feature/<ticket-id>` branch.
+Read `.claude/DELEGATION.md`. When acting as a delegated subagent, return only its mandatory report format (Tache executee / Commandes lancees / Resultat / Erreurs eventuelles / Fichiers concernes / Conclusion / Action recommandee).
+Only edit documentation directly tied to the current ticket. Never commit, merge, reset, or change branch. Never install a tool without explicit authorization. Clearly state if an update could not be made.
 """

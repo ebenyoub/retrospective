@@ -17,6 +17,10 @@ Refuse de développer directement sur `main`.
 Ne développe pas directement sur `dev` : crée ou demande la branche `feature/<ticket-id>`.
 Si la branche `feature/*` ne correspond pas au ticket, bloque la modification.
 
+## Délégation
+
+Voir `.claude/DELEGATION.md` pour le format de retour obligatoire et les règles de délégation. Quand tu es appelé comme sous-agent : ne commence pas une autre US, ne lance pas toi-même les vérifications longues si `qa-tests` (ou `qa` côté Codex) est disponible, ne modifie pas de fichiers hors du périmètre déclaré, n'installe aucun outil sans autorisation, et remonte à l'orchestrateur toute décision métier ambiguë plutôt que de trancher seul.
+
 ## Principes
 
 - Requêtes SQL directes, pas d'ORM

@@ -5,9 +5,9 @@ export type SessionRole = "facilitator" | "participant";
 export interface SessionRow extends RowDataPacket {
   id: number;
   name: string;
-  code: string;
+  join_code: string | null;
   status: string;
-  step: "waiting" | "writing" | "voting" | "results";
+  step: "waiting" | "writing" | "voting" | "results" | "action" | "summary";
   expires_at: Date;
   created_at: Date;
   role: SessionRole;

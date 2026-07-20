@@ -29,7 +29,8 @@ export const updateSessionTimerSchema = z.object({
 
 export const joinSessionSchema = z.object({
   body: z.object({
-    code: z.string({ error: "Le code de session est requis." }).trim().min(1, "Le code de session est requis.")
+    code: z.string({ error: "Le code de session est requis." }).trim()
+      .regex(/^\d{4}$/, "Le code de session doit contenir exactement 4 chiffres.")
   })
 });
 
@@ -71,8 +72,8 @@ export const createMessageSchema = z.object({
 
 export const updateSessionStepSchema = z.object({
   body: z.object({
-    step: z.enum(["waiting", "writing", "voting", "results"], {
-      error: "L'étape de session doit être 'waiting', 'writing', 'voting' ou 'results'."
+    step: z.enum(["waiting", "writing", "voting", "results", "action", "summary"], {
+      error: "L'étape de session doit être 'waiting', 'writing', 'voting', 'results', 'action' ou 'summary'."
     })
   })
 });
@@ -85,5 +86,27 @@ export const updateSessionFormatSchema = z.object({
     formatColumns: z.array(
       z.string().trim().min(1, "Le nom de la colonne est requis.").max(30, "Le nom de la colonne ne peut pas dépasser 30 caractères.")
     ).length(3, "Le format doit contenir exactement 3 colonnes.")
+  })
+});
+
+export const createActionSchema = z.object({
+  body: z.object({
+    description: z.string({ error: "La description de l'action est obligatoire." }).trim()
+      .min(1, "La description de l'action ne peut pas être vide.")
+      .max(1000, "La description ne peut pas dépasser 1000 caractères."),
+    owner: z.string({ error: "Le nom du responsable est obligatoire." }).trim()
+      .min(1, "Le nom du responsable ne peut pas être vide.")
+      .max(100, "Le nom du responsable ne peut pas dépasser 100 caractères."),
+    priority: z.enum(["high", "medium", "low"], {
+      error: "La priorité doit être 'high', 'medium' ou 'low'."
+    }),
+    deadline: z.string().nullable().optional()
+      .refine((val) => {
+        if (!val) return true;
+        const d = new Date(val);
+        return !isNaN(d.getTime());
+      }, {
+        message: "La date d'échéance doit être une date valide."
+      })
   })
 });

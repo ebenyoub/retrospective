@@ -88,8 +88,8 @@ Fonctionnalités explicitement justifiées par le cahier des charges, les User S
 
 | ID | Priorité | Objectif | Critères d'acceptation courts | Statut |
 | :--- | :--- | :--- | :--- | :--- |
-| **MVP-ACTION-01** | P1 | Ajouter le plan d'action. | Le facilitateur peut consulter/préparer les actions prévues par le prototype. | ❌ Reporté |
-| **MVP-SUMMARY-01** | P1 | Ajouter l'écran résumé. | Le résumé final clôture la rétrospective proprement. | ❌ Reporté |
+| **MVP-ACTION-01** | P1 | Ajouter le plan d'action. | Le facilitateur peut consulter/préparer les actions prévues par le prototype. | ✅ Terminé (E2E `session-action-summary.spec.ts`, 2026-07-20) |
+| **MVP-SUMMARY-01** | P1 | Ajouter l'écran résumé. | Le résumé final clôture la rétrospective proprement. | ✅ Terminé (E2E `session-action-summary.spec.ts`, 2026-07-20) |
 | **MVP-E2E-01** | P0 | Vérifier le parcours produit complet. | Playwright couvre création -> résumé sans rupture majeure. | ✅ Terminé |
 
 ### Ordre d'implémentation MVP
@@ -112,8 +112,8 @@ Fonctionnalités explicitement justifiées par le cahier des charges, les User S
 | 8.1 | **MVP-DISCUSSION-02** | US-07 | P1 | Validation E2E du drawer Discussion. | ✅ Terminé |
 | 9 | **MVP-COMMENTS-01** | US-07 | P1 | Implémenter les commentaires de cartes. | ✅ Terminé |
 | 9.1 | **MVP-COMMENTS-02** | US-07 | P1 | Validation E2E de la modal Commentaires. | ✅ Terminé |
-| 10 | **MVP-ACTION-01** | US-11 | P1 | Ajouter le plan d'action. | ❌ Reporté |
-| 11 | **MVP-SUMMARY-01** | US-11 | P1 | Ajouter l'écran résumé. | ❌ Reporté |
+| 10 | **MVP-ACTION-01** | US-11 | P1 | Ajouter le plan d'action. | ✅ Terminé |
+| 11 | **MVP-SUMMARY-01** | US-11 | P1 | Ajouter l'écran résumé. | ✅ Terminé |
 | 12 | **MVP-WRITING-STATE-01** | US-07 | P2 | Finaliser les états chargement/erreur/vides. | ✅ Terminé |
 | 12.1 | **MVP-WRITING-STATE-02** | US-07 | P2 | Validation E2E des états de chargement et vides. | ✅ Terminé |
 
@@ -139,10 +139,12 @@ Fonctionnalités issues du prototype Figma ou des chantiers de stabilisation tec
 | ID | User Story / Tâche | Origine | Justification Évolution | Statut |
 | :--- | :--- | :--- | :--- | :--- |
 | **US-11** | Chat de discussion de session | Figma (`components/DiscussionPanel`), Backlog (`B20` Hors scope) | Communication écrite annexe ; le débat a lieu à l'oral pendant la réunion. | ✅ Terminé |
-| **US-13** | Plan d'action & Écran résumé | Figma (`screens/ActionScreen.tsx` / `SummaryScreen.tsx`) | Suivi post-réunion ; le workflow du MVP s'arrête proprement aux résultats. | ⬜ À faire |
-| **T-UI-01** | Homogénéisation des Toasts (Tailwind) | Audit technique ultérieur (2026-07-09) | Polish visuel mineur ; les alertes de l'application sont déjà fonctionnelles. | ⬜ À faire |
+| **US-13** | Plan d'action & Écran résumé | Figma (`screens/ActionScreen.tsx` / `SummaryScreen.tsx`) | Suivi post-réunion ; le workflow du MVP s'arrête proprement aux résultats. | ✅ Terminé (E2E `session-action-summary.spec.ts`, 2026-07-20) |
+| **US-14** | Cycle de vie du code de session / sessions clôturées en lecture seule | Investigation utilisateur (401 `/auth/profile`) ayant mené à une revue du cycle de vie des sessions, 2026-07-19/20 | Sécurité et cohérence métier : un code à 4 chiffres ne doit pas être un identifiant permanent, une session close ne doit plus être modifiable ni rejoignable. | ✅ Terminé |
+| **US-15** | Corrections UX post-tests réels (retour d'étape, Discussion docké, podium Plan d'action) | Retours utilisateur après un test de charge réel (50 participants, cartes, votes, commentaires), 2026-07-20 | Ergonomie facilitateur (erreur de manipulation récupérable) et productivité (discuter et consulter le podium sans changer d'écran). | ✅ Terminé |
+| **T-UI-01** | Homogénéisation des Toasts (Tailwind) | Audit technique ultérieur (2026-07-09) | Polish visuel mineur ; les alertes de l'application sont déjà fonctionnelles. | ✅ Terminé (2026-07-19 : `ToastStyled.tsx`/`ToastNotification.tsx` alignés sur le thème navy de l'app) |
 | **T-ARCHI-01**| Migration des formulaires vers RHF | Audit technique ultérieur (2026-07-13) | Harmonisation interne du code ; la validation manuelle actuelle est déjà OK. | ⬜ À faire |
-| **T-PART-02**| Expiration du jeton invité | Audit technique ultérieur (2026-07-13) | Optimisation de sécurité de BDD en production. | ⬜ À faire |
+| **T-PART-02**| Expiration du jeton invité | Audit technique ultérieur (2026-07-13) | Optimisation de sécurité de BDD en production. | ✅ Terminé (2026-07-20 : jeton invité limité à 24h depuis la jointure, alignée sur le cookie de reprise) |
 | **T-CLEANUP-01**| Nettoyage des anciens invités | Audit technique ultérieur (2026-07-10) | Nettoyage de données de test en base de développement. | ⬜ À faire |
 
 ---

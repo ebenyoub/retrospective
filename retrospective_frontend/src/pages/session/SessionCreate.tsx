@@ -131,7 +131,7 @@ const SessionCreate = () => {
             
             <div className="w-full p-4 mb-6 bg-slate-800 border border-white/10 rounded-lg">
               <span className="block text-xs uppercase tracking-wider text-slate-400 mb-1">Code de la session</span>
-              <span className="text-3xl font-black font-mono text-white tracking-widest">{createdSession.code}</span>
+              <span className="text-3xl font-black font-mono text-white tracking-widest">{createdSession.joinCode}</span>
             </div>
 
             <p className="text-xs text-slate-400 mb-6">

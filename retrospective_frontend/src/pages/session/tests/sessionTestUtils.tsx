@@ -26,7 +26,9 @@ export const createDashboardFetchMock = (options: {
   deleteCommentResponse?: unknown;
   messagesResponse?: unknown;
   createMessageResponse?: unknown;
-  step?: 'waiting' | 'writing' | 'voting' | 'results';
+  actionsResponse?: unknown;
+  createActionResponse?: unknown;
+  step?: 'waiting' | 'writing' | 'voting' | 'results' | 'action';
   formatName?: string;
   formatColumns?: string[];
   stepEndsAt?: string | null;
@@ -42,6 +44,8 @@ export const createDashboardFetchMock = (options: {
     deleteCommentResponse,
     messagesResponse = emptyCardsResponse,
     createMessageResponse,
+    actionsResponse = emptyCardsResponse,
+    createActionResponse,
     step = 'writing',
     formatName = 'Commencer / Arrêter / Continuer',
     formatColumns = ['Commencer', 'Arrêter', 'Continuer'],
@@ -60,7 +64,7 @@ export const createDashboardFetchMock = (options: {
           data: {
             id: 1,
             name: 'Tableau de rétrospective — session 1',
-            code: '1234',
+            joinCode: '1234',
             status: 'open',
             step: step,
             ownerId: 1,
@@ -95,6 +99,12 @@ export const createDashboardFetchMock = (options: {
     }
     if (method === 'POST' && url.includes('/chat/messages')) {
       return Promise.resolve(createMessageResponse);
+    }
+    if (method === 'GET' && url.includes('/actions')) {
+      return Promise.resolve(actionsResponse);
+    }
+    if (method === 'POST' && url.includes('/actions')) {
+      return Promise.resolve(createActionResponse);
     }
     if (method === 'POST' && url.includes('/vote')) {
       return Promise.resolve(voteResponse);

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { Response, Request } from "express";
 import type { Mock } from "vitest";
+import { AppError } from "../../utils/AppError";
 
 vi.mock("../../services/participant.service", () => ({
   ensureAuthenticatedParticipant: vi.fn(),
@@ -14,6 +15,7 @@ vi.mock("../../services/participant.service", () => ({
 
 vi.mock("../../services/session.service", () => ({
   getSessionDetails: vi.fn(),
+  assertSessionOpen: vi.fn(),
 }));
 
 vi.mock("../../realtime/socket", () => ({
@@ -38,7 +40,7 @@ import {
   resumeGuestParticipant,
   checkGuestResume,
 } from "../../services/participant.service";
-import { getSessionDetails } from "../../services/session.service";
+import { assertSessionOpen, getSessionDetails } from "../../services/session.service";
 import { emitParticipantsUpdated } from "../../realtime/socket";
 import type { AuthRequest } from "../../types";
 
@@ -50,6 +52,7 @@ const mockLeaveSession = leaveSession as unknown as Mock;
 const mockResumeGuestParticipant = resumeGuestParticipant as unknown as Mock;
 const mockCheckGuestResume = checkGuestResume as unknown as Mock;
 const mockGetSessionDetails = getSessionDetails as unknown as Mock;
+const mockAssertSessionOpen = assertSessionOpen as unknown as Mock;
 const mockEmitParticipantsUpdated = emitParticipantsUpdated as unknown as Mock;
 
 const createMockResponse = () => {
@@ -80,6 +83,7 @@ describe("participant.controller", () => {
     mockLeaveSession.mockReset();
     mockResumeGuestParticipant.mockReset();
     mockGetSessionDetails.mockReset();
+    mockAssertSessionOpen.mockReset();
     mockEmitParticipantsUpdated.mockReset();
   });
 
@@ -124,6 +128,22 @@ describe("participant.controller", () => {
     expect(mockEnsureAuthenticatedParticipant).toHaveBeenCalledWith(
       expect.objectContaining({ role: "participant" })
     );
+  });
+
+  it("joinAsSelf propage le refus si la session est clôturée", async () => {
+    mockGetSessionDetails.mockResolvedValueOnce({ ownerId: 5, status: "closed" });
+    mockAssertSessionOpen.mockImplementationOnce(() => {
+      throw new AppError(400, "Cette session est clôturée.", "SESSION_CLOSED");
+    });
+
+    const req = { params: { sessionId: "10" }, user: { userId: 5, username: "Elyas" } } as unknown as AuthRequest;
+    const res = createMockResponse();
+
+    await expect(joinAsSelf(req, res as unknown as Response)).rejects.toMatchObject({
+      statusCode: 400,
+      code: "SESSION_CLOSED",
+    });
+    expect(mockEnsureAuthenticatedParticipant).not.toHaveBeenCalled();
   });
 
   it("guestJoin renvoie 201 avec le participant et le guestToken", async () => {
@@ -182,6 +202,21 @@ describe("participant.controller", () => {
 
     expect(res.statusCode).toBe(200);
     expect(mockResumeGuestParticipant).toHaveBeenCalledWith(10, 1, "tok");
+  });
+
+  it("resumeGuest refuse une vraie reprise sur une session clôturée", async () => {
+    mockGetSessionDetails.mockResolvedValueOnce({ status: "closed" });
+    mockAssertSessionOpen.mockImplementationOnce(() => {
+      throw new AppError(400, "Cette session est clôturée.", "SESSION_CLOSED");
+    });
+    const req = { params: { sessionId: "10" }, body: { participantId: 1, guestToken: "tok" } } as unknown as Request;
+    const res = createMockResponse();
+
+    await expect(resumeGuest(req, res as unknown as Response)).rejects.toMatchObject({
+      statusCode: 400,
+      code: "SESSION_CLOSED",
+    });
+    expect(mockResumeGuestParticipant).not.toHaveBeenCalled();
   });
 
   it("removeParticipant supprime puis diffuse la mise à jour", async () => {

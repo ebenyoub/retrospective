@@ -9,6 +9,7 @@ import db from '../db';
 import {
   closeExpiredSessionsForOwner,
   closeActiveSessionsForOwner,
+  closeSessionIfExpiredByCode,
   findActiveSessionForOwner,
   findSessionByCode,
   findSessionsForUser,
@@ -43,7 +44,7 @@ describe("session.model", () => {
   it("renvoie les lignes brutes telles que reçues de la base", async () => {
     const row = {
       id: 1,
-      code: "1234",
+      join_code: "1234",
       status: "open",
       expires_at: new Date("2026-07-08T10:00:00.000Z"),
       created_at: new Date("2026-07-08T09:00:00.000Z"),
@@ -68,13 +69,13 @@ describe("session.model", () => {
   it("closeActiveSessionsForOwner retourne affectedRows", async () => {
     mockExecute.mockResolvedValueOnce([{ affectedRows: 3 }]);
 
-    await expect(closeActiveSessionsForOwner(1)).resolves.toEqual({
+    await expect(closeActiveSessionsForOwner(1, "now")).resolves.toEqual({
       affectedRows: 3,
     });
   });
 
   it("findActiveSessionForOwner retourne la première session active ou null", async () => {
-    const row = { id: 1, code: "1234" };
+    const row = { id: 1, join_code: "1234" };
     mockExecute.mockResolvedValueOnce([[row]]);
 
     await expect(findActiveSessionForOwner(1, "now")).resolves.toBe(row);
@@ -121,6 +122,24 @@ describe("session.model", () => {
     mockExecute.mockResolvedValueOnce([[]]);
 
     await expect(findSessionByCode("9999")).resolves.toBeNull();
+  });
+
+  it("findSessionByCode ne trouve rien pour une session close (filtre status=open dans la requête)", async () => {
+    mockExecute.mockResolvedValueOnce([[]]);
+
+    await expect(findSessionByCode("1234")).resolves.toBeNull();
+    expect(mockExecute).toHaveBeenCalledWith(expect.stringContaining('status = "open"'), ["1234"]);
+  });
+
+  it("closeSessionIfExpiredByCode clôture et libère le code d'une session expirée", async () => {
+    mockExecute.mockResolvedValueOnce([{ affectedRows: 1 }]);
+
+    await closeSessionIfExpiredByCode("1234", "2026-07-19 12:00:00");
+
+    expect(mockExecute).toHaveBeenCalledWith(
+      expect.stringMatching(/join_code = NULL/),
+      ["2026-07-19 12:00:00", "1234", "2026-07-19 12:00:00"]
+    );
   });
 
   it("findSessionUserJoin retourne la première jointure ou null", async () => {

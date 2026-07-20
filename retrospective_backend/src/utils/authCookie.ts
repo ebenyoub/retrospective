@@ -1,5 +1,5 @@
 import type { CookieOptions, Request } from "express";
-import jwt from "jsonwebtoken";
+import jwt, { type JwtPayload } from "jsonwebtoken";
 import type { ResumeTokenPayload } from "./types/authCookie.types";
 
 export const AUTH_COOKIE_NAME = "token";
@@ -84,4 +84,22 @@ export const readAuthToken = (req: Request): string | null => {
   }
 
   return null;
+};
+
+// Identité facultative pour une route publique (ex: salle d'attente d'une
+// session) : contrairement au middleware `auth`, l'absence ou l'invalidité du
+// token n'est pas une erreur, elle signifie simplement "visiteur anonyme".
+export const getOptionalUserId = (req: Request): number | null => {
+  const token = readAuthToken(req);
+  if (!token) return null;
+
+  const jwtSecret = process.env.JWT_SECRET;
+  if (!jwtSecret) return null;
+
+  try {
+    const decoded = jwt.verify(token, jwtSecret) as JwtPayload;
+    return typeof decoded.userId === "number" ? decoded.userId : null;
+  } catch {
+    return null;
+  }
 };

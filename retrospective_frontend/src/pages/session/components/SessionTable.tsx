@@ -58,12 +58,12 @@ export const SessionTable = ({
                     onClick={() => onNavigateToSession(session.id)}
                     className="hover:text-blue-400 cursor-pointer transition-colors block truncate"
                   >
-                    {session.name || `Session ${session.code}`}
+                    {session.name || `Session #${session.id}`}
                   </span>
                 )}
               </td>
               <td className="px-6 py-4 font-mono text-xs text-slate-300 select-all">
-                {session.code}
+                {session.joinCode ?? <span className="text-slate-500 italic">Clôturée</span>}
               </td>
               <td className="px-6 py-4 text-xs text-slate-400">
                 {ROLE_LABEL[session.role]}

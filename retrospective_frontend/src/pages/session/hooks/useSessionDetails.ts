@@ -54,7 +54,7 @@ export const useSessionDetails = ({ sessionId }: UseSessionDetailsOptions) => {
 
       if (result.ok) {
         setSessionName(result.data.name);
-        setSessionCode(result.data.code);
+        setSessionCode(result.data.joinCode ?? '');
         setStep(result.data.step || 'writing');
         setFormatName(result.data.formatName ?? defaultFormat.name);
         setFormatColumns(normalizeFormatColumns(result.data.formatColumns));

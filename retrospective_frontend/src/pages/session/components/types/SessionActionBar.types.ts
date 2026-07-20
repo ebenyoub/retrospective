@@ -4,6 +4,7 @@ export interface SessionActionBarProps {
   step: SessionStep;
   cardsCount: number;
   votesLeft: number;
+  actionsCount: number;
   isFacilitator: boolean;
   stepEndsAt: string | null;
   onTransitionStep: (nextStep: SessionStep) => void;

@@ -15,7 +15,8 @@ import {
 import { createCard, getCards, updateCard, deleteCard } from '../controllers/card.controller';
 import { voteForCard } from '../controllers/vote.controller';
 import { createComment, deleteComment, getComments } from '../controllers/comment.controller';
-import { createMessage, getMessages } from '../controllers/message.controller';
+import { getMessages, createMessage } from '../controllers/message.controller';
+import { getSessionActions, createSessionAction } from '../controllers/action.controller';
 import {
   guestJoin,
   guestJoinByCode,
@@ -36,6 +37,7 @@ import {
   updateCardSchema,
   createCommentSchema,
   createMessageSchema,
+  createActionSchema,
   updateSessionStepSchema,
   updateSessionFormatSchema,
   updateSessionTimerSchema
@@ -83,5 +85,8 @@ router.delete('/:sessionId/cards/:cardId/comments/:commentId', asyncHandler(dele
 
 router.get('/:sessionId/chat/messages', asyncHandler(getMessages));
 router.post('/:sessionId/chat/messages', validate(createMessageSchema), asyncHandler(createMessage));
+
+router.get('/:sessionId/actions', asyncHandler(getSessionActions));
+router.post('/:sessionId/actions', auth, validate(createActionSchema), asyncHandler(createSessionAction));
 
 export default router;

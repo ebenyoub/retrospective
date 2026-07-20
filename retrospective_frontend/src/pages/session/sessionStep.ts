@@ -5,6 +5,8 @@ export const SESSION_STEP_LABELS: Record<SessionStep, string> = {
   writing: 'Écriture des cartes',
   voting: 'Vote',
   results: 'Résultats',
+  action: "Plan d'action",
+  summary: 'Résumé',
 };
 
-export const SESSION_STEPS: SessionStep[] = ['waiting', 'writing', 'voting', 'results'];
+export const SESSION_STEPS: SessionStep[] = ['waiting', 'writing', 'voting', 'results', 'action', 'summary'];

@@ -19,21 +19,29 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS sessions (
   id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
-  code VARCHAR(4) NOT NULL,
+  -- Code temporaire de jointure (4 chiffres) : uniquement valable tant que la
+  -- session est ouverte. Mis à NULL à la clôture (voir closed_at) et redevient
+  -- alors libre pour une future session (contrainte UNIQUE ci-dessous, qui
+  -- autorise plusieurs NULL mais jamais deux sessions avec le même code actif).
+  join_code VARCHAR(4) NULL,
   owner_id INT NOT NULL,
   status ENUM('open', 'closed') NOT NULL DEFAULT 'open',
-  step ENUM('waiting', 'writing', 'voting', 'results') NOT NULL DEFAULT 'waiting',
+  step ENUM('waiting', 'writing', 'voting', 'results', 'action', 'summary') NOT NULL DEFAULT 'waiting',
   format_name VARCHAR(60) NOT NULL DEFAULT 'Commencer / Arrêter / Continuer',
   format_columns JSON NOT NULL DEFAULT (JSON_ARRAY('Commencer', 'Arrêter', 'Continuer')),
   step_duration_minutes INT NOT NULL DEFAULT 5,
   step_ends_at DATETIME NULL,
   expires_at DATETIME NOT NULL,
+  closed_at DATETIME NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  -- Maintenu automatiquement par MySQL à chaque écriture sur la ligne : sert
+  -- à détecter les sessions ouvertes abandonnées (voir closeInactiveSessions).
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT fk_sessions_owner
     FOREIGN KEY (owner_id) REFERENCES users(id)
     ON DELETE CASCADE,
   INDEX idx_sessions_owner (owner_id),
-  INDEX idx_sessions_code (code),
+  UNIQUE KEY unique_sessions_join_code (join_code),
   INDEX idx_sessions_status_expires (status, expires_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -138,6 +146,20 @@ CREATE TABLE IF NOT EXISTS session_messages (
     FOREIGN KEY (author_participant_id) REFERENCES session_participants(id)
     ON DELETE CASCADE,
   INDEX idx_session_messages_session (session_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS session_actions (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  session_id INT NOT NULL,
+  description TEXT NOT NULL,
+  owner VARCHAR(100) NOT NULL DEFAULT '?',
+  deadline DATE NULL,
+  priority ENUM('high', 'medium', 'low') NOT NULL DEFAULT 'medium',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_session_actions_session
+    FOREIGN KEY (session_id) REFERENCES sessions(id)
+    ON DELETE CASCADE,
+  INDEX idx_session_actions_session (session_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 SET FOREIGN_KEY_CHECKS = 1;

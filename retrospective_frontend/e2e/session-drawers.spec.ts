@@ -129,7 +129,8 @@ test('ouvre et ferme les drawers au clavier et au clic extérieur', async ({ pag
   const discussionTrigger = page.getByRole('button', { name: 'Discussion' });
   await discussionTrigger.click();
 
-  const discussionDrawer = page.getByRole('dialog', { name: 'Discussion' });
+  // Desktop : panneau docké (role="complementary"), plus un dialog modal.
+  const discussionDrawer = page.getByRole('complementary', { name: 'Discussion' });
   await expect(discussionDrawer).toBeVisible();
 
   // Vérification de l'état vide
@@ -142,8 +143,8 @@ test('ouvre et ferme les drawers au clavier et au clic extérieur', async ({ pag
   const sendButton = discussionDrawer.getByRole('button', { name: 'Envoyer le message' });
   await expect(sendButton).toBeDisabled();
 
-  // Fermer le drawer
-  await page.getByRole('button', { name: 'Fermer le panneau Discussion' }).click();
+  // Fermer le drawer (pas d'overlay à cliquer : bouton "Fermer" du panneau lui-même)
+  await discussionDrawer.getByRole('button', { name: 'Fermer' }).click();
   await expect(discussionDrawer).not.toBeVisible();
 
   // Vérifier la rouverture sans régression
@@ -151,7 +152,7 @@ test('ouvre et ferme les drawers au clavier et au clic extérieur', async ({ pag
   await expect(discussionDrawer).toBeVisible();
 
   // Fermer à nouveau
-  await page.getByRole('button', { name: 'Fermer le panneau Discussion' }).click();
+  await discussionDrawer.getByRole('button', { name: 'Fermer' }).click();
   await expect(discussionDrawer).not.toBeVisible();
 });
 

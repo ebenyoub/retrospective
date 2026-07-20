@@ -24,7 +24,10 @@ Vérifie uniquement :
 - la conformité des changements avec l'architecture et les skills du projet.
 Ne modifie aucun fichier.
 Ne fais aucun commit.
+Pour chaque point relevé, précise d'abord s'il s'agit d'une erreur certaine, d'un risque ou d'une simple suggestion.
 Termine par l'une de ces deux conclusions :
 - PRÊT À COMMITTER
 - CORRECTIONS REQUISES
+Lis `.claude/DELEGATION.md`. Quand tu es appelé comme sous-agent délégué, restitue la synthèse finale dans son format obligatoire (Tâche exécutée / Commandes lancées / Résultat / Erreurs éventuelles / Fichiers concernés / Conclusion / Action recommandée), la conclusion PRÊT À COMMITTER / CORRECTIONS REQUISES devenant la valeur du champ Conclusion.
+Ne recopie jamais de logs volumineux. Ne committe, ne merge, ne reset et ne change jamais de branche.
 """

@@ -60,7 +60,7 @@ describe('SessionList', () => {
             {
               id: 1,
               name: 'Rétro Sprint 1',
-              code: '1234',
+              joinCode: '1234',
               status: 'open',
               expiresAt: '2026-07-08T10:00:00.000Z',
               createdAt: '2026-07-08T09:00:00.000Z',
@@ -69,7 +69,8 @@ describe('SessionList', () => {
             {
               id: 2,
               name: 'Rétro Sprint 2',
-              code: '5678',
+              // Session close : plus de code (libéré côté backend à la clôture).
+              joinCode: null,
               status: 'closed',
               expiresAt: '2026-07-08T10:00:00.000Z',
               createdAt: '2026-07-08T09:00:00.000Z',
@@ -85,7 +86,7 @@ describe('SessionList', () => {
     expect((await screen.findAllByText('Rétro Sprint 1')).length).toBeGreaterThan(0);
     expect(screen.getAllByText('Rétro Sprint 2').length).toBeGreaterThan(0);
     expect(screen.getAllByText('1234').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('5678').length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Clôturée/).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/Facilitateur/).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/Participant/).length).toBeGreaterThan(0);
   });
@@ -115,7 +116,7 @@ describe('SessionList', () => {
             {
               id: 1,
               name: 'Rétro Sprint 1',
-              code: '1234',
+              joinCode: '1234',
               status: 'open',
               expiresAt: '2026-07-08T10:00:00.000Z',
               createdAt: '2026-07-08T09:00:00.000Z',
@@ -178,7 +179,7 @@ describe('SessionList', () => {
             {
               id: 1,
               name: 'Ancien Nom',
-              code: '1234',
+              joinCode: '1234',
               status: 'open',
               expiresAt: '2026-07-08T10:00:00.000Z',
               createdAt: '2026-07-08T09:00:00.000Z',
@@ -225,7 +226,7 @@ describe('SessionList', () => {
             {
               id: 1,
               name: 'Rétro à supprimer',
-              code: '1234',
+              joinCode: '1234',
               status: 'open',
               expiresAt: '2026-07-08T10:00:00.000Z',
               createdAt: '2026-07-08T09:00:00.000Z',
@@ -274,7 +275,7 @@ describe('SessionList', () => {
             {
               id: 1,
               name: 'Ancien Nom',
-              code: '1234',
+              joinCode: '1234',
               status: 'open',
               expiresAt: '2026-07-08T10:00:00.000Z',
               createdAt: '2026-07-08T09:00:00.000Z',

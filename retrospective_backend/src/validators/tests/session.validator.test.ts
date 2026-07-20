@@ -31,7 +31,7 @@ describe("validators — messages d'erreur personnalisés", () => {
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.issues[0].message).toBe(
-        "L'étape de session doit être 'waiting', 'writing', 'voting' ou 'results'."
+        "L'étape de session doit être 'waiting', 'writing', 'voting', 'results', 'action' ou 'summary'."
       );
     }
   });

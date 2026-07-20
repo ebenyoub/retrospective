@@ -79,6 +79,11 @@ retrospective/
 ## Agents disponibles
 
 Voir `.claude/agents/` pour les agents spécialisés par domaine.
+Voir `.claude/DELEGATION.md` pour les règles de délégation et le format de retour obligatoire des subagents.
+
+## Reprise de session
+
+Après un compactage de contexte ou en début de session, relire `.claude/CURRENT_TASK.md` (ticket en cours, périmètre, prochaine action) et `.claude/HANDOVER.md` (état de reprise factuel) avant de continuer. Ne jamais supposer l'état du projet à partir d'une conversation précédente.
 
 ## Skills disponibles
 
