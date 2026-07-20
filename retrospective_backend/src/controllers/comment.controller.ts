@@ -23,7 +23,7 @@ export const createComment = async (req: Request, res: Response) => {
   const sessionId = Number(req.params.sessionId);
   const cardId = Number(req.params.cardId);
   const { content } = req.body;
-  const actor = await resolveSessionActor(req, sessionId);
+  const actor = await resolveSessionActor(req, sessionId, { requireOpen: true });
 
   const data = await addCommentService({ participantId: actor.participantId, sessionId, cardId, content });
 
@@ -38,7 +38,7 @@ export const deleteComment = async (req: Request, res: Response) => {
   const sessionId = Number(req.params.sessionId);
   const cardId = Number(req.params.cardId);
   const commentId = Number(req.params.commentId);
-  const actor = await resolveSessionActor(req, sessionId);
+  const actor = await resolveSessionActor(req, sessionId, { requireOpen: true });
 
   await removeCommentService({ participantId: actor.participantId, cardId, commentId });
 

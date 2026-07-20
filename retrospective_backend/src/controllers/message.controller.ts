@@ -21,7 +21,7 @@ export const getMessages = async (req: Request, res: Response) => {
 export const createMessage = async (req: Request, res: Response) => {
   const sessionId = Number(req.params.sessionId);
   const { content } = req.body;
-  const actor = await resolveSessionActor(req, sessionId);
+  const actor = await resolveSessionActor(req, sessionId, { requireOpen: true });
 
   const data = await addMessageService({
     sessionId,

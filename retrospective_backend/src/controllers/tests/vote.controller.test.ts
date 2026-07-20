@@ -59,7 +59,7 @@ describe("vote.controller", () => {
     const body = res.body as { success: boolean; data: { voteId: number } };
     expect(body.success).toBe(true);
     expect(body.data.voteId).toBe(42);
-    expect(mockResolveSessionActor).toHaveBeenCalledWith(req, 1);
+    expect(mockResolveSessionActor).toHaveBeenCalledWith(req, 1, { requireOpen: true });
     expect(mockCastVote).toHaveBeenCalledWith(9, 5);
   });
 

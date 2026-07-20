@@ -4,6 +4,8 @@ import type { Mock } from "vitest";
 vi.mock("../../models/session.model", () => ({
   closeExpiredSessionsForOwner: vi.fn(),
   closeActiveSessionsForOwner: vi.fn(),
+  closeInactiveSessions: vi.fn(),
+  closeSessionIfExpiredByCode: vi.fn(),
   findSessionByCode: vi.fn(),
   findSessionsForUser: vi.fn(),
   findSessionUserJoin: vi.fn(),
@@ -22,6 +24,8 @@ vi.mock("../../models/session.model", () => ({
 import {
   closeExpiredSessionsForOwner,
   closeActiveSessionsForOwner,
+  closeInactiveSessions,
+  closeSessionIfExpiredByCode,
   findSessionByCode,
   findSessionsForUser,
   findSessionUserJoin,
@@ -41,6 +45,7 @@ import {
   getSessionsForUser,
   joinSessionForUser,
   getSessionDetails,
+  getSessionDetailsForViewer,
   updateSessionStepService,
   updateSessionTimerService,
   updateSessionFormatService,
@@ -53,6 +58,8 @@ import { DEFAULT_RETRO_FORMAT_PRESET, getRetroFormatColumnLabels } from "../../c
 
 const mockCloseExpiredSessionsForOwner = closeExpiredSessionsForOwner as unknown as Mock;
 const mockCloseActiveSessionsForOwner = closeActiveSessionsForOwner as unknown as Mock;
+const mockCloseInactiveSessions = closeInactiveSessions as unknown as Mock;
+const mockCloseSessionIfExpiredByCode = closeSessionIfExpiredByCode as unknown as Mock;
 const mockFindSessionByCode = findSessionByCode as unknown as Mock;
 const mockFindSessionsForUser = findSessionsForUser as unknown as Mock;
 const mockFindSessionUserJoin = findSessionUserJoin as unknown as Mock;
@@ -70,7 +77,7 @@ const mockDeleteSessionById = deleteSessionById as unknown as Mock;
 const baseSessionRow = {
   id: 7,
   name: "S1",
-  code: "1234",
+  join_code: "1234",
   status: "open",
   step: "waiting",
   owner_id: 1,
@@ -84,6 +91,9 @@ describe("session.service", () => {
   beforeEach(() => {
     mockCloseExpiredSessionsForOwner.mockReset();
     mockCloseActiveSessionsForOwner.mockReset();
+    mockCloseInactiveSessions.mockReset();
+    mockCloseInactiveSessions.mockResolvedValue({ affectedRows: 0 });
+    mockCloseSessionIfExpiredByCode.mockReset();
     mockFindSessionByCode.mockReset();
     mockFindSessionsForUser.mockReset();
     mockFindSessionUserJoin.mockReset();
@@ -114,7 +124,7 @@ describe("session.service", () => {
     mockFindSessionsForUser.mockResolvedValueOnce([
       {
         id: 1,
-        code: "1234",
+        join_code: "1234",
         status: "open",
         expires_at: expiresAt,
         created_at: createdAt,
@@ -122,7 +132,7 @@ describe("session.service", () => {
       },
       {
         id: 2,
-        code: "5678",
+        join_code: null,
         status: "closed",
         expires_at: expiresAt,
         created_at: createdAt,
@@ -133,8 +143,8 @@ describe("session.service", () => {
     const result = await getSessionsForUser(1);
 
     expect(result).toEqual([
-      { id: 1, code: "1234", status: "open", expiresAt, createdAt, role: "facilitator" },
-      { id: 2, code: "5678", status: "closed", expiresAt, createdAt, role: "participant" },
+      { id: 1, joinCode: "1234", status: "open", expiresAt, createdAt, role: "facilitator" },
+      { id: 2, joinCode: null, status: "closed", expiresAt, createdAt, role: "participant" },
     ]);
   });
 
@@ -175,7 +185,7 @@ describe("session.service", () => {
 
     const result = await createSessionForUser({ userId: 1, name: "Nouvelle Session" });
 
-    expect(mockCloseActiveSessionsForOwner).toHaveBeenCalledWith(1);
+    expect(mockCloseActiveSessionsForOwner).toHaveBeenCalledWith(1, expect.any(String));
     expect(mockInsertSession).toHaveBeenCalledWith(
       "Nouvelle Session",
       expect.any(String),
@@ -200,8 +210,33 @@ describe("session.service", () => {
     expect(result.statusCode).toBe(201);
     expect(result.message).toBe("Session créée.");
     expect(result.data).toMatchObject({ sessionId: 7, name: "Nouvelle Session" });
-    expect((result.data as { code: string }).code).toMatch(/^\d{4}$/);
+    expect((result.data as { joinCode: string }).joinCode).toMatch(/^\d{4}$/);
     expect((result.data as { expiresAt: string }).expiresAt).toEqual(expect.any(String));
+  });
+
+  it("createSessionForUser retente avec un nouveau code si le premier est déjà pris (collision)", async () => {
+    mockCloseExpiredSessionsForOwner.mockResolvedValueOnce({ changedRows: 0, affectedRows: 0 });
+    mockCloseActiveSessionsForOwner.mockResolvedValueOnce({ affectedRows: 0 });
+    mockInsertSession
+      .mockRejectedValueOnce({ code: "ER_DUP_ENTRY" })
+      .mockResolvedValueOnce(11);
+
+    const result = await createSessionForUser({ userId: 1, name: "Nouvelle Session" });
+
+    expect(mockInsertSession).toHaveBeenCalledTimes(2);
+    expect(result.statusCode).toBe(201);
+    expect(result.data).toMatchObject({ sessionId: 11 });
+  });
+
+  it("createSessionForUser échoue proprement si toutes les tentatives collisionnent", async () => {
+    mockCloseExpiredSessionsForOwner.mockResolvedValueOnce({ changedRows: 0, affectedRows: 0 });
+    mockCloseActiveSessionsForOwner.mockResolvedValueOnce({ affectedRows: 0 });
+    mockInsertSession.mockRejectedValue({ code: "ER_DUP_ENTRY" });
+
+    await expect(createSessionForUser({ userId: 1, name: "Nouvelle Session" })).rejects.toMatchObject({
+      statusCode: 500,
+      code: "SESSION_CREATE_FAILED",
+    } satisfies Partial<AppError>);
   });
 
   it("createSessionForUser enregistre un format MVP fourni", async () => {
@@ -266,6 +301,18 @@ describe("session.service", () => {
     } satisfies Partial<AppError>);
   });
 
+  it("joinSessionForUser lève une AppError 404 pour le code d'une session déjà close (plus de join_code en base)", async () => {
+    // findSessionByCode filtre déjà status = "open" : une session close n'a
+    // plus de correspondance, même si le code a été retapé de mémoire.
+    mockFindSessionByCode.mockResolvedValueOnce(null);
+
+    await expect(joinSessionForUser({ userId: 1, code: "1234" })).rejects.toMatchObject({
+      statusCode: 404,
+      code: "SESSION_CODE_NOT_FOUND",
+    } satisfies Partial<AppError>);
+    expect(mockCloseSessionIfExpiredByCode).toHaveBeenCalledWith("1234", expect.any(String));
+  });
+
   it("joinSessionForUser retourne 200 si l'utilisateur a déjà rejoint", async () => {
     mockFindSessionByCode.mockResolvedValueOnce({ id: 1 });
     mockFindSessionUserJoin.mockResolvedValueOnce({ id: 5, user_id: 1, session_id: 1 });
@@ -313,7 +360,52 @@ describe("session.service", () => {
       mockFindSessionById.mockResolvedValueOnce(baseSessionRow);
 
       const result = await getSessionDetails(7);
-      expect(result).toMatchObject({ id: 7, name: "S1", step: "waiting", formatName: "Commencer / Arrêter / Continuer" });
+      expect(result).toMatchObject({ id: 7, name: "S1", joinCode: "1234", step: "waiting", formatName: "Commencer / Arrêter / Continuer" });
+    });
+  });
+
+  describe("getSessionDetailsForViewer", () => {
+    it("renvoie les détails d'une session ouverte à n'importe quel visiteur (salle d'attente)", async () => {
+      mockFindSessionById.mockResolvedValueOnce({ ...baseSessionRow, status: "open" });
+
+      const result = await getSessionDetailsForViewer(7, null);
+      expect(result.joinCode).toBe("1234");
+      expect(mockFindSessionUserJoin).not.toHaveBeenCalled();
+    });
+
+    it("refuse une session close sans identité (404, pas de fuite d'existence)", async () => {
+      mockFindSessionById.mockResolvedValueOnce({ ...baseSessionRow, status: "closed", join_code: null });
+
+      await expect(getSessionDetailsForViewer(7, null)).rejects.toMatchObject({
+        statusCode: 404,
+        code: "SESSION_NOT_FOUND",
+      });
+    });
+
+    it("refuse une session close à un utilisateur qui n'y a aucun droit", async () => {
+      mockFindSessionById.mockResolvedValueOnce({ ...baseSessionRow, status: "closed", join_code: null, owner_id: 1 });
+      mockFindSessionUserJoin.mockResolvedValueOnce(null);
+
+      await expect(getSessionDetailsForViewer(7, 99)).rejects.toMatchObject({
+        statusCode: 404,
+        code: "SESSION_NOT_FOUND",
+      });
+    });
+
+    it("autorise le facilitateur (owner) à revoir une session close", async () => {
+      mockFindSessionById.mockResolvedValueOnce({ ...baseSessionRow, status: "closed", join_code: null, owner_id: 1 });
+
+      const result = await getSessionDetailsForViewer(7, 1);
+      expect(result.status).toBe("closed");
+      expect(result.joinCode).toBeNull();
+    });
+
+    it("autorise un ancien participant à revoir une session close", async () => {
+      mockFindSessionById.mockResolvedValueOnce({ ...baseSessionRow, status: "closed", join_code: null, owner_id: 1 });
+      mockFindSessionUserJoin.mockResolvedValueOnce({ id: 5, user_id: 42, session_id: 7 });
+
+      const result = await getSessionDetailsForViewer(7, 42);
+      expect(result.status).toBe("closed");
     });
   });
 
@@ -329,7 +421,7 @@ describe("session.service", () => {
     });
 
     it("met à jour l'étape avec succès si l'utilisateur est le facilitateur", async () => {
-      const mockSession = { id: 7, owner_id: 1, step_duration_minutes: 5 };
+      const mockSession = { id: 7, owner_id: 1, status: "open", step_duration_minutes: 5 };
       mockFindSessionById.mockResolvedValueOnce(mockSession);
       mockUpdateSessionStep.mockResolvedValueOnce(true);
 
@@ -341,7 +433,7 @@ describe("session.service", () => {
     });
 
     it("ne fixe pas d'échéance pour l'écran des résultats", async () => {
-      const mockSession = { id: 7, owner_id: 1, step_duration_minutes: 5 };
+      const mockSession = { id: 7, owner_id: 1, status: "open", step_duration_minutes: 5 };
       mockFindSessionById.mockResolvedValueOnce(mockSession);
       mockUpdateSessionStep.mockResolvedValueOnce(true);
 
@@ -349,6 +441,16 @@ describe("session.service", () => {
 
       expect(result.stepEndsAt).toBeNull();
       expect(mockUpdateSessionStep).toHaveBeenCalledWith(7, "results", null);
+    });
+
+    it("lève une AppError 400 SESSION_CLOSED si la session est clôturée (lecture seule)", async () => {
+      mockFindSessionById.mockResolvedValueOnce({ id: 7, owner_id: 1, status: "closed", step_duration_minutes: 5 });
+
+      await expect(updateSessionStepService(7, 1, "writing")).rejects.toMatchObject({
+        statusCode: 400,
+        code: "SESSION_CLOSED",
+      });
+      expect(mockUpdateSessionStep).not.toHaveBeenCalled();
     });
   });
 
@@ -363,7 +465,7 @@ describe("session.service", () => {
     });
 
     it("en salle d'attente, remplace la durée par défaut des étapes", async () => {
-      mockFindSessionById.mockResolvedValueOnce({ id: 7, owner_id: 1, step: "waiting", step_duration_minutes: 5 });
+      mockFindSessionById.mockResolvedValueOnce({ id: 7, owner_id: 1, status: "open", step: "waiting", step_duration_minutes: 5 });
       mockUpdateSessionStepDuration.mockResolvedValueOnce(true);
 
       const result = await updateSessionTimerService(7, 1, 10);
@@ -373,7 +475,7 @@ describe("session.service", () => {
     });
 
     it("pendant une étape chronométrée, redéfinit l'échéance à maintenant + minutes", async () => {
-      mockFindSessionById.mockResolvedValueOnce({ id: 7, owner_id: 1, step: "writing", step_duration_minutes: 5 });
+      mockFindSessionById.mockResolvedValueOnce({ id: 7, owner_id: 1, status: "open", step: "writing", step_duration_minutes: 5 });
       mockUpdateSessionStepDeadline.mockResolvedValueOnce(true);
 
       const before = Date.now();
@@ -387,7 +489,7 @@ describe("session.service", () => {
     });
 
     it("refuse la modification sur l'écran des résultats", async () => {
-      mockFindSessionById.mockResolvedValueOnce({ id: 7, owner_id: 1, step: "results", step_duration_minutes: 5 });
+      mockFindSessionById.mockResolvedValueOnce({ id: 7, owner_id: 1, status: "open", step: "results", step_duration_minutes: 5 });
 
       await expect(updateSessionTimerService(7, 1, 10)).rejects.toMatchObject({
         statusCode: 400,
@@ -396,11 +498,20 @@ describe("session.service", () => {
     });
 
     it("refuse une durée hors bornes", async () => {
-      mockFindSessionById.mockResolvedValueOnce({ id: 7, owner_id: 1, step: "waiting", step_duration_minutes: 5 });
+      mockFindSessionById.mockResolvedValueOnce({ id: 7, owner_id: 1, status: "open", step: "waiting", step_duration_minutes: 5 });
 
       await expect(updateSessionTimerService(7, 1, 0)).rejects.toMatchObject({
         statusCode: 400,
         code: "TIMER_DURATION_INVALID",
+      });
+    });
+
+    it("lève une AppError 400 SESSION_CLOSED si la session est clôturée (lecture seule)", async () => {
+      mockFindSessionById.mockResolvedValueOnce({ id: 7, owner_id: 1, status: "closed", step: "waiting", step_duration_minutes: 5 });
+
+      await expect(updateSessionTimerService(7, 1, 10)).rejects.toMatchObject({
+        statusCode: 400,
+        code: "SESSION_CLOSED",
       });
     });
   });
@@ -425,7 +536,7 @@ describe("session.service", () => {
     });
 
     it("lève une AppError 400 si le format n'est pas un format MVP", async () => {
-      mockFindSessionById.mockResolvedValueOnce({ id: 7, owner_id: 1 });
+      mockFindSessionById.mockResolvedValueOnce({ id: 7, owner_id: 1, status: "open" });
 
       await expect(updateSessionFormatService(7, 1, "Solo", ["Une seule colonne"])).rejects.toMatchObject({
         statusCode: 400,
@@ -434,7 +545,7 @@ describe("session.service", () => {
     });
 
     it("met à jour le format avec succès si l'utilisateur est le facilitateur", async () => {
-      mockFindSessionById.mockResolvedValueOnce({ id: 7, owner_id: 1 });
+      mockFindSessionById.mockResolvedValueOnce({ id: 7, owner_id: 1, status: "open" });
       mockUpdateSessionFormat.mockResolvedValueOnce(true);
       mockFindSessionById.mockResolvedValueOnce({ ...baseSessionRow, format_name: "Succès / Difficultés / Idées", format_columns: ["Succès", "Difficultés", "Idées"] });
 
@@ -443,6 +554,15 @@ describe("session.service", () => {
       expect(mockUpdateSessionFormat).toHaveBeenCalledWith(7, "Succès / Difficultés / Idées", ["Succès", "Difficultés", "Idées"]);
       expect(result.formatName).toBe("Succès / Difficultés / Idées");
       expect(result.formatColumns).toEqual(["Succès", "Difficultés", "Idées"]);
+    });
+
+    it("lève une AppError 400 SESSION_CLOSED si la session est clôturée (lecture seule)", async () => {
+      mockFindSessionById.mockResolvedValueOnce({ id: 7, owner_id: 1, status: "closed" });
+
+      await expect(updateSessionFormatService(7, 1, "Succès / Difficultés / Idées", ["Succès", "Difficultés", "Idées"])).rejects.toMatchObject({
+        statusCode: 400,
+        code: "SESSION_CLOSED",
+      });
     });
   });
 
@@ -466,7 +586,7 @@ describe("session.service", () => {
     });
 
     it("lève une AppError 500 si la fermeture échoue", async () => {
-      mockFindSessionById.mockResolvedValueOnce({ id: 7, owner_id: 1 });
+      mockFindSessionById.mockResolvedValueOnce({ id: 7, owner_id: 1, status: "open" });
       mockCloseSessionById.mockResolvedValueOnce(false);
 
       await expect(closeSessionService(7, 1)).rejects.toMatchObject({
@@ -476,11 +596,21 @@ describe("session.service", () => {
     });
 
     it("ferme la session avec succès si l'utilisateur est le facilitateur", async () => {
-      mockFindSessionById.mockResolvedValueOnce({ id: 7, owner_id: 1 });
+      mockFindSessionById.mockResolvedValueOnce({ id: 7, owner_id: 1, status: "open" });
       mockCloseSessionById.mockResolvedValueOnce(true);
 
       await expect(closeSessionService(7, 1)).resolves.toBeUndefined();
-      expect(mockCloseSessionById).toHaveBeenCalledWith(7, 1);
+      expect(mockCloseSessionById).toHaveBeenCalledWith(7, 1, expect.any(String));
+    });
+
+    it("lève une AppError 400 SESSION_ALREADY_CLOSED si la session est déjà close", async () => {
+      mockFindSessionById.mockResolvedValueOnce({ id: 7, owner_id: 1, status: "closed" });
+
+      await expect(closeSessionService(7, 1)).rejects.toMatchObject({
+        statusCode: 400,
+        code: "SESSION_ALREADY_CLOSED",
+      });
+      expect(mockCloseSessionById).not.toHaveBeenCalled();
     });
   });
 
@@ -504,7 +634,7 @@ describe("session.service", () => {
     });
 
     it("lève une AppError 400 si le nom est vide", async () => {
-      mockFindSessionById.mockResolvedValueOnce({ id: 7, owner_id: 1 });
+      mockFindSessionById.mockResolvedValueOnce({ id: 7, owner_id: 1, status: "open" });
 
       await expect(updateSessionNameService(7, 1, "")).rejects.toMatchObject({
         statusCode: 400,
@@ -513,7 +643,7 @@ describe("session.service", () => {
     });
 
     it("lève une AppError 500 si la mise à jour SQL échoue", async () => {
-      mockFindSessionById.mockResolvedValueOnce({ id: 7, owner_id: 1 });
+      mockFindSessionById.mockResolvedValueOnce({ id: 7, owner_id: 1, status: "open" });
       mockUpdateSessionName.mockResolvedValueOnce(false);
 
       await expect(updateSessionNameService(7, 1, "Nouveau Nom")).rejects.toMatchObject({
@@ -523,7 +653,7 @@ describe("session.service", () => {
     });
 
     it("renomme la session avec succès", async () => {
-      mockFindSessionById.mockResolvedValueOnce({ id: 7, owner_id: 1, name: "Ancien Nom" });
+      mockFindSessionById.mockResolvedValueOnce({ id: 7, owner_id: 1, status: "open", name: "Ancien Nom" });
       mockUpdateSessionName.mockResolvedValueOnce(true);
 
       await expect(updateSessionNameService(7, 1, "Sprint 4 Rétro")).resolves.toBeUndefined();
@@ -531,10 +661,19 @@ describe("session.service", () => {
     });
 
     it("ne fait rien et résout avec succès si le nom est identique", async () => {
-      mockFindSessionById.mockResolvedValueOnce({ id: 7, owner_id: 1, name: "Identique" });
+      mockFindSessionById.mockResolvedValueOnce({ id: 7, owner_id: 1, status: "open", name: "Identique" });
 
       await expect(updateSessionNameService(7, 1, "Identique")).resolves.toBeUndefined();
       expect(mockUpdateSessionName).not.toHaveBeenCalled();
+    });
+
+    it("lève une AppError 400 SESSION_CLOSED si la session est clôturée (lecture seule)", async () => {
+      mockFindSessionById.mockResolvedValueOnce({ id: 7, owner_id: 1, status: "closed" });
+
+      await expect(updateSessionNameService(7, 1, "Nouveau Nom")).rejects.toMatchObject({
+        statusCode: 400,
+        code: "SESSION_CLOSED",
+      });
     });
   });
 

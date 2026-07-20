@@ -21,15 +21,16 @@ const formatTime = (isoString: string): string => {
   }
 };
 
-const DiscussionDrawer = ({
-  isOpen,
-  isDesktop,
+// Contenu partagé entre le mode "docké" (desktop, à côté des cartes, sans
+// overlay : on peut lire/commenter les cartes tout en discutant) et le mode
+// overlay (mobile, où il n'y a pas la place pour un panneau permanent).
+const DiscussionPanelContent = ({
   onClose,
   messages,
   sessionId,
   actorHeaders,
   onMessageSent,
-}: DiscussionDrawerProps) => {
+}: Omit<DiscussionDrawerProps, 'isOpen' | 'isDesktop'>) => {
   const { addToast } = useToast();
   const [draft, setDraft] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -40,20 +41,20 @@ const DiscussionDrawer = ({
     messagesEndRef.current?.scrollIntoView({ behavior });
   }, []);
 
-  // Défilement automatique au bas lors de la réception de messages ou à l'ouverture du drawer
+  // Ce composant n'est monté que pendant que le panneau est ouvert (voir
+  // DiscussionDrawer plus bas) : le défilement au montage suffit, plus besoin
+  // de suivre un `isOpen`.
   useEffect(() => {
-    if (isOpen) {
-      // Un léger délai permet au rendu du drawer d'être effectif avant le scroll
-      const timer = setTimeout(() => scrollToBottom('auto'), 80);
-      return () => clearTimeout(timer);
-    }
-  }, [isOpen, scrollToBottom]);
+    // Un léger délai permet au rendu du panneau d'être effectif avant le scroll.
+    const timer = setTimeout(() => scrollToBottom('auto'), 80);
+    return () => clearTimeout(timer);
+  }, [scrollToBottom]);
 
   useEffect(() => {
-    if (isOpen && messages.length > 0) {
+    if (messages.length > 0) {
       scrollToBottom('smooth');
     }
-  }, [messages, isOpen, scrollToBottom]);
+  }, [messages, scrollToBottom]);
 
   const handleSubmit = async (event: FormEvent): Promise<void> => {
     event.preventDefault();
@@ -81,14 +82,7 @@ const DiscussionDrawer = ({
   };
 
   return (
-    <Drawer
-      open={isOpen}
-      onClose={onClose}
-      labelledBy="discussion-drawer-title"
-      overlayLabel="Fermer le panneau Discussion"
-      side={isDesktop ? 'right' : 'full'}
-      size="md"
-    >
+    <>
       <header className="flex h-14 flex-shrink-0 items-center justify-between border-b border-navy-border px-4">
         <div className="flex min-w-0 items-center gap-2">
           <MessageCircle size={16} className="text-slate-400" aria-hidden="true" />
@@ -206,6 +200,54 @@ const DiscussionDrawer = ({
           <Send size={15} aria-hidden="true" />
         </IconButton>
       </form>
+    </>
+  );
+};
+
+const DiscussionDrawer = (props: DiscussionDrawerProps) => {
+  const { isOpen, isDesktop, onClose } = props;
+
+  // Le panneau docké (desktop) ne passe pas par <Drawer>, qui portait la
+  // fermeture au clavier : on la reproduit ici pour ce seul cas (le mode
+  // overlay mobile garde celle de <Drawer>, pas la peine de la dupliquer).
+  useEffect(() => {
+    if (!isOpen || !isDesktop) return;
+
+    const handleKeyDown = (event: KeyboardEvent): void => {
+      if (event.key === 'Escape') onClose();
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, isDesktop, onClose]);
+
+  if (!isOpen) return null;
+
+  // Desktop : panneau docké à côté des cartes (pas d'overlay), pour pouvoir
+  // lire les cartes/commenter en même temps que discuter.
+  if (isDesktop) {
+    return (
+      <aside
+        role="complementary"
+        aria-labelledby="discussion-drawer-title"
+        className="flex w-[380px] flex-shrink-0 flex-col overflow-hidden border-l border-navy-border bg-navy-mid"
+      >
+        <DiscussionPanelContent {...props} />
+      </aside>
+    );
+  }
+
+  // Mobile : pas la place pour un panneau permanent, on garde l'overlay plein écran.
+  return (
+    <Drawer
+      open={isOpen}
+      onClose={onClose}
+      labelledBy="discussion-drawer-title"
+      overlayLabel="Fermer le panneau Discussion"
+      side="full"
+      size="md"
+    >
+      <DiscussionPanelContent {...props} />
     </Drawer>
   );
 };

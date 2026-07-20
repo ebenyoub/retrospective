@@ -49,10 +49,15 @@ export const SessionGrid = ({
                     onClick={() => onNavigateToSession(session.id)}
                     className="text-sm font-semibold text-slate-100 truncate hover:text-blue-400 cursor-pointer transition-colors"
                   >
-                    {session.name || `Session ${session.code}`}
+                    {session.name || `Session #${session.id}`}
                   </span>
                   <span className="text-[11px] text-slate-400">
-                    Code : <span className="font-mono text-slate-300">{session.code}</span> · {ROLE_LABEL[session.role]}
+                    {session.joinCode ? (
+                      <>Code : <span className="font-mono text-slate-300">{session.joinCode}</span> · </>
+                    ) : (
+                      'Session clôturée · '
+                    )}
+                    {ROLE_LABEL[session.role]}
                   </span>
                 </div>
               )}

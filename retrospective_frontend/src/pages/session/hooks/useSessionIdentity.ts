@@ -76,9 +76,20 @@ export const useSessionIdentity = ({
       try {
         const result = await joinAsSelf(sessionId);
 
-        if (isActive && result.ok) {
+        if (!isActive) return;
+
+        if (result.ok) {
           setSelfParticipantId(result.data.id);
           setParticipantRole(result.data.role);
+          return;
+        }
+
+        // Session clôturée : ce n'est pas une erreur à signaler ici, le toast
+        // dédié de SessionDashboard (basé sur details.status) informe déjà
+        // l'utilisateur. Toute AUTRE cause d'échec reste, elle, tracée.
+        const errorCode = (result.payload as { code?: string } | null)?.code;
+        if (errorCode !== "SESSION_CLOSED") {
+          console.error("Erreur lors de la jointure de la salle d'attente :", result.payload);
         }
       } catch (error) {
         console.error("Erreur lors de la jointure de la salle d'attente :", error);

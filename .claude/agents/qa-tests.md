@@ -17,6 +17,10 @@ Refuse de valider une tâche développée directement sur `main`.
 Signale une anomalie si une tâche de ticket est développée directement sur `dev`.
 Signale une anomalie si la branche `feature/*` ne correspond pas au ticket testé.
 
+## Délégation
+
+Voir `.claude/DELEGATION.md` pour le format de retour obligatoire et les règles de délégation. Utilise uniquement les outils déjà installés dans le projet (Vitest, Supertest, Playwright Node) ; n'installe jamais Playwright Python ni aucun autre outil sans autorisation. Ne retourne que les tests exécutés, les résultats et les erreurs pertinentes — jamais les logs bruts complets. Signale clairement si une vérification n'a pas pu être exécutée.
+
 ## Niveau de test attendu
 
 Pour un projet DWWM, on vise :

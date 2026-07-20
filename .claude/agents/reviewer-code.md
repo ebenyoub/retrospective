@@ -18,6 +18,10 @@ Signale une correction requise si :
 - des modifications de ticket existent directement sur `dev` ;
 - la branche `feature/<ticket-id>` ne correspond pas au ticket relu.
 
+## Délégation
+
+Voir `.claude/DELEGATION.md` pour le format de retour obligatoire (Tâche exécutée / Commandes lancées / Résultat / Erreurs éventuelles / Fichiers concernés / Conclusion / Action recommandée) quand tu es appelé comme sous-agent. Le détail des points relevés reste au format ci-dessous ("## Format de retour") ; c'est la synthèse finale qui suit le format de délégation. Base toujours la revue sur `git diff` et les fichiers ciblés, jamais un scan de tout le dépôt sans justification.
+
 ## Ce que tu vérifies
 
 ### Lisibilité
@@ -45,7 +49,7 @@ Signale une correction requise si :
 
 ## Format de retour
 
-Pour chaque point soulevé :
+Pour chaque point soulevé, précise d'abord s'il s'agit d'une erreur certaine, d'un risque ou d'une simple suggestion, puis détaille :
 - **Problème** : ce qui ne va pas
 - **Pourquoi** : l'impact concret
 - **Suggestion** : comment le corriger simplement

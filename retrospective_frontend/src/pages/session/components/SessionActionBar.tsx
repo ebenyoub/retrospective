@@ -1,4 +1,7 @@
+import { useState } from 'react';
 import Button from '@/components/ui/Button';
+import Modal, { ModalHeader, ModalTitle, ModalContent, ModalFooter } from '@/components/ui/Modal';
+import { SESSION_STEPS, SESSION_STEP_LABELS } from '../sessionStep';
 import TimerChip from './TimerChip';
 import type { SessionActionBarProps } from './types/SessionActionBar.types';
 
@@ -6,13 +9,26 @@ const SessionActionBar = ({
   step,
   cardsCount,
   votesLeft,
+  actionsCount,
   isFacilitator,
   stepEndsAt,
   onTransitionStep,
   onUpdateTimer,
   onCloseSession,
 }: SessionActionBarProps) => {
-  if (step === 'results' && !isFacilitator) return null;
+  const [isBackConfirmOpen, setIsBackConfirmOpen] = useState(false);
+
+  if ((step === 'results' || step === 'summary') && !isFacilitator) return null;
+
+  // Le backend n'impose aucun ordre : revenir en arrière réutilise le même
+  // mécanisme que "passer à l'étape suivante", juste avec l'étape d'avant.
+  const currentIndex = SESSION_STEPS.indexOf(step);
+  const previousStep = currentIndex > 0 ? SESSION_STEPS[currentIndex - 1] : null;
+
+  const handleConfirmBack = () => {
+    if (previousStep) onTransitionStep(previousStep);
+    setIsBackConfirmOpen(false);
+  };
 
   return (
     <div
@@ -24,6 +40,10 @@ const SessionActionBar = ({
         {step === 'results' ? (
           <span className="font-sans text-xs leading-none text-slate-400 select-none">
             Rétrospective terminée
+          </span>
+        ) : step === 'summary' ? (
+          <span className="font-sans text-xs leading-none text-slate-400 select-none">
+            Récapitulatif final
           </span>
         ) : step === 'voting' ? (
           <div
@@ -45,6 +65,10 @@ const SessionActionBar = ({
               {votesLeft} vote{votesLeft !== 1 ? 's' : ''} restant{votesLeft !== 1 ? 's' : ''}
             </span>
           </div>
+        ) : step === 'action' ? (
+          <span className="font-sans text-xs leading-none text-slate-400 select-none">
+            {actionsCount} action{actionsCount !== 1 ? 's' : ''} enregistrée{actionsCount !== 1 ? 's' : ''}
+          </span>
         ) : (
           <span className="font-sans text-xs leading-none text-slate-400 select-none">
             {cardsCount} carte{cardsCount !== 1 ? 's' : ''} au total
@@ -67,6 +91,11 @@ const SessionActionBar = ({
             >
               Terminer la session
             </Button>
+            {previousStep && (
+              <Button variant="ghost" size="sm" onClick={() => setIsBackConfirmOpen(true)}>
+                ← Étape précédente
+              </Button>
+            )}
             {step === 'writing' && (
               <Button variant="primary" size="sm" onClick={() => onTransitionStep('voting')}>
                 Passer au vote →
@@ -77,9 +106,43 @@ const SessionActionBar = ({
                 Voir les résultats →
               </Button>
             )}
+            {step === 'results' && (
+              <Button variant="primary" size="sm" onClick={() => onTransitionStep('action')}>
+                Passer au plan d'action →
+              </Button>
+            )}
+            {step === 'action' && (
+              <Button variant="primary" size="sm" onClick={() => onTransitionStep('summary')}>
+                Voir le récapitulatif →
+              </Button>
+            )}
           </>
         )}
       </div>
+
+      {previousStep && (
+        <Modal isOpen={isBackConfirmOpen} onClose={() => setIsBackConfirmOpen(false)}>
+          <ModalHeader>
+            <ModalTitle>Revenir à l'étape précédente ?</ModalTitle>
+          </ModalHeader>
+          <ModalContent>
+            <p>
+              La session va revenir à l'étape « {SESSION_STEP_LABELS[previousStep]} ».
+            </p>
+            <p className="mt-2 text-xs text-slate-400">
+              Les cartes, votes et commentaires déjà enregistrés sont conservés.
+            </p>
+          </ModalContent>
+          <ModalFooter>
+            <Button variant="secondary" size="sm" onClick={() => setIsBackConfirmOpen(false)}>
+              Annuler
+            </Button>
+            <Button variant="primary" size="sm" onClick={handleConfirmBack}>
+              Revenir en arrière
+            </Button>
+          </ModalFooter>
+        </Modal>
+      )}
     </div>
   );
 };

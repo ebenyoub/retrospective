@@ -5,7 +5,7 @@ import { resolveSessionActor } from "../utils/sessionActor";
 export const voteForCard = async (req: Request, res: Response) => {
   const sessionId = Number(req.params.sessionId);
   const cardId = Number(req.params.cardId);
-  const actor = await resolveSessionActor(req, sessionId);
+  const actor = await resolveSessionActor(req, sessionId, { requireOpen: true });
 
   const result = await castVote(actor.participantId, cardId);
 

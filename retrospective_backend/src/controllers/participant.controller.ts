@@ -22,7 +22,7 @@ import {
   renameParticipant,
   resumeGuestParticipant,
 } from "../services/participant.service";
-import { getSessionDetails } from "../services/session.service";
+import { assertSessionOpen, getSessionDetails } from "../services/session.service";
 
 const parseSessionId = (req: Request): number => {
   const sessionId = Number(req.params.sessionId);
@@ -63,6 +63,7 @@ export const joinAsSelf = async (req: AuthRequest, res: Response) => {
   const { userId, username } = requireAuthUser(req);
 
   const session = await getSessionDetails(sessionId);
+  assertSessionOpen(session);
   const role = session.ownerId === userId ? "facilitator" : "participant";
 
   const participant = await ensureAuthenticatedParticipant({ sessionId, userId, displayName: username, role });
@@ -117,6 +118,11 @@ export const guestJoinByCode = async (req: Request, res: Response) => {
 export const resumeGuest = async (req: Request, res: Response) => {
   const sessionId = parseSessionId(req);
   const { participantId, guestToken } = req.body;
+
+  // Une vraie reprise (contrairement à la simple résolution d'acteur pour une
+  // action déjà en cours) ne doit jamais rouvrir une session clôturée.
+  const session = await getSessionDetails(sessionId);
+  assertSessionOpen(session);
 
   const participant = await resumeGuestParticipant(sessionId, participantId, guestToken);
   await emitParticipantsUpdated(sessionId);

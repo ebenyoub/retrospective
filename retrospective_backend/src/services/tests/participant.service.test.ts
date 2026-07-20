@@ -15,6 +15,7 @@ vi.mock("../../models/participant.model", () => ({
 }));
 
 vi.mock("../../models/session.model", () => ({
+  closeSessionIfExpiredByCode: vi.fn(),
   findSessionByCode: vi.fn(),
   findSessionById: vi.fn(),
 }));
@@ -143,6 +144,21 @@ describe("participant.service", () => {
       expect(mockUpdateParticipantName).not.toHaveBeenCalled();
       expect(result.displayName).toBe("EBNoob");
     });
+
+    it("refuse le renommage si le jeton invité a plus de 24h (T-PART-02)", async () => {
+      const joinedOver24hAgo = new Date(Date.now() - 25 * 60 * 60 * 1000);
+      mockFindParticipantById.mockResolvedValueOnce({ ...baseParticipantRow, joined_at: joinedOver24hAgo });
+
+      await expect(renameParticipant({
+        sessionId: 10,
+        participantId: 1,
+        displayName: "Sarah",
+        requesterUserId: null,
+        requesterGuestToken: "guest-token",
+      })).rejects.toMatchObject({ statusCode: 401, code: "GUEST_TOKEN_EXPIRED" });
+
+      expect(mockUpdateParticipantName).not.toHaveBeenCalled();
+    });
   });
 
   describe("checkGuestResume", () => {
@@ -175,11 +191,22 @@ describe("participant.service", () => {
         code: "PARTICIPANT_NOT_FOUND",
       });
     });
+
+    it("refuse la reprise si le jeton invité a plus de 24h (T-PART-02)", async () => {
+      const joinedOver24hAgo = new Date(Date.now() - 25 * 60 * 60 * 1000);
+      mockFindSessionById.mockResolvedValueOnce({ id: 10, name: "Retro", status: "open" });
+      mockFindParticipantById.mockResolvedValueOnce({ ...baseParticipantRow, joined_at: joinedOver24hAgo });
+
+      await expect(checkGuestResume(10, 1, "guest-token")).rejects.toMatchObject({
+        statusCode: 401,
+        code: "GUEST_TOKEN_EXPIRED",
+      });
+    });
   });
 
   describe("joinSessionAsGuestParticipant", () => {
     it("rejoint avec un pseudo disponible et le conserve tel quel", async () => {
-      mockFindSessionById.mockResolvedValueOnce({ id: 10 });
+      mockFindSessionById.mockResolvedValueOnce({ id: 10, status: "open" });
       mockCountParticipants.mockResolvedValueOnce(1);
       mockFindParticipantByName.mockResolvedValueOnce(null);
       mockInsertParticipant.mockResolvedValueOnce(1);
@@ -195,7 +222,7 @@ describe("participant.service", () => {
     });
 
     it("refuse un pseudo déjà utilisé dans cette session (409, pas de suffixe)", async () => {
-      mockFindSessionById.mockResolvedValueOnce({ id: 10 });
+      mockFindSessionById.mockResolvedValueOnce({ id: 10, status: "open" });
       mockCountParticipants.mockResolvedValueOnce(1);
       mockFindParticipantByName.mockResolvedValueOnce(baseParticipantRow);
 
@@ -217,12 +244,22 @@ describe("participant.service", () => {
         code: "SESSION_NOT_FOUND",
       } satisfies Partial<AppError>);
     });
+
+    it("refuse de rejoindre une session clôturée (un invité ne peut jamais l'ouvrir)", async () => {
+      mockFindSessionById.mockResolvedValueOnce({ id: 10, status: "closed" });
+
+      await expect(joinSessionAsGuestParticipant(10, "EBNoob")).rejects.toMatchObject({
+        statusCode: 400,
+        code: "SESSION_CLOSED",
+      } satisfies Partial<AppError>);
+      expect(mockInsertParticipant).not.toHaveBeenCalled();
+    });
   });
 
   describe("joinSessionAsGuestParticipantByCode", () => {
     it("résout le code puis rejoint la session invitée", async () => {
       mockFindSessionByCode.mockResolvedValueOnce({ id: 10 });
-      mockFindSessionById.mockResolvedValueOnce({ id: 10 });
+      mockFindSessionById.mockResolvedValueOnce({ id: 10, status: "open" });
       mockCountParticipants.mockResolvedValueOnce(1);
       mockFindParticipantByName.mockResolvedValueOnce(null);
       mockInsertParticipant.mockResolvedValueOnce(1);
@@ -265,6 +302,24 @@ describe("participant.service", () => {
         code: "PARTICIPANT_NOT_FOUND",
       } satisfies Partial<AppError>);
     });
+
+    it("refuse si le jeton invité a plus de 24h (T-PART-02)", async () => {
+      const joinedOver24hAgo = new Date(Date.now() - 25 * 60 * 60 * 1000);
+      mockFindParticipantById.mockResolvedValueOnce({ ...baseParticipantRow, joined_at: joinedOver24hAgo });
+
+      await expect(resumeGuestParticipant(10, 1, "guest-token")).rejects.toMatchObject({
+        statusCode: 401,
+        code: "GUEST_TOKEN_EXPIRED",
+      } satisfies Partial<AppError>);
+      expect(mockTouchParticipant).not.toHaveBeenCalled();
+    });
+
+    it("accepte un jeton invité de moins de 24h", async () => {
+      const joinedUnder24hAgo = new Date(Date.now() - 23 * 60 * 60 * 1000);
+      mockFindParticipantById.mockResolvedValueOnce({ ...baseParticipantRow, joined_at: joinedUnder24hAgo });
+
+      await expect(resumeGuestParticipant(10, 1, "guest-token")).resolves.toMatchObject({ id: 1 });
+    });
   });
 
   describe("ensureAuthenticatedParticipant (facilitateur inclus)", () => {
@@ -293,6 +348,15 @@ describe("participant.service", () => {
         expect.objectContaining({ userId: 3, displayName: "Elyas", role: "facilitator" })
       );
     });
+
+    it("reste permissive sur une session close (réutilisée en lecture seule par resolveSessionActor)", async () => {
+      mockFindSessionById.mockResolvedValueOnce({ id: 10, status: "closed" });
+      mockFindParticipantByUserId.mockResolvedValueOnce({ ...baseParticipantRow, user_id: 3, guest_token: null });
+
+      await expect(
+        ensureAuthenticatedParticipant({ sessionId: 10, userId: 3, displayName: "Elyas", role: "facilitator" })
+      ).resolves.toMatchObject({ id: 1 });
+    });
   });
 
   describe("leaveSession", () => {
@@ -310,6 +374,17 @@ describe("participant.service", () => {
       await expect(
         leaveSession({ sessionId: 10, participantId: 1, requesterUserId: null, requesterGuestToken: "autre-token" })
       ).rejects.toMatchObject({ statusCode: 403, code: "PARTICIPANT_FORBIDDEN" } satisfies Partial<AppError>);
+
+      expect(mockDeleteParticipant).not.toHaveBeenCalled();
+    });
+
+    it("refuse de quitter si le jeton invité a plus de 24h (T-PART-02)", async () => {
+      const joinedOver24hAgo = new Date(Date.now() - 25 * 60 * 60 * 1000);
+      mockFindParticipantById.mockResolvedValueOnce({ ...baseParticipantRow, joined_at: joinedOver24hAgo });
+
+      await expect(
+        leaveSession({ sessionId: 10, participantId: 1, requesterUserId: null, requesterGuestToken: "guest-token" })
+      ).rejects.toMatchObject({ statusCode: 401, code: "GUEST_TOKEN_EXPIRED" } satisfies Partial<AppError>);
 
       expect(mockDeleteParticipant).not.toHaveBeenCalled();
     });

@@ -10,7 +10,7 @@ vi.mock("../../services/session.service", () => ({
   createSessionForUser: vi.fn(),
   joinSessionForUser: vi.fn(),
   getSessionsForUser: vi.fn(),
-  getSessionDetails: vi.fn(),
+  getSessionDetailsForViewer: vi.fn(),
   updateSessionStepService: vi.fn(),
   updateSessionTimerService: vi.fn(),
   updateSessionFormatService: vi.fn(),
@@ -41,7 +41,7 @@ import {
   createSessionForUser,
   joinSessionForUser,
   getSessionsForUser,
-  getSessionDetails,
+  getSessionDetailsForViewer,
   updateSessionStepService,
   updateSessionTimerService,
   updateSessionFormatService,
@@ -55,7 +55,7 @@ import type { AuthRequest } from "../../types";
 const mockCreateSessionForUser = createSessionForUser as unknown as Mock;
 const mockJoinSessionForUser = joinSessionForUser as unknown as Mock;
 const mockGetSessionsForUser = getSessionsForUser as unknown as Mock;
-const mockGetSessionDetails = getSessionDetails as unknown as Mock;
+const mockGetSessionDetailsForViewer = getSessionDetailsForViewer as unknown as Mock;
 const mockUpdateSessionStepService = updateSessionStepService as unknown as Mock;
 const mockUpdateSessionTimerService = updateSessionTimerService as unknown as Mock;
 const mockUpdateSessionFormatService = updateSessionFormatService as unknown as Mock;
@@ -87,6 +87,8 @@ const createMockRequest = (userId?: number, params?: Record<string, unknown>, bo
     user: userId ? { userId, username: "Elyas" } : {},
     params: params || {},
     body: body || {},
+    headers: {},
+    cookies: {},
   }) as unknown as AuthRequest;
 
 describe("session.controller", () => {
@@ -94,7 +96,7 @@ describe("session.controller", () => {
     mockCreateSessionForUser.mockReset();
     mockJoinSessionForUser.mockReset();
     mockGetSessionsForUser.mockReset();
-    mockGetSessionDetails.mockReset();
+    mockGetSessionDetailsForViewer.mockReset();
     mockUpdateSessionStepService.mockReset();
     mockUpdateSessionTimerService.mockReset();
     mockUpdateSessionFormatService.mockReset();
@@ -216,17 +218,28 @@ describe("session.controller", () => {
   });
 
   describe("getSession", () => {
-    it("renvoie les détails de session", async () => {
-      const mockSession = { id: 7, name: "S1", code: "1234", status: "open", step: "waiting" };
-      mockGetSessionDetails.mockResolvedValueOnce(mockSession);
-      const req = createMockRequest(1, { sessionId: "7" });
+    it("renvoie les détails de session pour un visiteur anonyme (pas de cookie)", async () => {
+      const mockSession = { id: 7, name: "S1", joinCode: "1234", status: "open", step: "waiting" };
+      mockGetSessionDetailsForViewer.mockResolvedValueOnce(mockSession);
+      const req = createMockRequest(undefined, { sessionId: "7" });
       const res = createMockResponse();
 
       await getSession(req, res as unknown as Response);
 
       expect(res.statusCode).toBe(200);
       expect(res.body).toEqual({ success: true, data: mockSession });
-      expect(mockGetSessionDetails).toHaveBeenCalledWith(7);
+      expect(mockGetSessionDetailsForViewer).toHaveBeenCalledWith(7, null);
+    });
+
+    it("propage l'erreur 404 renvoyée par le service pour une session close sans droit d'accès", async () => {
+      mockGetSessionDetailsForViewer.mockRejectedValueOnce({ statusCode: 404, code: "SESSION_NOT_FOUND" });
+      const req = createMockRequest(undefined, { sessionId: "7" });
+      const res = createMockResponse();
+
+      await expect(getSession(req, res as unknown as Response)).rejects.toMatchObject({
+        statusCode: 404,
+        code: "SESSION_NOT_FOUND",
+      });
     });
   });
 

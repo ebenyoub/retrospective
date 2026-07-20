@@ -17,6 +17,10 @@ Ne modifie pas la documentation de ticket directement sur `main`.
 Ne modifie pas la documentation de ticket directement sur `dev`, sauf demande explicite d'intégration.
 Pour une tâche du Product Backlog, la branche doit être `feature/<ticket-id>`.
 
+## Délégation
+
+Voir `.claude/DELEGATION.md` pour le format de retour obligatoire et les règles de délégation. Ne modifie que la documentation directement liée à la tâche en cours, ne committe/merge/reset jamais, et signale clairement si une mise à jour n'a pas pu être faite.
+
 ## Ce que le jury attend
 
 1. **Un projet cohérent** qui couvre les deux CCP du titre

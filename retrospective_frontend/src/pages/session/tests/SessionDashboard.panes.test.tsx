@@ -144,7 +144,9 @@ describe('SessionDashboard - Tiroirs et Modals (Panes)', () => {
 
     fireEvent.click(discussionButton);
 
-    const drawer = await screen.findByRole('dialog', { name: 'Discussion' });
+    // Desktop : panneau docké (pas un dialog modal — on peut interagir avec
+    // le reste de l'écran en même temps, cf. remontée UX du panneau overlay).
+    const drawer = await screen.findByRole('complementary', { name: 'Discussion' });
     expect(discussionButton.getAttribute('aria-expanded')).toBe('true');
     expect(within(drawer).getByText('0 messages')).toBeTruthy();
     expect(within(drawer).getByText('Aucun message pour le moment')).toBeTruthy();
@@ -153,12 +155,34 @@ describe('SessionDashboard - Tiroirs et Modals (Panes)', () => {
     expect(screen.queryByRole('dialog', { name: 'Participants (1)' })).toBeNull();
 
     fireEvent.keyDown(window, { key: 'Escape' });
-    expect(screen.queryByRole('dialog', { name: 'Discussion' })).toBeNull();
+    expect(screen.queryByRole('complementary', { name: 'Discussion' })).toBeNull();
 
     fireEvent.click(discussionButton);
-    expect(await screen.findByRole('dialog', { name: 'Discussion' })).toBeTruthy();
-    fireEvent.click(screen.getByRole('button', { name: 'Fermer le panneau Discussion' }));
-    expect(screen.queryByRole('dialog', { name: 'Discussion' })).toBeNull();
+    const reopenedDrawer = await screen.findByRole('complementary', { name: 'Discussion' });
+    // Panneau docké (pas d'overlay à cliquer) : on ferme via son propre bouton "Fermer".
+    fireEvent.click(within(reopenedDrawer).getByRole('button', { name: 'Fermer' }));
+    expect(screen.queryByRole('complementary', { name: 'Discussion' })).toBeNull();
+  });
+
+  it('n\'ajoute pas de fond bloquant : les cartes restent lisibles et cliquables pendant que la Discussion est ouverte', async () => {
+    const fetchMock = createDashboardFetchMock({ cardsSequence: [emptyCardsResponse] });
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderDashboard();
+
+    // Repère un élément de l'écran d'écriture, en dehors du panneau Discussion
+    // (une zone de saisie par colonne : on ne teste que la première).
+    const [addCardTextarea] = await screen.findAllByPlaceholderText('Nouvelle carte...');
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Discussion' }));
+    await screen.findByRole('complementary', { name: 'Discussion' });
+
+    // Panneau docké (pas d'overlay) : aucun fond cliquable ne doit exister,
+    // et la zone de saisie de l'écran principal reste utilisable.
+    expect(document.querySelector('.bg-black\\/45')).toBeNull();
+    expect(addCardTextarea.hasAttribute('disabled')).toBe(false);
+    fireEvent.change(addCardTextarea, { target: { value: 'Toujours interactif' } });
+    expect((addCardTextarea as HTMLTextAreaElement).value).toBe('Toujours interactif');
   });
 
   it('permet d\'écrire et d\'envoyer un message au sein du chat', async () => {
@@ -186,7 +210,7 @@ describe('SessionDashboard - Tiroirs et Modals (Panes)', () => {
     const discussionButton = await screen.findByRole('button', { name: 'Discussion' });
     fireEvent.click(discussionButton);
 
-    const drawer = await screen.findByRole('dialog', { name: 'Discussion' });
+    const drawer = await screen.findByRole('complementary', { name: 'Discussion' });
     const textarea = within(drawer).getByRole('textbox', { name: 'Écrire un message' }) as HTMLTextAreaElement;
     const sendButton = within(drawer).getByRole('button', { name: 'Envoyer le message' }) as HTMLButtonElement;
 
@@ -219,13 +243,13 @@ describe('SessionDashboard - Tiroirs et Modals (Panes)', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Discussion' }));
 
-    expect(await screen.findByRole('dialog', { name: 'Discussion' })).toBeTruthy();
+    expect(await screen.findByRole('complementary', { name: 'Discussion' })).toBeTruthy();
     expect(screen.queryByRole('dialog', { name: 'Participants (1)' })).toBeNull();
 
     fireEvent.click(screen.getByRole('button', { name: 'Participants' }));
 
     expect(await screen.findByRole('dialog', { name: 'Participants (1)' })).toBeTruthy();
-    expect(screen.queryByRole('dialog', { name: 'Discussion' })).toBeNull();
+    expect(screen.queryByRole('complementary', { name: 'Discussion' })).toBeNull();
   });
 
   it('ouvre la section de commentaires depuis une carte sans compteur fictif', async () => {

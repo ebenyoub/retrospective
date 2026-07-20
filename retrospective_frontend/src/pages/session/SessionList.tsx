@@ -49,7 +49,7 @@ const SessionList = () => {
 
   const handleStartEdit = (session: SessionListItem) => {
     setEditingSessionId(String(session.id));
-    setEditingSessionName(session.name || `Session ${session.code}`);
+    setEditingSessionName(session.name || `Session #${session.id}`);
   };
 
   const handleCancelEdit = () => {

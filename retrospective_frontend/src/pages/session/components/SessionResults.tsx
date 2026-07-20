@@ -1,6 +1,7 @@
 import Avatar from '@/components/ui/Avatar';
 import type { RetroCard } from '../types/card.types';
 import type { ResultCategory, SessionResultsProps } from './types/SessionResults.types';
+import TopVotedCards from './TopVotedCards';
 
 const DEFAULT_CATEGORY_LABELS = ['Commencer', 'Arrêter', 'Continuer'];
 
@@ -10,8 +11,6 @@ const CATEGORY_META: Omit<ResultCategory, 'label'>[] = [
   { key: 'continue', emoji: '✅', color: '#16a34a', badgeBg: '#dcfce7', badgeText: '#14532d' },
 ];
 
-const MEDALS = ['🥇', '🥈', '🥉'];
-
 const buildCategories = (formatColumns: string[]): ResultCategory[] => {
   const labels = formatColumns.length === 3 ? formatColumns : DEFAULT_CATEGORY_LABELS;
   return CATEGORY_META.map((category, index) => ({
@@ -20,9 +19,6 @@ const buildCategories = (formatColumns: string[]): ResultCategory[] => {
   }));
 };
 
-const categoryFor = (columnType: RetroCard['columnType'], categories: ResultCategory[]): ResultCategory =>
-  categories.find((category) => category.key === columnType) ?? categories[0];
-
 // Barre horizontale montrant le poids d'une carte par rapport à la plus votée.
 const VoteBar = ({ votes, maxVotes, color }: { votes: number; maxVotes: number; color: string }) => {
   const percent = maxVotes > 0 ? (votes / maxVotes) * 100 : 0;
@@ -30,45 +26,6 @@ const VoteBar = ({ votes, maxVotes, color }: { votes: number; maxVotes: number; 
     <div className="mt-1 h-[3px] overflow-hidden rounded-[2px] bg-navy-border-med">
       <div className="h-full rounded-[2px] transition-[width] duration-500" style={{ width: `${percent}%`, background: color }} />
     </div>
-  );
-};
-
-const CategoryBadge = ({ category }: { category: ResultCategory }) => (
-  <span
-    className="whitespace-nowrap rounded-md px-[7px] py-px text-[10px] font-bold tracking-[0.3px]"
-    style={{ background: category.badgeBg, color: category.badgeText }}
-  >
-    {category.label}
-  </span>
-);
-
-// Carte du podium Top 3 : médaille, contenu, badge + auteur, barre et nombre de votes.
-const Top3Card = ({ card, rank, maxVotes, categories }: { card: RetroCard; rank: number; maxVotes: number; categories: ResultCategory[] }) => {
-  const category = categoryFor(card.columnType, categories);
-  return (
-    <article
-      className="flex items-start gap-2.5 rounded-[10px] border border-navy-border border-l-[3px] bg-navy-mid px-3.5 py-2.5"
-      style={{
-        borderLeftColor: category.color,
-        boxShadow: rank === 0 ? `0 0 20px ${category.color}12` : undefined,
-      }}
-    >
-      <span className="flex-shrink-0 text-xl leading-none" aria-label={`Rang ${rank + 1}`}>
-        {MEDALS[rank]}
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className="mb-[5px] text-[13px] leading-[1.4] text-slate-100 break-words">{card.content}</p>
-        <div className="flex items-center gap-1.5">
-          <CategoryBadge category={category} />
-          <span className="text-[11px] text-slate-500">{card.authorName}</span>
-        </div>
-        <VoteBar votes={card.votesCount} maxVotes={maxVotes} color={category.color} />
-      </div>
-      <div className="flex-shrink-0 text-center">
-        <p className="font-mono text-lg font-bold leading-none text-slate-50">{card.votesCount}</p>
-        <p className="text-[10px] text-slate-500">votes</p>
-      </div>
-    </article>
   );
 };
 
@@ -97,7 +54,6 @@ const SessionResults = ({ cards, formatColumns, isDesktop }: SessionResultsProps
   const sorted = [...cards].sort((a, b) => b.votesCount - a.votesCount);
   const maxVotes = Math.max(...cards.map((card) => card.votesCount), 1);
   const totalVotes = cards.reduce((sum, card) => sum + card.votesCount, 0);
-  const top3 = sorted.slice(0, 3);
 
   const stats = [
     { label: 'Votes', value: totalVotes, color: '#d97706' },
@@ -130,14 +86,7 @@ const SessionResults = ({ cards, formatColumns, isDesktop }: SessionResultsProps
         ) : (
           <>
             <div className="flex-shrink-0 border-b border-navy-border px-6 pb-3 pt-3.5">
-              <h2 className="mb-2.5 flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.8px] text-slate-400">
-                <span aria-hidden="true">🏆</span> Top 3 des cartes
-              </h2>
-              <div className="grid grid-cols-3 gap-2.5">
-                {top3.map((card, index) => (
-                  <Top3Card key={card.id} card={card} rank={index} maxVotes={maxVotes} categories={categories} />
-                ))}
-              </div>
+              <TopVotedCards cards={cards} formatColumns={formatColumns} limit={3} />
             </div>
 
             <div className="grid flex-1 grid-cols-3 gap-px overflow-hidden bg-navy-border">
@@ -192,14 +141,7 @@ const SessionResults = ({ cards, formatColumns, isDesktop }: SessionResultsProps
       ) : (
         <>
           <section className="mb-7">
-            <h2 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.8px] text-slate-400">
-              <span aria-hidden="true">🏆</span> Top 3 des cartes
-            </h2>
-            <div className="flex flex-col gap-1.5">
-              {top3.map((card, index) => (
-                <Top3Card key={card.id} card={card} rank={index} maxVotes={maxVotes} categories={categories} />
-              ))}
-            </div>
+            <TopVotedCards cards={cards} formatColumns={formatColumns} limit={3} />
           </section>
 
           {categories.map((category) => {

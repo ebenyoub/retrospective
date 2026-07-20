@@ -4,8 +4,10 @@ import { io, type Socket } from "socket.io-client";
 import { API_BASE } from "@/lib/api";
 import { listParticipants } from "../services/participantApi";
 import { getMessages } from "../services/messageApi";
+import { getActions } from "../services/actionApi";
 import type { ParticipantSummary, SelfIdentity } from '../types/participant.types';
 import type { SessionMessage } from "../types/message.types";
+import type { ActionItem } from "../types/action.types";
 import type { UseSessionParticipantsOptions } from './types/useSessionParticipants.types';
 
 // Source de vérité = backend : liste initiale par API, puis mises à jour en
@@ -19,6 +21,7 @@ export const useSessionParticipants = (
 ) => {
   const [participants, setParticipants] = useState<ParticipantSummary[]>([]);
   const [messages, setMessages] = useState<SessionMessage[]>([]);
+  const [actions, setActions] = useState<ActionItem[]>([]);
   const actorHeaders = options.actorHeaders ?? {};
 
   // Ref plutôt que dépendance d'effet : évite de rouvrir un socket à chaque
@@ -62,8 +65,20 @@ export const useSessionParticipants = (
       }
     };
 
+    const loadActions = async () => {
+      try {
+        const result = await getActions(sessionId, actorHeaders);
+        if (isActive && result.ok) {
+          setActions(result.data);
+        }
+      } catch (error) {
+        console.error("Erreur lors du chargement des actions :", error);
+      }
+    };
+
     void loadInitial();
     void loadMessages();
+    void loadActions();
 
     // withCredentials : le cookie d'authentification HttpOnly accompagne le
     // handshake, le serveur y lit le JWT de l'utilisateur connecté.
@@ -103,12 +118,22 @@ export const useSessionParticipants = (
       }
     };
 
+    const handleActionAdded = (action: ActionItem) => {
+      if (isActive) {
+        setActions((previous) => {
+          if (previous.some((a) => a.id === action.id)) return previous;
+          return [...previous, action];
+        });
+      }
+    };
+
     socket.on("connect", handleConnect);
     socket.on("session:participants-updated", handleParticipantsUpdated);
     socket.on("session:started", handleSessionStarted);
     socket.on("session:timer-updated", handleTimerUpdated);
     socket.on("session:closed", handleSessionClosed);
     socket.on("session:message-added", handleMessageAdded);
+    socket.on("session:action-added", handleActionAdded);
 
     return () => {
       isActive = false;
@@ -118,9 +143,10 @@ export const useSessionParticipants = (
       socket.off("session:timer-updated", handleTimerUpdated);
       socket.off("session:closed", handleSessionClosed);
       socket.off("session:message-added", handleMessageAdded);
+      socket.off("session:action-added", handleActionAdded);
       socket.disconnect();
     };
   }, [sessionId, self, options.actorHeaders]);
 
-  return { participants, messages, setMessages };
+  return { participants, messages, setMessages, actions, setActions };
 };

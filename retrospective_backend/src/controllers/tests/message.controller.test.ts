@@ -89,7 +89,7 @@ describe("message.controller", () => {
 
       await createMessage(req, res as unknown as Response);
 
-      expect(mockResolveSessionActor).toHaveBeenCalledWith(req, 1);
+      expect(mockResolveSessionActor).toHaveBeenCalledWith(req, 1, { requireOpen: true });
       expect(mockAddMessageService).toHaveBeenCalledWith({
         sessionId: 1,
         participantId: 10,

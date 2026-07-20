@@ -10,7 +10,7 @@ import { resolveSessionActor } from "../utils/sessionActor";
 export const createCard = async (req: Request, res: Response) => {
   const sessionId = String(req.params.sessionId);
   const { content, columnType } = req.body;
-  const actor = await resolveSessionActor(req, Number(sessionId));
+  const actor = await resolveSessionActor(req, Number(sessionId), { requireOpen: true });
 
   const cardId = await createCardService({ participantId: actor.participantId, sessionId, content, columnType });
 
@@ -40,7 +40,7 @@ export const updateCard = async (req: Request, res: Response) => {
   const sessionId = Number(String(req.params.sessionId));
   const cardId = Number(String(req.params.cardId));
   const { content } = req.body;
-  const actor = await resolveSessionActor(req, sessionId);
+  const actor = await resolveSessionActor(req, sessionId, { requireOpen: true });
 
   await updateCardService({
     participantId: actor.participantId,
@@ -58,7 +58,7 @@ export const updateCard = async (req: Request, res: Response) => {
 export const deleteCard = async (req: Request, res: Response) => {
   const sessionId = Number(String(req.params.sessionId));
   const cardId = String(req.params.cardId);
-  const actor = await resolveSessionActor(req, sessionId);
+  const actor = await resolveSessionActor(req, sessionId, { requireOpen: true });
 
   await deleteCardService({ participantId: actor.participantId, cardId });
 

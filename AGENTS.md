@@ -5,6 +5,11 @@ Avant toute tache, appliquer `.claude/PROJECT_WORKFLOW.md`.
 Les regles de developpement sont definies dans :
 - `.claude/PROJECT_WORKFLOW.md`
 - les skills presents dans `.claude/skills/`
+- `.claude/DELEGATION.md` pour les regles de delegation aux subagents et le format de retour attendu
+
+## Reprise de session
+
+Avant de continuer une tache existante, lire `.claude/CURRENT_TASK.md` (ticket en cours, perimetre, prochaine action) puis `.claude/HANDOVER.md` (etat de reprise factuel). Ne jamais supposer l'etat du projet a partir d'une conversation precedente.
 
 ## Orchestrateur
 

@@ -112,7 +112,9 @@ test('ajoute et affiche des messages dans le chat en temps réel', async ({ page
   // 1. Ouvrir le drawer de discussion
   await chatButton.click();
 
-  const chatDrawer = page.getByRole('dialog', { name: 'Discussion' });
+  // Desktop : panneau docké (role="complementary"), plus un dialog modal —
+  // on peut lire/interagir avec le reste de l'écran pendant qu'il est ouvert.
+  const chatDrawer = page.getByRole('complementary', { name: 'Discussion' });
   await expect(chatDrawer).toBeVisible();
 
   // 2. Vérification de l'état vide

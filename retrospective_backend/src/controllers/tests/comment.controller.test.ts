@@ -102,7 +102,7 @@ describe("comment.controller", () => {
       cardId: 5,
       content: "Peut-on préciser ce point ?",
     });
-    expect(mockResolveSessionActor).toHaveBeenCalledWith(req, 1);
+    expect(mockResolveSessionActor).toHaveBeenCalledWith(req, 1, { requireOpen: true });
   });
 
   it("POST : ne capture pas les erreurs du service", async () => {

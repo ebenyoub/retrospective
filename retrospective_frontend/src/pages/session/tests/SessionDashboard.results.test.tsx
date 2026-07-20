@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { screen } from '@testing-library/react';
+import { screen, fireEvent } from '@testing-library/react';
 import {
   emptyCardsResponse,
   renderDashboard,
@@ -215,5 +215,44 @@ describe('SessionDashboard - Vue des résultats (Results Step)', () => {
 
     await screen.findByText("Aucune carte n'a été ajoutée pendant cette rétrospective.");
     expect(screen.queryByPlaceholderText('Nouvelle carte...')).toBeNull();
+  });
+
+  it('permet au facilitateur de revenir à l\'étape précédente après confirmation', async () => {
+    const fetchMock = vi.fn().mockImplementation((url: string, init?: RequestInit) => {
+      if (url.endsWith('/session/1/step') && init?.method === 'PATCH') {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ success: true, data: { step: 'voting', stepEndsAt: null } }),
+        });
+      }
+      if (url.endsWith('/session/1')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            success: true,
+            data: { id: 1, name: 'Tableau de rétrospective — session 1', code: '1234', status: 'open', step: 'results', ownerId: 1 },
+          }),
+        });
+      }
+      return Promise.resolve(emptyCardsResponse);
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderDashboard();
+
+    const backButton = await screen.findByRole('button', { name: '← Étape précédente' });
+    fireEvent.click(backButton);
+
+    expect(await screen.findByText('Revenir à l\'étape précédente ?')).toBeTruthy();
+    expect(screen.getByText(/l'étape « Vote »/)).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Revenir en arrière' }));
+
+    await vi.waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        expect.stringContaining('/session/1/step'),
+        expect.objectContaining({ method: 'PATCH', body: JSON.stringify({ step: 'voting' }) })
+      );
+    });
   });
 });

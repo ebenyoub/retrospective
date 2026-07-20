@@ -2,71 +2,75 @@ import styled from "styled-components";
 
 export const ToastStyled = styled.div`
   position: fixed;
-  bottom: 30px;
-  right: 30px;
+  bottom: 24px;
+  right: 24px;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 15px;
+  gap: 10px;
   pointer-events: none;
   z-index: 9999;
 
   .toast {
     position: relative;
-    width: 400px;
-    height: 80px;
-    background: #fff;
+    width: 320px;
+    padding: 12px 14px;
+    background: var(--color-navy-mid);
+    border: 1px solid var(--color-navy-border-med);
+    font-family: var(--font-sans);
     font-weight: 500;
-    box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
     display: flex;
     align-items: center;
-    border-radius: 8px;
-    animation: slideIn 0.5s ease-out forwards;
-    border-left: 4px solid;
+    gap: 10px;
+    border-radius: var(--radius-figma-md);
+    animation: slideIn 0.25s ease-out forwards;
+    cursor: pointer;
     overflow: hidden;
+    pointer-events: auto;
   }
 
   .toast.exit {
-    animation: slideOut 0.5s ease-in forwards;
+    animation: slideOut 0.2s ease-in forwards;
   }
 
-  .toast.success {
-    border-left-color: green;
+  .toast.success i {
+    color: var(--color-green-figma);
   }
 
-  .toast.error {
-    border-left-color: red;
+  .toast.error i {
+    color: var(--color-red-figma);
   }
 
-  .toast.invalid {
-    border-left-color: orange;
+  .toast.invalid i {
+    color: var(--color-yellow-figma);
   }
 
   @keyframes slideIn {
     from {
-      transform: translateX(420px);
+      transform: translateY(8px);
       opacity: 0;
     }
     to {
-      transform: translateX(0);
+      transform: translateY(0);
       opacity: 1;
     }
   }
 
   @keyframes slideOut {
     from {
-      transform: translateX(0);
+      transform: translateY(0);
       opacity: 1;
     }
     to {
-      transform: translateX(420px);
+      transform: translateY(8px);
       opacity: 0;
     }
   }
 
   .toast i {
-    margin: 0 20px;
-    font-size: 35px;
+    font-size: 15px;
+    flex-shrink: 0;
   }
 
   .toast::after {
@@ -75,21 +79,20 @@ export const ToastStyled = styled.div`
     left: 0;
     bottom: 0;
     width: 100%;
-    height: 4px;
-    border-radius: 0 0 8px 8px;
+    height: 2px;
     animation: countdown 4s linear forwards;
   }
 
   .toast.success::after {
-    background: green;
+    background: var(--color-green-figma);
   }
 
   .toast.error::after {
-    background: red;
+    background: var(--color-red-figma);
   }
 
   .toast.invalid::after {
-    background: orange;
+    background: var(--color-yellow-figma);
   }
 
   @keyframes countdown {

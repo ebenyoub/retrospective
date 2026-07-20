@@ -2,7 +2,7 @@ import type { Request } from "express";
 import jwt from "jsonwebtoken";
 import { ensureAuthenticatedParticipant, resumeGuestParticipant } from "../services/participant.service";
 import type { ParticipantSummary } from "../services/types/participant.service.types";
-import { getSessionDetails } from "../services/session.service";
+import { assertSessionOpen, getSessionDetails } from "../services/session.service";
 import { AppError } from "./AppError";
 import { readAuthToken } from "./authCookie";
 import type { AuthPayload, SessionActor } from "./types/sessionActor.types";
@@ -38,13 +38,25 @@ const readAuthPayload = (req: Request): AuthPayload | null => {
   }
 };
 
-export const resolveSessionActor = async (req: Request, sessionId: number): Promise<SessionActor> => {
+// `requireOpen` : à réserver aux actions d'écriture (créer une carte, voter,
+// commenter, envoyer un message...). Les lectures (getCards, getComments...)
+// doivent rester consultables sur une session clôturée (lecture seule).
+export const resolveSessionActor = async (
+  req: Request,
+  sessionId: number,
+  options?: { requireOpen?: boolean }
+): Promise<SessionActor> => {
   const participantId = readParticipantId(req);
   const guestToken = req.header("x-guest-token");
 
   if (guestToken) {
     if (!participantId) {
       throw new AppError(401, "Identité invitée incomplète.", "GUEST_IDENTITY_INCOMPLETE");
+    }
+
+    if (options?.requireOpen) {
+      const session = await getSessionDetails(sessionId);
+      assertSessionOpen(session);
     }
 
     const participant = await resumeGuestParticipant(sessionId, participantId, guestToken);
@@ -57,6 +69,9 @@ export const resolveSessionActor = async (req: Request, sessionId: number): Prom
   }
 
   const session = await getSessionDetails(sessionId);
+  if (options?.requireOpen) {
+    assertSessionOpen(session);
+  }
   const role = session.ownerId === payload.userId ? "facilitator" : "participant";
   const participant = await ensureAuthenticatedParticipant({
     sessionId,

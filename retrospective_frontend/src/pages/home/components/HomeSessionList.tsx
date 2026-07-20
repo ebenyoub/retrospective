@@ -80,10 +80,15 @@ const HomeSessionList = () => {
             >
               <div className="flex min-w-0 flex-col gap-1">
                 <span className="text-sm font-semibold text-slate-100 truncate group-hover:text-blue-400 transition-colors">
-                  {session.name || `Session ${session.code}`}
+                  {session.name || `Session #${session.id}`}
                 </span>
                 <span className="text-[11px] text-slate-400">
-                  Code : <span className="font-mono text-slate-300">{session.code}</span> · {session.role === 'facilitator' ? 'Facilitateur' : 'Participant'} · {new Date(session.createdAt).toLocaleDateString('fr-FR')}
+                  {session.joinCode ? (
+                    <>Code : <span className="font-mono text-slate-300">{session.joinCode}</span> · </>
+                  ) : (
+                    'Session clôturée · '
+                  )}
+                  {session.role === 'facilitator' ? 'Facilitateur' : 'Participant'} · {new Date(session.createdAt).toLocaleDateString('fr-FR')}
                 </span>
               </div>
               <div className="flex items-center gap-2 shrink-0">
