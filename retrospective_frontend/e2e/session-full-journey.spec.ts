@@ -1,10 +1,41 @@
 import { expect, test } from '@playwright/test';
 
+type SessionStep = 'waiting' | 'writing' | 'voting' | 'results';
+
+interface RetroCardFixture {
+  id: number;
+  sessionId: number;
+  authorId: number;
+  authorName: string;
+  columnType: 'start' | 'stop' | 'continue';
+  content: string;
+  createdAt: string;
+  votesCount: number;
+  votedByMe: boolean;
+  commentsCount: number;
+}
+
+const isCardPayload = (value: unknown): value is { columnType: RetroCardFixture['columnType']; content: string } => (
+  typeof value === 'object'
+  && value !== null
+  && 'columnType' in value
+  && 'content' in value
+  && (value.columnType === 'start' || value.columnType === 'stop' || value.columnType === 'continue')
+  && typeof value.content === 'string'
+);
+
+const isStepPayload = (value: unknown): value is { step: SessionStep } => (
+  typeof value === 'object'
+  && value !== null
+  && 'step' in value
+  && (value.step === 'waiting' || value.step === 'writing' || value.step === 'voting' || value.step === 'results')
+);
+
 test('parcours produit complet : inscription, creation de session, ecriture, vote, et resultats', async ({ page }) => {
-  let currentStep = 'waiting';
-  let voted = false;
-  let cardsCount = 0;
-  const cardsList: any[] = [];
+  let currentStep: SessionStep = 'waiting';
+  let voted: boolean = false;
+  let cardsCount: number = 0;
+  const cardsList: RetroCardFixture[] = [];
 
   // ── MOCKS RÉSEAU DYNAMIQUES ──
 
@@ -44,7 +75,7 @@ test('parcours produit complet : inscription, creation de session, ecriture, vot
       contentType: 'application/json',
       body: JSON.stringify({
         success: true,
-        data: { sessionId: 600, code: '6000', name: 'Sprint Full Journey' },
+        data: { sessionId: 600, joinCode: '6000', name: 'Sprint Full Journey' },
       }),
     });
   });
@@ -59,12 +90,14 @@ test('parcours produit complet : inscription, creation de session, ecriture, vot
         data: {
           id: 600,
           name: 'Sprint Full Journey',
-          code: '6000',
+          joinCode: '6000',
           status: 'open',
           step: currentStep,
           ownerId: 1,
           formatName: 'Commencer / Arrêter / Continuer',
           formatColumns: ['Commencer', 'Arrêter', 'Continuer'],
+          stepDurationMinutes: 5,
+          stepEndsAt: null,
         },
       }),
     });
@@ -90,10 +123,31 @@ test('parcours produit complet : inscription, creation de session, ecriture, vot
     });
   });
 
+  // Dépendances chargées au montage du tableau.
+  await page.route('http://localhost:8000/session/600/messages', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ success: true, data: [] }),
+    });
+  });
+
+  await page.route('http://localhost:8000/session/600/actions', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ success: true, data: [] }),
+    });
+  });
+
   // 6. Gestion des cartes (dynamique)
   await page.route('http://localhost:8000/session/600/cards', async (route) => {
     if (route.request().method() === 'POST') {
-      const payload = route.request().postDataJSON();
+      const payload: unknown = route.request().postDataJSON();
+      if (!isCardPayload(payload)) {
+        await route.fulfill({ status: 400, contentType: 'application/json', body: JSON.stringify({ success: false }) });
+        return;
+      }
       cardsCount++;
       cardsList.push({
         id: cardsCount,
@@ -105,6 +159,7 @@ test('parcours produit complet : inscription, creation de session, ecriture, vot
         createdAt: '2026-07-07T10:00:00.000Z',
         votesCount: voted ? 1 : 0,
         votedByMe: voted,
+        commentsCount: 0,
       });
       await route.fulfill({
         status: 201,
@@ -130,12 +185,16 @@ test('parcours produit complet : inscription, creation de session, ecriture, vot
 
   // 7. Transition d'étape (dynamique)
   await page.route('http://localhost:8000/session/600/step', async (route) => {
-    const payload = route.request().postDataJSON();
+    const payload: unknown = route.request().postDataJSON();
+    if (!isStepPayload(payload)) {
+      await route.fulfill({ status: 400, contentType: 'application/json', body: JSON.stringify({ success: false }) });
+      return;
+    }
     currentStep = payload.step;
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify({ success: true }),
+      body: JSON.stringify({ success: true, data: { step: currentStep, stepEndsAt: null } }),
     });
   });
 
@@ -143,9 +202,12 @@ test('parcours produit complet : inscription, creation de session, ecriture, vot
   await page.route('http://localhost:8000/session/600/cards/1/vote', async (route) => {
     voted = true;
     await route.fulfill({
-      status: 200,
+      status: 201,
       contentType: 'application/json',
-      body: JSON.stringify({ success: true, data: { votesCount: 1 } }),
+      body: JSON.stringify({
+        success: true,
+        data: { voteId: 1, votesUsed: 1, votesLeft: 4, cardVotesCount: 1 },
+      }),
     });
   });
 
@@ -195,6 +257,8 @@ test('parcours produit complet : inscription, creation de session, ecriture, vot
   const voteButton = cardItem.getByRole('button', { name: 'Voter' });
   await expect(voteButton).toBeVisible();
   await voteButton.click();
+  await expect(page.getByRole('status', { name: '4 votes restants sur 5' })).toBeVisible();
+  await expect(cardItem.getByRole('button', { name: 'Voté' })).toBeVisible();
 
   // Passage aux résultats
   const viewResultsButton = page.getByRole('button', { name: 'Voir les résultats →' });
