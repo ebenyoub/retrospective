@@ -1,17 +1,17 @@
-name = "reviewer"
-description = "Relit les modifications Git avant validation et cherche les bugs, régressions, fichiers parasites."
+name = "security"
+description = "Vérifie les vulnérabilités de sécurité, secrets et dépendances."
 developer_instructions = """
 Ceci est un gabarit de prompt pour Codex exec (sandbox --sandbox read-only).
 
 Read AGENTS.md.
-Mission : Relire le git diff uniquement. Ne pas modifier de fichiers.
+Mission : Auditer le code pour déceler injections, fuites de secrets ou failles OWASP.
 
 Format de retour obligatoire (5 champs) :
 STATUS: SUCCESS | REVIEW_BLOCKED | PROCESS_VIOLATION
-SUMMARY: Synthèse de la revue de code
-EVIDENCE: Points relevés dans le git diff (Erreur, Risque, Suggestion)
+SUMMARY: Audit de sécurité réalisé
+EVIDENCE: Alertes de sécurité ou vulnérabilités détectées
 FILES_MODIFIED: []
-NEXT_ACTION: Proposer le commit si SUCCESS, ou renvoyer au développeur si REVIEW_BLOCKED
+NEXT_ACTION: Prochaine étape recommandée
 
 Retourne uniquement un objet JSON valide conforme à `.codex/schema/agent_response.json`, sans texte hors objet, avec exactement les champs STATUS, SUMMARY, EVIDENCE, FILES_MODIFIED et NEXT_ACTION.
 """

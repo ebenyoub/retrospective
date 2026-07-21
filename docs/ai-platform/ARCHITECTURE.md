@@ -5,7 +5,8 @@
 > `.claude/DELEGATION.md` — ce sont eux la source d'exécution réelle, pas ce fichier. Ce
 > document est le résumé à copier/adapter pour un autre projet.
 
-Version **v1.2** (2026-07-21, revue de cohérence post-pilote). Voir `PILOTS.md` pour
+Version **v1.3** (2026-07-21, suite de la revue de cohérence — comptage du roster
+clarifié). Voir `PILOTS.md` pour
 l'historique des pilotes et `LESSONS_LEARNED.md` pour le détail des corrections apportées.
 
 ## Principe fondateur
@@ -22,7 +23,12 @@ chaque agent lui rend la main. Ce n'est pas qu'une convention : dans Claude Code
 garanti par le fait qu'aucun agent ne dispose de l'outil d'invocation d'agent dans son
 `tools:`. Toute cascade non maîtrisée est structurellement impossible.
 
-## Roster (13 agents + orchestrateur, gelé)
+## Roster (13 rôles + orchestrateur, gelé)
+
+15 fichiers existent dans `.claude/agents/*.md` : le rôle « Développement » regroupe 3
+agents spécialisés (`backend-express`, `frontend-react`, `database-mysql`) comptés comme un
+seul rôle dans ce gel — d'où l'écart entre 13 (rôles) et 15 (agents), clarifié en v1.3
+après une divergence de comptage entre ce document et `DELEGATION.md`.
 
 Un nouvel agent n'est créé que si une difficulté réelle, observée dans la pratique,
 l'exige — jamais par anticipation d'un problème hypothétique (règle appliquée dès la
@@ -76,7 +82,11 @@ OUT_OF_SCOPE             → redispatch (agent spécialisé, ou découpage du ti
 CONTEXT_TOO_LARGE          → retour à analyst-ticket, redéfinir le périmètre
 TOOLS_UNAVAILABLE            → seul cas où l'orchestrateur peut agir lui-même
 PROCESS_VIOLATION             → arrêt, remédiation (branche/ticket), escalade si non triviale
+AGENT_TIMEOUT                 → 1 relance max encadrée ; si second échec, arrêt propre / escalade
 ```
+
+Les codes de retour garantissent un comportement prévisible de l'orchestrateur face aux aléas d'exécution des sub-agents.
+
 
 Sept codes couvraient le chemin heureux et les échecs techniques ; le huitième
 (`PROCESS_VIOLATION`) a été ajouté après un cas réel observé, pas par anticipation —
@@ -105,26 +115,19 @@ cohérent avec la règle de gel du roster.
   budgets sont recalibrés à partir de mesures réelles de pilotes, pas figés à la
   conception.
 
-## Portabilité vers un autre projet
+## Architecture par Adaptateurs (Portabilité)
 
-Ce qui est réellement portable, tel quel :
-- l'invariant « aucun agent n'appelle un agent » ;
-- le roster et la responsabilité unique de chaque rôle ;
-- les codes de retour et le format de mandat/retour (dont `ÉTAT GIT CONFIRMÉ`) ;
-- la règle « une responsabilité appartient à qui elle sert réellement, jamais dupliquée par
-  précaution sur des agents qui ne peuvent pas l'honorer » ;
-- la philosophie de budgets mesurables, recalibrés par l'usage réel.
+Le noyau de l'architecture (rôles, contrats, codes STATUS, budgets, Git Flow) est strictement indépendant du moteur d'exécution :
 
-Ce qui doit être adapté par projet :
-- les chemins de fichiers exacts (ex. `docs/PROJECT_STATE.md`) ;
-- le contenu spécifique des règles Git Flow (nom de branches, workflow de PR) ;
-- les agents de développement spécialisés (`backend-express`/`frontend-react`/
-  `database-mysql` sont propres à la stack de ce projet).
+```
+             Architecture d'Orchestration Commune
+             (Rôles, Contrats, STATUS, Workflow, Git Flow)
+                                │
+       ┌────────────────────────┼────────────────────────┐
+       ▼                        ▼                        ▼
+ Claude Adapter           AGY Adapter              Codex Adapter
+ (.claude/ & subagent)   (.gemini/ & define_sub)  (.codex/ & CLI wrapper)
+    ✅ QUALIFIÉ              ✅ QUALIFIÉ              🚧 À CONCEVOIR
+```
 
-## Limite opérationnelle connue (Claude Code)
-
-Un agent nouvellement créé n'est pas immédiatement reconnu par le dispatch natif
-(`subagent_type`) — le registre est figé en début de session. Voir
-`.claude/ORCHESTRATOR.md` §Limite opérationnelle pour le contournement et son coût (perte
-de l'enforcement réel des restrictions d'outils tant que l'agent n'est pas reconnu
-nativement).
+Chaque adaptateur adapte la mécanique technique propre à la plateforme sans altérer le noyau fonctionnel.

@@ -74,3 +74,7 @@ Dans `docs/technical/TEST_PLAN.md` :
 - Scénarios couverts
 - Résultats attendus
 - Bugs trouvés et corrigés (preuve pour le jury)
+
+## Codes de retour possibles
+`SUCCESS` · `TEST_FAILED` (au moins un test échoue après une passe de développement) ·
+`TOOLS_UNAVAILABLE`.

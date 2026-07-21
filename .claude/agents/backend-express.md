@@ -90,3 +90,8 @@ res.status(500).json({ message: 'Erreur serveur' })
 - Decorators TypeScript complexes
 - Architecture en couches trop abstraite
 - Middlewares en chaîne illisible
+
+## Codes de retour possibles
+`SUCCESS` · `OUT_OF_SCOPE` (le ticket dépasse le périmètre reçu, ≤ 8 fichiers /
+≤ 30k tokens de contexte) · `NEEDS_DECISION` (ambiguïté métier découverte en cours
+d'implémentation, jamais tranchée seul) · `TOOLS_UNAVAILABLE`.

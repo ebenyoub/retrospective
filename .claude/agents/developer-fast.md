@@ -42,6 +42,9 @@ ici.
 - Si la tâche s'avère plus large en cours de route : t'arrêter et remonter
   (`OUT_OF_SCOPE`) pour redispatch vers `backend-express` / `frontend-react` /
   `database-mysql`.
+- Voir `.claude/DELEGATION.md §Frontière developer-fast / développeur spécialisé` pour le
+  critère de choix dans la zone de recouvrement (3 à 8 fichiers) : c'est la nature du
+  changement qui décide, pas le nombre de fichiers.
 
 ## Ce que tu ne fais PAS
 - Écrire un nouveau composant, contrôleur, service, modèle ou table.

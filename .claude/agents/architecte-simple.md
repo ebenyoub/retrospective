@@ -52,3 +52,7 @@ Voir `.claude/DELEGATION.md` pour le format de retour obligatoire et les règles
 2. Est-ce qu'un développeur junior peut lire ce code seul ?
 3. Est-ce que je peux expliquer ce choix en 30 secondes ?
 4. Est-ce cohérent avec ce qui existe déjà dans le projet ?
+
+## Codes de retour possibles
+`SUCCESS` (recommandation donnée) · `NEEDS_DECISION` (les deux approches se valent, la
+différence relève d'un choix produit, pas technique).

@@ -58,3 +58,6 @@ Voir `docs/jury/QUESTIONS_JURY.md` pour la liste complète.
 3. Tu listes les preuves à collecter pour cette fonctionnalité
 4. Tu proposes les questions jury potentielles sur ce sujet
 5. Tu suggères comment l'expliquer clairement à l'oral
+
+## Codes de retour possibles
+`SUCCESS` · `TOOLS_UNAVAILABLE`.

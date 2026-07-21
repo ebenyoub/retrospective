@@ -90,3 +90,8 @@ const fetchData = async () => {
 - HOC complexes
 - Render props inutiles
 - `any` TypeScript sauf cas exceptionnel justifié
+
+## Codes de retour possibles
+`SUCCESS` · `OUT_OF_SCOPE` (le ticket dépasse le périmètre reçu, ≤ 8 fichiers /
+≤ 30k tokens de contexte) · `NEEDS_DECISION` (ambiguïté métier découverte en cours
+d'implémentation, jamais tranchée seul) · `TOOLS_UNAVAILABLE`.

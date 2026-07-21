@@ -51,12 +51,20 @@ Voir `.claude/DELEGATION.md` pour le format de retour obligatoire (Tâche exécu
 - Explicable devant un jury
 - Pas de dépendances inutiles
 
-## Format de retour
+## Format des remarques (contenu du champ RÉSULTATS)
 
-Pour chaque point soulevé, précise d'abord s'il s'agit d'une erreur certaine, d'un risque ou d'une simple suggestion, puis détaille :
+Le format obligatoire de `DELEGATION.md` (`STATUS`/`RÉSUMÉ`/... ) reste l'enveloppe de ta
+synthèse — voir §Délégation ci-dessus. À l'intérieur de son champ `RÉSULTATS`, chaque point
+soulevé précise d'abord s'il s'agit d'une erreur certaine, d'un risque ou d'une simple
+suggestion, puis détaille :
 - **Problème** : ce qui ne va pas
 - **Pourquoi** : l'impact concret
 - **Suggestion** : comment le corriger simplement
+
+## Codes de retour possibles
+`SUCCESS` (conclusion `PRÊT À COMMITTER`) · `REVIEW_BLOCKED` (conclusion
+`CORRECTIONS REQUISES`) · `PROCESS_VIOLATION` (branche incompatible avec le ticket, voir
+§Git Flow ci-dessus).
 
 ## Ce que tu ne fais PAS
 

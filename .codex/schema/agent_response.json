@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CodexAgentResponse",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "STATUS": {
+      "type": "string",
+      "enum": [
+        "SUCCESS",
+        "NEEDS_DECISION",
+        "TEST_FAILED",
+        "REVIEW_BLOCKED",
+        "OUT_OF_SCOPE",
+        "CONTEXT_TOO_LARGE",
+        "TOOLS_UNAVAILABLE",
+        "PROCESS_VIOLATION",
+        "AGENT_TIMEOUT",
+        "BLOCKED"
+      ]
+    },
+    "SUMMARY": {
+      "type": "string"
+    },
+    "EVIDENCE": {
+      "type": "string"
+    },
+    "FILES_MODIFIED": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "NEXT_ACTION": {
+      "type": "string"
+    }
+  },
+  "required": ["STATUS", "SUMMARY", "EVIDENCE", "FILES_MODIFIED", "NEXT_ACTION"]
+}

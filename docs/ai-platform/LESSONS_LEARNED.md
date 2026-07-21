@@ -203,6 +203,59 @@ d'arbitrage) :
   pour un périmètre de 3 à 8 fichiers.
 - M1 à M6 — incohérences mineures de documentation (voir l'audit complet du 2026-07-21).
 
+> Note : la liste M1-M6 ci-dessus n'a jamais été détaillée dans un fichier — seul ce
+> renvoi a été committé. Traité en v1.3 (entrée #8) comme un nouvel audit de cohérence
+> plutôt qu'une reprise du détail perdu.
+
+---
+
+## Revue de cohérence complète v1.3 (2026-07-21, suite de la revue précédente)
+
+### 8. Reprise du « reste à traiter » de la revue v1.2
+
+**Problème observé** : C2, I1 et I2 identifiés en v1.2 n'étaient pas corrigés ; la liste
+« M1 à M6 » référençait un audit détaillé jamais réellement committé nulle part (aucune
+trace dans le dépôt). Une nouvelle revue croisée (`tools:`, sections présentes, chemins
+cités vs structure réelle du dépôt, comptage du roster entre documents) a donc été menée
+en repartant des fichiers réels plutôt que de tenter de deviner le contenu perdu de M1-M6.
+
+**Corrections appliquées** :
+- **C2** — `reviewer-code.md` : la section de format de retour ambiguë est reprécisée
+  comme le détail du champ `RÉSULTATS` (l'enveloppe `STATUS`/... de `DELEGATION.md` reste
+  la synthèse finale), et une section `Codes de retour possibles` explicite est ajoutée.
+- **I1** — section `Codes de retour possibles` ajoutée aux 8 agents originaux
+  (`architecte-simple`, `backend-express`, `database-mysql`, `documentation-jury`,
+  `formateur-dwwm`, `frontend-react`, `qa-tests`, `reviewer-code`), sur le modèle des 7
+  agents déjà conformes.
+- **I2** — nouvelle section `DELEGATION.md §Frontière developer-fast / développeur
+  spécialisé` : le critère de choix dans la zone de recouvrement (3 à 8 fichiers) est la
+  nature du changement (mécanique/répétitif vs nouvelle logique), pas le nombre de
+  fichiers. Référencée depuis `developer-fast.md`.
+- **Comptage du roster** — `ARCHITECTURE.md` et `DELEGATION.md` annonçaient « 13 agents »
+  alors que 15 fichiers existent réellement dans `.claude/agents/` (ce que
+  `LESSONS_LEARNED.md`/`VALIDATED_RULES.md` disaient déjà correctement). Corrigé en
+  distinguant explicitement « 13 rôles » (le rôle Développement regroupant 3 agents) de
+  « 15 agents ».
+- **`database-mysql.md` §Migrations** — décrivait un chemin et une convention de nommage
+  fictifs (`backend/src/database/migrations/`, `001_create_users.sql`) sans rapport avec
+  la structure réelle du dépôt (`retrospective_backend/sql/`, nommage descriptif
+  `create_*.sql`/`alter_*.sql`). Corrigé pour refléter l'état réel.
+
+**Décision retenue** : quand une référence à un audit antérieur ne peut plus être
+retrouvée dans le dépôt, ne pas essayer de reconstituer son contenu de mémoire — relancer
+un audit factuel sur l'état réel des fichiers, et le documenter cette fois de façon à
+rester retrouvable (cette entrée elle-même).
+
+**Non corrigé, remonté comme décision utilisateur** :
+- Portage Codex (`.codex/agents/documentation.toml`, `qa.toml`, `reviewer.toml`) au format
+  de retour pré-v1.1, incohérent avec le contrat actuel — le portage complet reste
+  volontairement différé (décision déjà actée dans `DELEGATION.md §Portabilité`), donc non
+  modifié sans confirmation explicite que ce différé doit être levé partiellement.
+- `CURRENT_TASK.md`/`HANDOVER.md` décrivent encore le ticket US-13 alors que la branche
+  courante (`feature/T-ARCHI-02-session-context`) et son diff non commité concernent un
+  sujet différent — détecté par la vérification préalable de l'orchestrateur, hors
+  périmètre de ce chantier IA, signalé sans être corrigé ici.
+
 ---
 
 ## Pilote #2 — à venir

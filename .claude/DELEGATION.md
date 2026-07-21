@@ -4,7 +4,9 @@ Ce document complète `.claude/PROJECT_WORKFLOW.md` (§ Orchestrateur) et
 `.claude/ORCHESTRATOR.md` (contrat détaillé du contexte principal, pipeline, journal
 d'exécution). Il ne les duplique pas.
 
-Version **v1.2** — révisée le 2026-07-21. Voir `docs/ai-platform/ARCHITECTURE.md` pour la
+Version **v1.3** — révisée le 2026-07-21 (sections « Codes de retour possibles » ajoutées
+aux 8 agents originaux, frontière developer-fast clarifiée, comptage du roster corrigé —
+voir `docs/ai-platform/LESSONS_LEARNED.md` entrée #8). Voir `docs/ai-platform/ARCHITECTURE.md` pour la
 description portable de ce système (indépendante de ce projet) et
 `docs/ai-platform/LESSONS_LEARNED.md` pour le détail de ce qui a changé et pourquoi.
 
@@ -46,7 +48,10 @@ l'outil d'invocation d'agent dans son `tools:`.
 | Enregistrement des décisions humaines | decision-recorder | — | Différé |
 | Autre (conseil, ne modifie aucun fichier) | formateur-dwwm | — | Différé |
 
-**Roster gelé à 13 agents + l'orchestrateur.** Un nouvel agent n'est créé que si une
+**Roster gelé à 13 rôles + l'orchestrateur** (15 fichiers dans `.claude/agents/*.md` : le
+rôle « Développement » regroupe 3 agents spécialisés — `backend-express`, `frontend-react`,
+`database-mysql` — comptés comme un seul rôle dans ce gel ; correction de comptage v1.3,
+`ARCHITECTURE.md`/`LESSONS_LEARNED.md` divergeaient). Un nouvel agent n'est créé que si une
 difficulté réelle, observée dans la pratique, l'exige — jamais par anticipation d'un
 problème hypothétique.
 
@@ -113,6 +118,25 @@ decision-recorder                      ≤ 3 fichiers · 0 commande shell      �
 * analyst-functional peut écrire dans BACKLOG_IDEAS.md, uniquement après validation
   explicite du Product Owner.
 ```
+
+## Frontière developer-fast / développeur spécialisé (v1.3)
+
+Le nombre de fichiers ne suffit pas à choisir seul entre `developer-fast` (≤ 2 fichiers)
+et un développeur spécialisé (`backend-express`/`frontend-react`/`database-mysql`,
+≤ 8 fichiers) : une zone de recouvrement existe entre 3 et 8 fichiers. Le critère décisif
+est la **nature du changement**, pas sa taille :
+
+- Modification mécanique et triviale (typo, import, valeur en dur, ajustement de style
+  ponctuel) répétée à l'identique sur plusieurs fichiers → reste `developer-fast`, même
+  au-delà de 2 fichiers si chaque occurrence est réellement identique et sans risque
+  d'interprétation.
+- Toute nouvelle logique, nouveau endpoint, nouvelle requête SQL, nouveau composant, ou
+  changement de comportement observable → développeur spécialisé, même sur un seul
+  fichier.
+
+En cas de doute persistant, l'orchestrateur dispatche vers le développeur spécialisé
+(budget plus large, jamais l'inverse) plutôt que de risquer un `OUT_OF_SCOPE` renvoyé par
+`developer-fast` après coup.
 
 ## Portabilité (Claude Code → Codex → AGY)
 

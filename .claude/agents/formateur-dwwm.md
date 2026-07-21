@@ -49,3 +49,7 @@ Voir `docs/jury/REFERENTIEL_DWWM.md` pour le détail complet.
 
 CCP1 — Développer la partie front-end d'une application web ou web mobile sécurisée
 CCP2 — Développer la partie back-end d'une application web ou web mobile sécurisée
+
+## Codes de retour possibles
+`SUCCESS` (avis rendu) · `NEEDS_DECISION` (le point soulevé dépasse un avis de conseil et
+requiert un arbitrage produit/priorisation de l'utilisateur).
