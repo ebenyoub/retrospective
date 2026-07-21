@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-type SessionStep = 'waiting' | 'writing' | 'voting' | 'results';
+type SessionStep = 'waiting' | 'writing' | 'voting' | 'results' | 'action' | 'summary';
 
 interface RetroCardFixture {
   id: number;
@@ -13,6 +13,16 @@ interface RetroCardFixture {
   votesCount: number;
   votedByMe: boolean;
   commentsCount: number;
+}
+
+interface ActionFixture {
+  id: number;
+  sessionId: number;
+  description: string;
+  owner: string;
+  priority: 'high' | 'medium' | 'low';
+  deadline: string | null;
+  createdAt: string;
 }
 
 const isCardPayload = (value: unknown): value is { columnType: RetroCardFixture['columnType']; content: string } => (
@@ -28,14 +38,33 @@ const isStepPayload = (value: unknown): value is { step: SessionStep } => (
   typeof value === 'object'
   && value !== null
   && 'step' in value
-  && (value.step === 'waiting' || value.step === 'writing' || value.step === 'voting' || value.step === 'results')
+  && (value.step === 'waiting' || value.step === 'writing' || value.step === 'voting' || value.step === 'results' || value.step === 'action' || value.step === 'summary')
 );
 
-test('parcours produit complet : inscription, creation de session, ecriture, vote, et resultats', async ({ page }) => {
+const isActionPayload = (value: unknown): value is {
+  description: string;
+  owner: string;
+  priority: ActionFixture['priority'];
+  deadline?: string | null;
+} => (
+  typeof value === 'object'
+  && value !== null
+  && 'description' in value
+  && 'owner' in value
+  && 'priority' in value
+  && typeof value.description === 'string'
+  && typeof value.owner === 'string'
+  && (value.priority === 'high' || value.priority === 'medium' || value.priority === 'low')
+  && (!('deadline' in value) || value.deadline === null || typeof value.deadline === 'string')
+);
+
+test('parcours produit complet : inscription, création, écriture, vote, plan d’action, récapitulatif et clôture', async ({ page }) => {
   let currentStep: SessionStep = 'waiting';
   let voted: boolean = false;
+  let closeRequestSucceeded: boolean = false;
   let cardsCount: number = 0;
   const cardsList: RetroCardFixture[] = [];
+  const actionsList: ActionFixture[] = [];
 
   // ── MOCKS RÉSEAU DYNAMIQUES ──
 
@@ -133,10 +162,35 @@ test('parcours produit complet : inscription, creation de session, ecriture, vot
   });
 
   await page.route('http://localhost:8000/session/600/actions', async (route) => {
+    if (route.request().method() === 'POST') {
+      const payload: unknown = route.request().postDataJSON();
+      if (!isActionPayload(payload)) {
+        await route.fulfill({ status: 400, contentType: 'application/json', body: JSON.stringify({ success: false }) });
+        return;
+      }
+
+      const action: ActionFixture = {
+        id: actionsList.length + 1,
+        sessionId: 600,
+        description: payload.description,
+        owner: payload.owner,
+        priority: payload.priority,
+        deadline: payload.deadline ?? null,
+        createdAt: '2026-07-07T10:05:00.000Z',
+      };
+      actionsList.push(action);
+      await route.fulfill({
+        status: 201,
+        contentType: 'application/json',
+        body: JSON.stringify({ success: true, data: action }),
+      });
+      return;
+    }
+
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify({ success: true, data: [] }),
+      body: JSON.stringify({ success: true, data: actionsList }),
     });
   });
 
@@ -211,6 +265,24 @@ test('parcours produit complet : inscription, creation de session, ecriture, vot
     });
   });
 
+  // 9. Clôture de session et liste affichée après redirection.
+  await page.route('http://localhost:8000/session/600/close', async (route) => {
+    closeRequestSucceeded = route.request().method() === 'POST';
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ success: true, data: { status: 'closed' } }),
+    });
+  });
+
+  await page.route('http://localhost:8000/session', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ success: true, data: [] }),
+    });
+  });
+
   // ── DÉROULEMENT DU SCÉNARIO ──
 
   // 1. Inscription (Signup)
@@ -273,4 +345,25 @@ test('parcours produit complet : inscription, creation de session, ecriture, vot
   const topCard = page.locator('article').filter({ hasText: '🥇' });
   await expect(topCard.getByText('Une idée de test')).toBeVisible();
   await expect(topCard.getByText('1')).toBeVisible();
+
+  // 7. Plan d'action
+  await page.getByRole('button', { name: "Passer au plan d'action →" }).click();
+  await expect(page.getByRole('heading', { name: "Plan d'action" })).toBeVisible();
+  await page.getByRole('button', { name: 'Ajouter une action' }).click();
+  await page.getByLabel("Description de l'action").fill('Partager les résultats avec l’équipe');
+  await page.getByLabel("Responsable de l'action").fill('JohnDoe');
+  await page.getByRole('button', { name: 'Priorité Haute' }).click();
+  await page.getByRole('button', { name: "Ajouter l'action" }).click();
+  await expect(page.getByText('Partager les résultats avec l’équipe')).toBeVisible();
+
+  // 8. Récapitulatif
+  await page.getByRole('button', { name: 'Voir le récapitulatif →' }).click();
+  await expect(page.getByText('✓ Prêt à clôturer')).toBeVisible();
+  await expect(page.getByText('Une idée de test')).toBeVisible();
+  await expect(page.getByText('Partager les résultats avec l’équipe')).toBeVisible();
+
+  // 9. Clôture puis redirection vers les sessions du facilitateur.
+  await page.getByRole('button', { name: 'Terminer la session' }).click();
+  await expect(page).toHaveURL('/sessions');
+  expect(closeRequestSucceeded).toBe(true);
 });
