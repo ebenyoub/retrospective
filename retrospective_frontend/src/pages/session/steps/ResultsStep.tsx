@@ -1,8 +1,12 @@
 import SessionResults from '../components/SessionResults';
-import type { ResultsStepProps } from './types/ResultsStep.types';
+import { useSessionContext } from '../context/useSessionContext';
 
-const ResultsStep = ({ cards, formatColumns, isDesktop }: ResultsStepProps) => (
-  <SessionResults cards={cards} formatColumns={formatColumns} isDesktop={isDesktop} />
-);
+const ResultsStep = () => {
+  const { sessionCards, details, viewport } = useSessionContext();
+
+  return (
+    <SessionResults cards={sessionCards.cards} formatColumns={details.formatColumns} isDesktop={viewport.isDesktop} />
+  );
+};
 
 export default ResultsStep;

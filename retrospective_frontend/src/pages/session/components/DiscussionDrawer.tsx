@@ -10,7 +10,8 @@ import { getApiErrorMessage, NETWORK_ERROR_MESSAGE } from '@/lib/apiError';
 import { cn } from '@/lib/utils';
 
 import { createMessage } from '../services/messageApi';
-import type { DiscussionDrawerProps } from './types/DiscussionDrawer.types';
+import { useSessionContext } from '../context/useSessionContext';
+import type { DiscussionPanelContentProps } from './types/DiscussionDrawer.types';
 
 const formatTime = (isoString: string): string => {
   try {
@@ -30,7 +31,7 @@ const DiscussionPanelContent = ({
   sessionId,
   actorHeaders,
   onMessageSent,
-}: Omit<DiscussionDrawerProps, 'isOpen' | 'isDesktop'>) => {
+}: DiscussionPanelContentProps) => {
   const { addToast } = useToast();
   const [draft, setDraft] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -204,8 +205,29 @@ const DiscussionPanelContent = ({
   );
 };
 
-const DiscussionDrawer = (props: DiscussionDrawerProps) => {
-  const { isOpen, isDesktop, onClose } = props;
+const DiscussionDrawer = () => {
+  const { panels, viewport, messages, setMessages, sessionId, actorHeaders } = useSessionContext();
+  const isOpen = panels.isDiscussionDrawerOpen;
+  const isDesktop = viewport.isDesktop;
+  const onClose = panels.closeDiscussionDrawer;
+
+  // Reproduit à l'identique la dédup par id auparavant faite dans
+  // SessionDashboard (`onMessageSent`) : un message reçu deux fois (envoi +
+  // écho socket) ne doit pas apparaître deux fois dans la liste.
+  const onMessageSent = useCallback((message: DiscussionPanelContentProps['messages'][number]) => {
+    setMessages((prev) => {
+      if (prev.some((m) => m.id === message.id)) return prev;
+      return [...prev, message];
+    });
+  }, [setMessages]);
+
+  const panelProps: DiscussionPanelContentProps = {
+    onClose,
+    messages,
+    sessionId,
+    actorHeaders,
+    onMessageSent,
+  };
 
   // Le panneau docké (desktop) ne passe pas par <Drawer>, qui portait la
   // fermeture au clavier : on la reproduit ici pour ce seul cas (le mode
@@ -232,7 +254,7 @@ const DiscussionDrawer = (props: DiscussionDrawerProps) => {
         aria-labelledby="discussion-drawer-title"
         className="flex w-[380px] flex-shrink-0 flex-col overflow-hidden border-l border-navy-border bg-navy-mid"
       >
-        <DiscussionPanelContent {...props} />
+        <DiscussionPanelContent {...panelProps} />
       </aside>
     );
   }
@@ -247,7 +269,7 @@ const DiscussionDrawer = (props: DiscussionDrawerProps) => {
       side="full"
       size="md"
     >
-      <DiscussionPanelContent {...props} />
+      <DiscussionPanelContent {...panelProps} />
     </Drawer>
   );
 };

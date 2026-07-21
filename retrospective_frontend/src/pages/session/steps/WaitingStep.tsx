@@ -1,21 +1,20 @@
 import { WaitingScreen } from '../components/WaitingScreen';
-import type { WaitingStepProps } from './types/WaitingStep.types';
+import { useSessionContext } from '../context/useSessionContext';
 
-const WaitingStep = ({
-  sessionId,
-  sessionName,
-  sessionCode,
-  participants,
-  selfParticipantId,
-  role,
-  formatName,
-  stepDurationMinutes,
-  isDesktop,
-  onStart,
-  onLeave,
-  onSelectFormatPreset,
-  onUpdateStepDuration,
-}: WaitingStepProps) => {
+const WaitingStep = () => {
+  const {
+    sessionId,
+    details,
+    participants,
+    identity,
+    viewport,
+    handleLeaveSession,
+    handleUpdateFormat,
+    handleUpdateTimer,
+    handleTransitionStep,
+  } = useSessionContext();
+  const selfParticipantId = identity.selfParticipantId;
+
   if (!selfParticipantId) {
     return (
       <div className="flex flex-1 items-center justify-center">
@@ -27,18 +26,18 @@ const WaitingStep = ({
   return (
     <WaitingScreen
       sessionId={sessionId}
-      sessionName={sessionName}
-      sessionCode={sessionCode}
+      sessionName={details.sessionName}
+      sessionCode={details.sessionCode}
       participants={participants}
       selfParticipantId={selfParticipantId}
-      role={role || 'participant'}
-      formatName={formatName}
-      stepDurationMinutes={stepDurationMinutes}
-      onStart={onStart}
-      onLeave={onLeave}
-      onSelectFormatPreset={onSelectFormatPreset}
-      onUpdateStepDuration={onUpdateStepDuration}
-      isDesktop={isDesktop}
+      role={identity.role || 'participant'}
+      formatName={details.formatName}
+      stepDurationMinutes={details.stepDurationMinutes}
+      onStart={() => handleTransitionStep('writing')}
+      onLeave={handleLeaveSession}
+      onSelectFormatPreset={handleUpdateFormat}
+      onUpdateStepDuration={handleUpdateTimer}
+      isDesktop={viewport.isDesktop}
     />
   );
 };

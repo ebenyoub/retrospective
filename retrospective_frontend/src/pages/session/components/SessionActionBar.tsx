@@ -3,19 +3,19 @@ import Button from '@/components/ui/Button';
 import Modal, { ModalHeader, ModalTitle, ModalContent, ModalFooter } from '@/components/ui/Modal';
 import { SESSION_STEPS, SESSION_STEP_LABELS } from '../sessionStep';
 import TimerChip from './TimerChip';
-import type { SessionActionBarProps } from './types/SessionActionBar.types';
+import { useSessionContext } from '../context/useSessionContext';
 
-const SessionActionBar = ({
-  step,
-  cardsCount,
-  votesLeft,
-  actionsCount,
-  isFacilitator,
-  stepEndsAt,
-  onTransitionStep,
-  onUpdateTimer,
-  onCloseSession,
-}: SessionActionBarProps) => {
+const SessionActionBar = () => {
+  const context = useSessionContext();
+  const step = context.details.step;
+  const cardsCount = context.sessionCards.cards.length;
+  const votesLeft = context.votesLeft;
+  const actionsCount = context.actions.length;
+  const isFacilitator = context.identity.isFacilitator;
+  const stepEndsAt = context.stepEndsAt;
+  const onTransitionStep = context.handleTransitionStep;
+  const onUpdateTimer = context.handleUpdateTimer;
+  const onCloseSession = context.handleCloseSession;
   const [isBackConfirmOpen, setIsBackConfirmOpen] = useState(false);
 
   if ((step === 'results' || step === 'summary') && !isFacilitator) return null;

@@ -5,6 +5,7 @@ import Button from '@/components/ui/Button';
 import EmptyState from '@/components/ui/EmptyState';
 import type { ActionItem } from '../types/action.types';
 import type { ActionStepProps } from './types/ActionStep.types';
+import { useSessionContext } from '../context/useSessionContext';
 import TopVotedCards from '../components/TopVotedCards';
 
 type Priority = ActionItem['priority'];
@@ -163,7 +164,11 @@ const AddActionForm = ({
   );
 };
 
-const ActionStep = ({ actions, cards, formatColumns, isFacilitator, onAddAction }: ActionStepProps) => {
+const ActionStep = ({ onAddAction }: ActionStepProps) => {
+  const { actions, sessionCards, details, identity } = useSessionContext();
+  const { cards } = sessionCards;
+  const { formatColumns } = details;
+  const { isFacilitator } = identity;
   const [showForm, setShowForm] = useState(false);
 
   const groups = PRIORITY_ORDER.map((priority) => ({

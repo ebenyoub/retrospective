@@ -1,12 +1,8 @@
-import type { ActionItem } from '../../types/action.types';
 import type { CreateActionPayload } from '../../services/actionApi';
-import type { RetroCard } from '../../types/card.types';
 
+// ActionStep consomme la majorité de ses données via useSessionContext()
+// (voir SessionContext.ts). onAddAction reste une prop directe transmise par
+// SessionDashboard : un seul niveau de passage, pas de drilling à traiter.
 export interface ActionStepProps {
-  actions: ActionItem[];
-  cards: RetroCard[];
-  formatColumns: string[];
-  isFacilitator: boolean;
-  isDesktop: boolean;
   onAddAction: (payload: CreateActionPayload) => Promise<void>;
 }

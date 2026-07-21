@@ -1,7 +1,7 @@
 import Avatar from '@/components/ui/Avatar';
 import Badge from '@/components/ui/Badge';
 import type { ActionItem } from '../types/action.types';
-import type { SummaryStepProps } from './types/SummaryStep.types';
+import { useSessionContext } from '../context/useSessionContext';
 import TopVotedCards from '../components/TopVotedCards';
 
 const PRIORITY_META: Record<ActionItem['priority'], { label: string; color: string; badgeClassName: string }> = {
@@ -28,13 +28,10 @@ const SectionHeader = ({ label, icon, count }: { label: string; icon?: string; c
   </div>
 );
 
-const SummaryStep = ({
-  sessionName,
-  cards,
-  actions,
-  participants,
-  formatColumns,
-}: SummaryStepProps) => {
+const SummaryStep = () => {
+  const { details, sessionCards, actions, participants } = useSessionContext();
+  const { cards } = sessionCards;
+  const { sessionName, formatColumns } = details;
   const totalVotes = cards.reduce((sum, card) => sum + card.votesCount, 0);
   const totalComments = cards.reduce((sum, card) => sum + card.commentsCount, 0);
   const onlineCount = participants.filter((participant) => participant.status === 'online').length;

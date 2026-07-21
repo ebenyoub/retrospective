@@ -71,7 +71,7 @@ const defaultFormatColumns = getRetroFormatById(DEFAULT_RETRO_FORMAT_ID).columns
 const SessionDashboard = () => {
   const { id } = useParams();
   const sessionId = id || '';
-  const { isAuthenticated, userId, username } = useAuth();
+  const { isAuthenticated, userId } = useAuth();
   const { addToast } = useToast();
   const navigate = useNavigate();
   const [isSessionCodeCopied, setIsSessionCodeCopied] = useState(false);
@@ -88,6 +88,10 @@ const SessionDashboard = () => {
   });
   const sessionCards = useSessionCards({ sessionId, actorHeaders: identity.actorHeaders, addToast });
   const activeStep = details.status === 'closed' ? 'results' : details.step;
+  // Dérivés calculés une seule fois ici plutôt que recalculés dans chaque
+  // composant consommateur (SessionContext expose isFacilitator/isDesktop).
+  const isFacilitator = identity.role === 'facilitator' && details.status !== 'closed';
+  const isDesktop = !isMobileViewport;
   const isLoading = useSessionPolling({
     sessionId,
     isAuthenticated,
@@ -193,12 +197,6 @@ const SessionDashboard = () => {
     navigate('/');
   };
 
-  // Le badge participant n'est affiché que pour les non-facilitateurs :
-  // le facilitateur a déjà son menu de compte dans la barre.
-  const selfDisplayName = identity.role === 'participant'
-    ? (identity.guestIdentity?.displayName ?? (isAuthenticated ? username : null))
-    : null;
-
   const handleCopySessionCode = async () => {
     if (!details.sessionCode) return;
 
@@ -233,127 +231,68 @@ const SessionDashboard = () => {
         actorHeaders: identity.actorHeaders ?? EMPTY_HEADERS,
         selfParticipantId: identity.selfParticipantId,
         onCommentsChanged: sessionCards.fetchCards,
+
+        viewport: {
+          activeMobileColumn,
+          isMobileViewport,
+          isDesktop,
+          setActiveMobileColumn,
+        },
+        panels,
+        // `step` reflète l'étape réellement affichée (une session clôturée
+        // reste sur "results" quelle que soit l'étape enregistrée côté
+        // backend) : c'est la même valeur que l'ancienne `activeStep`.
+        details: { ...details, step: activeStep },
+        identity: { ...identity, isFacilitator },
+        sessionCards,
+
+        participants,
+        messages,
+        setMessages,
+        actions,
+        setActions,
+
+        votesLeft: sessionCards.votesLeft,
+        stepEndsAt: details.stepEndsAt,
+        handleTransitionStep,
+        handleUpdateFormat,
+        handleUpdateTimer,
+        handleCloseSession,
+        handleLeaveSession,
       }}
     >
       <div className="flex flex-col flex-1 overflow-hidden">
       <SessionContextBar
-        sessionName={details.sessionName}
-        sessionId={sessionId}
-        sessionCode={details.sessionCode}
-        step={activeStep}
-        participantCount={participants.filter((participant) => participant.status === 'online').length}
         isSessionCodeCopied={isSessionCodeCopied}
-        isParticipantsOpen={panels.isParticipantsDrawerOpen}
-        isDiscussionOpen={panels.isDiscussionDrawerOpen}
-        selfDisplayName={selfDisplayName}
         canRenameSelf={!isAuthenticated}
-        onRenameSelf={identity.renameSelf}
-        onLeaveSession={handleLeaveSession}
         onBack={handleGoHome}
         onCopySessionCode={handleCopySessionCode}
-        onToggleParticipants={panels.toggleParticipantsDrawer}
-        onToggleDiscussion={panels.toggleDiscussionDrawer}
       />
       {activeStep === 'waiting' ? (
-        <WaitingStep
-          sessionId={sessionId}
-          sessionName={details.sessionName}
-          sessionCode={details.sessionCode}
-          participants={participants}
-          selfParticipantId={identity.selfParticipantId}
-          role={identity.role}
-          formatName={details.formatName}
-          stepDurationMinutes={details.stepDurationMinutes}
-          onStart={() => handleTransitionStep('writing')}
-          onLeave={handleLeaveSession}
-          onSelectFormatPreset={handleUpdateFormat}
-          onUpdateStepDuration={handleUpdateTimer}
-          isDesktop={!isMobileViewport}
-        />
+        <WaitingStep />
       ) : (
         <>
-          <SessionActionBar
-            step={activeStep}
-            cardsCount={sessionCards.cards.length}
-            votesLeft={sessionCards.votesLeft}
-            actionsCount={actions.length}
-            isFacilitator={identity.role === 'facilitator' && details.status !== 'closed'}
-            stepEndsAt={details.stepEndsAt}
-            onTransitionStep={handleTransitionStep}
-            onUpdateTimer={handleUpdateTimer}
-            onCloseSession={handleCloseSession}
-          />
-          <ParticipantsDrawer
-            participants={participants}
-            isOpen={panels.isParticipantsDrawerOpen}
-            isDesktop={!isMobileViewport}
-            onClose={panels.closeParticipantsDrawer}
-          />
+          <SessionActionBar />
+          <ParticipantsDrawer />
 
           {/* Discussion en docké (desktop) : panneau à côté des cartes, pas
               par-dessus — on peut lire/commenter tout en discutant. */}
           <div className="flex flex-1 overflow-hidden">
             <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
               {activeStep === 'summary' ? (
-                <SummaryStep
-                  sessionName={details.sessionName}
-                  cards={sessionCards.cards}
-                  actions={actions}
-                  participants={participants}
-                  formatColumns={details.formatColumns}
-                  isDesktop={!isMobileViewport}
-                />
+                <SummaryStep />
               ) : activeStep === 'action' ? (
-                <ActionStep
-                  actions={actions}
-                  cards={sessionCards.cards}
-                  formatColumns={details.formatColumns}
-                  isFacilitator={identity.role === 'facilitator' && details.status !== 'closed'}
-                  isDesktop={!isMobileViewport}
-                  onAddAction={handleAddAction}
-                />
+                <ActionStep onAddAction={handleAddAction} />
               ) : activeStep === 'results' ? (
-                <ResultsStep cards={sessionCards.cards} formatColumns={details.formatColumns} isDesktop={!isMobileViewport} />
+                <ResultsStep />
               ) : activeStep === 'voting' ? (
-                <VotingStep
-                  cards={sessionCards.cards}
-                  columns={writingColumns}
-                  activeMobileColumn={activeMobileColumn}
-                  isMobileViewport={isMobileViewport}
-                  currentUserId={identity.selfParticipantId}
-                  onSelectMobileColumn={setActiveMobileColumn}
-                  onVote={sessionCards.handleVote}
-                  onUpdateCard={sessionCards.handleUpdateCard}
-                  onDeleteCard={sessionCards.handleDeleteCard}
-                />
+                <VotingStep columns={writingColumns} />
               ) : (
-                <WritingStep
-                  cards={sessionCards.cards}
-                  columns={writingColumns}
-                  activeMobileColumn={activeMobileColumn}
-                  isMobileViewport={isMobileViewport}
-                  currentUserId={identity.selfParticipantId}
-                  onSelectMobileColumn={setActiveMobileColumn}
-                  onAddCard={sessionCards.handleAddCard}
-                  onVote={sessionCards.handleVote}
-                  onUpdateCard={sessionCards.handleUpdateCard}
-                  onDeleteCard={sessionCards.handleDeleteCard}
-                />
+                <WritingStep columns={writingColumns} />
               )}
             </div>
 
-            <DiscussionDrawer
-              isOpen={panels.isDiscussionDrawerOpen}
-              isDesktop={!isMobileViewport}
-              onClose={panels.closeDiscussionDrawer}
-              messages={messages}
-              sessionId={sessionId}
-              actorHeaders={identity.actorHeaders ?? EMPTY_HEADERS}
-              onMessageSent={(msg) => setMessages((prev) => {
-                if (prev.some((m) => m.id === msg.id)) return prev;
-                return [...prev, msg];
-              })}
-            />
+            <DiscussionDrawer />
           </div>
         </>
       )}

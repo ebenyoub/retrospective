@@ -5,33 +5,43 @@ import StepIndicator from './StepIndicator';
 import ParticipantBadge from './ParticipantBadge';
 import ProfileMenu from '@/components/ProfileMenu';
 import { useAuth } from '@/context/auth/useAuth';
+import { useSessionContext } from '../context/useSessionContext';
 import type { SessionContextBarProps } from './types/SessionContextBar.types';
 
 const SessionContextBar = ({
-  sessionName,
-  sessionId,
-  sessionCode,
-  step,
-  participantCount,
   isSessionCodeCopied,
-  selfDisplayName = null,
   canRenameSelf = false,
-  onRenameSelf,
-  onLeaveSession,
   onBack,
   onCopySessionCode,
-  onToggleParticipants,
-  onToggleDiscussion,
-  isParticipantsOpen = false,
-  isDiscussionOpen = false,
 }: SessionContextBarProps) => {
+  const context = useSessionContext();
+  const { isAuthenticated, username } = useAuth();
+
+  const sessionId = context.sessionId;
+  const sessionName = context.details.sessionName;
+  const sessionCode = context.details.sessionCode;
+  const step = context.details.step;
+  const participantCount = context.participants.filter(
+    (participant) => participant.status === 'online'
+  ).length;
+  // Badge du participant (pseudo + menu) : absent pour le facilitateur, qui a
+  // déjà son menu de compte.
+  const selfDisplayName = context.identity.role === 'participant'
+    ? (context.identity.guestIdentity?.displayName ?? (isAuthenticated ? username : null))
+    : null;
+  const onRenameSelf = context.identity.renameSelf;
+  const onLeaveSession = context.handleLeaveSession;
+  const onToggleParticipants = context.panels.toggleParticipantsDrawer;
+  const onToggleDiscussion = context.panels.toggleDiscussionDrawer;
+  const isParticipantsOpen = context.panels.isParticipantsDrawerOpen;
+  const isDiscussionOpen = context.panels.isDiscussionDrawerOpen;
+
   const displayName = sessionName || `Session ${sessionId}`;
-  const { isAuthenticated } = useAuth();
 
   return (
     <nav
       aria-label="Contexte de session"
-      className="grid min-h-[52px] flex-shrink-0 grid-cols-1 items-center gap-2 border-b border-navy-border bg-navy-mid px-3 py-2 md:h-14 md:min-h-14 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:items-stretch md:gap-2 md:px-5 md:py-0"
+      className="grid min-h-[52px] shrink-0 grid-cols-1 items-center gap-2 border-b border-navy-border bg-navy-mid px-3 py-2 md:h-14 md:min-h-14 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:items-stretch md:gap-2 md:px-5 md:py-0"
     >
       <div className="flex min-w-0 items-center gap-1.5 md:h-full" aria-label="Fil de contexte">
         <Button

@@ -4,7 +4,7 @@ import Drawer from '@/components/ui/Drawer';
 import IconButton from '@/components/ui/IconButton';
 
 import type { ParticipantSummary } from '../types/participant.types';
-import type { ParticipantsDrawerProps } from './types/ParticipantsDrawer.types';
+import { useSessionContext } from '../context/useSessionContext';
 
 const statusLabel: Record<ParticipantSummary['status'], string> = {
   online: 'En ligne',
@@ -16,7 +16,11 @@ const statusClassName: Record<ParticipantSummary['status'], string> = {
   offline: 'bg-slate-600',
 };
 
-const ParticipantsDrawer = ({ participants, isOpen, isDesktop, onClose }: ParticipantsDrawerProps) => {
+const ParticipantsDrawer = () => {
+  const { participants, panels, viewport } = useSessionContext();
+  const isOpen = panels.isParticipantsDrawerOpen;
+  const isDesktop = viewport.isDesktop;
+  const onClose = panels.closeParticipantsDrawer;
   const onlineCount = participants.filter((participant) => participant.status === 'online').length;
 
   return (

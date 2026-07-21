@@ -1,15 +1,9 @@
 import type { SessionBoardColumn } from '../../types/board.types';
-import type { RetroCard } from '../../types/card.types';
 
+// WritingStep consomme le reste de ses données via useSessionContext() (voir
+// SessionContext.ts) : seule `columns` reste une prop, car c'est une config
+// d'affichage locale à SessionDashboard (dérivée du format), pas un état de
+// session à faire transiter par le contexte.
 export interface WritingStepProps {
-  cards: RetroCard[];
   columns: SessionBoardColumn[];
-  activeMobileColumn: RetroCard['columnType'];
-  isMobileViewport: boolean;
-  currentUserId: number | null;
-  onSelectMobileColumn: (columnType: RetroCard['columnType']) => void;
-  onAddCard: (columnType: RetroCard['columnType'], content: string) => Promise<void> | void;
-  onVote: (cardId: number) => Promise<void> | void;
-  onUpdateCard: (cardId: number, content: string) => Promise<boolean> | boolean;
-  onDeleteCard: (cardId: number) => Promise<void> | void;
 }
