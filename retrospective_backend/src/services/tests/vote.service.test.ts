@@ -2,74 +2,95 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { Mock } from "vitest";
 
 vi.mock("../../models/vote.model", () => ({
-  findCardSessionId: vi.fn(),
-  findExistingVote: vi.fn(),
-  countVotesByParticipantInSession: vi.fn(),
-  insertVote: vi.fn(),
+  insertVoteAtomically: vi.fn(),
 }));
 
-import {
-  countVotesByParticipantInSession,
-  findCardSessionId,
-  findExistingVote,
-  insertVote,
-} from "../../models/vote.model";
+import { insertVoteAtomically } from "../../models/vote.model";
 import { castVote, MAX_VOTES_PER_SESSION } from "../vote.service";
 import { AppError } from "../../utils/AppError";
 
-const mockFindCardSessionId = findCardSessionId as unknown as Mock;
-const mockFindExistingVote = findExistingVote as unknown as Mock;
-const mockCountVotes = countVotesByParticipantInSession as unknown as Mock;
-const mockInsertVote = insertVote as unknown as Mock;
+const mockInsertVoteAtomically = insertVoteAtomically as unknown as Mock;
 
 describe("vote.service", () => {
   beforeEach(() => {
-    mockFindCardSessionId.mockReset();
-    mockFindExistingVote.mockReset();
-    mockCountVotes.mockReset();
-    mockInsertVote.mockReset();
+    mockInsertVoteAtomically.mockReset();
   });
 
   it("lève une AppError 404 si la carte n'existe pas", async () => {
-    mockFindCardSessionId.mockResolvedValueOnce(null);
+    mockInsertVoteAtomically.mockResolvedValueOnce({ ok: false, failure: "CARD_NOT_FOUND" });
 
-    await expect(castVote(1, 999)).rejects.toMatchObject({
+    await expect(castVote(1, 1, 999)).rejects.toMatchObject({
       statusCode: 404,
       code: "CARD_NOT_FOUND",
     } satisfies Partial<AppError>);
   });
 
   it("lève une AppError 400 si l'utilisateur a déjà voté pour cette carte", async () => {
-    mockFindCardSessionId.mockResolvedValueOnce(1);
-    mockFindExistingVote.mockResolvedValueOnce(10);
+    mockInsertVoteAtomically.mockResolvedValueOnce({ ok: false, failure: "ALREADY_VOTED" });
 
-    await expect(castVote(1, 5)).rejects.toMatchObject({
+    await expect(castVote(1, 1, 5)).rejects.toMatchObject({
       statusCode: 400,
       code: "ALREADY_VOTED",
     } satisfies Partial<AppError>);
   });
 
   it("lève une AppError 400 si la limite de votes est atteinte", async () => {
-    mockFindCardSessionId.mockResolvedValueOnce(1);
-    mockFindExistingVote.mockResolvedValueOnce(null);
-    mockCountVotes.mockResolvedValueOnce(MAX_VOTES_PER_SESSION);
+    mockInsertVoteAtomically.mockResolvedValueOnce({ ok: false, failure: "VOTE_LIMIT_REACHED" });
 
-    await expect(castVote(1, 5)).rejects.toMatchObject({
+    await expect(castVote(1, 1, 5)).rejects.toMatchObject({
       statusCode: 400,
       code: "VOTE_LIMIT_REACHED",
     } satisfies Partial<AppError>);
 
-    expect(mockInsertVote).not.toHaveBeenCalled();
+    expect(mockInsertVoteAtomically).toHaveBeenCalledWith(1, 1, 5);
   });
 
-  it("enregistre le vote si tout est valide", async () => {
-    mockFindCardSessionId.mockResolvedValueOnce(1);
-    mockFindExistingVote.mockResolvedValueOnce(null);
-    mockCountVotes.mockResolvedValueOnce(MAX_VOTES_PER_SESSION - 1);
-    mockInsertVote.mockResolvedValueOnce(77);
+  it("lève une AppError 403 si le participant n'appartient pas à la session", async () => {
+    mockInsertVoteAtomically.mockResolvedValueOnce({ ok: false, failure: "PARTICIPANT_NOT_IN_SESSION" });
 
-    const result = await castVote(1, 5);
+    await expect(castVote(1, 1, 5)).rejects.toMatchObject({
+      statusCode: 403,
+      code: "PARTICIPANT_NOT_IN_SESSION",
+    } satisfies Partial<AppError>);
+  });
 
-    expect(result).toEqual({ voteId: 77 });
+  it("lève une AppError 400 si la session est clôturée", async () => {
+    mockInsertVoteAtomically.mockResolvedValueOnce({ ok: false, failure: "SESSION_CLOSED" });
+
+    await expect(castVote(1, 1, 5)).rejects.toMatchObject({
+      statusCode: 400,
+      code: "SESSION_CLOSED",
+    } satisfies Partial<AppError>);
+  });
+
+  it("refuse une carte appartenant à une autre session", async () => {
+    mockInsertVoteAtomically.mockResolvedValueOnce({ ok: false, failure: "CARD_SESSION_MISMATCH" });
+
+    await expect(castVote(1, 1, 5)).rejects.toMatchObject({
+      statusCode: 404,
+      code: "CARD_SESSION_MISMATCH",
+    } satisfies Partial<AppError>);
+  });
+
+  it("refuse un vote hors étape voting", async () => {
+    mockInsertVoteAtomically.mockResolvedValueOnce({ ok: false, failure: "VOTING_NOT_OPEN" });
+
+    await expect(castVote(1, 1, 5)).rejects.toMatchObject({
+      statusCode: 400,
+      code: "VOTING_NOT_OPEN",
+    } satisfies Partial<AppError>);
+  });
+
+  it("renvoie le quota et le compteur de carte après un vote valide", async () => {
+    mockInsertVoteAtomically.mockResolvedValueOnce({
+      ok: true,
+      voteId: 77,
+      votesUsed: MAX_VOTES_PER_SESSION,
+      cardVotesCount: 3,
+    });
+
+    const result = await castVote(1, 1, 5);
+
+    expect(result).toEqual({ voteId: 77, votesUsed: 5, votesLeft: 0, cardVotesCount: 3 });
   });
 });

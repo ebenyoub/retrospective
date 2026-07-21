@@ -108,7 +108,10 @@ test('visualise la barre de quota et effectue un vote sur une carte', async ({ p
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify({ success: true, data: { votesCount: 1 } }),
+      body: JSON.stringify({
+        success: true,
+        data: { voteId: 1, votesUsed: 1, votesLeft: 4, cardVotesCount: 1 },
+      }),
     });
   });
 

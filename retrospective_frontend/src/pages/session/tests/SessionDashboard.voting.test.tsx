@@ -192,7 +192,10 @@ describe('SessionDashboard - Distribution des votes (Voting Step)', () => {
           }),
         },
       ],
-      voteResponse: { ok: true, json: async () => ({ success: true, data: { voteId: 1 } }) },
+      voteResponse: {
+        ok: true,
+        json: async () => ({ success: true, data: { voteId: 1, votesUsed: 1, votesLeft: 4, cardVotesCount: 1 } }),
+      },
     });
     vi.stubGlobal('fetch', fetchMock);
 
@@ -203,6 +206,79 @@ describe('SessionDashboard - Distribution des votes (Voting Step)', () => {
     fireEvent.click(voteButton);
 
     expect(await screen.findByText('1 vote')).toBeTruthy();
+  });
+
+  it('synchronise immédiatement le quota et l’état de vote après un vote', async () => {
+    const fetchMock = createDashboardFetchMock({
+      step: 'voting',
+      cardsSequence: [
+        {
+          ok: true,
+          json: async () => ({ success: true, data: [{
+            id: 1, sessionId: 1, authorId: 1, authorName: 'Elyas', columnType: 'start',
+            content: 'Carte', createdAt: '2026-07-07T10:00:00.000Z', votesCount: 0, votedByMe: false,
+          }] }),
+        },
+        {
+          ok: true,
+          json: async () => ({ success: true, data: [{
+            id: 1, sessionId: 1, authorId: 1, authorName: 'Elyas', columnType: 'start',
+            content: 'Carte', createdAt: '2026-07-07T10:00:00.000Z', votesCount: 1, votedByMe: true,
+          }] }),
+        },
+      ],
+      voteResponse: {
+        ok: true,
+        json: async () => ({ success: true, data: { voteId: 1, votesUsed: 1, votesLeft: 4, cardVotesCount: 1 } }),
+      },
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderDashboard();
+    fireEvent.click(await screen.findByRole('button', { name: 'Voter' }));
+
+    expect(await screen.findByRole('status', { name: '4 votes restants sur 5' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Voté' })).toBeTruthy();
+  });
+
+  it('rafraîchit les cartes après le passage à l’étape de vote', async () => {
+    const fetchMock = createDashboardFetchMock({
+      step: 'writing',
+      cardsSequence: [
+        {
+          ok: true,
+          json: async () => ({ success: true, data: [{
+            id: 1, sessionId: 1, authorId: 1, authorName: 'Elyas', columnType: 'start',
+            content: 'Carte avant la transition', createdAt: '2026-07-07T10:00:00.000Z', votesCount: 0,
+          }] }),
+        },
+        {
+          ok: true,
+          json: async () => ({ success: true, data: [{
+            id: 2, sessionId: 1, authorId: 2, authorName: 'Sarah', columnType: 'start',
+            content: 'Carte reçue après la transition', createdAt: '2026-07-07T10:01:00.000Z', votesCount: 0,
+          }] }),
+        },
+      ],
+      stepResponse: {
+        ok: true,
+        json: async () => ({ success: true, data: { step: 'voting', stepEndsAt: null } }),
+      },
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderDashboard();
+
+    expect(await screen.findByText('Carte avant la transition')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Passer au vote →' }));
+
+    expect(await screen.findByText('Carte reçue après la transition')).toBeTruthy();
+    await vi.waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        expect.stringContaining('/session/1/step'),
+        expect.objectContaining({ method: 'PATCH', body: JSON.stringify({ step: 'voting' }) })
+      );
+    });
   });
 
   it('affiche un toast d\'erreur si le vote échoue (ex: déjà voté)', async () => {

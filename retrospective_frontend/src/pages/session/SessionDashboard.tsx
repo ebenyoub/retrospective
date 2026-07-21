@@ -118,6 +118,7 @@ const SessionDashboard = () => {
     setFormatColumns: details.setFormatColumns,
     setStepDurationMinutes: details.setStepDurationMinutes,
     setStepEndsAt: details.setStepEndsAt,
+    fetchCards: sessionCards.fetchCards,
   });
 
   useEffect(() => {

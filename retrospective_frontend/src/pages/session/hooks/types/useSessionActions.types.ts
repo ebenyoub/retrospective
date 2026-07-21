@@ -13,4 +13,5 @@ export interface UseSessionActionsOptions {
   setFormatColumns: (columns: string[]) => void;
   setStepDurationMinutes: (minutes: number) => void;
   setStepEndsAt: (endsAt: string | null) => void;
+  fetchCards: () => Promise<void>;
 }

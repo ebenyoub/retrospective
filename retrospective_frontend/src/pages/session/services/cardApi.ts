@@ -1,5 +1,5 @@
 import { API_BASE } from '@/lib/api';
-import type { RetroCard } from '../types/card.types';
+import type { CastVoteResponse, RetroCard } from '../types/card.types';
 import { requestApi, requestApiCommand } from './http';
 
 export const getCards = (sessionId: string, headers: Record<string, string>) =>
@@ -27,7 +27,7 @@ export const voteForCard = (
   headers: Record<string, string>,
   cardId: number
 ) =>
-  requestApiCommand(`${API_BASE}/session/${sessionId}/cards/${cardId}/vote`, {
+  requestApi<CastVoteResponse>(`${API_BASE}/session/${sessionId}/cards/${cardId}/vote`, {
     method: 'POST',
     headers,
   });

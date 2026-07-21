@@ -12,7 +12,7 @@ const VotingStep = ({ columns }: VotingStepProps) => {
       activeMobileColumn={viewport.activeMobileColumn}
       isMobileViewport={viewport.isMobileViewport}
       currentUserId={identity.selfParticipantId}
-      canVote
+      canVote={!sessionCards.isVotePending}
       canEdit={false}
       onSelectMobileColumn={viewport.setActiveMobileColumn}
       onVote={sessionCards.handleVote}

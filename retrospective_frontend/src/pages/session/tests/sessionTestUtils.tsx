@@ -17,6 +17,7 @@ export const emptyRoleResponse = {
 
 export const createDashboardFetchMock = (options: {
   cardsSequence: unknown[];
+  stepResponse?: unknown;
   voteResponse?: unknown;
   addCardResponse?: unknown;
   updateCardResponse?: unknown;
@@ -35,6 +36,7 @@ export const createDashboardFetchMock = (options: {
 }) => {
   const {
     cardsSequence,
+    stepResponse,
     voteResponse,
     addCardResponse,
     updateCardResponse,
@@ -108,6 +110,9 @@ export const createDashboardFetchMock = (options: {
     }
     if (method === 'POST' && url.includes('/vote')) {
       return Promise.resolve(voteResponse);
+    }
+    if (method === 'PATCH' && url.endsWith('/step')) {
+      return Promise.resolve(stepResponse);
     }
     if (method === 'GET' && url.includes('/comments')) {
       return Promise.resolve(commentsResponse);

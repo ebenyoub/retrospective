@@ -7,7 +7,7 @@ export const voteForCard = async (req: Request, res: Response) => {
   const cardId = Number(req.params.cardId);
   const actor = await resolveSessionActor(req, sessionId, { requireOpen: true });
 
-  const result = await castVote(actor.participantId, cardId);
+  const result = await castVote(actor.participantId, sessionId, cardId);
 
   return res.status(201).json({
     success: true,

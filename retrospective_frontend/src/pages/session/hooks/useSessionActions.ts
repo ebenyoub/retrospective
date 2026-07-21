@@ -17,6 +17,7 @@ export const useSessionActions = ({
   setFormatColumns,
   setStepDurationMinutes,
   setStepEndsAt,
+  fetchCards,
 }: UseSessionActionsOptions) => {
   const handleLeaveSession = useCallback(async (): Promise<void> => {
     await leaveParticipation();
@@ -56,6 +57,7 @@ export const useSessionActions = ({
       if (result.ok) {
         setStep(nextStep);
         setStepEndsAt(result.data.stepEndsAt);
+        await fetchCards();
         addToast(
           'success',
           `Session passée à l'étape : ${
@@ -73,7 +75,7 @@ export const useSessionActions = ({
       console.error('Erreur lors du changement d\'étape :', error);
       addToast('error', NETWORK_ERROR_MESSAGE);
     }
-  }, [sessionId, isAuthenticated, setStep, setStepEndsAt, addToast]);
+  }, [sessionId, isAuthenticated, setStep, setStepEndsAt, fetchCards, addToast]);
 
   // Réglage du timer : le backend calcule et renvoie la nouvelle échéance
   // (ou la nouvelle durée par défaut en salle d'attente) — jamais le client.

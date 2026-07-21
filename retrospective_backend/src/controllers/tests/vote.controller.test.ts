@@ -48,7 +48,7 @@ describe("vote.controller", () => {
   });
 
   it("renvoie 201 et l'id du vote si le service réussit", async () => {
-    mockCastVote.mockResolvedValueOnce({ voteId: 42 });
+    mockCastVote.mockResolvedValueOnce({ voteId: 42, votesUsed: 1, votesLeft: 4, cardVotesCount: 3 });
 
     const req = createMockRequest("5");
     const res = createMockResponse();
@@ -56,11 +56,12 @@ describe("vote.controller", () => {
     await voteForCard(req, res as unknown as Response);
 
     expect(res.statusCode).toBe(201);
-    const body = res.body as { success: boolean; data: { voteId: number } };
+    const body = res.body as { success: boolean; data: { voteId: number; votesLeft: number } };
     expect(body.success).toBe(true);
     expect(body.data.voteId).toBe(42);
+    expect(body.data.votesLeft).toBe(4);
     expect(mockResolveSessionActor).toHaveBeenCalledWith(req, 1, { requireOpen: true });
-    expect(mockCastVote).toHaveBeenCalledWith(9, 5);
+    expect(mockCastVote).toHaveBeenCalledWith(9, 1, 5);
   });
 
   it("ne capture pas les erreurs du service (remontée au middleware d'erreur)", async () => {

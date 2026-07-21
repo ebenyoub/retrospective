@@ -7,6 +7,7 @@ import type { UseSessionCardsOptions } from './types/useSessionCards.types';
 
 export const useSessionCards = ({ sessionId, actorHeaders, addToast }: UseSessionCardsOptions) => {
   const [cards, setCards] = useState<RetroCard[]>([]);
+  const [isVotePending, setIsVotePending] = useState<boolean>(false);
 
   const votesUsed = useMemo(
     (): number => cards.filter((card) => card.votedByMe).length,
@@ -55,12 +56,18 @@ export const useSessionCards = ({ sessionId, actorHeaders, addToast }: UseSessio
   }, [sessionId, actorHeaders, fetchCards, addToast]);
 
   const vote = useCallback(async (cardId: number): Promise<void> => {
-    if (!sessionId || !actorHeaders) return;
+    if (!sessionId || !actorHeaders || isVotePending) return;
 
     try {
+      setIsVotePending(true);
       const result = await voteForCard(sessionId, actorHeaders, cardId);
 
       if (result.ok) {
+        setCards((previous) => previous.map((card) => (
+          card.id === cardId
+            ? { ...card, votedByMe: true, votesCount: result.data.cardVotesCount }
+            : card
+        )));
         await fetchCards();
       } else {
         addToast('error', getApiErrorMessage(result.payload, 'Impossible d\'enregistrer le vote.'));
@@ -68,8 +75,10 @@ export const useSessionCards = ({ sessionId, actorHeaders, addToast }: UseSessio
     } catch (error) {
       console.error('Erreur lors du vote :', error);
       addToast('error', NETWORK_ERROR_MESSAGE);
+    } finally {
+      setIsVotePending(false);
     }
-  }, [sessionId, actorHeaders, fetchCards, addToast]);
+  }, [sessionId, actorHeaders, isVotePending, fetchCards, addToast]);
 
   const removeCard = useCallback(async (cardId: number): Promise<void> => {
     if (!sessionId || !actorHeaders) return;
@@ -115,6 +124,7 @@ export const useSessionCards = ({ sessionId, actorHeaders, addToast }: UseSessio
     handleDeleteCard: removeCard,
     handleUpdateCard: editCard,
     handleVote: vote,
+    isVotePending,
     votesLeft,
   };
 };

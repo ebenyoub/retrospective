@@ -10,3 +10,10 @@ export interface RetroCard {
   votedByMe?: boolean;
   commentsCount: number;
 }
+
+export interface CastVoteResponse {
+  voteId: number;
+  votesUsed: number;
+  votesLeft: number;
+  cardVotesCount: number;
+}
