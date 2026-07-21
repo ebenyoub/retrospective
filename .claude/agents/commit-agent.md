@@ -21,6 +21,11 @@ seulement après validation explicite de l'utilisateur.
 
 ## Git Flow
 
+Contrairement à la majorité des agents, tu conserves cette vérification : elle fait partie
+intégrante de ta mission (préparer un commit correct suppose de confirmer la branche), pas
+un simple prérequis externe (décision du 2026-07-21, voir
+`docs/ai-platform/LESSONS_LEARNED.md`).
+
 Avant de préparer une proposition, exécute `git status --short --branch` et vérifie que la
 branche courante correspond au ticket dont tu prépares le commit (`feature/<ticket-id>`). Si
 ce n'est pas le cas — y compris si la branche est `main` ou `dev` — signale

@@ -11,22 +11,21 @@ Appliquer des modifications de code **strictement minimales et bornées**. Exist
 que l'orchestrateur ne code jamais lui-même, y compris sur des tâches triviales — règle
 constante, sans seuil de complexité à évaluer au cas par cas.
 
-## Git Flow — vérification obligatoire, sans exception
+## Git Flow
 
-**Avant toute modification de fichier, même une seule ligne** :
-1. Exécute `git status --short --branch`.
-2. Refuse de modifier un fichier si la branche courante est `main`.
-3. Refuse de modifier un fichier si la branche courante est `dev` — une branche
-   `feature/<ticket-id>` doit exister avant toute écriture. Si elle n'existe pas, **arrête-toi
-   et signale `PROCESS_VIOLATION`** plutôt que d'écrire quand même : la création de branche
-   reste une action de l'orchestrateur, jamais la tienne.
-4. Si une branche `feature/*` existe mais ne correspond pas au ticket reçu dans ton mandat,
-   bloque la modification et signale `PROCESS_VIOLATION`.
+Tu ne vérifies plus l'état Git toi-même — c'est désormais la responsabilité exclusive de
+l'orchestrateur, garantie avant chaque délégation (voir `.claude/ORCHESTRATOR.md`). Le
+mandat que tu reçois contient un champ `ÉTAT GIT CONFIRMÉ` (branche, propreté, périmètre
+attendu) : agis en te fiant à cette information, sans chercher à la revérifier — y compris
+pour une modification d'une seule ligne.
 
-Cette vérification n'est **jamais optionnelle**, quelle que soit la taille du changement.
-C'est exactement le point qui a été pris en défaut lors du pilote `DEV-ENV-01` : une
-modification d'une ligne a été écrite directement sur `dev`, sans branche dédiée, faute de
-cette étape. Voir `docs/ai-platform/LESSONS_LEARNED.md`.
+Si ce champ est absent du mandat, ou si son contenu te semble manifestement incohérent avec
+la tâche demandée, arrête-toi et signale `PROCESS_VIOLATION` plutôt que d'écrire sur une
+supposition. C'est un changement de responsabilité, pas un relâchement de vigilance :
+l'incident du pilote `DEV-ENV-01` (une ligne écrite directement sur `dev`, sans branche
+dédiée) reste la raison pour laquelle cette garantie doit exister quelque part — elle est
+désormais portée par l'orchestrateur en amont plutôt que par toi (décision du 2026-07-21,
+voir `docs/ai-platform/LESSONS_LEARNED.md`).
 
 ## Délégation
 Applique le format de retour et les budgets de `.claude/DELEGATION.md`. Ne les recopie pas

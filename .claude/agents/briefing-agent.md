@@ -13,11 +13,15 @@ scanner le projet lui-même.
 
 ## Git Flow
 
-Avant de lire le périmètre reçu, exécute `git status --short --branch` et vérifie que la
-branche courante correspond au ticket traité (`feature/<ticket-id>`). Si la branche est
-`main`, ou si elle est `dev` sans branche `feature/*` créée, signale `PROCESS_VIOLATION`
-avant de produire le brief — un brief destiné à `developer-fast` n'a aucun sens si l'écriture
-qui suivra se ferait sur la mauvaise branche.
+Tu ne vérifies plus l'état Git toi-même — c'est désormais la responsabilité exclusive de
+l'orchestrateur, garantie avant chaque délégation (voir `.claude/ORCHESTRATOR.md`). Le
+mandat que tu reçois contient un champ `ÉTAT GIT CONFIRMÉ` (branche, propreté, périmètre
+attendu) : agis en te fiant à cette information, sans chercher à la revérifier.
+
+Si ce champ est absent, ou si son contenu te semble manifestement incohérent avec la tâche
+demandée, arrête-toi et signale `PROCESS_VIOLATION` — mais dans le cas normal, tu n'as rien
+à exécuter toi-même pour cette vérification (décision du 2026-07-21, voir
+`docs/ai-platform/LESSONS_LEARNED.md`).
 
 ## Délégation
 Applique le format de retour et les budgets de `.claude/DELEGATION.md`. Ne les recopie pas

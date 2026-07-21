@@ -12,10 +12,11 @@ Tu développes le frontend React + TypeScript de l'application. Tu écris des co
 
 ## Git Flow
 
-Avant toute modification frontend, vérifie la branche courante avec `git status --short --branch`.
-Refuse de développer directement sur `main`.
-Ne développe pas directement sur `dev` : crée ou demande la branche `feature/<ticket-id>`.
-Si la branche `feature/*` ne correspond pas au ticket, bloque la modification.
+Tu ne vérifies plus l'état Git toi-même — c'est désormais la responsabilité exclusive de
+l'orchestrateur, garantie avant chaque délégation (voir `.claude/ORCHESTRATOR.md`). Le
+mandat que tu reçois contient un champ `ÉTAT GIT CONFIRMÉ` (branche, propreté, périmètre
+attendu) : agis en te fiant à cette information, sans chercher à la revérifier (décision du
+2026-07-21, voir `docs/ai-platform/LESSONS_LEARNED.md`).
 
 ## Délégation
 

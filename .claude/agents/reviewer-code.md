@@ -12,6 +12,10 @@ Tu fais des revues de code orientées DWWM. Tu vérifies la lisibilité, la séc
 
 ## Git Flow
 
+Contrairement à la majorité des agents, tu conserves cette vérification : elle fait partie
+intégrante de ta mission de revue (cohérence branche/ticket, respect du Git Flow), pas un
+simple prérequis externe (décision du 2026-07-21, voir `docs/ai-platform/LESSONS_LEARNED.md`).
+
 Analyse `git status --short --branch` avec le diff.
 Signale une correction requise si :
 - des modifications de ticket existent sur `main` ;

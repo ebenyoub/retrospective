@@ -14,10 +14,15 @@ formuler la question à poser à l'utilisateur — jamais la trancher à sa plac
 
 ## Git Flow
 
-Avant de commencer ton analyse, exécute `git status --short --branch` et vérifie que la
-branche courante correspond au ticket traité. Si la branche est `main`, ou si elle ne
-correspond pas au ticket, signale-le avec le code `PROCESS_VIOLATION` avant de poursuivre —
-ne le tranche pas toi-même, ne présume pas qu'un autre agent le corrigera.
+Tu ne vérifies plus l'état Git toi-même — c'est désormais la responsabilité exclusive de
+l'orchestrateur, garantie avant chaque délégation (voir `.claude/ORCHESTRATOR.md`). Le
+mandat que tu reçois contient un champ `ÉTAT GIT CONFIRMÉ` (branche, propreté, périmètre
+attendu) : agis en te fiant à cette information, sans chercher à la revérifier.
+
+Si ce champ est absent, ou si son contenu te semble manifestement incohérent avec la tâche
+demandée, arrête-toi et signale `PROCESS_VIOLATION` — mais dans le cas normal, tu n'as rien
+à exécuter toi-même pour cette vérification (décision du 2026-07-21, voir
+`docs/ai-platform/LESSONS_LEARNED.md`).
 
 ## Délégation
 Applique le format de retour et les budgets de `.claude/DELEGATION.md`. Ne les recopie pas

@@ -5,7 +5,7 @@
 > `.claude/DELEGATION.md` — ce sont eux la source d'exécution réelle, pas ce fichier. Ce
 > document est le résumé à copier/adapter pour un autre projet.
 
-Version **v1.1** (2026-07-20, après le pilote `DEV-ENV-01`). Voir `PILOTS.md` pour
+Version **v1.2** (2026-07-21, revue de cohérence post-pilote). Voir `PILOTS.md` pour
 l'historique des pilotes et `LESSONS_LEARNED.md` pour le détail des corrections apportées.
 
 ## Principe fondateur
@@ -88,10 +88,16 @@ cohérent avec la règle de gel du roster.
 - Le testeur ne modifie jamais le code applicatif.
 - L'analyste ne développe jamais.
 - Le développeur ne valide jamais définitivement son propre travail.
-- **Les règles critiques (Git Flow, correspondance branche/ticket, périmètre) sont écrites
-  explicitement dans chaque agent qui en a besoin — jamais seulement référencées.** Un
-  renvoi court vers un document externe ne suffit pas en pratique (leçon du pilote
-  `DEV-ENV-01`, la plus importante de ce système à ce jour).
+- **La vérification Git Flow appartient à qui elle sert réellement, pas à qui pourrait
+  bêtement la recopier.** Leçon en deux temps : le pilote `DEV-ENV-01` a montré qu'un
+  renvoi court vers un document externe ne suffit pas (v1.1, correction : consigne explicite
+  dans chaque agent) ; la revue de cohérence suivante a montré que la majorité des agents
+  n'avaient de toute façon pas l'outil pour exécuter cette consigne (v1.2, correction :
+  l'orchestrateur garantit les préconditions Git avant chaque délégation ; seuls
+  `commit-agent` et `reviewer-code` — pour qui c'est le cœur de la mission, pas un
+  prérequis — vérifient encore par eux-mêmes). Le principe final : une responsabilité doit
+  être portée par l'agent dont c'est réellement le métier, jamais dupliquée « par
+  précaution » sur des agents qui ne peuvent de toute façon pas l'honorer.
 - Chaque mandat envoyé à un agent inclut l'état d'exécution courant du pipeline, pas
   seulement sa tâche ponctuelle.
 - Chaque agent a un budget déclaré (fichiers, commandes, taille de sortie) — un
@@ -104,8 +110,9 @@ cohérent avec la règle de gel du roster.
 Ce qui est réellement portable, tel quel :
 - l'invariant « aucun agent n'appelle un agent » ;
 - le roster et la responsabilité unique de chaque rôle ;
-- les codes de retour et le format de mandat/retour ;
-- la règle « les règles critiques doivent être écrites explicitement, pas référencées » ;
+- les codes de retour et le format de mandat/retour (dont `ÉTAT GIT CONFIRMÉ`) ;
+- la règle « une responsabilité appartient à qui elle sert réellement, jamais dupliquée par
+  précaution sur des agents qui ne peuvent pas l'honorer » ;
 - la philosophie de budgets mesurables, recalibrés par l'usage réel.
 
 Ce qui doit être adapté par projet :

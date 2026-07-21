@@ -200,6 +200,18 @@
 
 ---
 
+## 2026-07-20 — Remédiation d'une anomalie Git Flow détectée en cours de pipeline agent
+
+**Décision** : Sur le pilote du nouveau pipeline d'agents (ticket `DEV-ENV-01`), `qa-tests` a détecté que `developer-fast` avait modifié `retrospective_backend/package.json` directement sur `dev`, sans créer de branche `feature/<ticket-id>` au préalable — violation du Git Flow défini dans `PROJECT_WORKFLOW.md`, non vérifiée par les 3 agents en amont (`analyst-ticket`, `briefing-agent`, `developer-fast`) malgré la consigne de délégation les y renvoyant. L'utilisateur a choisi de créer immédiatement `feature/DEV-ENV-01-hot-reload` depuis l'état actuel de `dev` (les modifications non commitées suivent la nouvelle branche sans perte), puis de terminer le pipeline (`reviewer-code`, `documentation-technique`, `commit-agent`, rapport d'évaluation du pipeline), sans merger et sans revenir sur `dev`, en attendant sa validation avant toute suite.
+
+**Pourquoi** : ne pas perdre le travail déjà effectué.
+
+**Alternatives considérées** :
+- Arrêter le pilote et annuler le changement → écarté par le choix de l'utilisateur
+- Continuer tel quel sur `dev` en acceptant l'écart pour ce pilote → écarté par le choix de l'utilisateur
+
+---
+
 ## 2026-07-14 — Stabilisation de la fonctionnalité session
 
 **Décision** : La fonctionnalité session est désormais considérée comme définitivement stabilisée. Toute nouvelle refactorisation de cette fonctionnalité est exclue, sauf en cas de bug avéré, de demande d'évolution fonctionnelle spécifique du client/enseignant, ou de problème de performance/qualité objectivement démontré et reproductible.
