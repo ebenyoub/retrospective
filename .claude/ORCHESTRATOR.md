@@ -87,6 +87,23 @@ Cette étape existe parce qu'elle a déjà été prise en défaut une fois sur c
 (audit du 2026-07-20 : `CURRENT_TASK.md`/`HANDOVER.md` décrivaient un état non commité
 alors que le travail avait déjà été mergé via les PR #27 à #32).
 
+## Synchronisation du contexte partagé (v1.3)
+
+`CURRENT_TASK.md` et `HANDOVER.md` sont des artefacts de reprise, pas des sources de
+vérité autonomes. L'orchestrateur est le seul responsable de les synchroniser à partir de
+Git, du backlog et du dernier `STATUS` fiable du pipeline.
+
+Règles :
+- Git gagne toujours en cas de conflit avec un document.
+- Aucun agent spécialisé ne modifie `CURRENT_TASK.md` ou `HANDOVER.md`.
+- Avant clôture ou commit, l'orchestrateur synchronise ces fichiers ou signale
+  explicitement pourquoi ils ne peuvent pas l'être.
+- En cas d'écart non résolu, le pipeline retourne `CONTEXT_OUT_OF_SYNC` et aucun agent
+  d'écriture n'est dispatché.
+
+La décision portable complète est documentée dans
+`docs/ai-platform/CONTEXT_SYNC.md`.
+
 ## Actions autorisées
 
 - Lire les documents canoniques (`PROJECT_WORKFLOW.md`, `CLAUDE.md`, `CURRENT_TASK.md`,

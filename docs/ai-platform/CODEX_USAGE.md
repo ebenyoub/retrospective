@@ -154,5 +154,11 @@ Codex sur ce projet :
 4. Reprendre le pipeline à l'étape indiquée par `CURRENT_TASK.md` (« Prochaine action
    unique »), en dispatchant manuellement le rôle Codex correspondant si nécessaire.
 
+Si Git contredit `CURRENT_TASK.md` ou `HANDOVER.md`, Git gagne. Le fil principal Codex
+doit traiter l'écart comme `CONTEXT_OUT_OF_SYNC`, synchroniser le contexte partagé ou
+demander validation avant toute délégation d'écriture. Les rôles `documentation*` ne
+modifient pas ces deux fichiers ; ils ne fournissent que les informations nécessaires à
+l'orchestrateur. Voir `docs/ai-platform/CONTEXT_SYNC.md`.
+
 Aucune conversion de format n'est nécessaire : le ticket, le périmètre et l'état Git sont
 les mêmes documents, lus par les deux plateformes.

@@ -22,6 +22,7 @@ cat .codex/agents/<role>.toml | codex exec --sandbox <read-only|workspace-write>
 2. **Interdiction de Coder / Tester / Relire** : L'orchestrateur ne modifie jamais lui-même le code applicatif, n'exécute pas les tests et ne fait pas la revue.
 3. **Mode de Secours (ORCHESTRATOR_FALLBACK)** : Après l'échec définitif d'un rôle, l'orchestrateur consigne la raison, recherche d'abord un rôle existant raisonnablement compétent pour reprendre cette tâche, explique pourquoi ce remplaçant est pertinent et lui délègue le mandat minimal. Il ne sollicite l'utilisateur que si aucun rôle du dépôt ne convient raisonnablement. Il passe alors en mode de secours explicite `ORCHESTRATOR_FALLBACK`.
 4. **Interdiction absolue de Commit Automatique** : Aucun agent ni sous-agent ne peut exécuter `git commit`, `git push` ou `git merge`. Seul l'utilisateur (ou l'orchestrateur après validation explicite) crée le commit.
+5. **Contexte partagé synchronisé** : L'orchestrateur est le seul responsable de synchroniser `CURRENT_TASK.md` et `HANDOVER.md`. Ces fichiers sont des artefacts de reprise, pas des sources de vérité autonomes. En cas d'écart avec Git, Git gagne et l'orchestrateur retourne `CONTEXT_OUT_OF_SYNC` avant toute délégation d'écriture.
 
 ### Continuité après une recommandation
 
@@ -71,7 +72,7 @@ Puis-je lancer l’étape suivante ? »
 | **Product Owner** | `product-owner.toml` | `read-only` | Représente les exigences produit et la vision du backlog |
 | **Consignateur Décision**| `decision-recorder.toml` | `workspace-write` | Ajoute la décision validée dans `DECISIONS.md` |
 | **Agent Commit** | `commit-agent.toml` | `read-only` | Prépare le message de commit (NE COMMITTE JAMAIS) |
-| **Documentation** | `documentation.toml` | `workspace-write` | Met à jour la doc de suivi (`PROJECT_STATE`, `TODO`, `HANDOVER`) |
+| **Documentation** | `documentation.toml` | `workspace-write` | Met à jour la doc de suivi hors contexte actif (`PROJECT_STATE`, `TODO`, docs techniques) |
 
 ---
 
@@ -98,6 +99,7 @@ Chaque rôle retournera un objet JSON conforme au schéma `.codex/schema/agent_r
 | `PROCESS_VIOLATION` | Orchestrateur | Stoppe le pipeline, rectifie la branche/environnement ou sollicite l'utilisateur | 1 |
 | `AGENT_TIMEOUT` | Orchestrateur | Relance l'agent une seconde fois. En cas de récidive, passe en `ORCHESTRATOR_FALLBACK` | 2 |
 | `BLOCKED` | Orchestrateur | Suspend le ticket et remonte le blocage à l'utilisateur | 1 |
+| `CONTEXT_OUT_OF_SYNC` | Orchestrateur | Stoppe le pipeline, compare Git / backlog / contexte partagé, synchronise ou demande validation | 1 |
 
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: documentation-technique
-description: Maintenir la documentation technique et de suivi de projet (docs/PROJECT_STATE.md, docs/TODO.md, docs/decisions/DECISIONS.md, docs/technical/*, .claude/CURRENT_TASK.md, .claude/HANDOVER.md) après une livraison de fonctionnalité. Distinct de documentation-jury, qui reste spécialisé sur les documents de soutenance (docs/jury/*, dossier professionnel).
+description: Maintenir la documentation technique et de suivi de projet (docs/PROJECT_STATE.md, docs/TODO.md, docs/decisions/DECISIONS.md, docs/technical/*) après une livraison de fonctionnalité, sans modifier CURRENT_TASK ni HANDOVER. Distinct de documentation-jury, qui reste spécialisé sur les documents de soutenance (docs/jury/*, dossier professionnel).
 tools: Read, Edit, Write, Grep, Glob
 ---
 
@@ -16,8 +16,8 @@ que tu ne touches jamais).
 Tu ne vérifies plus l'état Git toi-même — c'est désormais la responsabilité exclusive de
 l'orchestrateur, garantie avant chaque délégation (voir `.claude/ORCHESTRATOR.md`). Le
 mandat que tu reçois contient un champ `ÉTAT GIT CONFIRMÉ` : agis en te fiant à cette
-information avant d'écrire dans `PROJECT_STATE.md`/`CURRENT_TASK.md`/`HANDOVER.md`, sans
-chercher à la revérifier (décision du 2026-07-21, voir
+information avant d'écrire dans la documentation technique autorisée, sans chercher à la
+revérifier (décision du 2026-07-21, voir
 `docs/ai-platform/LESSONS_LEARNED.md`).
 
 ## Délégation
@@ -36,13 +36,11 @@ ici.
 | `docs/TODO.md` | Quand un ticket change de statut |
 | `docs/decisions/DECISIONS.md` | Uniquement si une décision d'architecture/conception change |
 | `docs/technical/{ARCHITECTURE,API,DATABASE,SECURITY,TEST_PLAN}.md` | Si le ticket modifie ce qu'ils décrivent |
-| `.claude/CURRENT_TASK.md` | À chaque fin de cycle de ticket |
-| `.claude/HANDOVER.md` | À chaque fin de cycle de ticket |
 
 ## Règle issue de l'audit
-`CURRENT_TASK.md`/`HANDOVER.md` doivent toujours refléter l'état Git réel
-(`git status --short --branch`, PR mergées) au moment de la mise à jour — jamais une
-supposition reprise d'une conversation précédente.
+`CURRENT_TASK.md`/`HANDOVER.md` doivent toujours refléter l'état Git réel, mais leur
+synchronisation appartient exclusivement à l'orchestrateur. Si tu détectes qu'ils doivent
+être mis à jour, retourne l'information dans ton résultat au lieu de les modifier.
 
 ## Ce que tu ne fais PAS
 - Modifier `docs/jury/*` ou le dossier professionnel (→ `documentation-jury`).

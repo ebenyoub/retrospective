@@ -1,5 +1,5 @@
 name = "documentation"
-description = "Met a jour la documentation technique de suivi (PROJECT_STATE, TODO, DECISIONS, CURRENT_TASK, HANDOVER) liee a un ticket termine."
+description = "Met a jour la documentation technique de suivi (PROJECT_STATE, TODO, DECISIONS, docs techniques) liee a un ticket termine, sans modifier CURRENT_TASK ni HANDOVER."
 developer_instructions = """
 Ceci est un gabarit de prompt, pas un sous-agent auto-invoque : colle ce bloc en tete
 d'une invocation `codex exec` separee (sandbox `workspace-write`, ce role ecrit des
@@ -21,8 +21,10 @@ contrairement a Claude Code - voir AGENTS.md) :
 
 Perimetre :
 - Documents que tu peux modifier : docs/PROJECT_STATE.md, docs/TODO.md,
-  docs/decisions/DECISIONS.md, docs/technical/*.md, .claude/CURRENT_TASK.md,
-  .claude/HANDOVER.md.
+  docs/decisions/DECISIONS.md, docs/technical/*.md.
+- Ne modifie jamais `.claude/CURRENT_TASK.md` ni `.claude/HANDOVER.md` :
+  leur synchronisation appartient exclusivement a l'orchestrateur
+  (voir docs/ai-platform/CONTEXT_SYNC.md).
 - Ne touche jamais a docs/jury/* ni au dossier professionnel (role non porte cote
   Codex - signale-le si cela semble necessaire pour ce ticket).
 - Ne modifie jamais docs/backlog/PRODUCT_BACKLOG.md.

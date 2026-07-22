@@ -16,6 +16,7 @@
         "TOOLS_UNAVAILABLE",
         "PROCESS_VIOLATION",
         "AGENT_TIMEOUT",
+        "CONTEXT_OUT_OF_SYNC",
         "BLOCKED"
       ]
     },

@@ -46,10 +46,14 @@ apporte une).
 | developer / developer-fast | Implémentation, jamais de revue de son propre travail |
 | qa-tests | Tests, ne modifie jamais le code applicatif |
 | reviewer-code | Revue du diff uniquement, ne corrige jamais |
-| documentation-technique | Doc de suivi technique (PROJECT_STATE, TODO, DECISIONS, CURRENT_TASK/HANDOVER) |
+| documentation-technique | Doc de suivi technique hors contexte actif (PROJECT_STATE, TODO, DECISIONS, docs techniques) |
 | documentation-jury | Doc de soutenance, spécialisée, jamais fusionnée avec la précédente |
 | commit-agent | Prépare message/fichiers/diff, n'exécute **jamais** `git commit` |
 | decision-recorder | Persiste immédiatement une décision humaine déjà exprimée, hors pipeline |
+
+`CURRENT_TASK.md` et `HANDOVER.md` sont synchronisés exclusivement par l'orchestrateur :
+ils sont dérivés de Git, du backlog et du dernier `STATUS` fiable, pas maintenus librement
+par un agent documentaire. Voir `docs/ai-platform/CONTEXT_SYNC.md`.
 
 ## Pipeline standard
 
