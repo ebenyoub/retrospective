@@ -32,6 +32,8 @@ export const createSessionAction = async (req: AuthRequest, res: Response) => {
     throw new AppError(400, "L'ID de session est requis.", "SESSION_ID_REQUIRED");
   }
 
+  await resolveSessionActor(req, Number(sessionId), { requireOpen: true });
+
   const createdAction = await addAction(Number(sessionId), userId, {
     description,
     owner,

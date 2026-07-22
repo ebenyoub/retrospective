@@ -26,7 +26,7 @@ const CardCommentsSection = ({ cardId }: CardCommentsSectionProps) => {
     throw new Error('CardCommentsSection must be used within a SessionContext.Provider');
   }
 
-  const { sessionId, actorHeaders, selfParticipantId, onCommentsChanged } = session;
+  const { sessionId, actorHeaders, selfParticipantId, onCommentsChanged, isReadOnly } = session;
 
   const loadComments = useCallback(async (): Promise<void> => {
     setIsLoading(true);
@@ -112,7 +112,7 @@ const CardCommentsSection = ({ cardId }: CardCommentsSectionProps) => {
                   <span className="truncate font-semibold text-slate-200">
                     {comment.authorName}
                   </span>
-                  {comment.authorId === selfParticipantId && (
+                  {!isReadOnly && comment.authorId === selfParticipantId && (
                     <IconButton
                       onClick={() => void handleDelete(comment.id)}
                       aria-label="Supprimer le commentaire"
@@ -133,7 +133,7 @@ const CardCommentsSection = ({ cardId }: CardCommentsSectionProps) => {
         </ul>
       )}
 
-      <div className="flex items-end gap-2 mt-1">
+      {!isReadOnly && <div className="flex items-end gap-2 mt-1">
         <textarea
           aria-label="Écrire un commentaire"
           value={draftContent}
@@ -160,7 +160,7 @@ const CardCommentsSection = ({ cardId }: CardCommentsSectionProps) => {
         >
           <Send size={13} aria-hidden="true" />
         </IconButton>
-      </div>
+      </div>}
     </div>
   );
 };

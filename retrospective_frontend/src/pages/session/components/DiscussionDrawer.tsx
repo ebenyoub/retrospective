@@ -30,6 +30,7 @@ const DiscussionPanelContent = ({
   messages,
   sessionId,
   actorHeaders,
+  isReadOnly,
   onMessageSent,
 }: DiscussionPanelContentProps) => {
   const { addToast } = useToast();
@@ -173,7 +174,7 @@ const DiscussionPanelContent = ({
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="flex flex-shrink-0 items-end gap-2 border-t border-navy-border px-3 py-3">
+      {!isReadOnly && <form onSubmit={handleSubmit} className="flex flex-shrink-0 items-end gap-2 border-t border-navy-border px-3 py-3">
         <textarea
           ref={textareaRef}
           aria-label="Écrire un message"
@@ -200,13 +201,13 @@ const DiscussionPanelContent = ({
         >
           <Send size={15} aria-hidden="true" />
         </IconButton>
-      </form>
+      </form>}
     </>
   );
 };
 
 const DiscussionDrawer = () => {
-  const { panels, viewport, messages, setMessages, sessionId, actorHeaders } = useSessionContext();
+  const { panels, viewport, messages, setMessages, sessionId, actorHeaders, isReadOnly } = useSessionContext();
   const isOpen = panels.isDiscussionDrawerOpen;
   const isDesktop = viewport.isDesktop;
   const onClose = panels.closeDiscussionDrawer;
@@ -226,6 +227,7 @@ const DiscussionDrawer = () => {
     messages,
     sessionId,
     actorHeaders,
+    isReadOnly,
     onMessageSent,
   };
 

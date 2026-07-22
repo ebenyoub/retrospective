@@ -5,7 +5,7 @@ import type { ParticipantBadgeProps } from './types/ParticipantBadge.types';
 
 // Badge du participant dans la barre de session : affiche son pseudo et
 // ouvre un petit menu (Modifier le pseudo / Quitter la session).
-const ParticipantBadge = ({ displayName, canRename, onRename, onLeave }: ParticipantBadgeProps) => {
+const ParticipantBadge = ({ displayName, canRename, isReadOnly, onRename, onLeave }: ParticipantBadgeProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [pseudoInput, setPseudoInput] = useState(displayName);
@@ -80,7 +80,7 @@ const ParticipantBadge = ({ displayName, canRename, onRename, onLeave }: Partici
           aria-label="Actions du participant"
           className="absolute right-0 top-[36px] z-50 w-56 rounded-[10px] border border-navy-border-med bg-navy-mid p-1.5 shadow-[0_8px_24px_rgba(0,0,0,0.4)]"
         >
-          {canRename && !isEditing && (
+          {canRename && !isReadOnly && !isEditing && (
             <button
               type="button"
               role="menuitem"
@@ -91,7 +91,7 @@ const ParticipantBadge = ({ displayName, canRename, onRename, onLeave }: Partici
             </button>
           )}
 
-          {canRename && isEditing && (
+          {canRename && !isReadOnly && isEditing && (
             <div className="px-3 py-2">
               <label htmlFor="rename-pseudo" className="mb-1 block font-sans text-[10px] font-semibold uppercase tracking-wider text-slate-500">
                 Nouveau pseudo
@@ -124,14 +124,16 @@ const ParticipantBadge = ({ displayName, canRename, onRename, onLeave }: Partici
             </div>
           )}
 
-          <button
-            type="button"
-            role="menuitem"
-            onClick={() => void onLeave()}
-            className="block w-full cursor-pointer rounded-[8px] px-3 py-2 text-left font-sans text-xs font-medium text-red-400 transition-colors hover:bg-navy-surface-med"
-          >
-            Quitter la session
-          </button>
+          {!isReadOnly && (
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => void onLeave()}
+              className="block w-full cursor-pointer rounded-[8px] px-3 py-2 text-left font-sans text-xs font-medium text-red-400 transition-colors hover:bg-navy-surface-med"
+            >
+              Quitter la session
+            </button>
+          )}
         </div>
       )}
     </div>

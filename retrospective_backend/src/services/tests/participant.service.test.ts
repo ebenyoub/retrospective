@@ -36,6 +36,8 @@ import { findSessionByCode, findSessionById } from "../../models/session.model";
 import {
   checkGuestResume,
   ensureAuthenticatedParticipant,
+  getAuthenticatedParticipantForRead,
+  getGuestParticipantForRead,
   getParticipantsForSession,
   joinSessionAsGuestParticipantByCode,
   joinSessionAsGuestParticipant,
@@ -84,9 +86,23 @@ describe("participant.service", () => {
     mockUpdateParticipantName.mockReset();
     mockFindSessionByCode.mockReset();
     mockFindSessionById.mockReset();
+    mockFindSessionById.mockResolvedValue({ id: 10, status: "open" });
   });
 
   describe("renameParticipant", () => {
+    it("refuse de renommer un participant sur une session clôturée", async () => {
+      mockFindSessionById.mockResolvedValueOnce({ id: 10, status: "closed" });
+
+      await expect(renameParticipant({
+        sessionId: 10,
+        participantId: 1,
+        displayName: "Sarah",
+        requesterUserId: null,
+        requesterGuestToken: "guest-token",
+      })).rejects.toMatchObject({ statusCode: 400, code: "SESSION_CLOSED" } satisfies Partial<AppError>);
+      expect(mockUpdateParticipantName).not.toHaveBeenCalled();
+    });
+
     it("permet à l'invité propriétaire du jeton de changer son pseudo", async () => {
       mockFindParticipantById.mockResolvedValueOnce(baseParticipantRow);
       mockFindParticipantByName.mockResolvedValueOnce(null);
@@ -322,9 +338,23 @@ describe("participant.service", () => {
     });
   });
 
+  describe("getGuestParticipantForRead", () => {
+    it("lit une identité invitée sur session clôturée sans mutation de présence", async () => {
+      mockFindParticipantById.mockResolvedValueOnce({ ...baseParticipantRow, status: "offline" });
+
+      const result = await getGuestParticipantForRead(10, 1, "guest-token");
+
+      expect(result).toMatchObject({ id: 1, sessionId: 10, displayName: "EBNoob", status: "offline" });
+      expect(mockTouchParticipant).not.toHaveBeenCalled();
+      expect(mockInsertParticipant).not.toHaveBeenCalled();
+      expect(mockUpdateParticipantName).not.toHaveBeenCalled();
+      expect(mockDeleteParticipant).not.toHaveBeenCalled();
+    });
+  });
+
   describe("ensureAuthenticatedParticipant (facilitateur inclus)", () => {
     it("réutilise la ligne existante sans doublon lors d'un refresh", async () => {
-      mockFindSessionById.mockResolvedValueOnce({ id: 10 });
+      mockFindSessionById.mockResolvedValueOnce({ id: 10, status: "open" });
       mockFindParticipantByUserId.mockResolvedValueOnce({ ...baseParticipantRow, user_id: 3, guest_token: null });
 
       const result = await ensureAuthenticatedParticipant({ sessionId: 10, userId: 3, displayName: "Elyas", role: "facilitator" });
@@ -334,7 +364,7 @@ describe("participant.service", () => {
     });
 
     it("crée la ligne du facilitateur au premier accès", async () => {
-      mockFindSessionById.mockResolvedValueOnce({ id: 10 });
+      mockFindSessionById.mockResolvedValueOnce({ id: 10, status: "open" });
       mockFindParticipantByUserId.mockResolvedValueOnce(null);
       mockCountParticipants.mockResolvedValueOnce(0);
       mockFindParticipantByName.mockResolvedValueOnce(null);
@@ -349,17 +379,45 @@ describe("participant.service", () => {
       );
     });
 
-    it("reste permissive sur une session close (réutilisée en lecture seule par resolveSessionActor)", async () => {
+    it("refuse une reprise authentifiée sur une session clôturée", async () => {
       mockFindSessionById.mockResolvedValueOnce({ id: 10, status: "closed" });
       mockFindParticipantByUserId.mockResolvedValueOnce({ ...baseParticipantRow, user_id: 3, guest_token: null });
 
-      await expect(
-        ensureAuthenticatedParticipant({ sessionId: 10, userId: 3, displayName: "Elyas", role: "facilitator" })
-      ).resolves.toMatchObject({ id: 1 });
+      await expect(ensureAuthenticatedParticipant({ sessionId: 10, userId: 3, displayName: "Elyas", role: "facilitator" }))
+        .rejects.toMatchObject({ statusCode: 400, code: "SESSION_CLOSED" } satisfies Partial<AppError>);
+      expect(mockFindParticipantByUserId).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("getAuthenticatedParticipantForRead", () => {
+    it("lit une identité authentifiée existante sur session clôturée sans créer ni toucher la participation", async () => {
+      mockFindParticipantByUserId.mockResolvedValueOnce({
+        ...baseParticipantRow,
+        user_id: 3,
+        guest_token: null,
+        status: "offline",
+      });
+
+      const result = await getAuthenticatedParticipantForRead(10, 3);
+
+      expect(result).toMatchObject({ id: 1, sessionId: 10, displayName: "EBNoob", status: "offline" });
+      expect(mockTouchParticipant).not.toHaveBeenCalled();
+      expect(mockInsertParticipant).not.toHaveBeenCalled();
+      expect(mockUpdateParticipantName).not.toHaveBeenCalled();
+      expect(mockDeleteParticipant).not.toHaveBeenCalled();
     });
   });
 
   describe("leaveSession", () => {
+    it("refuse de quitter une session clôturée", async () => {
+      mockFindSessionById.mockResolvedValueOnce({ id: 10, status: "closed" });
+
+      await expect(
+        leaveSession({ sessionId: 10, participantId: 1, requesterUserId: null, requesterGuestToken: "guest-token" })
+      ).rejects.toMatchObject({ statusCode: 400, code: "SESSION_CLOSED" } satisfies Partial<AppError>);
+      expect(mockDeleteParticipant).not.toHaveBeenCalled();
+    });
+
     it("supprime la participation quand le jeton invité correspond", async () => {
       mockFindParticipantById.mockResolvedValueOnce(baseParticipantRow);
 

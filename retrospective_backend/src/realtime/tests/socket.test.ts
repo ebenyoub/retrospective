@@ -10,16 +10,22 @@ vi.mock("../../services/participant.service", () => ({
   findParticipantForGuestToken: vi.fn(),
 }));
 
+vi.mock("../../models/session.model", () => ({
+  findSessionById: vi.fn(),
+}));
+
 import { initSocket } from "../socket";
 import {
   getParticipantsForSession,
   markParticipantOffline,
   findParticipantForGuestToken,
 } from "../../services/participant.service";
+import { findSessionById } from "../../models/session.model";
 
 const mockGetParticipantsForSession = getParticipantsForSession as unknown as Mock;
 const mockMarkParticipantOffline = markParticipantOffline as unknown as Mock;
 const mockFindParticipantForGuestToken = findParticipantForGuestToken as unknown as Mock;
+const mockFindSessionById = findSessionById as unknown as Mock;
 
 // Le serveur HTTP est local et éphémère (port 0, choisi par l'OS) : ce test
 // ne dépend d'aucun serveur externe.
@@ -58,6 +64,8 @@ describe("realtime socket", () => {
     mockGetParticipantsForSession.mockReset();
     mockMarkParticipantOffline.mockReset();
     mockFindParticipantForGuestToken.mockReset();
+    mockFindSessionById.mockReset();
+    mockFindSessionById.mockResolvedValue({ id: 10, status: "open" });
 
     const server = await startServer();
     port = server.port;
@@ -113,6 +121,18 @@ describe("realtime socket", () => {
     expect(mockGetParticipantsForSession).not.toHaveBeenCalled();
   });
 
+  it("n'inscrit pas le socket ni ne diffuse de présence pour une session clôturée", async () => {
+    mockFindParticipantForGuestToken.mockResolvedValueOnce({ id: 1, sessionId: 10 });
+    mockFindSessionById.mockResolvedValueOnce({ id: 10, status: "closed" });
+
+    const client = await connectClient(port);
+    clients.push(client);
+    client.emit("session:join", { sessionId: 10, participantId: 1, guestToken: "token-a" });
+    await new Promise((resolve) => setTimeout(resolve, 150));
+
+    expect(mockGetParticipantsForSession).not.toHaveBeenCalled();
+  });
+
   it("marque le participant hors ligne et diffuse la mise à jour à la déconnexion", async () => {
     mockFindParticipantForGuestToken.mockImplementation((_sessionId: number, guestToken: string) =>
       Promise.resolve(guestToken === "token-a" ? { id: 1, sessionId: 10 } : { id: 2, sessionId: 10 })
@@ -137,5 +157,40 @@ describe("realtime socket", () => {
     const participants = await offlineUpdate;
     expect(mockMarkParticipantOffline).toHaveBeenCalledWith(2);
     expect(participants.find((p) => p.id === 2)?.status).toBe("offline");
+  });
+
+  it("ne marque pas hors ligne si la session est clôturée avant la déconnexion", async () => {
+    mockFindParticipantForGuestToken.mockImplementation((_sessionId: number, guestToken: string) =>
+      Promise.resolve(guestToken === "token-a" ? { id: 1, sessionId: 10 } : { id: 2, sessionId: 10 })
+    );
+    mockGetParticipantsForSession
+      .mockResolvedValueOnce([{ id: 1, status: "online" }])
+      .mockResolvedValueOnce([{ id: 1, status: "online" }, { id: 2, status: "online" }]);
+
+    const clientA = await connectClient(port);
+    clients.push(clientA);
+    clientA.emit("session:join", { sessionId: 10, participantId: 1, guestToken: "token-a" });
+    await waitForEvent(clientA, "session:participants-updated");
+
+    const clientB = await connectClient(port);
+    clients.push(clientB);
+    const secondJoinUpdate = waitForEvent<Array<{ id: number }>>(clientA, "session:participants-updated");
+    clientB.emit("session:join", { sessionId: 10, participantId: 2, guestToken: "token-b" });
+    await secondJoinUpdate;
+
+    mockGetParticipantsForSession.mockClear();
+    mockFindSessionById.mockResolvedValueOnce({ id: 10, status: "closed" });
+
+    let receivedAfterDisconnect = false;
+    clientA.once("session:participants-updated", () => {
+      receivedAfterDisconnect = true;
+    });
+
+    clientB.disconnect();
+    await new Promise((resolve) => setTimeout(resolve, 150));
+
+    expect(mockMarkParticipantOffline).not.toHaveBeenCalled();
+    expect(mockGetParticipantsForSession).not.toHaveBeenCalled();
+    expect(receivedAfterDisconnect).toBe(false);
   });
 });

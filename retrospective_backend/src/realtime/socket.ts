@@ -2,6 +2,7 @@ import type { Server as HttpServer } from "http";
 import { Server as SocketIOServer, type Socket } from "socket.io";
 import jwt from "jsonwebtoken";
 import { getParticipantsForSession, markParticipantOffline, findParticipantForGuestToken } from "../services/participant.service";
+import { findSessionById } from "../models/session.model";
 import { readTokenFromCookieHeader } from "../utils/authCookie";
 import { logger } from "../utils/logger";
 import type { JoinPayload } from "./types/socket.types";
@@ -64,6 +65,9 @@ export const initSocket = (
         const allowed = await canRepresentParticipant(payload, socket.handshake.headers.cookie);
         if (!allowed) return;
 
+        const session = await findSessionById(payload.sessionId);
+        if (!session || session.status === "closed") return;
+
         currentSessionId = payload.sessionId;
         currentParticipantId = payload.participantId;
         socket.join(roomName(payload.sessionId));
@@ -78,6 +82,8 @@ export const initSocket = (
       if (currentSessionId === null || currentParticipantId === null) return;
 
       try {
+        const session = await findSessionById(currentSessionId);
+        if (!session || session.status === "closed") return;
         await markParticipantOffline(currentParticipantId);
         await emitParticipantsUpdated(currentSessionId);
       } catch (error) {

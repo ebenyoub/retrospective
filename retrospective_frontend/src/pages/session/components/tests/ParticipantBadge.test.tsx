@@ -6,6 +6,7 @@ const renderBadge = (overrides: Partial<Parameters<typeof ParticipantBadge>[0]> 
   const props = {
     displayName: 'Sarah',
     canRename: true,
+    isReadOnly: false,
     onRename: vi.fn().mockResolvedValue(true),
     onLeave: vi.fn(),
     ...overrides,
@@ -68,5 +69,14 @@ describe('ParticipantBadge', () => {
     fireEvent.click(screen.getByRole('menuitem', { name: 'Quitter la session' }));
 
     expect(props.onLeave).toHaveBeenCalledOnce();
+  });
+
+  it('ne propose aucune action mutatrice en lecture seule', () => {
+    renderBadge({ isReadOnly: true });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Menu du participant Sarah' }));
+
+    expect(screen.queryByRole('menuitem', { name: 'Modifier le pseudo' })).toBeNull();
+    expect(screen.queryByRole('menuitem', { name: 'Quitter la session' })).toBeNull();
   });
 });

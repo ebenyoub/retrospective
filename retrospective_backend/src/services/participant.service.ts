@@ -89,7 +89,8 @@ export const ensureAuthenticatedParticipant = async ({
   // lectures via resolveSessionActor. Le blocage d'une vraie nouvelle
   // jointure sur session close est fait explicitement par joinAsSelf
   // (controller) et par resolveSessionActor (options.requireOpen).
-  await assertSessionExists(sessionId);
+  const session = await assertSessionExists(sessionId);
+  assertSessionOpen(session);
 
   const existing = await findParticipantByUserId(sessionId, userId);
 
@@ -230,6 +231,34 @@ export const resumeGuestParticipant = async (
   return toSummary({ ...participant, status: "online" });
 };
 
+// Résolution destinée exclusivement aux lectures. Contrairement à une reprise,
+// elle ne modifie ni le statut ni `last_seen_at`.
+export const getGuestParticipantForRead = async (
+  sessionId: number,
+  participantId: number,
+  guestToken: string
+): Promise<ParticipantSummary> => {
+  const participant = await findParticipantById(participantId);
+  if (!participant || participant.session_id !== sessionId || participant.guest_token !== guestToken) {
+    throw new AppError(404, "Participant introuvable.", "PARTICIPANT_NOT_FOUND");
+  }
+  assertGuestTokenNotExpired(participant);
+  return toSummary(participant);
+};
+
+// Même principe pour un compte : un GET ne doit jamais créer ou remettre en
+// ligne une participation.
+export const getAuthenticatedParticipantForRead = async (
+  sessionId: number,
+  userId: number
+): Promise<ParticipantSummary> => {
+  const participant = await findParticipantByUserId(sessionId, userId);
+  if (!participant) {
+    throw new AppError(403, "Vous n'êtes pas autorisé à consulter cette session.", "PARTICIPANT_FORBIDDEN");
+  }
+  return toSummary(participant);
+};
+
 export const markParticipantOffline = async (participantId: number): Promise<void> => {
   await touchParticipant(participantId, "offline");
 };
@@ -249,6 +278,8 @@ export const renameParticipant = async ({
   requesterUserId: number | null;
   requesterGuestToken: string | null;
 }): Promise<ParticipantSummary> => {
+  const session = await assertSessionExists(sessionId);
+  assertSessionOpen(session);
   const participant = await findParticipantById(participantId);
 
   if (!participant || participant.session_id !== sessionId) {
@@ -321,6 +352,8 @@ export const leaveSession = async ({
   requesterUserId: number | null;
   requesterGuestToken: string | null;
 }): Promise<void> => {
+  const session = await assertSessionExists(sessionId);
+  assertSessionOpen(session);
   const participant = await findParticipantById(participantId);
 
   if (!participant || participant.session_id !== sessionId) {

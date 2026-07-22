@@ -85,6 +85,7 @@ const SessionDashboard = () => {
     isAuthenticated,
     userId,
     ownerId: details.ownerId,
+    sessionStatus: details.status,
   });
   const sessionCards = useSessionCards({ sessionId, actorHeaders: identity.actorHeaders, addToast });
   const activeStep = details.status === 'closed' ? 'results' : details.step;
@@ -171,7 +172,7 @@ const SessionDashboard = () => {
   );
 
   const handleAddAction = useCallback(async (payload: CreateActionPayload): Promise<void> => {
-    if (!sessionId || !identity.actorHeaders) return;
+    if (!sessionId || !identity.actorHeaders || details.status === 'closed') return;
 
     try {
       const result = await createAction(sessionId, identity.actorHeaders, payload);
@@ -188,7 +189,7 @@ const SessionDashboard = () => {
       console.error("Erreur lors de l'ajout de l'action :", error);
       addToast('error', NETWORK_ERROR_MESSAGE);
     }
-  }, [sessionId, identity.actorHeaders, setActions, addToast]);
+  }, [sessionId, identity.actorHeaders, setActions, addToast, details.status]);
 
   // Retour = quitter l'écran SANS perdre sa participation : l'identité
   // (invitée ou compte) est conservée pour permettre la reprise depuis
@@ -221,8 +222,18 @@ const SessionDashboard = () => {
   // Visiteur sans compte et sans identité invitée pour cette session (ex :
   // ouverture directe du lien d'invitation) : on lui demande un pseudo sur
   // place, jamais de redirection vers l'accueil ou vers la connexion.
-  if (!isAuthenticated && !identity.guestIdentity) {
+  if (details.status !== 'closed' && !isAuthenticated && !identity.guestIdentity) {
     return <JoinSessionModal sessionId={sessionId} sessionName={details.sessionName} onJoined={identity.handleGuestJoined} />;
+  }
+
+  if (details.status === 'closed' && !identity.actorHeaders) {
+    return (
+      <div className="flex flex-1 items-center justify-center px-6 text-center">
+        <p className="max-w-md text-sm text-slate-400">
+          Cette rétrospective est terminée. Ses résultats sont accessibles uniquement aux participants déjà autorisés.
+        </p>
+      </div>
+    );
   }
 
   return (
@@ -231,6 +242,7 @@ const SessionDashboard = () => {
         sessionId,
         actorHeaders: identity.actorHeaders ?? EMPTY_HEADERS,
         selfParticipantId: identity.selfParticipantId,
+        isReadOnly: details.status === 'closed',
         onCommentsChanged: sessionCards.fetchCards,
 
         viewport: {
@@ -265,7 +277,7 @@ const SessionDashboard = () => {
       <div className="flex flex-col flex-1 overflow-hidden">
       <SessionContextBar
         isSessionCodeCopied={isSessionCodeCopied}
-        canRenameSelf={!isAuthenticated}
+        canRenameSelf={!isAuthenticated && details.status !== 'closed'}
         onBack={handleGoHome}
         onCopySessionCode={handleCopySessionCode}
       />

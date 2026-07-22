@@ -31,6 +31,7 @@ export interface SessionContextType {
   sessionId: string;
   actorHeaders: Record<string, string>;
   selfParticipantId: number | null;
+  isReadOnly: boolean;
   onCommentsChanged?: () => void;
 
   viewport: SessionViewportContext;

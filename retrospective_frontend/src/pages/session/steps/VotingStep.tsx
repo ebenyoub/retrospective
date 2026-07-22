@@ -3,7 +3,7 @@ import { useSessionContext } from '../context/useSessionContext';
 import type { VotingStepProps } from './types/VotingStep.types';
 
 const VotingStep = ({ columns }: VotingStepProps) => {
-  const { sessionCards, viewport, identity } = useSessionContext();
+  const { sessionCards, viewport, identity, isReadOnly } = useSessionContext();
 
   return (
     <SessionCardsGrid
@@ -12,7 +12,7 @@ const VotingStep = ({ columns }: VotingStepProps) => {
       activeMobileColumn={viewport.activeMobileColumn}
       isMobileViewport={viewport.isMobileViewport}
       currentUserId={identity.selfParticipantId}
-      canVote={!sessionCards.isVotePending}
+      canVote={!isReadOnly && !sessionCards.isVotePending}
       canEdit={false}
       onSelectMobileColumn={viewport.setActiveMobileColumn}
       onVote={sessionCards.handleVote}

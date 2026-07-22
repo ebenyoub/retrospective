@@ -128,6 +128,7 @@ const SessionContextBar = ({
             <ParticipantBadge
               displayName={selfDisplayName}
               canRename={canRenameSelf}
+              isReadOnly={context.isReadOnly}
               onRename={onRenameSelf}
               onLeave={onLeaveSession}
             />

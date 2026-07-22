@@ -1,6 +1,11 @@
 import type { Request } from "express";
 import jwt from "jsonwebtoken";
-import { ensureAuthenticatedParticipant, resumeGuestParticipant } from "../services/participant.service";
+import {
+  ensureAuthenticatedParticipant,
+  getAuthenticatedParticipantForRead,
+  getGuestParticipantForRead,
+  resumeGuestParticipant,
+} from "../services/participant.service";
 import type { ParticipantSummary } from "../services/types/participant.service.types";
 import { assertSessionOpen, getSessionDetails } from "../services/session.service";
 import { AppError } from "./AppError";
@@ -59,7 +64,9 @@ export const resolveSessionActor = async (
       assertSessionOpen(session);
     }
 
-    const participant = await resumeGuestParticipant(sessionId, participantId, guestToken);
+    const participant = options?.requireOpen
+      ? await resumeGuestParticipant(sessionId, participantId, guestToken)
+      : await getGuestParticipantForRead(sessionId, participantId, guestToken);
     return toActor(participant);
   }
 
@@ -73,12 +80,9 @@ export const resolveSessionActor = async (
     assertSessionOpen(session);
   }
   const role = session.ownerId === payload.userId ? "facilitator" : "participant";
-  const participant = await ensureAuthenticatedParticipant({
-    sessionId,
-    userId: payload.userId,
-    displayName: payload.username,
-    role,
-  });
+  const participant = options?.requireOpen
+    ? await ensureAuthenticatedParticipant({ sessionId, userId: payload.userId, displayName: payload.username, role })
+    : await getAuthenticatedParticipantForRead(sessionId, payload.userId);
 
   return toActor(participant);
 };

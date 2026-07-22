@@ -380,10 +380,10 @@ describe('SessionDashboard - Configuration, Initialisation & Routage', () => {
     expect(addToastMock).toHaveBeenCalledWith('error', 'Session invalide ou non spécifiée.');
   });
 
-  it("force l'étape résultats et affiche un message informatif si la session est fermée", async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockImplementation((url: string) => {
+  it("n'effectue aucun fetch protégé sans identité pour une session fermée", async () => {
+    authState.isAuthenticated = false;
+    authState.token = '';
+    const fetchSpy = vi.fn().mockImplementation((url: string) => {
         if (url.endsWith('/session/1')) {
           return Promise.resolve({
             ok: true,
@@ -394,13 +394,99 @@ describe('SessionDashboard - Configuration, Initialisation & Routage', () => {
           });
         }
         return Promise.resolve(emptyCardsResponse);
-      })
-    );
+      });
+    vi.stubGlobal('fetch', fetchSpy);
 
     renderDashboard();
 
-    expect(await screen.findByText("Aucune carte n'a été ajoutée pendant cette rétrospective.")).toBeTruthy();
-    expect(screen.getAllByText('Résultats').length).toBeGreaterThan(0);
+    expect(await screen.findByText(/accessibles uniquement aux participants déjà autorisés/i)).toBeTruthy();
     expect(addToastMock).toHaveBeenCalledWith('success', 'Cette rétrospective est terminée. Vous consultez ses résultats.');
+
+    const protectedRequests = fetchSpy.mock.calls.filter(([url]) => (
+      /\/cards|\/chat\/messages|\/actions/.test(String(url))
+    ));
+    expect(protectedRequests).toHaveLength(0);
+  });
+
+  it('permet à un utilisateur authentifié de consulter une session fermée via son cookie', async () => {
+    const fetchSpy = vi.fn().mockImplementation((url: string) => {
+      if (url.endsWith('/session/1')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            success: true,
+            data: { id: 1, name: 'Session Fermée', step: 'writing', ownerId: 1, status: 'closed' },
+          }),
+        });
+      }
+      if (url.includes('/cards')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ success: true, data: [] }),
+        });
+      }
+      return Promise.resolve(emptyCardsResponse);
+    });
+    vi.stubGlobal('fetch', fetchSpy);
+
+    renderDashboard();
+
+    expect(await screen.findByRole('navigation', { name: 'Contexte de session' })).toBeTruthy();
+    expect(screen.queryByText(/accessibles uniquement aux participants déjà autorisés/i)).toBeNull();
+    await vi.waitFor(() => expect(fetchSpy).toHaveBeenCalledWith(
+      expect.stringContaining('/session/1/cards'),
+      expect.objectContaining({ headers: {} })
+    ));
+    expect(fetchSpy.mock.calls.some(([url, init]) => (
+      String(url).endsWith('/session/1/participants/self') && init?.method === 'POST'
+    ))).toBe(false);
+  });
+
+  it('conserve la consultation des résultats pour un invité déjà identifié', async () => {
+    authState.isAuthenticated = false;
+    authState.token = '';
+    localStorage.setItem('retro:guest:1', JSON.stringify({
+      participantId: 2,
+      guestToken: 'guest-token',
+      displayName: 'Sarah',
+    }));
+    const fetchSpy = vi.fn().mockImplementation((url: string) => {
+      if (url.endsWith('/session/1')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            success: true,
+            data: { id: 1, name: 'Session Fermée', step: 'writing', ownerId: 1, status: 'closed' },
+          }),
+        });
+      }
+      if (url.includes('/cards')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ success: true, data: [{
+            id: 1, sessionId: 1, authorId: 2, authorName: 'Sarah', columnType: 'start',
+            content: 'Carte historique', createdAt: '2026-01-01', votesCount: 2, commentsCount: 0,
+          }] }),
+        });
+      }
+      return Promise.resolve(emptyCardsResponse);
+    });
+    vi.stubGlobal('fetch', fetchSpy);
+
+    renderDashboard();
+
+    expect((await screen.findAllByText('Carte historique')).length).toBeGreaterThan(0);
+    await vi.waitFor(() => expect(fetchSpy).toHaveBeenCalledWith(
+      expect.stringContaining('/session/1/cards'),
+      expect.objectContaining({ headers: expect.objectContaining({
+        'x-participant-id': '2',
+        'x-guest-token': 'guest-token',
+      }) })
+    ));
+
+    fireEvent.click(screen.getByRole('button', { name: 'Discussion' }));
+    const drawer = await screen.findByRole('complementary', { name: 'Discussion' });
+    expect(within(drawer).queryByRole('textbox', { name: 'Écrire un message' })).toBeNull();
+    expect(within(drawer).queryByRole('button', { name: 'Envoyer le message' })).toBeNull();
   });
 });

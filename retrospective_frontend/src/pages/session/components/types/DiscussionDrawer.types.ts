@@ -9,6 +9,6 @@ export interface DiscussionPanelContentProps {
   messages: SessionMessage[];
   sessionId: string;
   actorHeaders: Record<string, string>;
+  isReadOnly: boolean;
   onMessageSent: (message: SessionMessage) => void;
 }
-

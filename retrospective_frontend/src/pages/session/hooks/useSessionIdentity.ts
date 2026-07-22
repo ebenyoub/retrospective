@@ -27,6 +27,7 @@ export const useSessionIdentity = ({
   isAuthenticated,
   userId,
   ownerId,
+  sessionStatus,
 }: UseSessionIdentityOptions) => {
   const {
     identity: guestIdentity,
@@ -68,7 +69,7 @@ export const useSessionIdentity = ({
 
   useEffect(() => {
     if (!isValidSessionId(sessionId)) return;
-    if (!isSessionReady || !isAuthenticated || selfParticipantId) return;
+    if (!isSessionReady || !isAuthenticated || selfParticipantId || sessionStatus === 'closed') return;
 
     let isActive = true;
 
@@ -101,11 +102,17 @@ export const useSessionIdentity = ({
     return () => {
       isActive = false;
     };
-  }, [isSessionReady, isAuthenticated, sessionId, selfParticipantId]);
+  }, [isSessionReady, isAuthenticated, sessionId, selfParticipantId, sessionStatus]);
 
   useEffect(() => {
     if (!isValidSessionId(sessionId)) return;
     if (!isSessionReady || isAuthenticated || !guestIdentity || selfParticipantId) return;
+
+    if (sessionStatus === 'closed') {
+      setSelfParticipantId(guestIdentity.participantId);
+      setParticipantRole('participant');
+      return;
+    }
 
     let isActive = true;
 
@@ -135,7 +142,7 @@ export const useSessionIdentity = ({
     return () => {
       isActive = false;
     };
-  }, [isSessionReady, isAuthenticated, guestIdentity, selfParticipantId, sessionId, clearGuestIdentity]);
+  }, [isSessionReady, isAuthenticated, guestIdentity, selfParticipantId, sessionId, clearGuestIdentity, sessionStatus]);
 
   const handleGuestJoined = useCallback((result: GuestJoinResponse): void => {
     setGuestIdentity({

@@ -4,4 +4,5 @@ export interface UseSessionIdentityOptions {
   isAuthenticated: boolean;
   userId: number | null;
   ownerId: number | null;
+  sessionStatus: string;
 }
