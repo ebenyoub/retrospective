@@ -29,7 +29,7 @@ Fonctionnalités explicitement justifiées par le cahier des charges, les User S
 | **US-05** | Liste des sessions | User Story (`US-05`), Product Backlog d'origine (`B07`) | Fournit au facilitateur et aux inscrits leur historique de rétros. | ✅ Terminé |
 | **US-06** | Rejoindre une session | User Story (`US-06`), Cahier des charges (4.) | Indispensable pour la participation collaborative des équipes. | ✅ Terminé |
 | **US-07** | Écriture des cartes | User Story (`US-07`), Cahier des charges (4.) | Cœur métier : expression écrite des retours de sprint. | ✅ Terminé |
-| **US-08** | Distribution de votes | User Story (`US-08`), Cahier des charges (4.) | Cœur métier : priorisation démocratique des sujets de discussion. | ✅ Terminé |
+| **US-08** | Distribution de votes | User Story (`US-08`), Cahier des charges (4.) | Cœur métier : priorisation démocratique des sujets de discussion. Des capacités de vote existent, sans validation produit complète. | 🟡 Partiellement terminé |
 | **US-09** | Vue des résultats | User Story (`US-09`), Cahier des charges (4.) | Permet la synthèse finale des cartes triées par votes. | ✅ Terminé |
 | **US-10** | Rôles & Transitions d'étape | Cahier des charges (3. Facilitateur), Figma (`App.tsx`) | Permet au facilitateur de guider la session (salle d'attente -> écriture -> vote -> résultats). | ✅ Terminé |
 | **T-FIG-01**| Timer d'étape visuel et fonctionnel | Figma (`screens/WritingScreen.tsx`/`VoteScreen.tsx`) | Timer visible et réellement utile pour piloter le temps de l'étape. | ✅ Terminé |
@@ -61,11 +61,12 @@ Fonctionnalités explicitement justifiées par le cahier des charges, les User S
 
 | ID | Priorité | Objectif | Critères d'acceptation courts | Statut |
 | :--- | :--- | :--- | :--- | :--- |
-| **US-08-DONE-01** | P0 | Backend de vote avec limite de 5 votes. | Le backend empêche le dépassement du quota. | ✅ Terminé |
-| **US-08-DONE-02** | P0 | Bouton de vote et compteur sur les cartes. | Le participant peut voter et voir le compteur. | ✅ Terminé |
-| **T-UX-01** | P0 | Quota de votes restants visible. | Le quota reste visible pendant la phase de vote. | ✅ Terminé |
-| **MVP-VOTE-01** | P0 | Finaliser la salle de vote complète. | La salle de vote est conforme au prototype et validée avec Playwright. | ✅ Terminé |
-| **MVP-VOTE-TRANSITION-01** | P1 | Vérifier les votes lors des transitions. | Aucun vote ne régresse entre écriture, vote et résultats. | ✅ Terminé |
+| **US-08-DONE-01** | P0 | Backend de vote avec limite de 5 votes. | Capacité backend existante ; le quota et ses cas limites restent à valider dans le flux produit. | 🟡 Base existante à valider |
+| **US-08-DONE-02** | P0 | Bouton de vote et compteur sur les cartes. | Capacité UI existante ; le vote participant et le compteur restent à valider. | 🟡 Base existante à valider |
+| **T-UX-01** | P0 | Quota de votes restants visible. | Affichage présent ; sa cohérence après vote, erreur et transition reste à valider. | 🟡 Base existante à valider |
+| **MVP-VOTE-01** | P0 | Salle de vote complète. | Écran et composants présents ; conformité au prototype et comportement réel non encore validés. | 🟡 Base existante à valider |
+| **MVP-VOTE-TRANSITION-01** | P1 | Vérifier les votes lors des transitions. | La conservation des votes entre étapes reste à valider. | ⬜ À faire |
+| **MVP-VOTE-03** | P0 | Finaliser et valider le vote de bout en bout. | Un participant autorisé vote au plus cinq fois ; compteur, quota, erreurs et résultats restent cohérents après rechargement et transition. | ⬜ À faire |
 
 #### **US-09 — Vue des résultats**
 
@@ -84,13 +85,19 @@ Fonctionnalités explicitement justifiées par le cahier des charges, les User S
 | **MVP-TRANSITION-01** | P0 | Valider toutes les transitions d'étape. | Écriture -> Vote -> Résultats fonctionne pour plusieurs navigateurs. | ✅ Terminé |
 | **MVP-PERMISSION-01** | P1 | Vérifier les permissions par rôle sur chaque étape. | Les participants ne déclenchent pas les actions facilitateur. | ✅ Terminé |
 
-#### **US-11 — Plan d'action & Résumé produit**
+#### **US-13 — Plan d'action & Résumé produit**
 
 | ID | Priorité | Objectif | Critères d'acceptation courts | Statut |
 | :--- | :--- | :--- | :--- | :--- |
-| **MVP-ACTION-01** | P1 | Ajouter le plan d'action. | Le facilitateur peut consulter/préparer les actions prévues par le prototype. | ✅ Terminé (E2E `session-action-summary.spec.ts`, 2026-07-20) |
-| **MVP-SUMMARY-01** | P1 | Ajouter l'écran résumé. | Le résumé final clôture la rétrospective proprement. | ✅ Terminé (E2E `session-action-summary.spec.ts`, 2026-07-20) |
-| **MVP-E2E-01** | P0 | Vérifier le parcours produit complet. | Playwright couvre création -> résumé sans rupture majeure. | ✅ Terminé |
+| **MVP-ACTION-01** | P1 | Ajouter le plan d'action. | Capacité existante à qualifier : le facilitateur peut consulter/préparer les actions prévues par le prototype. | 🟡 Base existante à valider |
+| **MVP-SUMMARY-01** | P1 | Ajouter l'écran résumé. | Capacité existante à qualifier : le résumé doit clôturer la rétrospective proprement. | 🟡 Base existante à valider |
+| **MVP-E2E-01** | P0 | Vérifier le parcours MVP jusqu'aux résultats. | Le parcours création -> écriture -> vote -> résultats doit être couvert et validé sans rupture majeure ; le plan d'action et le résumé restent suivis séparément comme capacités à qualifier. | ⬜ À faire |
+
+#### **US-14 — Sessions clôturées en lecture seule**
+
+| ID | Priorité | Objectif | Critères d'acceptation courts | Statut |
+| :--- | :--- | :--- | :--- | :--- |
+| **MVP-CLOSED-SESSION-01** | P0 | Finaliser le cycle de vie d'une session clôturée. | Après clôture, le code ne permet plus de rejoindre la session ; toute écriture, vote ou modification est refusée, tandis que la consultation autorisée reste en lecture seule. | ⬜ À faire |
 
 ### Ordre d'implémentation MVP
 
@@ -98,22 +105,24 @@ Fonctionnalités explicitement justifiées par le cahier des charges, les User S
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | 1 | **MVP-WRITING-01** | US-07 | P0 | Finaliser le design des cartes et des actions Modifier/Supprimer. | ✅ Terminé |
 | 2 | **MVP-TIMER-01** | US-07 / US-10 | P0 | Rendre le timer d'étape fonctionnel. | ✅ Terminé |
-| 3 | **MVP-VOTE-01** | US-08 | P0 | Finaliser la salle de vote complète. | ✅ Terminé |
-| 3.1 | **MVP-VOTE-02** | US-08 | P0 | Validation E2E de la salle de vote. | ✅ Terminé |
+| 3 | **MVP-VOTE-03** | US-08 | P0 | Finaliser et valider le vote de bout en bout. | ⬜ À faire |
+| 3.1 | **MVP-VOTE-01** | US-08 | P0 | Salle de vote : capacité existante à qualifier. | 🟡 Base existante à valider |
+| 3.2 | **MVP-VOTE-02** | US-08 | P0 | Validation E2E de la salle de vote. | 🟡 Base existante à valider |
 | 4 | **MVP-RESULTS-01** | US-09 | P0 | Finaliser l'écran Résultats. | ✅ Terminé |
 | 4.1 | **MVP-RESULTS-02** | US-09 | P0 | Validation E2E de l'écran Résultats. | ✅ Terminé |
 | 5 | **MVP-TRANSITION-01** | US-10 | P0 | Valider toutes les transitions d'étape. | ✅ Terminé |
 | 5.1 | **MVP-TRANSITION-02** | US-10 | P0 | Validation E2E de l'enchaînement des étapes. | ✅ Terminé |
-| 6 | **MVP-E2E-01** | US-11 | P0 | Vérifier le parcours produit complet. | ✅ Terminé |
-| 6.1 | **MVP-E2E-02** | US-11 | P0 | Validation E2E du parcours produit complet. | ✅ Terminé |
+| 6 | **MVP-E2E-01** | Transverse (US-07 à US-10) | P0 | Vérifier le parcours MVP jusqu'aux résultats. | ⬜ À faire |
+| 6.1 | **MVP-E2E-02** | Transverse (US-07 à US-13) | P0 | Validation E2E du parcours produit complet. | 🟡 Base existante à valider |
+| 6.2 | **MVP-CLOSED-SESSION-01** | US-14 | P0 | Finaliser le cycle de vie d'une session clôturée. | ⬜ À faire |
 | 7 | **MVP-PARTICIPANTS-01** | US-07 | P1 | Corriger l'UX du drawer Participants. | ✅ Terminé |
 | 7.1 | **MVP-PARTICIPANTS-02** | US-07 | P1 | Validation E2E du drawer Participants. | ✅ Terminé |
 | 8 | **MVP-DISCUSSION-01** | US-07 | P1 | Finaliser Discussion. | ✅ Terminé |
 | 8.1 | **MVP-DISCUSSION-02** | US-07 | P1 | Validation E2E du drawer Discussion. | ✅ Terminé |
 | 9 | **MVP-COMMENTS-01** | US-07 | P1 | Implémenter les commentaires de cartes. | ✅ Terminé |
 | 9.1 | **MVP-COMMENTS-02** | US-07 | P1 | Validation E2E de la modal Commentaires. | ✅ Terminé |
-| 10 | **MVP-ACTION-01** | US-11 | P1 | Ajouter le plan d'action. | ✅ Terminé |
-| 11 | **MVP-SUMMARY-01** | US-11 | P1 | Ajouter l'écran résumé. | ✅ Terminé |
+| 10 | **MVP-ACTION-01** | US-13 | P1 | Plan d'action : capacité existante à qualifier. | 🟡 Base existante à valider |
+| 11 | **MVP-SUMMARY-01** | US-13 | P1 | Résumé : capacité existante à qualifier. | 🟡 Base existante à valider |
 | 12 | **MVP-WRITING-STATE-01** | US-07 | P2 | Finaliser les états chargement/erreur/vides. | ✅ Terminé |
 | 12.1 | **MVP-WRITING-STATE-02** | US-07 | P2 | Validation E2E des états de chargement et vides. | ✅ Terminé |
 
@@ -138,16 +147,151 @@ Fonctionnalités issues du prototype Figma ou des chantiers de stabilisation tec
 
 | ID | User Story / Tâche | Origine | Justification Évolution | Statut |
 | :--- | :--- | :--- | :--- | :--- |
-| **US-11** | Chat de discussion de session | Figma (`components/DiscussionPanel`), Backlog (`B20` Hors scope) | Communication écrite annexe ; le débat a lieu à l'oral pendant la réunion. | ✅ Terminé |
-| **US-13** | Plan d'action & Écran résumé | Figma (`screens/ActionScreen.tsx` / `SummaryScreen.tsx`) | Suivi post-réunion ; le workflow du MVP s'arrête proprement aux résultats. | ✅ Terminé (E2E `session-action-summary.spec.ts`, 2026-07-20) |
-| **US-14** | Cycle de vie du code de session / sessions clôturées en lecture seule | Investigation utilisateur (401 `/auth/profile`) ayant mené à une revue du cycle de vie des sessions, 2026-07-19/20 | Sécurité et cohérence métier : un code à 4 chiffres ne doit pas être un identifiant permanent, une session close ne doit plus être modifiable ni rejoignable. | ✅ Terminé |
+| **US-11** | Chat de discussion de session | Figma (`components/DiscussionPanel`), Backlog (`B20` Hors scope) | Communication écrite annexe ; le débat a lieu à l'oral pendant la réunion. Capacité existante non requalifiée comme livrée. | 🟡 Base existante à valider |
+| **US-13** | Plan d'action & Écran résumé | Figma (`screens/ActionScreen.tsx` / `SummaryScreen.tsx`) | Capacités post-réunion distinctes du parcours MVP, qui est borné jusqu'aux résultats. Les écrans existants restent à qualifier, sans validation de clôture complète. | 🟡 Base existante à valider |
+| **US-14** | Cycle de vie du code de session / sessions clôturées en lecture seule | Investigation utilisateur (401 `/auth/profile`) ayant mené à une revue du cycle de vie des sessions, 2026-07-19/20 | Sécurité et cohérence métier : un code à 4 chiffres ne doit pas être un identifiant permanent, une session close ne doit plus être modifiable ni rejoignable. Des éléments de base existent, sans validation métier complète. | 🟡 Partiellement terminé |
 | **US-15** | Corrections UX post-tests réels (retour d'étape, Discussion docké, podium Plan d'action) | Retours utilisateur après un test de charge réel (50 participants, cartes, votes, commentaires), 2026-07-20 | Ergonomie facilitateur (erreur de manipulation récupérable) et productivité (discuter et consulter le podium sans changer d'écran). | ✅ Terminé |
 | **T-UI-01** | Homogénéisation des Toasts (Tailwind) | Audit technique ultérieur (2026-07-09) | Polish visuel mineur ; les alertes de l'application sont déjà fonctionnelles. | ✅ Terminé (2026-07-19 : `ToastStyled.tsx`/`ToastNotification.tsx` alignés sur le thème navy de l'app) |
 | **T-ARCHI-01**| Migration des formulaires vers RHF | Audit technique ultérieur (2026-07-13) | Harmonisation interne du code ; la validation manuelle actuelle est déjà OK. | ✅ Terminé (2026-07-20 : Login/Signup/SessionCreate/Forgot migrés vers React Hook Form + Zod, une PR par formulaire) |
 | **T-PART-02**| Expiration du jeton invité | Audit technique ultérieur (2026-07-13) | Optimisation de sécurité de BDD en production. | ✅ Terminé (2026-07-20 : jeton invité limité à 24h depuis la jointure, alignée sur le cookie de reprise) |
 | **T-CLEANUP-01**| Nettoyage des anciens invités | Audit technique ultérieur (2026-07-10) | Nettoyage de données de test en base de développement. | ✅ Terminé (2026-07-20 : script SQL manuel `cleanup_dev_test_guests.sql`, 65 lignes supprimées sur la base de dev) |
+| **T-CLEANUP-02**| Suppression du hook mort `useFormValidation` | Audit technique post T-ARCHI-01 (2026-07-20) | Suppression du code mort frontend devenu obsolète après migration RHF. | ✅ Terminé (2026-07-21 : hook `useFormValidation.ts`, types et tests supprimés) |
+| **T-AI-PLATFORM-03**| Synchronisation automatique du contexte partagé | Audit du workflow IA après dérive `CURRENT_TASK.md` / `HANDOVER.md` constatée le 2026-07-21 | Fiabiliser la reprise de session multi-IA en rendant la synchronisation de l'état partagé obligatoire, vérifiable et la plus dérivée possible de l'état Git réel. | ⬜ À faire |
+| **T-AI-PLATFORM-CODEX-BOOTSTRAP** | Qualification & Bootstrap de l'Infrastructure Codex CLI | Qualification adaptateur Codex suite aux revues d'architecture multi-agents | Confler à AntiGravity la construction complète de l'adaptateur Codex (.codex/, rôles, timeouts) sans toucher au noyau commun, puis valider par une exécution réelle dans Codex. | ⬜ À faire |
+
+
+
+### T-AI-PLATFORM-03 — Synchronisation automatique du contexte partagé
+
+**Objectif**
+
+Empêcher qu'une nouvelle session IA reparte d'un contexte obsolète alors que le dépôt a
+déjà avancé. Le ticket doit rendre la synchronisation de `CURRENT_TASK.md` et
+`HANDOVER.md` impossible à oublier, cohérente avec Git, et portable entre Claude, Codex
+et AGY.
+
+**Problème observé**
+
+Le 2026-07-21, une reprise de session a montré une divergence entre :
+- l'état Git réel (`feature/T-CLEANUP-02-dead-code-useFormValidation`) ;
+- le ticket effectivement en cours ;
+- `CURRENT_TASK.md` et `HANDOVER.md`, restés sur `US-13`.
+
+Cette divergence n'a pas cassé le dépôt, mais elle fragilise la reprise de session, la
+qualité des mandats, la review et l'audit.
+
+**Périmètre**
+
+- Définir les sources de vérité du workflow IA.
+- Définir les éléments dérivables automatiquement et ceux qui restent éditables.
+- Définir la responsabilité exclusive de mise à jour du contexte partagé.
+- Définir les garde-fous bloquants à la clôture d'un ticket.
+- Définir les scénarios de reprise et d'échec à couvrir.
+
+**Hors périmètre**
+
+- Instrumentation complète du workflow (ticket dédié `T-AI-PLATFORM-05`).
+- Portage complet multi-IA et matrice de compatibilité (ticket dédié
+  `T-AI-PLATFORM-06`).
+- Refonte globale du pipeline d'agents hors besoin direct de synchronisation.
+
+**Sources de vérité à arbitrer explicitement**
+
+- Git : branche active, dernier commit, état du working tree.
+- Ticket actif dans le backlog.
+- Dernier `STATUS` du pipeline.
+- `CURRENT_TASK.md`.
+- `HANDOVER.md`.
+
+**Hypothèse directrice**
+
+`CURRENT_TASK.md` et `HANDOVER.md` ne doivent plus être traités comme des documents libres
+indépendants. Ils doivent devenir des artefacts fortement contraints, idéalement générés
+ou au minimum synchronisés à partir de l'état réel du workflow.
+
+**Responsabilités attendues**
+
+- Orchestrateur : vérifie l'état Git réel, synchronise l'état partagé, bloque la clôture
+  si le contexte n'est pas cohérent.
+- Developer : modifie uniquement le code du ticket ; ne touche jamais au contexte
+  partagé.
+- Reviewer : valide ou bloque le diff ; ne modifie jamais le contexte partagé.
+- Documentation : enrichit la documentation technique si demandé, mais ne devient pas la
+  source de vérité du ticket actif.
+- Tous les autres agents : lecture seule sur le contexte partagé.
+
+**Invariants attendus**
+
+- Impossible d'avoir un `CURRENT_TASK.md` incohérent avec la branche active sans signal
+  explicite de divergence.
+- Impossible de clôturer un ticket avec `STATUS: SUCCESS` sans synchronisation explicite
+  de l'état partagé.
+- Une reprise de session doit permettre d'identifier sans ambiguïté : branche active,
+  ticket actif, dernier `STATUS`, prochaine action.
+- En cas de divergence entre Git et un document, Git gagne ; l'écart est signalé et non
+  masqué.
+
+**Critères d'acceptation**
+
+- Le workflow définit noir sur blanc quelle donnée est source de vérité, dérivée ou
+  éditable.
+- La responsabilité de mise à jour de `CURRENT_TASK.md` et `HANDOVER.md` appartient à un
+  seul rôle : l'orchestrateur.
+- La clôture d'un ticket terminé inclut obligatoirement une étape de synchronisation de
+  l'état partagé avant l'autorisation de commit ou de fin de workflow.
+- Une reprise de session sur Claude, Codex ou AGY suit la même logique de lecture de
+  l'état partagé, même si l'implémentation diffère selon la plateforme.
+- Le système prévoit explicitement quoi faire si la synchronisation échoue, si Git a
+  changé entre deux étapes, ou si les documents partagés sont obsolètes.
+
+**Scénarios de test à couvrir**
+
+- Changement de branche entre deux tickets.
+- Ticket abandonné puis repris plus tard.
+- Reprise après 24 h avec dépôt modifié.
+- Conflit entre branche active et ticket déclaré.
+- Crash ou interruption d'un subagent en cours de workflow.
+- Interruption entre review, documentation et commit.
+
+**Livrable attendu**
+
+Une décision d'architecture opérationnelle décrivant :
+- le modèle de vérité retenu ;
+- le cycle de synchronisation ;
+- les responsabilités exactes ;
+- les garde-fous de clôture ;
+- les scénarios de test à automatiser ou à exécuter manuellement ensuite.
 
 ---
+
+### T-AI-PLATFORM-CODEX-BOOTSTRAP — Qualification & Bootstrap de l'Infrastructure Codex CLI
+
+**Objectif**
+
+Confier à AntiGravity (AGY) la construction complète de l'adaptateur Codex CLI (`.codex/`, gabarits/rôles, politique de timeout) sans altérer le noyau fonctionnel commun (`.claude/`, `docs/ai-platform/`), puis faire valider l'exécution par Codex CLI sur son propre adaptateur.
+
+**Principe d'Ingénierie**
+
+*« AntiGravity construit, Codex valide que ça marche. »*
+
+AGY est une plateforme qualifiée et stable. Elle crée l'adaptateur Codex de manière isolée. Codex n'intervient qu'en étape finale pour tester et prouver l'exécution effective de son adaptateur.
+
+**Périmètre du Ticket**
+
+1. **Analyse AGY** : Étudier les capacités réelles de la version installée de Codex CLI (sub-agents, flags CLI, sandboxing, formats).
+2. **Construction AGY** : Créer le dossier `.codex/`, porter les 15 rôles sous forme de gabarits compatibles Codex, définir la politique de résilience `AGENT_TIMEOUT` (1 retry max → arrêt propre / escalade).
+3. **Mise à jour AGENTS.md** : Aligner le point d'entrée Codex avec l'adaptateur `.codex/`.
+4. **Pilote de Qualification Codex** : Rédiger le test minimal de qualification pour Codex CLI.
+5. **Validation par Codex** : Passer la main à Codex CLI pour exécuter le test minimal sur son adaptateur. En cas d'erreur, AGY ajuste l'adaptateur à partir des logs d'échec.
+
+**Livrables Attendu**
+
+- Adaptateur `.codex/` complet et documenté.
+- `AGENTS.md` mis à jour.
+- Pilote de qualification Codex réussi.
+
+---
+
 
 ## 3. Évolutions futures / V2 (Sans source d'origine)
 
