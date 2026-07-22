@@ -99,6 +99,7 @@ describe("action.controller", () => {
 
       await createSessionAction(req, res);
 
+      expect(sessionActor.resolveSessionActor).toHaveBeenCalledWith(req, 10, { requireOpen: true });
       expect(actionService.addAction).toHaveBeenCalledWith(10, 1, {
         description: "Ajouter un test",
         owner: "Bob",
@@ -112,6 +113,30 @@ describe("action.controller", () => {
         message: "Action enregistrée.",
         data: mockCreated,
       });
+    });
+
+    it("ne crée pas d'action si l'identité de session ouverte est refusée", async () => {
+      const req = {
+        params: { sessionId: "10" },
+        body: {
+          description: "Ajouter un test",
+          owner: "Bob",
+          priority: "high",
+          deadline: null,
+        },
+      } as any;
+      const res = createMockResponse();
+
+      vi.mocked(sessionActor.resolveSessionActor).mockRejectedValueOnce(
+        new AppError(400, "Session clôturée.", "SESSION_CLOSED")
+      );
+
+      await expect(createSessionAction(req, res)).rejects.toThrow(
+        new AppError(400, "Session clôturée.", "SESSION_CLOSED")
+      );
+      expect(sessionActor.resolveSessionActor).toHaveBeenCalledWith(req, 10, { requireOpen: true });
+      expect(actionService.addAction).not.toHaveBeenCalled();
+      expect(socketRealtime.emitActionAdded).not.toHaveBeenCalled();
     });
   });
 });

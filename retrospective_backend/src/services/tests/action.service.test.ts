@@ -74,6 +74,16 @@ describe("action.service", () => {
       );
     });
 
+    it("devrait refuser l'ajout d'action sur une session clôturée", async () => {
+      const mockSession = { id: 10, owner_id: 1, status: "closed" } as any;
+      vi.mocked(sessionModel.findSessionById).mockResolvedValueOnce(mockSession);
+
+      await expect(
+        addAction(10, 1, { description: "Act", owner: "A", priority: "high" })
+      ).rejects.toMatchObject({ statusCode: 400, code: "SESSION_CLOSED" } satisfies Partial<AppError>);
+      expect(actionModel.insertAction).not.toHaveBeenCalled();
+    });
+
     it("devrait insérer et retourner les détails de l'action créée si tout est correct", async () => {
       const mockSession = { id: 10, owner_id: 1, status: "open" } as any;
       vi.mocked(sessionModel.findSessionById).mockResolvedValueOnce(mockSession);
