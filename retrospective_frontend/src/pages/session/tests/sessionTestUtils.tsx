@@ -29,7 +29,7 @@ export const createDashboardFetchMock = (options: {
   createMessageResponse?: unknown;
   actionsResponse?: unknown;
   createActionResponse?: unknown;
-  step?: 'waiting' | 'writing' | 'voting' | 'results' | 'action';
+  step?: 'waiting' | 'writing' | 'voting' | 'results' | 'action' | 'summary';
   formatName?: string;
   formatColumns?: string[];
   stepEndsAt?: string | null;
