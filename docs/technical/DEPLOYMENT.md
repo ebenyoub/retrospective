@@ -91,13 +91,17 @@ DB_PASSWORD=retrospective_password
 JWT_SECRET=une_chaine_secrete_longue_et_aleatoire
 JWT_EXPIRES_IN=24h
 
-GMAIL_USER=email@example.com
-GMAIL_APP_PASSWORD=mot_de_passe_application_gmail
+SMTP_HOST=smtp-relay.brevo.com
+SMTP_PORT=587
+SMTP_USER=email@example.com
+SMTP_PASS=mot_de_passe_smtp_brevo
+EMAIL_PROVIDER_API_KEY=
+EMAIL_FROM="Range Ta Chambre <no-reply@rangetachambre.com>"
 ```
 
 ### Génération et rotation des secrets
 
-Les valeurs `JWT_SECRET` et `GMAIL_APP_PASSWORD` ne doivent jamais être
+Les valeurs `JWT_SECRET`, `SMTP_PASS` et `EMAIL_PROVIDER_API_KEY` ne doivent jamais être
 committées avec leurs vraies valeurs.
 
 Pour préparer un environnement de démonstration ou de production :
@@ -107,7 +111,8 @@ openssl rand -base64 48
 ```
 
 Utiliser la valeur obtenue comme `JWT_SECRET` dans l'environnement cible. Le
-mot de passe Gmail doit être un mot de passe d'application généré dans le
+mot de passe SMTP Brevo doit être généré depuis le compte Brevo et configuré
+uniquement dans l'environnement cible.
 compte Google, puis stocké uniquement dans `.env` ou dans les variables
 d'environnement du serveur.
 

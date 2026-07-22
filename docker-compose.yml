@@ -42,8 +42,12 @@ services:
       JWT_SECRET: ${JWT_SECRET:-dev_only_change_me_jwt_secret_32_chars_min}
       JWT_EXPIRES_IN: 24h
       FRONTEND_ORIGIN: http://localhost:5173
-      GMAIL_USER: ${GMAIL_USER:-}
-      GMAIL_APP_PASSWORD: ${GMAIL_APP_PASSWORD:-}
+      SMTP_HOST: ${SMTP_HOST:-smtp-relay.brevo.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      EMAIL_PROVIDER_API_KEY: ${EMAIL_PROVIDER_API_KEY:-}
+      EMAIL_FROM: "${EMAIL_FROM:-Range Ta Chambre <no-reply@rangetachambre.com>}"
     ports:
       - "8000:8000"
     volumes:

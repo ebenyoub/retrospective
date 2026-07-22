@@ -38,7 +38,7 @@ export const requestPasswordReset = async ({ email }: ForgotPasswordInput): Prom
     await insertPasswordToken(token, email, expireAt);
 
     const info = await transporter.sendMail({
-      from: '"Range Ta Chambre" <no-reply@rangetachambre.com>',
+      from: process.env.EMAIL_FROM ?? '"Range Ta Chambre" <no-reply@rangetachambre.com>',
       to: email,
       subject: "🔐 Réinitialisation",
       text: `Bonjour, voici votre code de réinitialisation : ${code}. Ce code est valable 10 minutes.`,

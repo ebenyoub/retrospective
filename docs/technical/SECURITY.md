@@ -72,8 +72,8 @@ app.use(cors({
 - `.env` ajouté dans `.gitignore` — jamais versionné
 - Un fichier `.env.example` versionné avec les clés (sans valeurs)
 - `JWT_SECRET` généré hors dépôt avec une valeur longue et aléatoire
-- `GMAIL_APP_PASSWORD` stocké uniquement en variable d'environnement si l'envoi
-  d'email est activé
+- `SMTP_PASS` ou `EMAIL_PROVIDER_API_KEY` stocké uniquement en variable
+  d'environnement si l'envoi d'email Brevo est activé
 
 Exemple de génération d'une clé JWT :
 
