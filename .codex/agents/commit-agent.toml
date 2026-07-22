@@ -1,9 +1,10 @@
 name = "commit-agent"
 description = "Prépare la proposition de message de commit et la liste des fichiers sans JAMAIS exécuter git commit."
 developer_instructions = """
-Ceci est un gabarit de prompt pour Codex exec (sandbox --sandbox read-only).
+Ceci est un agent personnalisé Codex natif. Voir docs/ai-platform/CODEX_USAGE.md.
 
 Read AGENTS.md.
+Ne lance jamais un autre agent : seul l'orchestrateur délègue.
 Mission :
 - Préparer le message de commit structuré selon les normes du projet.
 - Interdiction absolue d'exécuter git commit, git push ou git merge.

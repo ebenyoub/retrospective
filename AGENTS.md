@@ -1,18 +1,24 @@
 # AGENTS — Adaptateur Codex Multi-Agents
 
-Version **v2.0 (Adaptateur Codex Qualifié)** — créative et conforme au ticket `T-AI-PLATFORM-CODEX-02`.
+Version **v2.1 (Subagents natifs Codex)** — conforme au ticket `T-AI-PLATFORM-CODEX-BOOTSTRAP`.
 
-Ce document est le contrat d'orchestration officiel pour **Codex CLI 0.144.3** sur ce dépôt.
+Ce document est le contrat d'orchestration officiel pour **Codex CLI 0.144.6** sur ce dépôt.
 
 ---
 
 ## 1. Principe de fonctionnement Codex
 
-Dans Codex CLI, les sous-agents ne sont pas des sous-processus invoqués dynamiquement au sein de la même session. Ce sont des **gabarits de prompt (prompts templates)** situés dans `.codex/agents/*.toml` lancés par l'orchestrateur via une commande CLI séparée :
+Codex CLI dispose de subagents natifs. Les agents personnalisés du projet sont définis
+dans `.codex/agents/*.toml` et chargés par leur champ `name`.
 
-```bash
-cat .codex/agents/<role>.toml | codex exec --sandbox <read-only|workspace-write> --output-schema .codex/schema/agent_response.json "[MANDAT]"
-```
+La configuration projet `.codex/config.toml` fixe `agents.max_depth = 1` pour empêcher
+un agent enfant de relancer d'autres agents, et `agents.max_threads = 6` pour limiter
+le parallélisme.
+
+Le fil principal reste l'orchestrateur. Il lance les agents personnalisés nécessaires,
+attend leurs retours, interprète leurs `STATUS` et décide de la suite. L'ancienne
+approche `codex exec` n'est conservée que comme fallback legacy non interactif ; elle
+n'est plus le chemin nominal de la plateforme.
 
 ---
 
@@ -60,19 +66,28 @@ Puis-je lancer l’étape suivante ? »
 | **Analyste Ticket** | `analyst-ticket.toml` | `read-only` | Portée technique du ticket, périmètre et proposition de découpage |
 | **Analyste Fonctionnel** | `analyst-functional.toml` | `read-only` | Règles métier, clarification des exigences et indécisions |
 | **Architecte** | `architect.toml` | `read-only` | Conseil d'architecture et conformité aux patrons de conception |
+| **Architecte Simple** | `architecte-simple.toml` | `read-only` | Arbitrage technique simple, anti-sur-ingénierie et explicabilité DWWM |
 | **Briefing Agent** | `briefing-agent.toml` | `read-only` | Rédige le mandat minimal et cadré pour le développeur |
 | **Développeur Général** | `developer.toml` | `workspace-write` | Implémente la solution technique du ticket (Backend/Frontend/SQL) |
 | **Développeur Rapide** | `developer-fast.toml` | `workspace-write` | Tâches triviales et ponctuelles (≤ 2 fichiers) |
 | **Spécialiste Backend** | `backend.toml` | `workspace-write` | Développe les routes Express et contrôleurs |
+| **Backend Express** | `backend-express.toml` | `workspace-write` | Développe les routes, contrôleurs et middlewares Express ciblés |
 | **Spécialiste Frontend** | `frontend.toml` | `workspace-write` | Développe les composants React et styles |
+| **Frontend React** | `frontend-react.toml` | `workspace-write` | Développe les composants, hooks et pages React ciblés |
 | **Spécialiste Database** | `database.toml` | `workspace-write` | Développe les migrations et scripts SQL |
+| **Database MySQL** | `database-mysql.toml` | `workspace-write` | Conçoit les schémas, migrations et requêtes MySQL ciblés |
 | **QA / Tests** | `qa.toml` | `workspace-write` | Exécute les suites de tests sans modifier le code applicatif |
+| **QA Tests** | `qa-tests.toml` | `workspace-write` | Écrit ou exécute les tests ciblés après développement |
 | **Reviewer** | `reviewer.toml` | `read-only` | Analyse le `git diff` uniquement pour valider la qualité |
+| **Reviewer Code** | `reviewer-code.toml` | `read-only` | Relit le diff avec critères DWWM, sécurité de base et cohérence |
 | **Sécurité** | `security.toml` | `read-only` | Audit de sécurité (dépendances, vulnérabilités, secrets) |
 | **Product Owner** | `product-owner.toml` | `read-only` | Représente les exigences produit et la vision du backlog |
 | **Consignateur Décision**| `decision-recorder.toml` | `workspace-write` | Ajoute la décision validée dans `DECISIONS.md` |
 | **Agent Commit** | `commit-agent.toml` | `read-only` | Prépare le message de commit (NE COMMITTE JAMAIS) |
 | **Documentation** | `documentation.toml` | `workspace-write` | Met à jour la doc de suivi hors contexte actif (`PROJECT_STATE`, `TODO`, docs techniques) |
+| **Documentation Technique** | `documentation-technique.toml` | `workspace-write` | Maintient les documents techniques et décisions hors contexte actif |
+| **Documentation Jury** | `documentation-jury.toml` | `workspace-write` | Prépare les documents et preuves destinés au jury DWWM |
+| **Formateur DWWM** | `formateur-dwwm.toml` | `read-only` | Vérifie l'explicabilité jury et la couverture des compétences DWWM |
 
 ---
 
@@ -107,9 +122,13 @@ Chaque rôle retournera un objet JSON conforme au schéma `.codex/schema/agent_r
 
 Pour exécuter un pilote de qualification Codex complet sur un ticket :
 
-1. **Analyse** : `cat .codex/agents/analyst-ticket.toml | codex exec --sandbox read-only "[TICKET]"`
-2. **Briefing** : `cat .codex/agents/briefing-agent.toml | codex exec --sandbox read-only "[CONTEXTE]"`
-3. **Développement** : `cat .codex/agents/developer.toml | codex exec --sandbox workspace-write "[MANDAT]"`
-4. **QA** : `cat .codex/agents/qa.toml | codex exec --sandbox workspace-write "Exécute les tests"`
-5. **Revue** : `cat .codex/agents/reviewer.toml | codex exec --sandbox read-only "Revoie le diff"`
-6. **Documentation** : `cat .codex/agents/documentation.toml | codex exec --sandbox workspace-write "Met à jour la doc"`
+1. **Analyse** : lancer `analyst-ticket` comme subagent natif.
+2. **Briefing** : lancer `briefing-agent` si le mandat de développement doit être cadré.
+3. **Développement** : lancer `developer`, `developer-fast` ou le spécialiste adapté.
+4. **QA** : lancer `qa` ou `qa-tests`.
+5. **Revue** : lancer `reviewer` ou `reviewer-code`.
+6. **Documentation** : lancer `documentation` uniquement si une doc de suivi doit être
+   mise à jour.
+
+Pendant le pilote, utiliser `/agent` pour inspecter les fils créés et vérifier que les
+rôles n'ont pas été simulés dans le fil principal.

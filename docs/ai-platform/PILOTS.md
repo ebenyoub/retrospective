@@ -1,7 +1,6 @@
 # Pilotes de Qualification d'Orchestration Multi-Agents
 
-Version **v1.5** — mise à jour le 2026-07-21 (statut Codex : gabarits implémentés,
-qualification d'exécution non démontrée).
+Version **v2.0** — mise à jour le 2026-07-22 (statut Codex : bootstrap natif qualifié).
 
 ---
 
@@ -11,18 +10,25 @@ qualification d'exécution non démontrée).
 | :--- | :--- | :---: | :--- | :--- |
 | **Claude Adapter** | Claude Code | ✅ QUALIFIÉ | `DEV-ENV-01` | Validé avec succès |
 | **AGY Adapter** | AntiGravity | ✅ QUALIFIÉ | `T-AI-PLATFORM-03` | Validé avec 15 sub-agents |
-| **Codex Adapter** | Codex CLI 0.144.3 | ⚪ NON QUALIFIÉ | `T-AI-PLATFORM-CODEX-02` | Gabarits et schéma présents ; aucun pipeline bout en bout prouvé |
+| **Codex Adapter** | Codex CLI 0.144.6 | ✅ BOOTSTRAP QUALIFIÉ | `T-AI-PLATFORM-CODEX-BOOTSTRAP` | Agents personnalisés natifs lancés (`analyst-ticket`, `architect`) ; pipeline complet à éprouver sur tickets réels |
 
 ---
 
-## Pilotes de Validation Codex (`T-AI-PLATFORM-CODEX-02`)
+## Pilotes de Validation Codex (`T-AI-PLATFORM-CODEX-BOOTSTRAP`)
 
 ### 1. État des preuves
 
-Les gabarits de rôles, les sandboxes déclarés et le schéma JSON sont présents dans le
-dépôt. Ils ne constituent pas une preuve d'isolation, d'invocation réussie ni de
-conformité de sortie. Aucune preuve exécutable d'un pilote Codex terminé n'est consignée
-ici.
+Les agents personnalisés `.codex/agents/*.toml` sont présents et reconnus par le mécanisme
+natif de subagents Codex. Le pilote du 2026-07-22 a lancé deux agents personnalisés
+distincts :
+
+- `analyst-ticket` : audit de l'état de l'adaptateur Codex.
+- `architect` : comparaison entre l'ancienne documentation `codex exec` et le mécanisme
+  natif disponible.
+
+Les deux agents ont terminé en `STATUS: SUCCESS` et ont rendu des rapports structurés au
+fil principal. Le bootstrap Codex est donc qualifié. Les scénarios de résilience restent
+des validations progressives à mener sur de vrais tickets.
 
 ---
 
@@ -30,7 +36,7 @@ ici.
 
 | Scénario Pilote | Pipeline Exécuté | Statut Attendu | Résultat & Preuve |
 | :--- | :--- | :---: | :--- |
-| **Scénario 1 : Pipeline Nominal** | Orchestrateur → analyst-ticket → briefing-agent → developer → qa → reviewer → documentation | `SUCCESS` | Non exécuté |
+| **Scénario 1 : Bootstrap natif partiel** | Orchestrateur → analyst-ticket → architect | `SUCCESS` | Exécuté le 2026-07-22 : agents natifs personnalisés lancés et terminés |
 | **Scénario 2 : Rebond Échec Test** | Orchestrateur → developer → qa (`TEST_FAILED`) → developer → qa | `SUCCESS` après rebond | Non exécuté |
 | **Scénario 3 : Hors Périmètre** | Orchestrateur → developer-fast (`OUT_OF_SCOPE`) → Stop/Escalade | `OUT_OF_SCOPE` | Non exécuté |
 | **Scénario 4 : Indécision Métier** | Orchestrateur → analyst-functional (`NEEDS_DECISION`) → Arbitrage | `NEEDS_DECISION` | Non exécuté |

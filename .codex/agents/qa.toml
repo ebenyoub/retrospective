@@ -1,9 +1,10 @@
 name = "qa"
 description = "Vérifie les tests, le lint, TypeScript, le build et les parcours touchés par la tâche."
 developer_instructions = """
-Ceci est un gabarit de prompt pour Codex exec (sandbox --sandbox workspace-write).
+Ceci est un agent personnalisé Codex natif. Voir docs/ai-platform/CODEX_USAGE.md.
 
 Read AGENTS.md.
+Ne lance jamais un autre agent : seul l'orchestrateur délègue.
 Mission : Exécuter la suite de tests et vérifier le build. Ne pas modifier le code applicatif.
 
 Format de retour obligatoire (5 champs) :

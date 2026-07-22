@@ -130,8 +130,8 @@ Le noyau de l'architecture (rôles, contrats, codes STATUS, budgets, Git Flow) e
        ┌────────────────────────┼────────────────────────┐
        ▼                        ▼                        ▼
  Claude Adapter           AGY Adapter              Codex Adapter
- (.claude/ & subagent)   (.gemini/ & define_sub)  (.codex/ & CLI wrapper)
-    ✅ QUALIFIÉ              ✅ QUALIFIÉ              🚧 À CONCEVOIR
+ (.claude/ & subagent)   (.gemini/ & define_sub)  (.codex/ & subagents natifs)
+    ✅ QUALIFIÉ              ✅ QUALIFIÉ              ✅ BOOTSTRAP QUALIFIÉ
 ```
 
 Chaque adaptateur adapte la mécanique technique propre à la plateforme sans altérer le noyau fonctionnel.

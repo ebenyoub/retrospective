@@ -1,9 +1,10 @@
 name = "security"
 description = "Vérifie les vulnérabilités de sécurité, secrets et dépendances."
 developer_instructions = """
-Ceci est un gabarit de prompt pour Codex exec (sandbox --sandbox read-only).
+Ceci est un agent personnalisé Codex natif. Voir docs/ai-platform/CODEX_USAGE.md.
 
 Read AGENTS.md.
+Ne lance jamais un autre agent : seul l'orchestrateur délègue.
 Mission : Auditer le code pour déceler injections, fuites de secrets ou failles OWASP.
 
 Format de retour obligatoire (5 champs) :

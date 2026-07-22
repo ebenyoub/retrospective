@@ -1,164 +1,113 @@
 # Utilisation de l'architecture multi-agents dans Codex
 
-Version **v1.1** — mise à jour le 2026-07-21. Ce document ne redéfinit aucune règle métier
-ou de processus : il explique comment le contrat canonique d'`AGENTS.md` et le schéma
-`.codex/schema/agent_response.json` s'exécutent concrètement avec Codex CLI.
+Version **v2.0** — mise à jour le 2026-07-22. Ce document décrit l'adaptateur Codex
+actuel, basé sur les **subagents natifs Codex** et les agents personnalisés du dépôt.
 
-## Constat de départ (à lire avant d'utiliser `.codex/agents/`)
+## Constat actuel
 
-Codex CLI (`codex-cli 0.144.3`, vérifié le 2026-07-21 via `codex --help` / `codex features
-list` / `~/.codex/config.toml`) n'a **aucun mécanisme natif** équivalent à l'outil `Agent`
-de Claude Code :
-- pas de sous-commande `codex agent`, pas de registre de sous-agents ;
-- pas de lecture automatique d'un dossier `.codex/agents/` ;
-- pas de restriction d'outils fine (`tools:` par agent) — le seul contrôle technique réel
-  est le **sandbox du processus** (`--sandbox read-only|workspace-write|danger-full-access`),
-  une permission d'écriture globale, pas un allowlist d'outils précis.
+La version locale vérifiée pendant `T-AI-PLATFORM-CODEX-BOOTSTRAP` est
+`codex-cli 0.144.6`, avec le feature flag `multi_agent` actif et stable.
 
-**Conséquence assumée** : les fichiers `.codex/agents/*.toml` ne sont pas des sous-agents
-auto-invoqués. Ce sont des **gabarits de prompt** que l'orchestrateur (toi, ou un script)
-copie dans une invocation `codex exec` séparée. La délégation dans Codex est **manuelle**,
-pas automatique — c'est la divergence la plus importante avec Claude Code, à ne jamais
-perdre de vue en l'utilisant.
+Les versions actuelles de Codex savent :
+
+- lancer des subagents natifs depuis le fil principal ;
+- afficher les fils d'agents via `/agent` dans le CLI ;
+- charger des agents personnalisés depuis `.codex/agents/*.toml` ;
+- appliquer les paramètres projet de `.codex/config.toml` ;
+- utiliser les champs `name`, `description` et `developer_instructions` comme contrat
+  minimal d'un agent personnalisé ;
+- laisser le fil principal collecter les résultats et décider de la suite.
+
+L'ancienne approche `codex exec` reste seulement un **fallback legacy** pour un flux
+non interactif ou externe. Elle ne doit plus être utilisée comme chemin nominal de la
+plateforme.
 
 ## Comment lancer le workflow dans Codex
 
-1. **Orchestrateur** = la session Codex par défaut (interactive `codex` ou `codex exec`
-   à la racine du projet, sans profil de rôle). Elle lit `AGENTS.md` automatiquement au
-   démarrage — c'est l'équivalent réel de `CLAUDE.md`/`.claude/ORCHESTRATOR.md` côté Codex.
-   Elle sélectionne la tâche, vérifie Git, découpe si besoin, et **ne code jamais
-   elle-même** — comme côté Claude.
+1. **Orchestrateur** : rester dans le fil principal Codex.
+2. **Préflight** : vérifier `git status --short --branch`, `git log --oneline -5`, le
+   ticket actif et le contexte partagé.
+3. **Délégation native** : demander explicitement à Codex de lancer les agents
+   personnalisés nécessaires, par leur nom `.codex/agents/*.toml`.
+4. **Inspection** : utiliser `/agent` pour vérifier les fils actifs ou terminés.
+5. **Décision** : attendre les retours, lire les `STATUS`, puis décider de l'étape
+   suivante.
 
-2. **Déléguer un rôle** = lancer une invocation Codex séparée avec le gabarit du rôle
-   collé en tête de prompt, en choisissant le sandbox adapté :
+Exemple de mandat :
 
-   ```bash
-   # Rôle développeur (a besoin d'écrire) :
-   codex exec --sandbox workspace-write "$(cat .codex/agents/developer.toml | sed -n '/developer_instructions/,$p')
-   ---
-   TICKET: <id>
-   OBJECTIF: <...>
-   PÉRIMÈTRE: <fichiers autorisés>
-   ÉTAT GIT: <branche, propreté — vérifiés par toi juste avant, voir plus bas>
-   "
+```text
+Utilise les agents personnalisés de `.codex/agents/`.
 
-   # Rôle reviewer / QA en lecture (n'a pas besoin d'écrire du code applicatif) :
-   codex exec --sandbox read-only "$(cat .codex/agents/reviewer.toml | sed -n '/developer_instructions/,$p')
-   ---
-   Relis le diff du ticket <id>.
-   "
-   ```
+Lance réellement comme subagents natifs :
+- analyst-ticket
+- briefing-agent
+- developer
+- qa
+- reviewer
 
-   En pratique, il est plus simple d'ouvrir le fichier `.toml` du rôle, de copier le
-   contenu de `developer_instructions`, de le coller en tête du prompt `codex exec`, et
-   d'y ajouter le mandat du ticket (même structure que le mandat Claude — voir
-   `.claude/DELEGATION.md §Protocole de mandat`, réutilisé tel quel).
+Ne lance pas `codex exec`.
+Ne simule pas les rôles dans le fil principal.
+Chaque agent travaille dans son propre fil.
+Retourne le STATUS de chaque agent et la synthèse finale.
+```
 
-3. **QA a besoin d'exécuter des commandes** (tests, `tsc`) → sandbox `workspace-write`
-   également (le shell est nécessaire), mais QA ne modifie jamais le code applicatif de
-   façon persistante (même règle que côté Claude — restaurer après un test manuel).
+## Rôles définis
 
-4. **Retour à l'orchestrateur** = la session déléguée retourne un objet JSON conforme à
-   `.codex/schema/agent_response.json` : `STATUS`, `SUMMARY`, `EVIDENCE`,
-   `FILES_MODIFIED`, `NEXT_ACTION`. L'orchestrateur interprète ce résultat et décide de
-   la suite.
+| Famille | Agents Codex |
+| :--- | :--- |
+| Analyse | `analyst-ticket`, `analyst-functional`, `product-owner` |
+| Architecture | `architect`, `architecte-simple` |
+| Briefing | `briefing-agent` |
+| Développement | `developer`, `developer-fast`, `backend`, `backend-express`, `frontend`, `frontend-react`, `database`, `database-mysql` |
+| Validation | `qa`, `qa-tests`, `reviewer`, `reviewer-code`, `security` |
+| Documentation / décisions | `documentation`, `documentation-technique`, `documentation-jury`, `decision-recorder`, `commit-agent`, `formateur-dwwm` |
 
-5. **Commit** : comme côté Claude, aucun rôle Codex n'exécute `git commit`. Le gabarit
-   `commit-agent.toml` prépare seulement le message ; l'utilisateur valide puis crée le
-   commit.
+Les fichiers `.codex/agents/*.toml` sont des agents personnalisés natifs Codex. Leur
+champ `name` est la source de vérité utilisée au lancement.
 
-## Rôles définis dans le contrat Codex
+## Différences Claude ↔ AGY ↔ Codex
 
-| Rôle Claude | Équivalent Codex | Statut |
-|---|---|---|
-| Orchestrateur | Session par défaut + `AGENTS.md` | Rôle de coordination |
-| Analyste Ticket | `analyst-ticket.toml` | Gabarit `read-only` |
-| Analyste Fonctionnel | `analyst-functional.toml` | Gabarit `read-only` |
-| Architecte | `architect.toml` | Gabarit `read-only` |
-| Briefing Agent | `briefing-agent.toml` | Gabarit `read-only` |
-| Développeur général / rapide | `developer.toml`, `developer-fast.toml` | Gabarits `workspace-write` |
-| Backend / Frontend / Database | `backend.toml`, `frontend.toml`, `database.toml` | Gabarits `workspace-write` |
-| QA / Reviewer / Sécurité | `qa.toml`, `reviewer.toml`, `security.toml` | Gabarits dédiés |
-| Product Owner | `product-owner.toml` | Gabarit `read-only` |
-| Consignateur décision / Commit / Documentation | `decision-recorder.toml`, `commit-agent.toml`, `documentation.toml` | Gabarits dédiés |
+| Point | Claude | AGY | Codex |
+| :--- | :--- | :--- | :--- |
+| Subagents | Natifs Claude Code | `DefineSubagent` / agents AGY | Natifs Codex |
+| Définition des agents | `.claude/agents/*.md` | dynamique / règles AGY | `.codex/agents/*.toml` |
+| Inspection | UI Claude | UI AGY | `/agent` / fils d'agents |
+| Orchestrateur | Fil principal | Fil principal | Fil principal |
+| Profondeur | Aucun agent n'appelle un agent | `enable_subagent_tools: false` | `agents.max_depth` par défaut à `1` |
+| Ancien fallback | — | — | `codex exec` externe uniquement |
 
-Ces gabarits correspondent au roster d'`AGENTS.md`. Leur présence documente le contrat
-de rôle ; elle ne constitue pas une preuve de qualification d'exécution.
+## Règles spécifiques Codex
 
-## Différences de comportement Claude ↔ Codex
+- L'orchestrateur ne réalise pas le travail spécialisé d'un agent existant.
+- Pour les tâches complexes, demander explicitement l'usage des subagents natifs.
+- Garder `agents.max_depth = 1` pour empêcher un agent enfant de relancer d'autres
+  agents.
+- Ne pas lancer tous les agents par réflexe : sélectionner seulement les rôles utiles.
+- Garder les tâches d'écriture parallèles rares et disjointes pour éviter les conflits.
+- Les agents retournent un résultat structuré conforme au contrat commun (`STATUS`,
+  `SUMMARY`, `EVIDENCE`, `FILES_MODIFIED`, `NEXT_ACTION`).
+- Aucun agent ne committe, push ou merge.
 
-1. **Délégation automatique vs manuelle** — Claude Code invoque un sous-agent dans le
-   même fil de conversation via l'outil `Agent`, avec restriction d'outils réellement
-   appliquée (`tools:`). Codex n'a pas cet outil : chaque rôle est une invocation
-   `codex exec` séparée, lancée manuellement (ou par un script externe que tu écrirais),
-   sans registre ni dispatch natif.
+## Reprendre une tâche déjà commencée
 
-2. **Restriction d'outils : fine vs coarse** — Claude restreint précisément les outils
-   par agent (`Read, Edit, Grep, Glob` par exemple). Codex ne peut restreindre qu'au
-   niveau du **sandbox du processus** (lecture seule / écriture workspace / accès total).
-   Un rôle Codex en sandbox `workspace-write` a techniquement accès à *tous* les outils
-   disponibles dans ce mode, pas seulement ceux listés dans son gabarit — la limite
-   déclarée dans le `.toml` reste **une consigne, pas une garantie technique**, contrairement
-   à Claude Code où l'absence de l'outil est structurelle.
+Au démarrage d'une session Codex :
 
-3. **« Aucun agent n'appelle un agent » : structurel vs conventionnel** — Côté Claude,
-   c'est garanti par construction (aucun agent n'a l'outil d'invocation d'agent). Côté
-   Codex, **rien n'empêche techniquement** une session en sandbox `workspace-write`
-   d'exécuter elle-même une commande shell relançant `codex`/`codex exec` — l'invariant
-   tient uniquement parce que chaque gabarit `.toml` l'interdit explicitement en texte
-   et qu'aucun script d'auto-dispatch n'existe dans ce projet. **Capacité non disponible,
-   signalée explicitement** : il n'y a pas de garantie structurelle équivalente à Claude
-   Code sur ce point.
+1. Lire `AGENTS.md`.
+2. Lire `.claude/CURRENT_TASK.md` et `.claude/HANDOVER.md`.
+3. Exécuter `git status --short --branch` et `git log --oneline -5`.
+4. Comparer Git, backlog et contexte partagé.
+5. Si Git contredit les documents, retourner `CONTEXT_OUT_OF_SYNC` avant toute écriture.
 
-4. **`ÉTAT GIT CONFIRMÉ` non automatisable** — Côté Claude (v1.2/v1.3), l'orchestrateur
-   garantit les préconditions Git avant chaque délégation grâce à son propre contrôle
-   dans le même processus. Côté Codex, l'orchestrateur (session par défaut) et le rôle
-   délégué (`codex exec` séparé) ne partagent pas de mémoire — il n'y a **aucun moyen
-   automatique de transmettre un état déjà vérifié**. Chaque gabarit Codex revérifie donc
-   `git status --short --branch` lui-même (retour au modèle pré-v1.1 de Claude, par
-   nécessité et non par préférence — voir la leçon correspondante dans
-   `LESSONS_LEARNED.md` pour comprendre pourquoi ce choix avait justement été abandonné
-   côté Claude).
+La règle détaillée est dans `docs/ai-platform/CONTEXT_SYNC.md`.
 
-5. **Rôles spécialisés** — le roster Codex définit des gabarits dédiés pour le backend,
-   le frontend, la base de données et les tâches rapides. Leur sélection relève de
-   l'orchestrateur, conformément à `AGENTS.md`.
+## Qualification
 
-6. **Contrat de retour** : le schéma Codex est la référence pour les cinq champs JSON ;
-   la matrice des statuts, dont `BLOCKED`, est définie dans `AGENTS.md`.
+Le pilote du 2026-07-22 a lancé avec succès des agents personnalisés Codex natifs :
 
-## Limitations connues
+- `analyst-ticket`
+- `architect`
 
-- Aucun dispatch automatique : la délégation Codex demande une action humaine
-  (copier/coller le gabarit, choisir le sandbox, lancer `codex exec`) à chaque étape.
-- Pas de restriction d'outils techniquement appliquée, seulement le sandbox
-  (lecture/écriture) et la consigne textuelle du gabarit.
-- Pas de garantie structurelle contre un agent qui en invoquerait un autre — repose sur
-  la consigne, pas sur l'absence technique de la capacité.
-- La présence des gabarits ne qualifie pas leur exécution : consulter `PILOTS.md` pour
-  l'état factuel de qualification.
-
-## Reprendre une tâche déjà commencée sous Claude
-
-Rien de spécifique à faire : `.claude/CURRENT_TASK.md` et `.claude/HANDOVER.md` sont des
-fichiers du dépôt, pas des artefacts propres à Claude Code — une session Codex les lit
-normalement avec ses outils de lecture de fichiers standards. Au démarrage d'une session
-Codex sur ce projet :
-
-1. Lire `AGENTS.md` (chargé automatiquement).
-2. Lire `.claude/CURRENT_TASK.md` puis `.claude/HANDOVER.md` — jamais supposer l'état à
-   partir d'une conversation précédente, y compris une conversation Claude.
-3. Exécuter `git status --short --branch` et comparer à ce que ces deux documents
-   annoncent — signaler tout écart avant de continuer (même règle que côté Claude,
-   voir `.claude/ORCHESTRATOR.md §Vérification préalable`).
-4. Reprendre le pipeline à l'étape indiquée par `CURRENT_TASK.md` (« Prochaine action
-   unique »), en dispatchant manuellement le rôle Codex correspondant si nécessaire.
-
-Si Git contredit `CURRENT_TASK.md` ou `HANDOVER.md`, Git gagne. Le fil principal Codex
-doit traiter l'écart comme `CONTEXT_OUT_OF_SYNC`, synchroniser le contexte partagé ou
-demander validation avant toute délégation d'écriture. Les rôles `documentation*` ne
-modifient pas ces deux fichiers ; ils ne fournissent que les informations nécessaires à
-l'orchestrateur. Voir `docs/ai-platform/CONTEXT_SYNC.md`.
-
-Aucune conversion de format n'est nécessaire : le ticket, le périmètre et l'état Git sont
-les mêmes documents, lus par les deux plateformes.
+Ces agents ont travaillé dans des fils distincts et ont retourné des rapports structurés.
+Cette preuve qualifie le bootstrap natif de l'adaptateur Codex. Les scénarios plus
+avancés (`TEST_FAILED`, `OUT_OF_SCOPE`, `NEEDS_DECISION`, timeout) restent à éprouver au
+fil de vrais tickets produit.

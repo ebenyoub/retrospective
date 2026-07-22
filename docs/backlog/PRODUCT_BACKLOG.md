@@ -158,7 +158,7 @@ Fonctionnalités issues du prototype Figma ou des chantiers de stabilisation tec
 | **T-CLEANUP-01**| Nettoyage des anciens invités | Audit technique ultérieur (2026-07-10) | Nettoyage de données de test en base de développement. | ✅ Terminé (2026-07-20 : script SQL manuel `cleanup_dev_test_guests.sql`, 65 lignes supprimées sur la base de dev) |
 | **T-CLEANUP-02**| Suppression du hook mort `useFormValidation` | Audit technique post T-ARCHI-01 (2026-07-20) | Suppression du code mort frontend devenu obsolète après migration RHF. | ✅ Terminé (2026-07-21 : hook `useFormValidation.ts`, types et tests supprimés) |
 | **T-AI-PLATFORM-03**| Synchronisation automatique du contexte partagé | Audit du workflow IA après dérive `CURRENT_TASK.md` / `HANDOVER.md` constatée le 2026-07-21 | Fiabiliser la reprise de session multi-IA en rendant la synchronisation de l'état partagé obligatoire, vérifiable et la plus dérivée possible de l'état Git réel. | ✅ Terminé (2026-07-22 : décision `CONTEXT_SYNC.md`, contrats Claude/Codex alignés) |
-| **T-AI-PLATFORM-CODEX-BOOTSTRAP** | Qualification & Bootstrap de l'Infrastructure Codex CLI | Qualification adaptateur Codex suite aux revues d'architecture multi-agents | Confler à AntiGravity la construction complète de l'adaptateur Codex (.codex/, rôles, timeouts) sans toucher au noyau commun, puis valider par une exécution réelle dans Codex. | ⬜ À faire |
+| **T-AI-PLATFORM-CODEX-BOOTSTRAP** | Qualification & Bootstrap de l'Infrastructure Codex CLI | Qualification adaptateur Codex suite aux revues d'architecture multi-agents | Adapter la couche Codex au mécanisme natif de subagents, conserver `.codex/agents/` comme roster projet et valider par une exécution réelle dans Codex. | ✅ Terminé (2026-07-22 : agents natifs `analyst-ticket` et `architect` lancés avec succès ; scénarios avancés à éprouver sur tickets réels) |
 
 
 
@@ -269,7 +269,7 @@ Une décision d'architecture opérationnelle décrivant :
 
 **Objectif**
 
-Confier à AntiGravity (AGY) la construction complète de l'adaptateur Codex CLI (`.codex/`, gabarits/rôles, politique de timeout) sans altérer le noyau fonctionnel commun (`.claude/`, `docs/ai-platform/`), puis faire valider l'exécution par Codex CLI sur son propre adaptateur.
+Construire et qualifier l'adaptateur Codex CLI (`.codex/`, agents personnalisés natifs, politique de timeout) sans altérer le noyau fonctionnel commun (`.claude/`, `docs/ai-platform/`), puis faire valider l'exécution réelle par Codex CLI sur son propre adaptateur.
 
 **Principe d'Ingénierie**
 
@@ -280,7 +280,7 @@ AGY est une plateforme qualifiée et stable. Elle crée l'adaptateur Codex de ma
 **Périmètre du Ticket**
 
 1. **Analyse AGY** : Étudier les capacités réelles de la version installée de Codex CLI (sub-agents, flags CLI, sandboxing, formats).
-2. **Construction AGY** : Créer le dossier `.codex/`, porter les 15 rôles sous forme de gabarits compatibles Codex, définir la politique de résilience `AGENT_TIMEOUT` (1 retry max → arrêt propre / escalade).
+2. **Construction AGY / Codex** : Créer le dossier `.codex/`, porter les rôles sous forme d'agents personnalisés Codex natifs, définir la politique de résilience `AGENT_TIMEOUT` (1 retry max → arrêt propre / escalade).
 3. **Mise à jour AGENTS.md** : Aligner le point d'entrée Codex avec l'adaptateur `.codex/`.
 4. **Pilote de Qualification Codex** : Rédiger le test minimal de qualification pour Codex CLI.
 5. **Validation par Codex** : Passer la main à Codex CLI pour exécuter le test minimal sur son adaptateur. En cas d'erreur, AGY ajuste l'adaptateur à partir des logs d'échec.

@@ -1,9 +1,10 @@
 name = "frontend"
 description = "Rôle de développement spécialisé React / Frontend."
 developer_instructions = """
-Ceci est un gabarit de prompt pour Codex exec (sandbox --sandbox workspace-write).
+Ceci est un agent personnalisé Codex natif. Voir docs/ai-platform/CODEX_USAGE.md.
 
 Read AGENTS.md.
+Ne lance jamais un autre agent : seul l'orchestrateur délègue.
 Mission : Implémenter les composants UI React, hooks et styles CSS.
 
 Format de retour obligatoire (5 champs) :
