@@ -147,7 +147,7 @@ Fonctionnalités issues du prototype Figma ou des chantiers de stabilisation tec
 
 | ID | User Story / Tâche | Origine | Justification Évolution | Statut |
 | :--- | :--- | :--- | :--- | :--- |
-| **US-11** | Chat de discussion de session | Figma (`components/DiscussionPanel`), Backlog (`B20` Hors scope) | Communication écrite annexe ; le débat a lieu à l'oral pendant la réunion. Capacité existante non requalifiée comme livrée. | 🟡 Base existante à valider |
+| **US-11** | Chat de discussion de session | Figma (`components/DiscussionPanel`), Backlog (`B20` Hors scope) | Communication écrite annexe ; le débat a lieu à l'oral pendant la réunion. Capacité existante qualifiée par tests backend, frontend et E2E. | ✅ Terminé |
 | **US-13** | Plan d'action & Écran résumé | Figma (`screens/ActionScreen.tsx` / `SummaryScreen.tsx`) | Capacités post-réunion distinctes du parcours MVP, qualifiées par tests ciblés et parcours E2E produit complet. | ✅ Terminé |
 | **US-14** | Cycle de vie du code de session / sessions clôturées en lecture seule | Investigation utilisateur (401 `/auth/profile`) ayant mené à une revue du cycle de vie des sessions, 2026-07-19/20 | Sécurité et cohérence métier : un code à 4 chiffres ne doit pas être un identifiant permanent, une session close ne doit plus être modifiable ni rejoignable. | ✅ Terminé |
 | **US-15** | Corrections UX post-tests réels (retour d'étape, Discussion docké, podium Plan d'action) | Retours utilisateur après un test de charge réel (50 participants, cartes, votes, commentaires), 2026-07-20 | Ergonomie facilitateur (erreur de manipulation récupérable) et productivité (discuter et consulter le podium sans changer d'écran). | ✅ Terminé |
