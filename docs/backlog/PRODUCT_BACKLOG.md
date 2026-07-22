@@ -29,7 +29,7 @@ Fonctionnalités explicitement justifiées par le cahier des charges, les User S
 | **US-05** | Liste des sessions | User Story (`US-05`), Product Backlog d'origine (`B07`) | Fournit au facilitateur et aux inscrits leur historique de rétros. | ✅ Terminé |
 | **US-06** | Rejoindre une session | User Story (`US-06`), Cahier des charges (4.) | Indispensable pour la participation collaborative des équipes. | ✅ Terminé |
 | **US-07** | Écriture des cartes | User Story (`US-07`), Cahier des charges (4.) | Cœur métier : expression écrite des retours de sprint. | ✅ Terminé |
-| **US-08** | Distribution de votes | User Story (`US-08`), Cahier des charges (4.) | Cœur métier : priorisation démocratique des sujets de discussion. Des capacités de vote existent, sans validation produit complète. | 🟡 Partiellement terminé |
+| **US-08** | Distribution de votes | User Story (`US-08`), Cahier des charges (4.) | Cœur métier : priorisation démocratique des sujets de discussion. Le vote, le quota, les erreurs et les transitions sont validés. | ✅ Terminé |
 | **US-09** | Vue des résultats | User Story (`US-09`), Cahier des charges (4.) | Permet la synthèse finale des cartes triées par votes. | ✅ Terminé |
 | **US-10** | Rôles & Transitions d'étape | Cahier des charges (3. Facilitateur), Figma (`App.tsx`) | Permet au facilitateur de guider la session (salle d'attente -> écriture -> vote -> résultats). | ✅ Terminé |
 | **T-FIG-01**| Timer d'étape visuel et fonctionnel | Figma (`screens/WritingScreen.tsx`/`VoteScreen.tsx`) | Timer visible et réellement utile pour piloter le temps de l'étape. | ✅ Terminé |
@@ -61,12 +61,12 @@ Fonctionnalités explicitement justifiées par le cahier des charges, les User S
 
 | ID | Priorité | Objectif | Critères d'acceptation courts | Statut |
 | :--- | :--- | :--- | :--- | :--- |
-| **US-08-DONE-01** | P0 | Backend de vote avec limite de 5 votes. | Capacité backend existante ; le quota et ses cas limites restent à valider dans le flux produit. | 🟡 Base existante à valider |
-| **US-08-DONE-02** | P0 | Bouton de vote et compteur sur les cartes. | Capacité UI existante ; le vote participant et le compteur restent à valider. | 🟡 Base existante à valider |
-| **T-UX-01** | P0 | Quota de votes restants visible. | Affichage présent ; sa cohérence après vote, erreur et transition reste à valider. | 🟡 Base existante à valider |
-| **MVP-VOTE-01** | P0 | Salle de vote complète. | Écran et composants présents ; conformité au prototype et comportement réel non encore validés. | 🟡 Base existante à valider |
-| **MVP-VOTE-TRANSITION-01** | P1 | Vérifier les votes lors des transitions. | La conservation des votes entre étapes reste à valider. | ⬜ À faire |
-| **MVP-VOTE-03** | P0 | Finaliser et valider le vote de bout en bout. | Un participant autorisé vote au plus cinq fois ; compteur, quota, erreurs et résultats restent cohérents après rechargement et transition. | ⬜ À faire |
+| **US-08-DONE-01** | P0 | Backend de vote avec limite de 5 votes. | Le backend refuse les votes invalides et expose le quota après vote. | ✅ Terminé |
+| **US-08-DONE-02** | P0 | Bouton de vote et compteur sur les cartes. | L'UI affiche l'état de vote et le compteur mis à jour après action. | ✅ Terminé |
+| **T-UX-01** | P0 | Quota de votes restants visible. | Le quota reste cohérent après vote, erreur et transition. | ✅ Terminé |
+| **MVP-VOTE-01** | P0 | Salle de vote complète. | La salle de vote est validée avec données réelles simulées et parcours participant. | ✅ Terminé |
+| **MVP-VOTE-TRANSITION-01** | P1 | Vérifier les votes lors des transitions. | Les cartes sont rafraîchies au passage en vote et restent cohérentes ensuite. | ✅ Terminé |
+| **MVP-VOTE-03** | P0 | Finaliser et valider le vote de bout en bout. | Un participant autorisé vote au plus cinq fois ; compteur, quota, erreurs et résultats restent cohérents après rechargement et transition. | ✅ Terminé |
 
 #### **US-09 — Vue des résultats**
 
@@ -89,15 +89,15 @@ Fonctionnalités explicitement justifiées par le cahier des charges, les User S
 
 | ID | Priorité | Objectif | Critères d'acceptation courts | Statut |
 | :--- | :--- | :--- | :--- | :--- |
-| **MVP-ACTION-01** | P1 | Ajouter le plan d'action. | Capacité existante à qualifier : le facilitateur peut consulter/préparer les actions prévues par le prototype. | 🟡 Base existante à valider |
-| **MVP-SUMMARY-01** | P1 | Ajouter l'écran résumé. | Capacité existante à qualifier : le résumé doit clôturer la rétrospective proprement. | 🟡 Base existante à valider |
-| **MVP-E2E-01** | P0 | Vérifier le parcours MVP jusqu'aux résultats. | Le parcours création -> écriture -> vote -> résultats doit être couvert et validé sans rupture majeure ; le plan d'action et le résumé restent suivis séparément comme capacités à qualifier. | ⬜ À faire |
+| **MVP-ACTION-01** | P1 | Ajouter le plan d'action. | Le facilitateur peut consulter/préparer les actions prévues par le prototype ; l'écriture est refusée en session clôturée. | ✅ Terminé |
+| **MVP-SUMMARY-01** | P1 | Ajouter l'écran résumé. | Le résumé clôture la rétrospective proprement et reste lisible pour les participants autorisés. | ✅ Terminé |
+| **MVP-E2E-01** | P0 | Vérifier le parcours MVP jusqu'aux résultats. | Le parcours création -> écriture -> vote -> résultats est couvert et validé sans rupture majeure. | ✅ Terminé |
 
 #### **US-14 — Sessions clôturées en lecture seule**
 
 | ID | Priorité | Objectif | Critères d'acceptation courts | Statut |
 | :--- | :--- | :--- | :--- | :--- |
-| **MVP-CLOSED-SESSION-01** | P0 | Finaliser le cycle de vie d'une session clôturée. | Après clôture, le code ne permet plus de rejoindre la session ; toute écriture, vote ou modification est refusée, tandis que la consultation autorisée reste en lecture seule. | ⬜ À faire |
+| **MVP-CLOSED-SESSION-01** | P0 | Finaliser le cycle de vie d'une session clôturée. | Après clôture, le code ne permet plus de rejoindre la session ; toute écriture, vote ou modification est refusée, tandis que la consultation autorisée reste en lecture seule. | ✅ Terminé |
 
 ### Ordre d'implémentation MVP
 
@@ -105,24 +105,24 @@ Fonctionnalités explicitement justifiées par le cahier des charges, les User S
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | 1 | **MVP-WRITING-01** | US-07 | P0 | Finaliser le design des cartes et des actions Modifier/Supprimer. | ✅ Terminé |
 | 2 | **MVP-TIMER-01** | US-07 / US-10 | P0 | Rendre le timer d'étape fonctionnel. | ✅ Terminé |
-| 3 | **MVP-VOTE-03** | US-08 | P0 | Finaliser et valider le vote de bout en bout. | ⬜ À faire |
-| 3.1 | **MVP-VOTE-01** | US-08 | P0 | Salle de vote : capacité existante à qualifier. | 🟡 Base existante à valider |
-| 3.2 | **MVP-VOTE-02** | US-08 | P0 | Validation E2E de la salle de vote. | 🟡 Base existante à valider |
+| 3 | **MVP-VOTE-03** | US-08 | P0 | Finaliser et valider le vote de bout en bout. | ✅ Terminé |
+| 3.1 | **MVP-VOTE-01** | US-08 | P0 | Salle de vote : capacité existante à qualifier. | ✅ Terminé |
+| 3.2 | **MVP-VOTE-02** | US-08 | P0 | Validation E2E de la salle de vote. | ✅ Terminé |
 | 4 | **MVP-RESULTS-01** | US-09 | P0 | Finaliser l'écran Résultats. | ✅ Terminé |
 | 4.1 | **MVP-RESULTS-02** | US-09 | P0 | Validation E2E de l'écran Résultats. | ✅ Terminé |
 | 5 | **MVP-TRANSITION-01** | US-10 | P0 | Valider toutes les transitions d'étape. | ✅ Terminé |
 | 5.1 | **MVP-TRANSITION-02** | US-10 | P0 | Validation E2E de l'enchaînement des étapes. | ✅ Terminé |
-| 6 | **MVP-E2E-01** | Transverse (US-07 à US-10) | P0 | Vérifier le parcours MVP jusqu'aux résultats. | ⬜ À faire |
-| 6.1 | **MVP-E2E-02** | Transverse (US-07 à US-13) | P0 | Validation E2E du parcours produit complet. | 🟡 Base existante à valider |
-| 6.2 | **MVP-CLOSED-SESSION-01** | US-14 | P0 | Finaliser le cycle de vie d'une session clôturée. | ⬜ À faire |
+| 6 | **MVP-E2E-01** | Transverse (US-07 à US-10) | P0 | Vérifier le parcours MVP jusqu'aux résultats. | ✅ Terminé |
+| 6.1 | **MVP-E2E-02** | Transverse (US-07 à US-13) | P0 | Validation E2E du parcours produit complet. | ✅ Terminé |
+| 6.2 | **MVP-CLOSED-SESSION-01** | US-14 | P0 | Finaliser le cycle de vie d'une session clôturée. | ✅ Terminé |
 | 7 | **MVP-PARTICIPANTS-01** | US-07 | P1 | Corriger l'UX du drawer Participants. | ✅ Terminé |
 | 7.1 | **MVP-PARTICIPANTS-02** | US-07 | P1 | Validation E2E du drawer Participants. | ✅ Terminé |
 | 8 | **MVP-DISCUSSION-01** | US-07 | P1 | Finaliser Discussion. | ✅ Terminé |
 | 8.1 | **MVP-DISCUSSION-02** | US-07 | P1 | Validation E2E du drawer Discussion. | ✅ Terminé |
 | 9 | **MVP-COMMENTS-01** | US-07 | P1 | Implémenter les commentaires de cartes. | ✅ Terminé |
 | 9.1 | **MVP-COMMENTS-02** | US-07 | P1 | Validation E2E de la modal Commentaires. | ✅ Terminé |
-| 10 | **MVP-ACTION-01** | US-13 | P1 | Plan d'action : capacité existante à qualifier. | 🟡 Base existante à valider |
-| 11 | **MVP-SUMMARY-01** | US-13 | P1 | Résumé : capacité existante à qualifier. | 🟡 Base existante à valider |
+| 10 | **MVP-ACTION-01** | US-13 | P1 | Plan d'action : capacité existante à qualifier. | ✅ Terminé |
+| 11 | **MVP-SUMMARY-01** | US-13 | P1 | Résumé : capacité existante à qualifier. | ✅ Terminé |
 | 12 | **MVP-WRITING-STATE-01** | US-07 | P2 | Finaliser les états chargement/erreur/vides. | ✅ Terminé |
 | 12.1 | **MVP-WRITING-STATE-02** | US-07 | P2 | Validation E2E des états de chargement et vides. | ✅ Terminé |
 
@@ -148,8 +148,8 @@ Fonctionnalités issues du prototype Figma ou des chantiers de stabilisation tec
 | ID | User Story / Tâche | Origine | Justification Évolution | Statut |
 | :--- | :--- | :--- | :--- | :--- |
 | **US-11** | Chat de discussion de session | Figma (`components/DiscussionPanel`), Backlog (`B20` Hors scope) | Communication écrite annexe ; le débat a lieu à l'oral pendant la réunion. Capacité existante non requalifiée comme livrée. | 🟡 Base existante à valider |
-| **US-13** | Plan d'action & Écran résumé | Figma (`screens/ActionScreen.tsx` / `SummaryScreen.tsx`) | Capacités post-réunion distinctes du parcours MVP, qui est borné jusqu'aux résultats. Les écrans existants restent à qualifier, sans validation de clôture complète. | 🟡 Base existante à valider |
-| **US-14** | Cycle de vie du code de session / sessions clôturées en lecture seule | Investigation utilisateur (401 `/auth/profile`) ayant mené à une revue du cycle de vie des sessions, 2026-07-19/20 | Sécurité et cohérence métier : un code à 4 chiffres ne doit pas être un identifiant permanent, une session close ne doit plus être modifiable ni rejoignable. Des éléments de base existent, sans validation métier complète. | 🟡 Partiellement terminé |
+| **US-13** | Plan d'action & Écran résumé | Figma (`screens/ActionScreen.tsx` / `SummaryScreen.tsx`) | Capacités post-réunion distinctes du parcours MVP, qualifiées par tests ciblés et parcours E2E produit complet. | ✅ Terminé |
+| **US-14** | Cycle de vie du code de session / sessions clôturées en lecture seule | Investigation utilisateur (401 `/auth/profile`) ayant mené à une revue du cycle de vie des sessions, 2026-07-19/20 | Sécurité et cohérence métier : un code à 4 chiffres ne doit pas être un identifiant permanent, une session close ne doit plus être modifiable ni rejoignable. | ✅ Terminé |
 | **US-15** | Corrections UX post-tests réels (retour d'étape, Discussion docké, podium Plan d'action) | Retours utilisateur après un test de charge réel (50 participants, cartes, votes, commentaires), 2026-07-20 | Ergonomie facilitateur (erreur de manipulation récupérable) et productivité (discuter et consulter le podium sans changer d'écran). | ✅ Terminé |
 | **T-UI-01** | Homogénéisation des Toasts (Tailwind) | Audit technique ultérieur (2026-07-09) | Polish visuel mineur ; les alertes de l'application sont déjà fonctionnelles. | ✅ Terminé (2026-07-19 : `ToastStyled.tsx`/`ToastNotification.tsx` alignés sur le thème navy de l'app) |
 | **T-ARCHI-01**| Migration des formulaires vers RHF | Audit technique ultérieur (2026-07-13) | Harmonisation interne du code ; la validation manuelle actuelle est déjà OK. | ✅ Terminé (2026-07-20 : Login/Signup/SessionCreate/Forgot migrés vers React Hook Form + Zod, une PR par formulaire) |
