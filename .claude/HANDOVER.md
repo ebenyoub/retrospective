@@ -2,48 +2,52 @@
 
 ## Ticket en cours
 
-US-13 — Plan d'action & Écran résumé
+TEST-BOUNCE-01 — Test de la boucle QA
 
 ## Objectif
 
-Finir l'implémentation fonctionnelle des écrans Action + Résumé, connecter les API, valider manuellement, avant tout outillage E2E.
+Valider le mécanisme de rebond `TEST_FAILED` de l'orchestrateur (`.claude/ORCHESTRATOR.md`) en conditions réelles : une régression détectée par les tests doit déclencher un retour en phase de correction, puis une validation finale.
+
+## Note — ce fichier décrivait auparavant un autre ticket
+
+Ce fichier référençait `US-13 — Plan d'action & Écran résumé` comme ticket en cours, avec un diff non commité sur `feature/US-13`. **Ce travail est terminé depuis** : commité et mergé via PR #27 (commit `26c173d`, 2026-07-20), avec `US-14`/`US-15`/`T-PART-02` dans le même commit (choix explicite de l'utilisateur, voir `docs/PROJECT_STATE.md`). L'entrée était obsolète et vient d'être remplacée (revue du 2026-07-27).
 
 ## État Git
 
-Branche `feature/US-13`. Aucun commit encore créé pour ce ticket : toutes les modifications sont dans l'arbre de travail (voir `git status --short`). Les fichiers backend `action.*` et `sql/alter_sessions_and_create_actions.sql` ne sont pas trackés ; la table `session_actions` est déjà appliquée manuellement sur la base MySQL Docker locale (vérifié via `SHOW TABLES`).
+Branche `feature/TEST-BOUNCE-01-qa-loop` (= `dev` + commits `ai-platform`/finalisation du vote, pas encore mergée vers `dev`/`main`). Après le correctif ci-dessous, modifications en cours dans l'arbre de travail (non commitées) : `retrospective_backend/src/services/session.service.ts`, `docs/PROJECT_STATE.md`.
 
 ## Implémentation terminée
 
-- Backend : modèle/service/contrôleur/routes `action.*`, table `session_actions`, validation Zod (`createActionSchema`).
-- Frontend : `ActionStep.tsx` (déjà présent avant cette session), nouveau `SummaryStep.tsx`, `summary` ajouté à `SESSION_STEPS`, bouton de transition action → résumé, câblage complet dans `SessionDashboard.tsx`.
+- Détection d'une régression réelle : `deleteSessionService` refusait la suppression d'une session close (`assertSessionOpen(session)` ajouté par erreur dans le commit `b9751dc`), contredisant la décision produit déjà actée le 2026-07-19 (suppression toujours autorisée sur session close).
+- Correctif : retrait de l'appel `assertSessionOpen(session)` dans `deleteSessionService`.
 
 ## Implémentation restante
 
-- Tests Playwright dédiés à US-13 (non démarrés, sur demande explicite de l'utilisateur : validation manuelle d'abord).
+- Validation utilisateur du correctif avant commit.
+- Décider si `feature/TEST-BOUNCE-01-qa-loop` doit être mergée vers `dev`/`main`.
 
 ## Tests exécutés
 
-- `npx vitest run` : 275/275 backend, 174/174 frontend.
-- `npx tsc --noEmit` : propre (backend et frontend).
+- `npx vitest run` (backend) : 320/320 (contre 318/320 avant correctif).
+- `npx tsc --noEmit` (backend) : propre.
+- Frontend non retouché dans ce ticket : 193/193 toujours au vert (vérifié lors de la revue).
 
 ## Résultats
 
-Parcours complet vérifié manuellement (script Playwright ponctuel exécuté puis supprimé, non committé) : création de session, écriture de cartes, vote, résultats, ajout d'une action, écran résumé (statistiques, Top 3, participants, plan d'action), puis clôture réelle de la session côté facilitateur. Vue lecture seule confirmée côté invité.
+Boucle QA validée de bout en bout : régression détectée par les tests → rebond `TEST_FAILED` documenté dans `docs/PROJECT_STATE.md` (entrée 2026-07-21) → correction appliquée → tests repassés au vert (2026-07-27).
 
 ## Bugs connus
 
-Aucun restant. Un bug de redémarrage `ts-node-dev` (nouvelle route `/session/:id/actions` répondant 404) a été rencontré et corrigé par `docker restart retrospective-backend` — comportement déjà documenté comme récurrent dans `docs/PROJECT_STATE.md`.
+Aucun restant après le correctif.
 
 ## Décisions prises
 
-- Un seul bouton de clôture de session (barre d'action) ; pas de bouton dupliqué dans l'écran Résumé.
-- PDF / partage du prototype Figma exclus du MVP (hors périmètre, non enseignés).
-- La structure de workflow IA commune (Claude / Codex / autres IA) reste centralisée dans `.claude/` avec `.claude/PROJECT_WORKFLOW.md` comme source de vérité unique, plutôt que dupliquée dans un nouveau dossier `docs/ai-workflow/`.
+- `deleteSessionService` doit rester non gardé par `assertSessionOpen` : supprimer une session close reste autorisé (décision réaffirmée, régression corrigée).
 
 ## Fichiers principaux
 
-`retrospective_frontend/src/pages/session/steps/SummaryStep.tsx`, `sessionStep.ts`, `components/SessionActionBar.tsx`, `SessionDashboard.tsx`, `hooks/useSessionActions.ts`, `retrospective_backend/src/{controllers,services,models}/action.*`.
+`retrospective_backend/src/services/session.service.ts`, `docs/PROJECT_STATE.md`.
 
 ## Prochaine action exacte
 
-Attendre la validation utilisateur de US-13, puis proposer un commit unique pour ce ticket.
+Attendre la validation utilisateur du correctif, puis proposer un commit unique.

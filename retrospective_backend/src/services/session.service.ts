@@ -476,8 +476,6 @@ export const deleteSessionService = async (
     throw new AppError(403, "Seul le facilitateur peut supprimer la session.", "FORBIDDEN");
   }
 
-  assertSessionOpen(session);
-
   const deleted = await deleteSessionById(sessionId, userId);
   if (!deleted) {
     throw new AppError(500, "Impossible de supprimer la session.", "SESSION_DELETE_FAILED");

@@ -4,6 +4,8 @@
 
 ## Date de dernière mise à jour
 
+2026-07-27 (`TEST-BOUNCE-01 — Test de boucle QA` : correctif appliqué suite au rebond `TEST_FAILED`. Le commit `b9751dc` (« enforce read-only behavior for closed sessions ») avait ajouté par erreur `assertSessionOpen(session)` dans `deleteSessionService` (`session.service.ts`), contredisant la décision déjà actée le 2026-07-19 (« `deleteSessionService` reste délibérément non gardé, supprimer une session close reste autorisé ») et cassant 2 tests (`session.service.test.ts > deleteSessionService`). Garde-fou retiré, 320/320 tests backend et `tsc --noEmit` de nouveau au vert. Boucle QA validée de bout en bout : détection → rebond → correction → tests verts.)
+
 2026-07-21 (`TEST-BOUNCE-01 — Test de boucle QA` : validation de l'état d'exécution `TEST_FAILED` suite au test de la boucle QA. Mise à jour de la documentation de suivi pour refléter le rebond QA et le retour en phase de correction.)
 
 2026-07-21 (`T-CLEANUP-02 — Suppression du hook mort useFormValidation` terminé : suppression du hook obsolète `src/hooks/useFormValidation.ts`, des types associés `src/types/formValidation.types.ts` et de son fichier de tests `src/hooks/tests/useFormValidation.test.ts`. Ce hook n'était plus importé ni utilisé dans le projet suite à la migration de tous les formulaires vers React Hook Form + Zod (ticket `T-ARCHI-01`). La suppression assainit la base de code sans aucune régression).
