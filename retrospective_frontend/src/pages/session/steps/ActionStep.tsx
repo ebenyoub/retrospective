@@ -37,18 +37,20 @@ const ActionCard = ({ item }: { item: ActionItem }) => {
   const meta = PRIORITY_META[item.priority];
   return (
     <article
-      className="flex flex-col gap-2.5 rounded-[10px] border border-navy-border border-l-[3px] bg-navy-mid px-3.5 py-3 sm:flex-row sm:items-center sm:gap-4"
+      className="flex flex-col gap-2.5 rounded-[10px] border border-navy-border border-l-[3px] bg-navy-mid px-3.5 py-3 sm:flex-row sm:items-center sm:gap-3"
       style={{ borderLeftColor: meta.color }}
     >
-      <p className="min-w-0 flex-1 text-[13px] leading-[1.5] text-slate-100 break-words">{item.description}</p>
-      <div className="flex flex-shrink-0 flex-wrap items-center gap-2.5 sm:gap-4">
+      {/* Priorité + responsable juste avant le texte : plus lisible que
+          rejetés en bout de ligne, loin de l'action qu'ils qualifient. */}
+      <div className="flex flex-shrink-0 flex-wrap items-center gap-2.5">
+        <PriorityPill priority={item.priority} />
         <span className="inline-flex items-center gap-1.5">
           <Avatar name={item.owner} colorSeed={item.owner} size={20} fallback="?" />
           <span className="text-xs font-medium text-slate-300">{item.owner}</span>
         </span>
-        <span className="font-mono text-[11px] text-slate-500">{formatDeadline(item.deadline)}</span>
-        <PriorityPill priority={item.priority} />
       </div>
+      <p className="min-w-0 flex-1 text-[13px] leading-[1.5] text-slate-100 break-words">{item.description}</p>
+      <span className="flex-shrink-0 font-mono text-[11px] text-slate-500">{formatDeadline(item.deadline)}</span>
     </article>
   );
 };
@@ -170,6 +172,7 @@ const ActionStep = ({ onAddAction }: ActionStepProps) => {
   const { formatColumns } = details;
   const { isFacilitator } = identity;
   const [showForm, setShowForm] = useState(false);
+  const [topLimit, setTopLimit] = useState(5);
 
   const groups = PRIORITY_ORDER.map((priority) => ({
     priority,
@@ -202,7 +205,7 @@ const ActionStep = ({ onAddAction }: ActionStepProps) => {
           <div className="mb-6">
             {/* Rappel des cartes les plus votées : on ne s'en souvient plus une
                 fois arrivé au plan d'action, pas la peine de revenir en arrière. */}
-            <TopVotedCards cards={cards} formatColumns={formatColumns} limit={5} />
+            <TopVotedCards cards={cards} formatColumns={formatColumns} limit={topLimit} onLimitChange={setTopLimit} showComments />
           </div>
         )}
 

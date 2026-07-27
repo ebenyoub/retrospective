@@ -229,4 +229,68 @@ describe('SessionDashboard - Plan d\'action (Action Step)', () => {
     const cards = screen.getAllByText(/Carte (peu|très) votée/);
     expect(cards[0].textContent).toBe('Carte très votée');
   });
+
+  it('permet de choisir le nombre de cartes affichées dans le podium', async () => {
+    const votedCardsResponse = {
+      ok: true,
+      json: async () => ({
+        success: true,
+        data: [
+          { id: 1, sessionId: 1, authorId: 1, authorName: 'Elyas', columnType: 'start', content: 'Carte peu votée', createdAt: '2026-07-07T10:00:00.000Z', votesCount: 1 },
+          { id: 2, sessionId: 1, authorId: 1, authorName: 'Elyas', columnType: 'stop', content: 'Carte très votée', createdAt: '2026-07-07T10:01:00.000Z', votesCount: 5 },
+        ],
+      }),
+    };
+    const fetchMock = createDashboardFetchMock({
+      step: 'action',
+      cardsSequence: [votedCardsResponse],
+      actionsResponse: emptyActionsResponse,
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderDashboard();
+
+    expect(await screen.findByText('Top 5 des cartes')).toBeTruthy();
+
+    const select = screen.getByRole('combobox', { name: 'Nombre de cartes affichées dans le podium' });
+    fireEvent.change(select, { target: { value: '3' } });
+
+    expect(await screen.findByText('Top 3 des cartes')).toBeTruthy();
+  });
+
+  it('permet de consulter les commentaires d\'une carte du podium pendant le plan d\'action', async () => {
+    const votedCardsResponse = {
+      ok: true,
+      json: async () => ({
+        success: true,
+        data: [
+          { id: 1, sessionId: 1, authorId: 1, authorName: 'Elyas', columnType: 'start', content: 'Carte du podium', createdAt: '2026-07-07T10:00:00.000Z', votesCount: 3, commentsCount: 1 },
+        ],
+      }),
+    };
+    const fetchMock = createDashboardFetchMock({
+      step: 'action',
+      cardsSequence: [votedCardsResponse],
+      actionsResponse: emptyActionsResponse,
+      commentsResponse: {
+        ok: true,
+        json: async () => ({
+          success: true,
+          data: [
+            { id: 5, cardId: 1, authorId: 2, authorName: 'Sarah', content: 'Un avis pendant le plan d\'action', createdAt: '2026-07-07T10:05:00.000Z' },
+          ],
+        }),
+      },
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderDashboard();
+
+    expect(await screen.findByText('Carte du podium')).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Commentaires' }));
+
+    const section = await screen.findByRole('region', { name: 'Discussion' });
+    await within(section).findByText('Un avis pendant le plan d\'action');
+  });
 });
