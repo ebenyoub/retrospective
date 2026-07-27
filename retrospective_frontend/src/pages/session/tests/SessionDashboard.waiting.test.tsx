@@ -281,4 +281,49 @@ describe('SessionDashboard - Salle d\'attente (Waiting Step)', () => {
 
     expect(await screen.findAllByPlaceholderText('Nouvelle carte...')).toHaveLength(3);
   });
+
+  it('ouvre le panneau Discussion depuis la navbar pendant la salle d\'attente', async () => {
+    authState.isAuthenticated = true;
+    authState.token = 'facilitator-token';
+
+    vi.stubGlobal('fetch', vi.fn().mockImplementation((url: string) => {
+      if (url.endsWith('/session/1')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ success: true, data: { id: 1, name: 'Retro', code: '1234', status: 'open', step: 'waiting', ownerId: 1 } }),
+        });
+      }
+      if (url.endsWith('/session/1/participants/self')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ success: true, data: { id: 9, role: 'facilitator' } }),
+        });
+      }
+      if (url.endsWith('/session/1/participants')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ success: true, data: [{ id: 9, displayName: 'Elyas', role: 'facilitator', status: 'online' }] }),
+        });
+      }
+      if (url.endsWith('/session/1/chat/messages')) {
+        return Promise.resolve({ ok: true, json: async () => ({ success: true, data: [] }) });
+      }
+      return Promise.resolve({ ok: true, json: async () => ({ success: true, data: [] }) });
+    }));
+
+    render(
+      <MemoryRouter initialEntries={['/session/1']}>
+        <Routes>
+          <Route path="/session/:id" element={<SessionDashboard />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await screen.findByRole('button', { name: 'Lancer la rétro' });
+    expect(screen.queryByRole('heading', { name: 'Discussion' })).toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Discussion' }));
+
+    expect(await screen.findByRole('heading', { name: 'Discussion' })).toBeTruthy();
+  });
 });

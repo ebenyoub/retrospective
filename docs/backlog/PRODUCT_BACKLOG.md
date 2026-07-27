@@ -151,6 +151,7 @@ Fonctionnalités issues du prototype Figma ou des chantiers de stabilisation tec
 | **US-13** | Plan d'action & Écran résumé | Figma (`screens/ActionScreen.tsx` / `SummaryScreen.tsx`) | Capacités post-réunion distinctes du parcours MVP, qualifiées par tests ciblés et parcours E2E produit complet. | ✅ Terminé |
 | **US-14** | Cycle de vie du code de session / sessions clôturées en lecture seule | Investigation utilisateur (401 `/auth/profile`) ayant mené à une revue du cycle de vie des sessions, 2026-07-19/20 | Sécurité et cohérence métier : un code à 4 chiffres ne doit pas être un identifiant permanent, une session close ne doit plus être modifiable ni rejoignable. | ✅ Terminé |
 | **US-15** | Corrections UX post-tests réels (retour d'étape, Discussion docké, podium Plan d'action) | Retours utilisateur après un test de charge réel (50 participants, cartes, votes, commentaires), 2026-07-20 | Ergonomie facilitateur (erreur de manipulation récupérable) et productivité (discuter et consulter le podium sans changer d'écran). | ✅ Terminé |
+| **US-16** | Corrections UX & bugs post-revue navigateur (Résultats, Salle d'attente, Écriture, Plan d'action) | Tour manuel de l'utilisateur dans le navigateur sur une session réelle, 2026-07-27 | Lisibilité, réduction des informations redondantes, clarté des libellés, et 2 bugs fonctionnels réels (Discussion inopérante en salle d'attente, commentaires non temps réel). Détail des sous-tickets ci-dessous. | ⬜ À faire |
 | **T-UI-01** | Homogénéisation des Toasts (Tailwind) | Audit technique ultérieur (2026-07-09) | Polish visuel mineur ; les alertes de l'application sont déjà fonctionnelles. | ✅ Terminé (2026-07-19 : `ToastStyled.tsx`/`ToastNotification.tsx` alignés sur le thème navy de l'app) |
 | **T-ARCHI-01**| Migration des formulaires vers RHF | Audit technique ultérieur (2026-07-13) | Harmonisation interne du code ; la validation manuelle actuelle est déjà OK. | ✅ Terminé (2026-07-20 : Login/Signup/SessionCreate/Forgot migrés vers React Hook Form + Zod, une PR par formulaire) |
 | **T-AUTH-FORGOT-BREVO-01** | Finaliser le mot de passe oublié avec Brevo | Retour utilisateur 2026-07-22 ; référence technique existante dans `loge_restaurant` | Le parcours forgot/reset existe déjà mais l'envoi réel d'e-mail doit être configuré via SMTP Brevo, sans dépendre de l'ancien transport Gmail. | ✅ Terminé (2026-07-22 : transport SMTP Brevo configuré, `.env.example`/Docker/docs alignés, tests ciblés OK) |
@@ -159,6 +160,53 @@ Fonctionnalités issues du prototype Figma ou des chantiers de stabilisation tec
 | **T-CLEANUP-02**| Suppression du hook mort `useFormValidation` | Audit technique post T-ARCHI-01 (2026-07-20) | Suppression du code mort frontend devenu obsolète après migration RHF. | ✅ Terminé (2026-07-21 : hook `useFormValidation.ts`, types et tests supprimés) |
 | **T-AI-PLATFORM-03**| Synchronisation automatique du contexte partagé | Audit du workflow IA après dérive `CURRENT_TASK.md` / `HANDOVER.md` constatée le 2026-07-21 | Fiabiliser la reprise de session multi-IA en rendant la synchronisation de l'état partagé obligatoire, vérifiable et la plus dérivée possible de l'état Git réel. | ✅ Terminé (2026-07-22 : décision `CONTEXT_SYNC.md`, contrats Claude/Codex alignés) |
 | **T-AI-PLATFORM-CODEX-BOOTSTRAP** | Qualification & Bootstrap de l'Infrastructure Codex CLI | Qualification adaptateur Codex suite aux revues d'architecture multi-agents | Adapter la couche Codex au mécanisme natif de subagents, conserver `.codex/agents/` comme roster projet et valider par une exécution réelle dans Codex. | ✅ Terminé (2026-07-22 : agents natifs `analyst-ticket` et `architect` lancés avec succès ; scénarios avancés à éprouver sur tickets réels) |
+
+### US-16 — Corrections UX & bugs post-revue navigateur (2026-07-27)
+
+Retour utilisateur après un tour manuel dans le navigateur, session réelle (`Retro spring 6`, id 77). Regroupe des ajustements de lisibilité par écran et deux bugs fonctionnels réels. Un sous-ticket = un sujet, développé, testé et validé séparément (règle CLAUDE.md "un sujet à la fois").
+
+**Bugs fonctionnels (priorité haute — avant le polish UX)**
+
+| ID | Écran | Description | Statut |
+| :--- | :--- | :--- | :--- |
+| **BUG-WAITING-DISCUSSION-01** | Salle d'attente | Le bouton "Discussion" ne fonctionne pas en salle d'attente, alors que c'est le meilleur moment pour échanger entre participants déjà connectés. | ✅ Terminé (2026-07-27 : `DiscussionDrawer` n'était monté que hors étape `waiting` ; désormais rendu en frère docké/overlay de `WaitingStep`, comme sur les autres étapes) |
+| **BUG-COMMENTS-REALTIME-01** | Écriture | Un commentaire ajouté par un participant ne s'affiche pas en temps réel pour les autres : il faut rouvrir le panneau ("Commentaires (2)") ou recharger la page pour le voir. | ⬜ À faire |
+
+**UX — Salle d'attente**
+
+| ID | Description | Statut |
+| :--- | :--- | :--- |
+| **UX-WAITING-01** | Sidebar, ligne "Format" : gap manquant entre le libellé et le menu déroulant. | ⬜ À faire |
+| **UX-WAITING-02** | Cartes participants : point vert redondant devant "En ligne" (déjà porté par l'avatar), à retirer. | ⬜ À faire |
+| **UX-WAITING-03** | Navbar : bouton "Participants" jugé inutile (déjà accessible via la sidebar), à retirer. | ⬜ À faire |
+| **UX-WAITING-04** | Navbar : code de session à copier redondant avec la sidebar, à retirer. | ⬜ À faire |
+| **UX-WAITING-05** | Carte "Votre accès" : mention "1 en ligne maintenant" redondante avec l'info déjà affichée ailleurs, à retirer. | ⬜ À faire |
+
+**UX — Écriture**
+
+| ID | Description | Statut |
+| :--- | :--- | :--- |
+| **UX-WRITING-01** | Bouton "← Retour" peu clair ; à renommer (ex. "Accueil"). | ⬜ À faire |
+| **UX-WRITING-02** | Panneau Participants à repositionner à gauche (actuellement à droite). | ⬜ À faire |
+| **UX-WRITING-03** | Cartes : nombre de votes affiché dès l'étape Écriture à retirer (pas pertinent avant le vote). | ⬜ À faire |
+| **UX-WRITING-04** | Commentaires : un seul panneau ouvert à la fois — fermeture automatique du précédent à l'ouverture d'un nouveau, et/ou fermeture au clic en dehors de la carte, pour optimiser l'espace. | ⬜ À faire |
+| **UX-WRITING-05** | Commentaires : affichage inversé (les plus récents en haut) pour garder les derniers échanges toujours visibles. | ⬜ À faire |
+
+**UX — Résultats**
+
+| ID | Description | Statut |
+| :--- | :--- | :--- |
+| **UX-RESULTS-01** | Pouvoir continuer à consulter les commentaires des cartes sur l'écran Résultats. | ⬜ À faire |
+
+**UX — Plan d'action / Résumé**
+
+| ID | Description | Statut |
+| :--- | :--- | :--- |
+| **UX-ACTION-01** | Pouvoir choisir le nombre de cartes affichées dans le podium ("Top"). | ⬜ À faire |
+| **UX-ACTION-02** | Pouvoir continuer à consulter les commentaires des cartes dans le Plan d'action. | ⬜ À faire |
+| **UX-ACTION-03** | Ligne de plan d'action : priorité et responsable trop excentrés à droite, peu lisibles ; à rapprocher du texte de l'action (ex. les afficher avant le texte plutôt qu'en bout de ligne). | ⬜ À faire |
+
+---
 
 
 

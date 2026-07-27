@@ -282,7 +282,16 @@ const SessionDashboard = () => {
         onCopySessionCode={handleCopySessionCode}
       />
       {activeStep === 'waiting' ? (
-        <WaitingStep />
+        // Discussion en docké (desktop) / overlay (mobile), comme sur les
+        // autres étapes : le bouton "Discussion" de la navbar doit rester
+        // utilisable pendant l'attente, pas seulement une fois la rétro lancée.
+        <div className="flex flex-1 overflow-hidden">
+          <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+            <WaitingStep />
+          </div>
+
+          <DiscussionDrawer />
+        </div>
       ) : (
         <>
           <SessionActionBar />
