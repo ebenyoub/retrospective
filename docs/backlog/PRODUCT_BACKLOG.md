@@ -191,6 +191,8 @@ Retour utilisateur après un tour manuel dans le navigateur, session réelle (`R
 | **UX-WRITING-03** | Cartes : nombre de votes affiché dès l'étape Écriture à retirer (pas pertinent avant le vote). | ✅ Terminé (2026-07-27 : masqué si `details.step === 'writing'`, toujours affiché au vote) |
 | **UX-WRITING-04** | Commentaires : un seul panneau ouvert à la fois — fermeture automatique du précédent à l'ouverture d'un nouveau, et/ou fermeture au clic en dehors de la carte, pour optimiser l'espace. | ✅ Terminé (2026-07-27 : accordéon centralisé dans `useSessionPanels` — `openCommentsCardId`, une seule carte ouverte à la fois) |
 | **UX-WRITING-05** | Commentaires : affichage inversé (les plus récents en haut) pour garder les derniers échanges toujours visibles. | ✅ Terminé (2026-07-27 : affichage inversé, état interne inchangé) |
+| **UX-COMMENTS-FOCUS-01** | Commentaires : à la soumission, le focus doit rester dans le champ de saisie (pour enchaîner plusieurs commentaires sans re-cliquer). | ✅ Terminé (2026-07-27 : même motif que le chat de Discussion — refocus différé après réactivation du champ) |
+| **UX-COMMENTS-SCROLL-01** | Commentaires : à la soumission, le défilement de la liste doit revenir tout en haut pour voir le dernier commentaire (affichage inversé depuis UX-WRITING-05). | ✅ Terminé (2026-07-27) |
 
 **UX — Résultats**
 

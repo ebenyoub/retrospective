@@ -375,6 +375,10 @@ describe('SessionDashboard - Tiroirs et Modals (Panes)', () => {
       .getAllByText(/Un premier commentaire|Une précision utile/)
       .map((element) => element.textContent);
     expect(commentTexts).toEqual(['Une précision utile', 'Un premier commentaire']);
+
+    // Le focus doit revenir dans le champ de saisie après l'envoi, pour
+    // enchaîner plusieurs commentaires sans re-cliquer dans le champ.
+    await waitFor(() => expect(document.activeElement).toBe(textarea));
   });
 
   it("permet à l'auteur de supprimer son propre commentaire", async () => {

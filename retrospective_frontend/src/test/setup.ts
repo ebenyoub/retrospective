@@ -39,12 +39,14 @@ if (typeof window.localStorage?.setItem !== 'function') {
   Object.defineProperty(globalThis, 'localStorage', { value: storageShim, configurable: true });
 }
 
-// jsdom ne fait pas de mise en page réelle et n'implémente donc pas
-// scrollIntoView (DiscussionDrawer/CardCommentsSection s'en servent pour
-// défiler vers le bas) : un stub inoffensif suffit, les navigateurs réels
-// ont leur propre implémentation.
+// jsdom ne fait pas de mise en page réelle et n'implémente donc ni
+// scrollIntoView (DiscussionDrawer) ni scrollTo (CardCommentsSection) : des
+// stubs inoffensifs suffisent, les navigateurs réels ont leur propre implémentation.
 if (typeof window.HTMLElement.prototype.scrollIntoView !== 'function') {
   window.HTMLElement.prototype.scrollIntoView = () => {};
+}
+if (typeof window.HTMLElement.prototype.scrollTo !== 'function') {
+  window.HTMLElement.prototype.scrollTo = () => {};
 }
 
 // Nettoie le DOM entre chaque test (Vitest ne le fait pas automatiquement,

@@ -1,5 +1,5 @@
 import { MessageCircle, Send, Trash2 } from 'lucide-react';
-import { useCallback, useEffect, useState, useContext } from 'react';
+import { useCallback, useEffect, useRef, useState, useContext } from 'react';
 import IconButton from '@/components/ui/IconButton';
 import Avatar from '@/components/ui/Avatar';
 import { useToast } from '@/context/toast/useToast';
@@ -21,6 +21,8 @@ const CardCommentsSection = ({ cardId }: CardCommentsSectionProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [draftContent, setDraftContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
 
   if (!session) {
     throw new Error('CardCommentsSection must be used within a SessionContext.Provider');
@@ -80,6 +82,14 @@ const CardCommentsSection = ({ cardId }: CardCommentsSectionProps) => {
       addToast('error', NETWORK_ERROR_MESSAGE);
     } finally {
       setIsSubmitting(false);
+      // Le nouveau commentaire apparaît en haut (affichage inversé) : on y
+      // ramène le défilement et on rend la main au champ de saisie, comme
+      // pour le chat de Discussion (DiscussionDrawer). Le délai laisse le
+      // temps au champ de se réactiver (disabled le temps de la soumission).
+      setTimeout(() => {
+        listRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+        textareaRef.current?.focus();
+      }, 30);
     }
   }, [draftContent, isSubmitting, sessionId, actorHeaders, cardId, addToast, onCommentsChanged]);
 
@@ -120,7 +130,7 @@ const CardCommentsSection = ({ cardId }: CardCommentsSectionProps) => {
       ) : comments.length === 0 ? (
         <p className="text-center text-xs text-slate-500 py-2">Aucun commentaire pour le moment.</p>
       ) : (
-        <ul className="flex flex-col gap-2.5 max-h-[200px] overflow-y-auto pr-1">
+        <ul ref={listRef} className="flex flex-col gap-2.5 max-h-[200px] overflow-y-auto pr-1">
           {orderedComments.map((comment) => (
             <li key={comment.id} className="flex items-start gap-2 text-xs text-left">
               <Avatar name={comment.authorName} colorSeed={comment.authorId} size={22} fontSize={10} />
@@ -152,6 +162,7 @@ const CardCommentsSection = ({ cardId }: CardCommentsSectionProps) => {
 
       {!isReadOnly && <div className="flex items-end gap-2 mt-1">
         <textarea
+          ref={textareaRef}
           aria-label="Écrire un commentaire"
           value={draftContent}
           onChange={(event) => setDraftContent(event.target.value)}
