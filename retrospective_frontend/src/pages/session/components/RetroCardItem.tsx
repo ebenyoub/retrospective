@@ -1,5 +1,5 @@
 import { MessageCircle, Pencil, Trash2 } from 'lucide-react';
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import Button from '@/components/ui/Button';
 import IconButton from '@/components/ui/IconButton';
 import Avatar from "@/components/ui/Avatar";
@@ -13,25 +13,31 @@ const RetroCardItem = ({ card, accentClassName, currentUserId, onVote, onUpdateC
   const [draftContent, setDraftContent] = useState(card.content);
   const [isCommentsExpanded, setIsCommentsExpanded] = useState(false);
   const [isCommentsBlinking, setIsCommentsBlinking] = useState(false);
-  const commentsBlinkTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Dernier événement déjà traité par cette carte : comparé pendant le rendu
+  // plutôt que dans un effet, pour éviter un setState synchrone dans le corps
+  // d'un effet (rendu en cascade évitable, voir react.dev/learn/you-might-not-need-an-effect).
+  const [lastSeenCommentEvent, setLastSeenCommentEvent] = useState(lastCommentAdded);
 
-  // Clignotement du bouton "Commentaires" de cette carte à la réception d'un
-  // commentaire d'un autre participant (le son, distinct de celui de
-  // Discussion, est joué une seule fois dans useSessionParticipants).
+  if (lastCommentAdded !== lastSeenCommentEvent) {
+    setLastSeenCommentEvent(lastCommentAdded);
+
+    if (
+      lastCommentAdded &&
+      lastCommentAdded.cardId === card.id &&
+      lastCommentAdded.comment.authorId !== currentUserId
+    ) {
+      setIsCommentsBlinking(true);
+    }
+  }
+
+  // Minuterie du clignotement : ici, l'effet ne fait que synchroniser avec un
+  // système externe (le délai), setState n'a lieu que dans le callback du
+  // timeout, jamais de façon synchrone dans le corps de l'effet.
   useEffect(() => {
-    if (!lastCommentAdded || lastCommentAdded.cardId !== card.id) return;
-    if (lastCommentAdded.comment.authorId === currentUserId) return;
-
-    setIsCommentsBlinking(true);
-    if (commentsBlinkTimeoutRef.current) clearTimeout(commentsBlinkTimeoutRef.current);
-    commentsBlinkTimeoutRef.current = setTimeout(() => setIsCommentsBlinking(false), 2500);
-  }, [lastCommentAdded, card.id, currentUserId]);
-
-  useEffect(() => {
-    return () => {
-      if (commentsBlinkTimeoutRef.current) clearTimeout(commentsBlinkTimeoutRef.current);
-    };
-  }, []);
+    if (!isCommentsBlinking) return;
+    const timeoutId = setTimeout(() => setIsCommentsBlinking(false), 2500);
+    return () => clearTimeout(timeoutId);
+  }, [isCommentsBlinking]);
 
   const isAuthor = currentUserId === card.authorId;
   const canUpdate = onUpdateCard && isAuthor && canEdit;
