@@ -19,6 +19,7 @@ import { useSessionPanels } from './hooks/useSessionPanels';
 import { useSessionParticipants } from './hooks/useSessionParticipants';
 import { useSessionPolling } from './hooks/useSessionPolling';
 import { useSessionViewport } from './hooks/useSessionViewport';
+import { useSoundPreference } from './hooks/useSoundPreference';
 import { createAction } from './services/actionApi';
 import type { CreateActionPayload } from './services/actionApi';
 import type { SessionBoardColumn } from './types/board.types';
@@ -88,6 +89,7 @@ const SessionDashboard = () => {
     sessionStatus: details.status,
   });
   const sessionCards = useSessionCards({ sessionId, actorHeaders: identity.actorHeaders, addToast });
+  const { isSoundEnabled, toggleSound } = useSoundPreference();
   const activeStep = details.status === 'closed' ? 'results' : details.step;
   // Dérivés calculés une seule fois ici plutôt que recalculés dans chaque
   // composant consommateur (SessionContext expose isFacilitator/isDesktop).
@@ -160,7 +162,7 @@ const SessionDashboard = () => {
     hasShownClosedToastRef.current = true;
   }, [addToast, setStatus]);
 
-  const { participants, messages, setMessages, actions, setActions, lastCommentAdded } = useSessionParticipants(
+  const { participants, messages, setMessages, actions, setActions, lastCommentAdded, isDiscussionBlinking } = useSessionParticipants(
     sessionId,
     identity.selfIdentityForSocket,
     {
@@ -168,6 +170,7 @@ const SessionDashboard = () => {
       onTimerUpdated: handleTimerUpdated,
       onSessionClosed: handleSessionClosedBySocket,
       actorHeaders: identity.actorHeaders ?? EMPTY_HEADERS,
+      isSoundEnabled,
     }
   );
 
@@ -274,6 +277,9 @@ const SessionDashboard = () => {
         actions,
         setActions,
         lastCommentAdded,
+        isDiscussionBlinking,
+        isSoundEnabled,
+        toggleSound,
 
         votesLeft: sessionCards.votesLeft,
         stepEndsAt: details.stepEndsAt,

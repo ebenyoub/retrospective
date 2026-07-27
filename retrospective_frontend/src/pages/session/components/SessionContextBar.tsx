@@ -1,5 +1,6 @@
-import { ArrowLeft, Check, Copy, MessageCircle, Users } from 'lucide-react';
+import { ArrowLeft, Check, Copy, MessageCircle, Users, Volume2, VolumeX } from 'lucide-react';
 import Button from '@/components/ui/Button';
+import IconButton from '@/components/ui/IconButton';
 
 import StepIndicator from './StepIndicator';
 import ParticipantBadge from './ParticipantBadge';
@@ -35,6 +36,9 @@ const SessionContextBar = ({
   const onToggleDiscussion = context.panels.toggleDiscussionDrawer;
   const isParticipantsOpen = context.panels.isParticipantsDrawerOpen;
   const isDiscussionOpen = context.panels.isDiscussionDrawerOpen;
+  const isDiscussionBlinking = context.isDiscussionBlinking;
+  const isSoundEnabled = context.isSoundEnabled;
+  const onToggleSound = context.toggleSound;
   // En salle d'attente, la liste des participants et le code de session sont
   // déjà affichés en permanence dans le panneau latéral (WaitingScreen) :
   // les répéter dans la navbar n'apporte rien, sur cette seule étape.
@@ -124,11 +128,21 @@ const SessionContextBar = ({
             isDiscussionOpen
               ? 'border-navy-border-med bg-navy-surface-med text-slate-200'
               : 'border-transparent bg-transparent text-slate-400 hover:border-navy-border-med hover:bg-navy-surface-med hover:text-slate-200'
-          }`}
+          } ${isDiscussionBlinking ? 'animate-pulse border-green-figma/50 bg-green-figma/10 text-green-figma' : ''}`}
         >
           <MessageCircle size={14} aria-hidden="true" />
           <span className="hidden sm:inline">Discussion</span>
         </Button>
+        <IconButton
+          onClick={onToggleSound}
+          aria-label={isSoundEnabled ? 'Désactiver le son' : 'Activer le son'}
+          aria-pressed={isSoundEnabled}
+          variant="ghost"
+          size="sm"
+          className="inline-flex h-[30px] w-[30px] cursor-pointer items-center justify-center rounded-lg border border-transparent bg-transparent text-slate-400 transition-colors hover:border-navy-border-med hover:bg-navy-surface-med hover:text-slate-200"
+        >
+          {isSoundEnabled ? <Volume2 size={14} aria-hidden="true" /> : <VolumeX size={14} aria-hidden="true" />}
+        </IconButton>
         {selfDisplayName && onRenameSelf && onLeaveSession && (
           <div className="border-l border-navy-border-med pl-1.5 h-6 flex items-center shrink-0">
             <ParticipantBadge

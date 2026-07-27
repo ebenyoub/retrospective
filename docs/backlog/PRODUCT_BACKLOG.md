@@ -206,6 +206,14 @@ Retour utilisateur après un tour manuel dans le navigateur, session réelle (`R
 | **UX-ACTION-02** | Pouvoir continuer à consulter les commentaires des cartes dans le Plan d'action. | ⬜ À faire |
 | **UX-ACTION-03** | Ligne de plan d'action : priorité et responsable trop excentrés à droite, peu lisibles ; à rapprocher du texte de l'action (ex. les afficher avant le texte plutôt qu'en bout de ligne). | ⬜ À faire |
 
+**UX — Notifications sonores (demande complémentaire, 2026-07-27)**
+
+| ID | Description | Statut |
+| :--- | :--- | :--- |
+| **UX-DISCUSSION-SOUND-01** | Nouveau message de Discussion d'un autre participant : son + clignotement du bouton "Discussion" de la navbar, à chaque fois (même panneau déjà ouvert). Rien pour son propre message. | ✅ Terminé (2026-07-27) |
+| **UX-COMMENTS-SOUND-01** | Nouveau commentaire de carte d'un autre participant : son distinct + clignotement du bouton "Commentaires (N)" de la carte concernée, à chaque fois (même panneau déjà ouvert). Rien pour son propre commentaire. | ✅ Terminé (2026-07-27) |
+| **UX-SOUND-TOGGLE-01** | Bouton dans la navbar pour activer/désactiver le son des deux notifications ci-dessus (préférence persistée). | ✅ Terminé (2026-07-27) |
+
 **Point découvert hors périmètre, signalé sans être corrigé**
 
 En vérifiant `BUG-WAITING-DISCUSSION-01`/`UX-WAITING-*` en conditions réelles (navigateur, 2026-07-27), une requête `GET /session/:id/cards` renvoie parfois un unique 403 transitoire juste après la création d'une session (le polling de fond démarre avant que les en-têtes d'acteur du facilitateur soient complètement résolus). Sans impact visible : aucune carte n'est affichée à l'étape `waiting`, et le polling suivant se corrige de lui-même. Confirmé pré-existant (reproduit avant toute modification de cette session de travail, sur du code non touché par `US-16`). Hors périmètre de `US-16` — à traiter dans un ticket dédié si jugé prioritaire.

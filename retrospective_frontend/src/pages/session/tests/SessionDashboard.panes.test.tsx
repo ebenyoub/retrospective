@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { screen, fireEvent, within } from '@testing-library/react';
+import { screen, fireEvent, within, waitFor } from '@testing-library/react';
 import {
   emptyCardsResponse,
   createDashboardFetchMock,
@@ -65,6 +65,7 @@ describe('SessionDashboard - Tiroirs et Modals (Panes)', () => {
     authState.email = 'e@test.com';
     localStorage.clear();
     mockSocket.__clear();
+    mockSocket.on.mockClear();
     ioMock.mockClear();
   });
 
@@ -472,5 +473,110 @@ describe('SessionDashboard - Tiroirs et Modals (Panes)', () => {
 
     await within(section).findByText('Un commentaire posté depuis un autre onglet');
     expect(within(section).getByText('Sarah')).toBeTruthy();
+  });
+
+  it('propose un bouton pour activer/désactiver le son, avec préférence persistée', async () => {
+    const fetchMock = createDashboardFetchMock({ cardsSequence: [emptyCardsResponse] });
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderDashboard();
+
+    const soundButton = await screen.findByRole('button', { name: 'Désactiver le son' });
+    expect(soundButton.getAttribute('aria-pressed')).toBe('true');
+
+    fireEvent.click(soundButton);
+
+    expect(await screen.findByRole('button', { name: 'Activer le son' })).toBeTruthy();
+    expect(localStorage.getItem('retro:soundEnabled')).toBe('false');
+  });
+
+  it('fait clignoter le bouton Discussion à la réception d\'un message d\'un autre participant, pas pour son propre message', async () => {
+    const fetchMock = createDashboardFetchMock({ cardsSequence: [emptyCardsResponse] });
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderDashboard();
+
+    const discussionButton = await screen.findByRole('button', { name: 'Discussion' });
+    expect(discussionButton.className).not.toContain('animate-pulse');
+
+    // Le socket applicatif ne s'établit qu'une fois l'identité résolue,
+    // légèrement après le premier rendu des cartes : on attend l'abonnement
+    // réel avant de déclencher l'événement, pour ne pas tester dans le vide.
+    await waitFor(() => {
+      expect(mockSocket.on).toHaveBeenCalledWith('session:message-added', expect.any(Function));
+    });
+
+    // Son propre message (participant self, id 1 dans sessionTestUtils) : pas de clignotement.
+    mockSocket.__trigger('session:message-added', {
+      id: 1,
+      sessionId: 1,
+      authorId: 1,
+      authorName: 'Elyas',
+      content: 'Mon propre message',
+      createdAt: '2026-07-07T10:00:00.000Z',
+    });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(discussionButton.className).not.toContain('animate-pulse');
+
+    // Message d'un autre participant : clignotement.
+    mockSocket.__trigger('session:message-added', {
+      id: 2,
+      sessionId: 1,
+      authorId: 2,
+      authorName: 'Sarah',
+      content: 'Un message de Sarah',
+      createdAt: '2026-07-07T10:01:00.000Z',
+    });
+    await waitFor(() => expect(discussionButton.className).toContain('animate-pulse'));
+  });
+
+  it('fait clignoter le bouton "Commentaires" de la carte concernée par un nouveau commentaire d\'un autre participant', async () => {
+    const fetchMock = createDashboardFetchMock({
+      cardsSequence: [
+        {
+          ok: true,
+          json: async () => ({
+            success: true,
+            data: [
+              {
+                id: 1,
+                sessionId: 1,
+                authorId: 1,
+                authorName: 'Elyas',
+                columnType: 'start',
+                content: 'Carte à commenter',
+                createdAt: '2026-07-07T10:00:00.000Z',
+                votesCount: 0,
+                commentsCount: 0,
+              },
+            ],
+          }),
+        },
+      ],
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderDashboard();
+
+    const commentsButton = await screen.findByRole('button', { name: 'Commentaires' });
+    expect(commentsButton.className).not.toContain('animate-pulse');
+
+    await waitFor(() => {
+      expect(mockSocket.on).toHaveBeenCalledWith('session:comment-added', expect.any(Function));
+    });
+
+    mockSocket.__trigger('session:comment-added', {
+      cardId: 1,
+      comment: {
+        id: 9,
+        cardId: 1,
+        authorId: 2,
+        authorName: 'Sarah',
+        content: 'Un commentaire de Sarah',
+        createdAt: '2026-07-07T10:07:00.000Z',
+      },
+    });
+
+    await waitFor(() => expect(commentsButton.className).toContain('animate-pulse'));
   });
 });

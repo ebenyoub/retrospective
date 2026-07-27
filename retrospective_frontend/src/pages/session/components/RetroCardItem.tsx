@@ -1,16 +1,38 @@
 import { MessageCircle, Pencil, Trash2 } from 'lucide-react';
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import Button from '@/components/ui/Button';
 import IconButton from '@/components/ui/IconButton';
 import Avatar from "@/components/ui/Avatar";
 import type { RetroCardItemProps } from './types/RetroCardItem.types';
 import CardCommentsSection from './CardCommentsSection';
+import { useSessionContext } from '../context/useSessionContext';
 
 const RetroCardItem = ({ card, accentClassName, currentUserId, onVote, onUpdateCard, onDeleteCard, canVote = true, canEdit = true }: RetroCardItemProps) => {
+  const { lastCommentAdded } = useSessionContext();
   const [isEditing, setIsEditing] = useState(false);
   const [draftContent, setDraftContent] = useState(card.content);
   const [isCommentsExpanded, setIsCommentsExpanded] = useState(false);
-  
+  const [isCommentsBlinking, setIsCommentsBlinking] = useState(false);
+  const commentsBlinkTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Clignotement du bouton "Commentaires" de cette carte à la réception d'un
+  // commentaire d'un autre participant (le son, distinct de celui de
+  // Discussion, est joué une seule fois dans useSessionParticipants).
+  useEffect(() => {
+    if (!lastCommentAdded || lastCommentAdded.cardId !== card.id) return;
+    if (lastCommentAdded.comment.authorId === currentUserId) return;
+
+    setIsCommentsBlinking(true);
+    if (commentsBlinkTimeoutRef.current) clearTimeout(commentsBlinkTimeoutRef.current);
+    commentsBlinkTimeoutRef.current = setTimeout(() => setIsCommentsBlinking(false), 2500);
+  }, [lastCommentAdded, card.id, currentUserId]);
+
+  useEffect(() => {
+    return () => {
+      if (commentsBlinkTimeoutRef.current) clearTimeout(commentsBlinkTimeoutRef.current);
+    };
+  }, []);
+
   const isAuthor = currentUserId === card.authorId;
   const canUpdate = onUpdateCard && isAuthor && canEdit;
   const canDelete = onDeleteCard && isAuthor && canEdit;
@@ -38,11 +60,11 @@ const RetroCardItem = ({ card, accentClassName, currentUserId, onVote, onUpdateC
   };
 
   return (
-    <div className={`bg-navy-mid border border-navy-border border-l-[3px] ${accentClassName} rounded-[10px] p-[10px_12px] flex flex-col gap-2 transition-all`}>
+    <div className={`bg-navy-mid border border-navy-border border-l-[3px] ${accentClassName} rounded-figma-md p-[10px_12px] flex flex-col gap-2 transition-all`}>
       
       {/* Top Section: Avatar + Author Name */}
       {!isEditing && (
-        <div className="flex items-center gap-1.5 flex-shrink-0">
+        <div className="flex items-center gap-1.5 shrink-0">
           <Avatar name={card.authorName} colorSeed={card.authorId} size={18} fallback="P" />
           <span className="font-sans text-[12px] text-slate-400 font-medium select-none">{card.authorName}</span>
         </div>
@@ -79,7 +101,7 @@ const RetroCardItem = ({ card, accentClassName, currentUserId, onVote, onUpdateC
           </div>
         </form>
       ) : (
-        <p className="text-sm text-slate-100 font-sans leading-[1.55] break-words">{card.content}</p>
+        <p className="text-sm text-slate-100 font-sans leading-[1.55] wrap-break-words">{card.content}</p>
       )}
 
       {/* Action Buttons Section */}
@@ -92,11 +114,16 @@ const RetroCardItem = ({ card, accentClassName, currentUserId, onVote, onUpdateC
             type="button"
             variant="ghost"
             size="sm"
-            onClick={() => setIsCommentsExpanded(!isCommentsExpanded)}
+            onClick={() => {
+              setIsCommentsExpanded(!isCommentsExpanded);
+              setIsCommentsBlinking(false);
+            }}
             aria-label="Commentaires"
             aria-expanded={isCommentsExpanded}
             aria-controls={`card-comments-${card.id}`}
-            className="h-auto inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-slate-300 bg-transparent hover:bg-navy-surface rounded-[8px] border border-transparent hover:border-navy-border px-2 py-1.5 transition-all cursor-pointer"
+            className={`h-auto inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-slate-300 bg-transparent hover:bg-navy-surface rounded-[8px] border border-transparent hover:border-navy-border px-2 py-1.5 transition-all cursor-pointer ${
+              isCommentsBlinking ? 'animate-pulse border-green-figma/50 bg-green-figma/10 text-green-figma' : ''
+            }`}
           >
             <MessageCircle size={13} aria-hidden="true" />
             <span>Commentaires{card.commentsCount > 0 ? ` (${card.commentsCount})` : ''}</span>

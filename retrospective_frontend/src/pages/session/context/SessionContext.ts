@@ -47,6 +47,9 @@ export interface SessionContextType {
   actions: ActionItem[];
   setActions: Dispatch<SetStateAction<ActionItem[]>>;
   lastCommentAdded: { cardId: number; comment: CardComment } | null;
+  isDiscussionBlinking: boolean;
+  isSoundEnabled: boolean;
+  toggleSound: () => void;
 
   // Champs directs pratiques pour la barre d'actions (SessionActionBar) :
   // évite de faire traverser sessionCards/details/useSessionActions à chaque

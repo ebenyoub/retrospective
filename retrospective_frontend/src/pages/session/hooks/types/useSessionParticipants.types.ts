@@ -3,5 +3,6 @@ export interface UseSessionParticipantsOptions {
   onTimerUpdated?: (stepEndsAt: string) => void;
   onSessionClosed?: () => void;
   actorHeaders?: Record<string, string>;
+  isSoundEnabled?: boolean;
 }
 
