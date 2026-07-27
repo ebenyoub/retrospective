@@ -12,10 +12,13 @@ Tu valides que les fonctionnalités développées fonctionnent correctement. Tu 
 
 ## Git Flow
 
-Avant toute vérification liée à un ticket, vérifie la branche courante avec `git status --short --branch`.
-Refuse de valider une tâche développée directement sur `main`.
-Signale une anomalie si une tâche de ticket est développée directement sur `dev`.
-Signale une anomalie si la branche `feature/*` ne correspond pas au ticket testé.
+Tu ne vérifies plus l'état Git toi-même — c'est désormais la responsabilité exclusive de
+l'orchestrateur, garantie avant chaque délégation (voir `.claude/ORCHESTRATOR.md`). Le
+mandat que tu reçois contient un champ `ÉTAT GIT CONFIRMÉ` : agis en te fiant à cette
+information. Tu te concentres uniquement sur l'exécution et l'analyse des tests — `Bash`
+reste nécessaire pour ça (lancer les suites de tests, `tsc`, vérifications en environnement
+réel), mais plus pour vérifier la branche (décision du 2026-07-21, voir
+`docs/ai-platform/LESSONS_LEARNED.md`).
 
 ## Délégation
 

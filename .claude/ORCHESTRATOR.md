@@ -5,9 +5,10 @@ Ce document formalise le rôle du contexte principal (orchestrateur). Il ne dupl
 retour, format de mandat/retour, budgets) : il précise uniquement ce que l'orchestrateur
 a le droit de faire lui-même, et comment il pilote le pipeline.
 
-Version **v1.1** — révisée après le pilote `DEV-ENV-01` (2026-07-20). Voir
-`docs/ai-platform/ARCHITECTURE.md` (description portable du système) et
-`docs/ai-platform/LESSONS_LEARNED.md` (détail des corrections apportées).
+Version **v1.2** — révisée le 2026-07-21 (répartition de la responsabilité Git Flow, voir
+plus bas), après le pilote `DEV-ENV-01` (2026-07-20). Voir `docs/ai-platform/ARCHITECTURE.md`
+(description portable du système) et `docs/ai-platform/LESSONS_LEARNED.md` (détail des
+corrections apportées).
 
 ## Règle absolue
 
@@ -28,6 +29,38 @@ aucun agent de ce projet ne dispose de l'outil d'invocation d'agent dans son `to
 pipeline** (étapes déjà faites, décisions déjà prises/exécutées) — pas seulement la tâche
 ponctuelle de l'agent. Son absence a produit, lors du pilote `DEV-ENV-01`, un agent
 recommandant une action déjà effectuée (voir `docs/ai-platform/LESSONS_LEARNED.md`).
+
+## Responsabilité Git Flow (v1.2)
+
+**L'orchestrateur garantit les préconditions Git avant chaque délégation — les agents ne
+vérifient plus Git eux-mêmes, sauf deux exceptions.**
+
+Concrètement : avant de dispatcher un agent qui va agir (lire en profondeur, écrire, ou
+préparer une action), l'orchestrateur exécute `git status --short --branch` (et `git log`
+si pertinent), interprète le résultat, et inscrit une conclusion explicite dans le mandat
+sous le champ `ÉTAT GIT CONFIRMÉ` (branche, propreté, périmètre attendu — voir le protocole
+de mandat dans `.claude/DELEGATION.md`). Cette vérification se fait **avant chaque dispatch
+d'écriture**, pas uniquement une fois en tête de pipeline — l'état peut changer entre deux
+étapes (intervention manuelle, plusieurs minutes d'écart).
+
+**Exceptions, où l'agent conserve sa propre vérification Git** (parce que c'est le cœur de
+sa mission, pas un prérequis externe à sa mission) :
+- `commit-agent` — confirmer la branche fait partie de préparer un commit correct.
+- `reviewer-code` — la cohérence branche/ticket fait partie de la revue elle-même.
+
+Tous les autres agents (`analyst-ticket`, `analyst-functional`, `briefing-agent`,
+`architecte-simple`, `formateur-dwwm`, `documentation-jury`, `documentation-technique`,
+`decision-recorder`, `backend-express`, `frontend-react`, `database-mysql`,
+`developer-fast`, `qa-tests`) font confiance au champ `ÉTAT GIT CONFIRMÉ` de leur mandat
+sans le revérifier. `backend-express` a perdu l'outil `Bash` à cette occasion (il ne
+servait qu'à ce contrôle, désormais inutile pour cet agent).
+
+**Limite assumée, pas ignorée** : cette garantie repose sur la rigueur de l'orchestrateur à
+chaque dispatch, pas sur un mécanisme infaillible — une intervention manuelle de
+l'utilisateur entre la vérification et l'exécution (ex. `git checkout` tapé directement)
+reste possible et non détectable a priori. Les étapes en aval (`qa-tests`, `reviewer-code`,
+`commit-agent`) restent un filet de détection a posteriori, comme observé lors du pilote
+`DEV-ENV-01` (voir `docs/ai-platform/LESSONS_LEARNED.md`).
 
 ## Limite opérationnelle connue (Claude Code)
 
@@ -59,6 +92,16 @@ alors que le travail avait déjà été mergé via les PR #27 à #32).
 - Lire les documents canoniques (`PROJECT_WORKFLOW.md`, `CLAUDE.md`, `CURRENT_TASK.md`,
   `HANDOVER.md`, `DELEGATION.md`) + `docs/backlog/*`.
 - `git status --short --branch`, `git log` (lecture seule).
+- `git checkout` (changement de branche, y compris pour synchroniser une branche de ticket
+  après un merge), `git pull` (mise à jour d'une branche existante), `git branch -f <branche>
+  <cible>` **uniquement si la branche déplacée ne porte aucun commit propre à rejouer**
+  (sinon, remonter le risque à l'utilisateur avant toute opération). Ce sont des opérations
+  de **synchronisation d'environnement** entre tickets — distinctes de l'analyse de portée
+  d'un ticket, qui reste réservée à `analyst-ticket` (lequel n'a pas, et ne doit jamais
+  avoir, l'outil Bash — précisément pour que cette frontière reste structurelle et pas
+  seulement déclarative). Le `git status`/`git log` de la ligne précédente s'exécute aussi
+  juste avant chaque dispatch d'un agent qui va agir, pour produire le champ
+  `ÉTAT GIT CONFIRMÉ` de son mandat (voir §Responsabilité Git Flow ci-dessous).
 - Invoquer des agents.
 - Poser une question de clarification à l'utilisateur.
 - Exécuter `git commit`, uniquement après validation explicite et après `commit-agent`.

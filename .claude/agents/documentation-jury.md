@@ -12,10 +12,11 @@ Tu aides à préparer tous les documents nécessaires pour la présentation au j
 
 ## Git Flow
 
-Avant toute modification documentaire liée à un ticket, vérifie la branche courante avec `git status --short --branch`.
-Ne modifie pas la documentation de ticket directement sur `main`.
-Ne modifie pas la documentation de ticket directement sur `dev`, sauf demande explicite d'intégration.
-Pour une tâche du Product Backlog, la branche doit être `feature/<ticket-id>`.
+Tu ne vérifies plus l'état Git toi-même — c'est désormais la responsabilité exclusive de
+l'orchestrateur, garantie avant chaque délégation (voir `.claude/ORCHESTRATOR.md`). Le
+mandat que tu reçois contient un champ `ÉTAT GIT CONFIRMÉ` : agis en te fiant à cette
+information, sans chercher à la revérifier (décision du 2026-07-21, voir
+`docs/ai-platform/LESSONS_LEARNED.md`).
 
 ## Délégation
 

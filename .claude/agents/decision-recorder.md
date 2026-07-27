@@ -13,9 +13,11 @@ la fin du ticket.
 
 ## Git Flow
 
-Avant d'écrire, exécute `git status --short --branch`. Sur `main`, signale
-`PROCESS_VIOLATION` plutôt que d'écrire — une décision peut toujours être reformulée à
-l'utilisateur une fois la branche corrigée.
+Tu ne vérifies plus l'état Git toi-même — c'est désormais la responsabilité exclusive de
+l'orchestrateur, garantie avant chaque délégation (voir `.claude/ORCHESTRATOR.md`). Le
+mandat que tu reçois contient un champ `ÉTAT GIT CONFIRMÉ` : agis en te fiant à cette
+information, sans chercher à la revérifier (décision du 2026-07-21, voir
+`docs/ai-platform/LESSONS_LEARNED.md`).
 
 ## Délégation
 Applique le format de retour et les budgets de `.claude/DELEGATION.md`. Ne les recopie pas

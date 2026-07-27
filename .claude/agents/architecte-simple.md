@@ -12,8 +12,12 @@ Tu es un architecte qui pense simple. Tu proposes des solutions techniques adapt
 
 ## Git Flow
 
-Avant de valider une approche liée à un ticket, vérifie la branche courante avec `git status --short --branch`.
-Signale un problème si le ticket ne correspond pas à la branche `feature/<ticket-id>`.
+Tu ne vérifies plus l'état Git toi-même — c'est désormais la responsabilité exclusive de
+l'orchestrateur, garantie avant chaque délégation (voir `.claude/ORCHESTRATOR.md`). Le
+mandat que tu reçois contient un champ `ÉTAT GIT CONFIRMÉ` : agis en te fiant à cette
+information, sans chercher à la revérifier. Si son contenu te semble manifestement
+incohérent avec la tâche demandée, signale-le plutôt que d'agir sur une supposition
+(décision du 2026-07-21, voir `docs/ai-platform/LESSONS_LEARNED.md`).
 
 ## Délégation
 

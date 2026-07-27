@@ -13,14 +13,15 @@ dépasse le périmètre d'un `developer` et doit être découpée.
 
 ## Git Flow
 
-Avant de commencer ton analyse, exécute `git status --short --branch` et vérifie que la
-branche courante correspond au ticket traité (`feature/<ticket-id>`), ou qu'aucune
-modification de code n'a encore eu lieu sur `main`/`dev` pour ce ticket. Si la branche est
-`main`, ou si elle est `dev`/`feature/<autre-ticket>` alors que ce ticket va nécessiter une
-modification de code, signale-le avec le code `PROCESS_VIOLATION` avant de poursuivre — ne
-présume jamais qu'un agent en aval (`briefing-agent`, `developer-fast`) s'en chargera.
-(Leçon du pilote `DEV-ENV-01` : un renvoi vers `PROJECT_WORKFLOW.md` sans consigne explicite
-ici n'a pas suffi en pratique — voir `docs/ai-platform/LESSONS_LEARNED.md`.)
+Tu ne vérifies plus l'état Git toi-même — c'est désormais la responsabilité exclusive de
+l'orchestrateur, garantie avant chaque délégation (voir `.claude/ORCHESTRATOR.md`). Le
+mandat que tu reçois contient un champ `ÉTAT GIT CONFIRMÉ` (branche, propreté, périmètre
+attendu) : agis en te fiant à cette information, sans chercher à la revérifier.
+
+Si ce champ est absent, ou si son contenu te semble manifestement incohérent avec la tâche
+demandée, arrête-toi et signale `PROCESS_VIOLATION` — mais dans le cas normal, tu n'as rien
+à exécuter toi-même pour cette vérification (décision du 2026-07-21, voir
+`docs/ai-platform/LESSONS_LEARNED.md`).
 
 ## Délégation
 Applique le format de retour et les budgets de `.claude/DELEGATION.md`. Ne les recopie pas

@@ -4,10 +4,9 @@ Ce document complète `.claude/PROJECT_WORKFLOW.md` (§ Orchestrateur) et
 `.claude/ORCHESTRATOR.md` (contrat détaillé du contexte principal, pipeline, journal
 d'exécution). Il ne les duplique pas.
 
-Version **v1.1** — révisée après le pilote `DEV-ENV-01` (2026-07-20). Voir
-`docs/ai-platform/ARCHITECTURE.md` pour la description portable de ce système (indépendante
-de ce projet) et `docs/ai-platform/LESSONS_LEARNED.md` pour le détail de ce qui a changé et
-pourquoi.
+Version **v1.2** — révisée le 2026-07-21. Voir `docs/ai-platform/ARCHITECTURE.md` pour la
+description portable de ce système (indépendante de ce projet) et
+`docs/ai-platform/LESSONS_LEARNED.md` pour le détail de ce qui a changé et pourquoi.
 
 ## Principe
 
@@ -17,6 +16,12 @@ L'orchestrateur principal conserve toujours :
 - la synthèse finale et la proposition de commit (jamais son exécution avant validation).
 
 Il ne code, ne teste et ne relit jamais lui-même — voir `.claude/ORCHESTRATOR.md`.
+
+**Depuis la v1.2, l'orchestrateur garantit aussi les préconditions Git avant chaque
+délégation** (branche, propreté du dépôt) — la plupart des agents ne vérifient plus Git
+eux-mêmes, à l'exception de `commit-agent` et `reviewer-code` (pour qui cette vérification
+fait partie intégrante de leur mission). Voir `.claude/ORCHESTRATOR.md §Responsabilité Git
+Flow` pour le détail complet et le raisonnement.
 
 **Aucun agent n'appelle jamais un autre agent.** Seul l'orchestrateur invoque des agents ;
 chaque agent lui rend la main. C'est structurel : aucun agent de ce projet ne dispose de
@@ -72,9 +77,10 @@ détectable et déclaré plutôt que silencieux.
 
 ## Budgets par agent (fichiers / commandes / taille de sortie)
 
-Budgets **v1.1**, recalibrés à partir des mesures réelles du pilote `DEV-ENV-01` (les
-budgets initiaux étaient des estimations ; deux se sont révélés trop stricts en pratique —
-voir `docs/ai-platform/LESSONS_LEARNED.md` pour le détail avant/après et pourquoi).
+Budgets révisés en v1.1 (recalibrage à partir des mesures réelles du pilote `DEV-ENV-01` —
+les budgets initiaux étaient des estimations, deux se sont révélés trop stricts en pratique)
+puis en v1.2 (retrait de la clause « commandes shell » pour `backend-express` groupe, `Bash`
+n'y étant plus disponible). Voir `docs/ai-platform/LESSONS_LEARNED.md` pour le détail.
 
 ```
 analyst-ticket            ≤ 10 fichiers lus  · 0 écriture             · sortie ≤ 500 mots
@@ -85,7 +91,9 @@ developer-fast               ≤ 2 fichiers · ≤ 1 ticket                  · 
 backend-express /
 frontend-react /
 database-mysql                ≤ 8 fichiers · ≤ 30k tokens de contexte reçu
-                                ≤ 1 ticket · ≤ 3 commandes shell simultanées · sortie ≤ 300 mots
+                                ≤ 1 ticket · sortie ≤ 300 mots
+                                (aucun outil Bash depuis la v1.2 : plus de commande shell —
+                                voir §Responsabilité Git Flow dans ORCHESTRATOR.md)
 qa-tests                        ≤ 8 fichiers de test · ≤ 5 commandes
                                   sortie ≤ 30 lignes (régression standard) · ≤ 60 lignes si
                                   vérification fonctionnelle réelle demandée explicitement
@@ -144,6 +152,7 @@ est `developer_instructions` en TOML (voir `.codex/agents/*.toml` existants).
 TICKET
 OBJECTIF
 ÉTAT D'EXÉCUTION COURANT
+ÉTAT GIT CONFIRMÉ
 PÉRIMÈTRE
 CONTEXTE UTILE (obligatoire / optionnel — voir briefing-agent)
 FICHIERS AUTORISÉS
@@ -158,12 +167,20 @@ faites, quelles décisions ont déjà été prises/exécutées avant ce mandat. 
 son absence a produit, lors du pilote `DEV-ENV-01`, un agent (`decision-recorder`)
 recommandant une action déjà effectuée faute de savoir qu'elle l'était déjà.
 
+**`ÉTAT GIT CONFIRMÉ`** (ajouté en v1.2) : branche courante, propreté du dépôt, périmètre
+de fichiers attendu — vérifié par l'orchestrateur juste avant ce dispatch précis (voir
+`.claude/ORCHESTRATOR.md §Responsabilité Git Flow`). Obligatoire pour tout agent qui va
+agir, sauf `commit-agent`/`reviewer-code` qui vérifient eux-mêmes. Un agent qui reçoit un
+mandat sans ce champ (hors ces deux exceptions), ou dont le contenu semble incohérent avec
+la tâche demandée, doit s'arrêter et signaler `PROCESS_VIOLATION` plutôt qu'agir sur une
+supposition.
+
 ## Format de retour obligatoire
 
 Chaque sous-agent (Claude, Codex ou autre) doit retourner uniquement :
 
 ```
-STATUS               (un des 7 codes ci-dessus)
+STATUS               (un des 8 codes ci-dessus)
 RÉSUMÉ
 FICHIERS CONSULTÉS
 FICHIERS MODIFIÉS

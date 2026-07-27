@@ -69,15 +69,19 @@ COURANT`) — non re-testé depuis la correction.
 
 ---
 
-## EN ATTENTE DE VALIDATION (correction v1.1 appliquée, pas encore re-testée)
+## EN ATTENTE DE VALIDATION (correction v1.2 appliquée, pas encore re-testée)
 
-### `analyst-ticket` / `briefing-agent` / `developer-fast` vérifient le Git Flow avant d'agir
-**Origine** : leçon #1 du pilote DEV-ENV-01 — ces trois agents n'avaient initialement
-qu'un renvoi vers `PROJECT_WORKFLOW.md`, insuffisant en pratique (`developer-fast` a écrit
-sur `dev` sans branche dédiée). Consigne explicite réintégrée en v1.1.
-**À valider** : lors du prochain pilote, confirmer que la vérification bloque bien
-*avant* toute écriture, pas seulement *a posteriori* comme cette fois (où c'est
-`qa-tests`, plus tard dans la chaîne, qui avait détecté l'anomalie).
+### L'orchestrateur garantit les préconditions Git avant chaque délégation (`ÉTAT GIT CONFIRMÉ`)
+**Origine** : revue de cohérence du 2026-07-21 — la consigne v1.1 (« chaque agent vérifie
+Git lui-même ») s'est révélée inexécutable pour 11 des 15 agents (pas d'outil `Bash`).
+Remplacée par une garantie centralisée : l'orchestrateur vérifie l'état Git juste avant
+chaque dispatch d'écriture et l'inscrit dans le mandat. Seuls `commit-agent` et
+`reviewer-code` gardent leur propre vérification (cœur de leur mission).
+**À valider** : lors du prochain pilote, confirmer que (1) l'orchestrateur revérifie bien
+*avant chaque* dispatch d'écriture et pas seulement une fois en tête de pipeline, et (2)
+qu'un agent recevant un mandat sans `ÉTAT GIT CONFIRMÉ` (ou incohérent) signale bien
+`PROCESS_VIOLATION` plutôt que d'agir sur une supposition — aucun des deux comportements
+n'a encore été observé en conditions réelles.
 
 ### `PROCESS_VIOLATION` couvre correctement les anomalies de processus au-delà de Git Flow
 **Origine** : leçon #4 du pilote DEV-ENV-01.
