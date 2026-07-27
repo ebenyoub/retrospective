@@ -35,6 +35,10 @@ const SessionContextBar = ({
   const onToggleDiscussion = context.panels.toggleDiscussionDrawer;
   const isParticipantsOpen = context.panels.isParticipantsDrawerOpen;
   const isDiscussionOpen = context.panels.isDiscussionDrawerOpen;
+  // En salle d'attente, la liste des participants et le code de session sont
+  // déjà affichés en permanence dans le panneau latéral (WaitingScreen) :
+  // les répéter dans la navbar n'apporte rien, sur cette seule étape.
+  const isWaiting = step === 'waiting';
 
   const displayName = sessionName || `Session ${sessionId}`;
 
@@ -69,7 +73,7 @@ const SessionContextBar = ({
       </div>
 
       <div className="flex min-w-0 items-center justify-start gap-1.5 md:h-full md:justify-end" aria-label="Accès rapides de session">
-        {sessionCode && (
+        {sessionCode && !isWaiting && (
           <Button
             type="button"
             variant="secondary"
@@ -86,27 +90,29 @@ const SessionContextBar = ({
             <span>{isSessionCodeCopied ? 'Copié !' : sessionCode}</span>
           </Button>
         )}
-        <Button
-          type="button"
-          variant={isParticipantsOpen ? 'secondary' : 'ghost'}
-          size="sm"
-          onClick={onToggleParticipants}
-          aria-label="Participants"
-          aria-expanded={isParticipantsOpen}
-          className={`inline-flex h-[30px] cursor-pointer items-center gap-1.5 rounded-lg border px-2.5 font-sans text-xs font-medium leading-none transition-colors select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-navy-mid ${
-            isParticipantsOpen
-              ? 'border-navy-border-med bg-navy-surface-med text-slate-200'
-              : 'border-transparent bg-transparent text-slate-400 hover:border-navy-border-med hover:bg-navy-surface-med hover:text-slate-200'
-          }`}
-        >
-          <Users size={14} aria-hidden="true" />
-          <span className="hidden sm:inline">Participants</span>
-          {participantCount > 0 && (
-            <span className="rounded-full bg-green-figma/20 px-1.5 font-mono text-[10px] text-green-figma">
-              {participantCount}
-            </span>
-          )}
-        </Button>
+        {!isWaiting && (
+          <Button
+            type="button"
+            variant={isParticipantsOpen ? 'secondary' : 'ghost'}
+            size="sm"
+            onClick={onToggleParticipants}
+            aria-label="Participants"
+            aria-expanded={isParticipantsOpen}
+            className={`inline-flex h-[30px] cursor-pointer items-center gap-1.5 rounded-lg border px-2.5 font-sans text-xs font-medium leading-none transition-colors select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-navy-mid ${
+              isParticipantsOpen
+                ? 'border-navy-border-med bg-navy-surface-med text-slate-200'
+                : 'border-transparent bg-transparent text-slate-400 hover:border-navy-border-med hover:bg-navy-surface-med hover:text-slate-200'
+            }`}
+          >
+            <Users size={14} aria-hidden="true" />
+            <span className="hidden sm:inline">Participants</span>
+            {participantCount > 0 && (
+              <span className="rounded-full bg-green-figma/20 px-1.5 font-mono text-[10px] text-green-figma">
+                {participantCount}
+              </span>
+            )}
+          </Button>
+        )}
         <Button
           type="button"
           variant={isDiscussionOpen ? 'secondary' : 'ghost'}

@@ -176,11 +176,11 @@ Retour utilisateur après un tour manuel dans le navigateur, session réelle (`R
 
 | ID | Description | Statut |
 | :--- | :--- | :--- |
-| **UX-WAITING-01** | Sidebar, ligne "Format" : gap manquant entre le libellé et le menu déroulant. | ⬜ À faire |
-| **UX-WAITING-02** | Cartes participants : point vert redondant devant "En ligne" (déjà porté par l'avatar), à retirer. | ⬜ À faire |
-| **UX-WAITING-03** | Navbar : bouton "Participants" jugé inutile (déjà accessible via la sidebar), à retirer. | ⬜ À faire |
-| **UX-WAITING-04** | Navbar : code de session à copier redondant avec la sidebar, à retirer. | ⬜ À faire |
-| **UX-WAITING-05** | Carte "Votre accès" : mention "1 en ligne maintenant" redondante avec l'info déjà affichée ailleurs, à retirer. | ⬜ À faire |
+| **UX-WAITING-01** | Sidebar, ligne "Format" : gap manquant entre le libellé et le menu déroulant. | ✅ Terminé (2026-07-27 : `gap-3` ajouté à la ligne, libellé `shrink-0`) |
+| **UX-WAITING-02** | Cartes participants : point vert redondant devant "En ligne" (déjà porté par l'avatar), à retirer. | ✅ Terminé (2026-07-27 : le texte coloré suffit, le point ne restait que sur l'avatar) |
+| **UX-WAITING-03** | Navbar : bouton "Participants" jugé inutile (déjà accessible via la sidebar), à retirer. | ✅ Terminé (2026-07-27 : masqué uniquement à l'étape `waiting` — reste indispensable sur les autres étapes, où il pilote `ParticipantsDrawer`) |
+| **UX-WAITING-04** | Navbar : code de session à copier redondant avec la sidebar, à retirer. | ✅ Terminé (2026-07-27 : masqué uniquement à l'étape `waiting`, pour la même raison que UX-WAITING-03) |
+| **UX-WAITING-05** | Carte "Votre accès" : mention "1 en ligne maintenant" redondante avec l'info déjà affichée ailleurs, à retirer. | ✅ Terminé (2026-07-27 : déjà porté par le résumé principal juste au-dessus) |
 
 **UX — Écriture**
 
@@ -205,6 +205,10 @@ Retour utilisateur après un tour manuel dans le navigateur, session réelle (`R
 | **UX-ACTION-01** | Pouvoir choisir le nombre de cartes affichées dans le podium ("Top"). | ⬜ À faire |
 | **UX-ACTION-02** | Pouvoir continuer à consulter les commentaires des cartes dans le Plan d'action. | ⬜ À faire |
 | **UX-ACTION-03** | Ligne de plan d'action : priorité et responsable trop excentrés à droite, peu lisibles ; à rapprocher du texte de l'action (ex. les afficher avant le texte plutôt qu'en bout de ligne). | ⬜ À faire |
+
+**Point découvert hors périmètre, signalé sans être corrigé**
+
+En vérifiant `BUG-WAITING-DISCUSSION-01`/`UX-WAITING-*` en conditions réelles (navigateur, 2026-07-27), une requête `GET /session/:id/cards` renvoie parfois un unique 403 transitoire juste après la création d'une session (le polling de fond démarre avant que les en-têtes d'acteur du facilitateur soient complètement résolus). Sans impact visible : aucune carte n'est affichée à l'étape `waiting`, et le polling suivant se corrige de lui-même. Confirmé pré-existant (reproduit avant toute modification de cette session de travail, sur du code non touché par `US-16`). Hors périmètre de `US-16` — à traiter dans un ticket dédié si jugé prioritaire.
 
 ---
 

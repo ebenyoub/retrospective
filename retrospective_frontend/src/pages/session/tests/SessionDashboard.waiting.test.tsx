@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { screen, fireEvent, render } from '@testing-library/react';
+import { screen, fireEvent, render, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import SessionDashboard from '../SessionDashboard';
 import {
@@ -325,5 +325,47 @@ describe('SessionDashboard - Salle d\'attente (Waiting Step)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Discussion' }));
 
     expect(await screen.findByRole('heading', { name: 'Discussion' })).toBeTruthy();
+  });
+
+  it('masque les boutons Participants et code de session de la navbar pendant la salle d\'attente, déjà présents dans le panneau latéral', async () => {
+    authState.isAuthenticated = true;
+    authState.token = 'facilitator-token';
+
+    vi.stubGlobal('fetch', vi.fn().mockImplementation((url: string) => {
+      if (url.endsWith('/session/1')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ success: true, data: { id: 1, name: 'Retro', code: '1234', status: 'open', step: 'waiting', ownerId: 1 } }),
+        });
+      }
+      if (url.endsWith('/session/1/participants/self')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ success: true, data: { id: 9, role: 'facilitator' } }),
+        });
+      }
+      if (url.endsWith('/session/1/participants')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ success: true, data: [{ id: 9, displayName: 'Elyas', role: 'facilitator', status: 'online' }] }),
+        });
+      }
+      return Promise.resolve({ ok: true, json: async () => ({ success: true, data: [] }) });
+    }));
+
+    render(
+      <MemoryRouter initialEntries={['/session/1']}>
+        <Routes>
+          <Route path="/session/:id" element={<SessionDashboard />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await screen.findByRole('button', { name: 'Lancer la rétro' });
+
+    const navbar = screen.getByRole('navigation', { name: 'Contexte de session' });
+    expect(within(navbar).queryByRole('button', { name: 'Participants' })).toBeNull();
+    expect(within(navbar).queryByLabelText(/Copier le code de session|Code copié/)).toBeNull();
+    expect(within(navbar).getByRole('button', { name: 'Discussion' })).toBeTruthy();
   });
 });

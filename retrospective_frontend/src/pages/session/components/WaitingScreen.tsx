@@ -79,9 +79,9 @@ const ParticipantCard = ({ participant, isSelf }: { participant: ParticipantSumm
             </span>
           )}
         </div>
-        {/* Le statut n'est jamais porté par la seule couleur du point : le texte le dit explicitement. */}
-        <p className={`font-sans text-xs mt-1 flex items-center gap-1.5 ${isOnline ? 'text-green-300' : 'text-slate-500'}`}>
-          <span className={`h-1.5 w-1.5 rounded-full ${isOnline ? 'bg-green-400' : 'bg-slate-600'}`} />
+        {/* Le point de statut est déjà porté par l'avatar (ParticipantAvatar) :
+            pas besoin de le répéter ici, le texte suffit. */}
+        <p className={`font-sans text-xs mt-1 ${isOnline ? 'text-green-300' : 'text-slate-500'}`}>
           {isOnline ? 'En ligne' : 'Hors ligne'}
         </p>
       </div>
@@ -149,8 +149,8 @@ export const WaitingScreen = ({
   };
 
   const formatRow = (
-    <div className="flex items-center justify-between py-2 border-b border-navy-border">
-      <span className="font-sans text-xs text-slate-500">Format</span>
+    <div className="flex items-center justify-between gap-3 py-2 border-b border-navy-border">
+      <span className="shrink-0 font-sans text-xs text-slate-500">Format</span>
       <RetroFormatSelector
         formatName={formatName}
         isFacilitator={isFacilitator}
@@ -202,9 +202,10 @@ export const WaitingScreen = ({
           <p className="font-mono text-4xl font-black leading-none tracking-wider text-slate-50">{sessionCode}</p>
         </div>
       </div>
+      {/* Le nombre de participants en ligne est déjà affiché dans le résumé
+          principal (summaryText) juste au-dessus : pas la peine de le répéter ici. */}
       <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
         <span className="rounded-full bg-navy-surface-med px-2.5 py-1 font-semibold text-slate-200">{statusLabel}</span>
-        <span className="text-slate-400">{onlineCount} en ligne maintenant</span>
       </div>
     </div>
   );
