@@ -11,8 +11,14 @@ import { requestApi, requestApiCommand } from './http';
 // L'authentification passe par le cookie HttpOnly envoyé automatiquement
 // par requestApi (credentials: 'include') : plus de header Authorization.
 
-export const getSessionDetails = (sessionId: string) =>
-  requestApi<SessionDetails>(`${API_BASE}/session/${sessionId}`);
+// guestToken optionnel : sans identité authentifiée (cookie), c'est la seule
+// preuve qu'un invité a bien déjà participé à cette session — nécessaire pour
+// pouvoir rouvrir une session close en lecture seule (voir getSessionDetailsForViewer
+// côté backend), sans quoi un ancien invité se voit redemander un pseudo.
+export const getSessionDetails = (sessionId: string, guestToken?: string) =>
+  requestApi<SessionDetails>(`${API_BASE}/session/${sessionId}`, {
+    headers: guestToken ? { 'x-guest-token': guestToken } : undefined,
+  });
 
 export const createSession = (payload: CreateSessionPayload) =>
   requestApi<CreatedSession>(`${API_BASE}/session/create-session`, {

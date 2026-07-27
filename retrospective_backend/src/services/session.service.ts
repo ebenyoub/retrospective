@@ -18,6 +18,7 @@ import {
   updateSessionName,
   deleteSessionById,
 } from '../models/session.model';
+import { findParticipantByGuestToken } from "../models/participant.model";
 import { AppError } from "../utils/AppError";
 import { logger } from "../utils/logger";
 import {
@@ -268,11 +269,17 @@ export const getSessionDetails = async (sessionId: number): Promise<SessionDetai
 // Salle d'attente publique (GET /:sessionId, sans middleware `auth`) : une
 // session ouverte reste lisible par n'importe qui (invité potentiel). Une
 // session clôturée n'a plus vocation à être "une salle d'attente" — on exige
-// alors une identité (facilitateur ou ancien participant), sinon 404 pour ne
-// pas révéler qu'elle a existé.
+// alors une identité (facilitateur, ancien participant connecté, ou ancien
+// invité prouvant son jeton), sinon 404 pour ne pas révéler qu'elle a existé.
+//
+// guestToken n'est PAS vérifié pour expiration ici (contrairement aux actions
+// d'écriture, cf. assertGuestTokenNotExpired) : consulter en lecture seule le
+// récapitulatif d'une rétro terminée depuis longtemps reste légitime, ce
+// n'est qu'un simple GET.
 export const getSessionDetailsForViewer = async (
   sessionId: number,
-  viewerUserId: number | null
+  viewerUserId: number | null,
+  guestToken: string | null
 ): Promise<SessionDetails> => {
   const session = await getSessionDetails(sessionId);
 
@@ -281,9 +288,10 @@ export const getSessionDetailsForViewer = async (
   }
 
   const isOwner = viewerUserId !== null && session.ownerId === viewerUserId;
-  const wasParticipant = viewerUserId !== null && (await findSessionUserJoin(viewerUserId, sessionId)) !== null;
+  const wasAuthenticatedParticipant = viewerUserId !== null && (await findSessionUserJoin(viewerUserId, sessionId)) !== null;
+  const wasGuestParticipant = guestToken !== null && (await findParticipantByGuestToken(sessionId, guestToken)) !== null;
 
-  if (!isOwner && !wasParticipant) {
+  if (!isOwner && !wasAuthenticatedParticipant && !wasGuestParticipant) {
     throw new AppError(404, "Session non trouvée.", "SESSION_NOT_FOUND");
   }
 

@@ -82,12 +82,20 @@ const createMockResponse = () => {
   return res;
 };
 
-const createMockRequest = (userId?: number, params?: Record<string, unknown>, body?: Record<string, unknown>): AuthRequest =>
+const createMockRequest = (
+  userId?: number,
+  params?: Record<string, unknown>,
+  body?: Record<string, unknown>,
+  headers: Record<string, string> = {}
+): AuthRequest =>
   ({
     user: userId ? { userId, username: "Elyas" } : {},
     params: params || {},
     body: body || {},
-    headers: {},
+    headers,
+    header(name: string) {
+      return headers[name.toLowerCase()];
+    },
     cookies: {},
   }) as unknown as AuthRequest;
 
@@ -228,7 +236,19 @@ describe("session.controller", () => {
 
       expect(res.statusCode).toBe(200);
       expect(res.body).toEqual({ success: true, data: mockSession });
-      expect(mockGetSessionDetailsForViewer).toHaveBeenCalledWith(7, null);
+      expect(mockGetSessionDetailsForViewer).toHaveBeenCalledWith(7, null, null);
+    });
+
+    it("transmet le jeton invité (x-guest-token) au service, pour qu'un ancien invité puisse revoir une session close", async () => {
+      const mockSession = { id: 7, name: "S1", joinCode: null, status: "closed", step: "results" };
+      mockGetSessionDetailsForViewer.mockResolvedValueOnce(mockSession);
+      const req = createMockRequest(undefined, { sessionId: "7" }, undefined, { "x-guest-token": "guest-9" });
+      const res = createMockResponse();
+
+      await getSession(req, res as unknown as Response);
+
+      expect(res.statusCode).toBe(200);
+      expect(mockGetSessionDetailsForViewer).toHaveBeenCalledWith(7, null, "guest-9");
     });
 
     it("propage l'erreur 404 renvoyée par le service pour une session close sans droit d'accès", async () => {

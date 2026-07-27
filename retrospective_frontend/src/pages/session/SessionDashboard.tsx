@@ -95,12 +95,20 @@ const SessionDashboard = () => {
   // composant consommateur (SessionContext expose isFacilitator/isDesktop).
   const isFacilitator = identity.role === 'facilitator' && details.status !== 'closed';
   const isDesktop = !isMobileViewport;
+  // Un ancien invité (pas de compte, pas de cookie) doit pouvoir rouvrir une
+  // session close en lecture seule sous son pseudo déjà connu : sans jeton,
+  // getSessionDetailsForViewer (backend) la traite comme inexistante (404) et
+  // redemande un pseudo à tort (bug remonté).
+  const fetchSessionDetailsWithGuestToken = useCallback(
+    (): Promise<void> => details.fetchSessionDetails(identity.guestIdentity?.guestToken),
+    [details.fetchSessionDetails, identity.guestIdentity]
+  );
   const isLoading = useSessionPolling({
     sessionId,
     isAuthenticated,
     navigate,
     addToast,
-    fetchSessionDetails: details.fetchSessionDetails,
+    fetchSessionDetails: fetchSessionDetailsWithGuestToken,
     fetchCards: sessionCards.fetchCards,
   });
   const {

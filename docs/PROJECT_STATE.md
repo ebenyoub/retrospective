@@ -4,6 +4,13 @@
 
 ## Date de dernière mise à jour
 
+2026-07-27 (Bug remonté par l'utilisateur : un invité de retour sur l'accueil après clôture de sa session se voyait redemander un pseudo, alors qu'il en avait déjà un stocké localement.
+- **Diagnostic en deux couches** :
+  1. `ResumeSessionCard.tsx` effaçait `retro:guest:{sessionId}` de tout `localStorage` dès que `GET /session/resume/active` ne renvoyait pas de session "reprenable automatiquement" — sans distinguer "identité vraiment invalide" de "session simplement clôturée" (un cas normal). Ce nettoyage détruisait l'identité juste avant qu'elle ne soit réutilisable en lecture seule.
+  2. Même une fois ce nettoyage supprimé, `GET /session/:id` (`getSessionDetailsForViewer`) renvoyait 404 pour un invité sur une session close : la vérification de droits ne regardait que `viewerUserId` (utilisateur authentifié), jamais le jeton invité — un invité, même valide, n'avait donc **aucun chemin** pour repasser cette vérification.
+- **Correctifs** : (1) retrait du nettoyage global dans `ResumeSessionCard.tsx` — le nettoyage réellement ciblé reste dans `useSessionIdentity`, au moment où l'utilisateur rouvre CETTE session précise. (2) `getSessionDetailsForViewer` (backend) accepte désormais un `guestToken` et vérifie aussi `findParticipantByGuestToken` (sans contrôle d'expiration : une simple lecture d'un récapitulatif ancien reste légitime). Le contrôleur lit `x-guest-token`, le frontend le transmet via `getSessionDetails(sessionId, guestToken)` ← `useSessionDetails` ← un wrapper dans `SessionDashboard.tsx` qui connaît `identity.guestIdentity`.
+- **Vérification** : 329/329 tests backend (3 nouveaux), 203/203 tests frontend (1 test corrigé pour refléter le nouveau comportement), `tsc --noEmit` propre des deux côtés. Vérifié en conditions réelles (Playwright) : un invité qui rejoint, dont la session est ensuite clôturée par le facilitateur, revoit l'écran Résultats sous son pseudo d'origine au retour, sans modale de pseudo.)
+
 2026-07-27 (**`US-16` entièrement terminé** : les 3 derniers tickets du Plan d'action.
 - **UX-ACTION-01** : sélecteur "Top 3/5/10" ajouté au composant partagé `TopVotedCards.tsx` (prop `onLimitChange`, n'apparaît que si fournie — état local `topLimit` dans `ActionStep.tsx`, Résultats/Récapitulatif restent en limite fixe).
 - **UX-ACTION-02** : bouton "Commentaires" + `CardCommentsSection` ajoutés à chaque carte du podium via une nouvelle option `showComments` de `TopVotedCards` (nouveau sous-composant `TopVotedCardItem`, seul endroit du composant à lire le contexte de session — un `.map()` ne peut pas appeler de hook directement). Même accordéon global (`panels.openCommentsCardId`) que partout ailleurs. Option désactivée par défaut : Résultats/Récapitulatif restent inchangés.

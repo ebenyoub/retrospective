@@ -3,18 +3,19 @@ import { useNavigate } from 'react-router-dom';
 
 import { getActiveResumeSession } from '@/pages/session/services/participantApi';
 
-const clearGuestIdentities = () => {
-  for (let i = localStorage.length - 1; i >= 0; i--) {
-    const key = localStorage.key(i);
-    if (key && key.startsWith('retro:guest:')) {
-      localStorage.removeItem(key);
-    }
-  }
-};
-
 // Un participant qui revient sur l'accueil sans avoir quitté sa session active
 // peut y retourner directement. Le backend valide l'existence de la session
 // et l'identité du participant à partir du cookie signé retro_resume.
+//
+// "Pas de session à reprendre automatiquement" (data: null) ne veut pas dire
+// que l'identité invitée stockée est invalide : le backend renvoie aussi
+// data: null quand la session a simplement été clôturée entre-temps, un cas
+// tout à fait normal — pas la peine d'effacer `retro:guest:{sessionId}` dans
+// ce cas, useSessionIdentity s'en sert justement pour rouvrir la session
+// clôturée en lecture seule sous le même pseudo, sans redemander un pseudo.
+// Le nettoyage réellement invalide (jeton expiré, participant supprimé) se
+// fait déjà, lui, au bon endroit : dans useSessionIdentity, au moment précis
+// où l'utilisateur rouvre CETTE session précise.
 const ResumeSessionCard = () => {
   const navigate = useNavigate();
   const [resumable, setResumable] = useState<{ sessionId: number; sessionName: string; displayName: string } | null>(null);
@@ -28,9 +29,8 @@ const ResumeSessionCard = () => {
 
         if (result.ok && result.data) {
           if (isActive) setResumable(result.data);
-        } else {
-          clearGuestIdentities();
-          if (isActive) setResumable(null);
+        } else if (isActive) {
+          setResumable(null);
         }
       } catch (error) {
         // Erreur réseau : on n'affiche simplement pas le bouton.

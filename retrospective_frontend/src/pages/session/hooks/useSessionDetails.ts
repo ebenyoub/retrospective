@@ -45,12 +45,15 @@ export const useSessionDetails = ({ sessionId }: UseSessionDetailsOptions) => {
   const [status, setStatus] = useState<string>('open');
   const [hasLoadedSession, setHasLoadedSession] = useState<boolean>(false);
 
-  const fetchSessionDetails = useCallback(async (): Promise<void> => {
+  // guestToken : transmis par l'appelant (SessionDashboard connaît l'identité
+  // invitée stockée localement) pour qu'un ancien invité puisse rouvrir une
+  // session close en lecture seule, sans avoir de cookie d'authentification.
+  const fetchSessionDetails = useCallback(async (guestToken?: string): Promise<void> => {
     const sessionIdNumber = Number(sessionId);
     if (!sessionId || sessionId === 'undefined' || isNaN(sessionIdNumber) || sessionIdNumber <= 0) return;
 
     try {
-      const result = await getSessionDetails(sessionId);
+      const result = await getSessionDetails(sessionId, guestToken);
 
       if (result.ok) {
         setSessionName(result.data.name);

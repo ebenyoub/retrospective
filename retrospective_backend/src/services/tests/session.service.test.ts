@@ -21,6 +21,11 @@ vi.mock("../../models/session.model", () => ({
   deleteSessionById: vi.fn(),
 }));
 
+vi.mock("../../models/participant.model", () => ({
+  findParticipantByGuestToken: vi.fn(),
+}));
+
+import { findParticipantByGuestToken } from "../../models/participant.model";
 import {
   closeExpiredSessionsForOwner,
   closeActiveSessionsForOwner,
@@ -63,6 +68,7 @@ const mockCloseSessionIfExpiredByCode = closeSessionIfExpiredByCode as unknown a
 const mockFindSessionByCode = findSessionByCode as unknown as Mock;
 const mockFindSessionsForUser = findSessionsForUser as unknown as Mock;
 const mockFindSessionUserJoin = findSessionUserJoin as unknown as Mock;
+const mockFindParticipantByGuestToken = findParticipantByGuestToken as unknown as Mock;
 const mockInsertSession = insertSession as unknown as Mock;
 const mockInsertSessionUserJoin = insertSessionUserJoin as unknown as Mock;
 const mockFindSessionById = findSessionById as unknown as Mock;
@@ -107,6 +113,7 @@ describe("session.service", () => {
     mockCloseSessionById.mockReset();
     mockUpdateSessionName.mockReset();
     mockDeleteSessionById.mockReset();
+    mockFindParticipantByGuestToken.mockReset();
   });
 
   it("renvoie un tableau vide si le modèle ne renvoie aucune session", async () => {
@@ -368,7 +375,7 @@ describe("session.service", () => {
     it("renvoie les détails d'une session ouverte à n'importe quel visiteur (salle d'attente)", async () => {
       mockFindSessionById.mockResolvedValueOnce({ ...baseSessionRow, status: "open" });
 
-      const result = await getSessionDetailsForViewer(7, null);
+      const result = await getSessionDetailsForViewer(7, null, null);
       expect(result.joinCode).toBe("1234");
       expect(mockFindSessionUserJoin).not.toHaveBeenCalled();
     });
@@ -376,7 +383,7 @@ describe("session.service", () => {
     it("refuse une session close sans identité (404, pas de fuite d'existence)", async () => {
       mockFindSessionById.mockResolvedValueOnce({ ...baseSessionRow, status: "closed", join_code: null });
 
-      await expect(getSessionDetailsForViewer(7, null)).rejects.toMatchObject({
+      await expect(getSessionDetailsForViewer(7, null, null)).rejects.toMatchObject({
         statusCode: 404,
         code: "SESSION_NOT_FOUND",
       });
@@ -386,7 +393,7 @@ describe("session.service", () => {
       mockFindSessionById.mockResolvedValueOnce({ ...baseSessionRow, status: "closed", join_code: null, owner_id: 1 });
       mockFindSessionUserJoin.mockResolvedValueOnce(null);
 
-      await expect(getSessionDetailsForViewer(7, 99)).rejects.toMatchObject({
+      await expect(getSessionDetailsForViewer(7, 99, null)).rejects.toMatchObject({
         statusCode: 404,
         code: "SESSION_NOT_FOUND",
       });
@@ -395,17 +402,36 @@ describe("session.service", () => {
     it("autorise le facilitateur (owner) à revoir une session close", async () => {
       mockFindSessionById.mockResolvedValueOnce({ ...baseSessionRow, status: "closed", join_code: null, owner_id: 1 });
 
-      const result = await getSessionDetailsForViewer(7, 1);
+      const result = await getSessionDetailsForViewer(7, 1, null);
       expect(result.status).toBe("closed");
       expect(result.joinCode).toBeNull();
     });
 
-    it("autorise un ancien participant à revoir une session close", async () => {
+    it("autorise un ancien participant connecté à revoir une session close", async () => {
       mockFindSessionById.mockResolvedValueOnce({ ...baseSessionRow, status: "closed", join_code: null, owner_id: 1 });
       mockFindSessionUserJoin.mockResolvedValueOnce({ id: 5, user_id: 42, session_id: 7 });
 
-      const result = await getSessionDetailsForViewer(7, 42);
+      const result = await getSessionDetailsForViewer(7, 42, null);
       expect(result.status).toBe("closed");
+    });
+
+    it("autorise un ancien invité (jeton valide) à revoir une session close, sans compte", async () => {
+      mockFindSessionById.mockResolvedValueOnce({ ...baseSessionRow, status: "closed", join_code: null, owner_id: 1 });
+      mockFindParticipantByGuestToken.mockResolvedValueOnce({ id: 9, session_id: 7, guest_token: "guest-9" });
+
+      const result = await getSessionDetailsForViewer(7, null, "guest-9");
+      expect(result.status).toBe("closed");
+      expect(mockFindParticipantByGuestToken).toHaveBeenCalledWith(7, "guest-9");
+    });
+
+    it("refuse une session close à un jeton invité qui ne correspond à aucun participant", async () => {
+      mockFindSessionById.mockResolvedValueOnce({ ...baseSessionRow, status: "closed", join_code: null, owner_id: 1 });
+      mockFindParticipantByGuestToken.mockResolvedValueOnce(null);
+
+      await expect(getSessionDetailsForViewer(7, null, "jeton-invalide")).rejects.toMatchObject({
+        statusCode: 404,
+        code: "SESSION_NOT_FOUND",
+      });
     });
   });
 

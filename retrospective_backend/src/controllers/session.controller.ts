@@ -61,11 +61,12 @@ export const getSession = async (req: Request, res: Response) => {
   }
 
   // Pas de middleware `auth` ici (salle d'attente ouverte aux invités) : on
-  // lit l'identité si un cookie valide est présent, sans jamais l'exiger tant
-  // que la session est ouverte. getSessionDetailsForViewer refuse l'accès si
-  // la session est clôturée et que ce viewer n'y a aucun droit.
+  // lit l'identité si un cookie valide ou un jeton invité est présent, sans
+  // jamais l'exiger tant que la session est ouverte. getSessionDetailsForViewer
+  // refuse l'accès si la session est clôturée et que ce viewer n'y a aucun droit.
   const viewerUserId = getOptionalUserId(req);
-  const session = await getSessionDetailsForViewer(Number(sessionId), viewerUserId);
+  const guestToken = req.header("x-guest-token") ?? null;
+  const session = await getSessionDetailsForViewer(Number(sessionId), viewerUserId, guestToken);
 
   return res.status(200).json({
     success: true,

@@ -51,7 +51,13 @@ describe('ResumeSessionCard', () => {
     expect(await screen.findByText('Page de session')).toBeTruthy();
   });
 
-  it("nettoie le localStorage si la session n'est plus disponible", async () => {
+  it("ne touche pas à l'identité invitée stockée si la session n'est pas reprenable automatiquement (ex: clôturée)", async () => {
+    // data: null ne signifie pas que l'identité stockée est invalide : le
+    // backend renvoie la même réponse quand la session a simplement été
+    // clôturée. Effacer `retro:guest:{sessionId}` ici empêcherait
+    // useSessionIdentity de rouvrir cette session en lecture seule sous le
+    // même pseudo (bug remonté : une session clôturée redemandait un pseudo
+    // alors qu'un pseudo invité existait déjà).
     localStorage.setItem('retro:guest:3', JSON.stringify({ participantId: 9, guestToken: 'guest-9', displayName: 'Sarah' }));
     vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce({
       ok: true,
@@ -60,7 +66,8 @@ describe('ResumeSessionCard', () => {
 
     renderCard();
 
-    await vi.waitFor(() => expect(localStorage.getItem('retro:guest:3')).toBeNull());
+    await new Promise((resolve) => setTimeout(resolve, 50));
     expect(screen.queryByText('Revenir à la session en cours')).toBeNull();
+    expect(localStorage.getItem('retro:guest:3')).not.toBeNull();
   });
 });
