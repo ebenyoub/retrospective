@@ -37,6 +37,7 @@ const SessionContextBar = ({
   const isParticipantsOpen = context.panels.isParticipantsDrawerOpen;
   const isDiscussionOpen = context.panels.isDiscussionDrawerOpen;
   const isDiscussionBlinking = context.isDiscussionBlinking;
+  const clearDiscussionBlinking = context.clearDiscussionBlinking;
   const isSoundEnabled = context.isSoundEnabled;
   const onToggleSound = context.toggleSound;
   // En salle d'attente, la liste des participants et le code de session sont
@@ -121,7 +122,10 @@ const SessionContextBar = ({
           type="button"
           variant={isDiscussionOpen ? 'secondary' : 'ghost'}
           size="sm"
-          onClick={onToggleDiscussion}
+          onClick={() => {
+            onToggleDiscussion();
+            clearDiscussionBlinking();
+          }}
           aria-label="Discussion"
           aria-expanded={isDiscussionOpen}
           className={`inline-flex h-[30px] cursor-pointer items-center gap-1.5 rounded-lg border px-2.5 font-sans text-xs font-medium leading-none transition-colors select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-navy-mid ${

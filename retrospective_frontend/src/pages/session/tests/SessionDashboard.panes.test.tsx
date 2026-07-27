@@ -536,6 +536,14 @@ describe('SessionDashboard - Tiroirs et Modals (Panes)', () => {
       createdAt: '2026-07-07T10:01:00.000Z',
     });
     await waitFor(() => expect(discussionButton.className).toContain('animate-pulse'));
+
+    // Persiste tant que la Discussion n'est pas ouverte (pas de délai fixe qui
+    // le ferait disparaître tout seul avant que le facilitateur le remarque).
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(discussionButton.className).toContain('animate-pulse');
+
+    fireEvent.click(discussionButton);
+    expect(discussionButton.className).not.toContain('animate-pulse');
   });
 
   it('fait clignoter le bouton "Commentaires" de la carte concernée par un nouveau commentaire d\'un autre participant', async () => {
@@ -586,6 +594,13 @@ describe('SessionDashboard - Tiroirs et Modals (Panes)', () => {
     });
 
     await waitFor(() => expect(commentsButton.className).toContain('animate-pulse'));
+
+    // Persiste tant que la section n'est pas ouverte (pas de délai fixe).
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(commentsButton.className).toContain('animate-pulse');
+
+    fireEvent.click(commentsButton);
+    expect(commentsButton.className).not.toContain('animate-pulse');
   });
 
   it('ouvrir les commentaires d\'une carte ferme ceux déjà ouverts sur une autre (accordéon)', async () => {

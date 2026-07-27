@@ -1,5 +1,5 @@
 import { MessageCircle, Pencil, Trash2 } from 'lucide-react';
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import Button from '@/components/ui/Button';
 import IconButton from '@/components/ui/IconButton';
 import Avatar from "@/components/ui/Avatar";
@@ -36,15 +36,6 @@ const RetroCardItem = ({ card, accentClassName, currentUserId, onVote, onUpdateC
       setIsCommentsBlinking(true);
     }
   }
-
-  // Minuterie du clignotement : ici, l'effet ne fait que synchroniser avec un
-  // système externe (le délai), setState n'a lieu que dans le callback du
-  // timeout, jamais de façon synchrone dans le corps de l'effet.
-  useEffect(() => {
-    if (!isCommentsBlinking) return;
-    const timeoutId = setTimeout(() => setIsCommentsBlinking(false), 2500);
-    return () => clearTimeout(timeoutId);
-  }, [isCommentsBlinking]);
 
   const isAuthor = currentUserId === card.authorId;
   const canUpdate = onUpdateCard && isAuthor && canEdit;

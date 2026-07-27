@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { io, type Socket } from "socket.io-client";
 
 import { API_BASE } from "@/lib/api";
@@ -28,9 +28,15 @@ export const useSessionParticipants = (
   // on ne fait que relayer le dernier événement reçu, pas de liste agrégée ici.
   const [lastCommentAdded, setLastCommentAdded] = useState<{ cardId: number; comment: CardComment } | null>(null);
   // Clignotement du bouton Discussion à la réception d'un message d'un autre
-  // participant, quelques secondes, indépendamment du son (mute ou pas).
+  // participant, indépendamment du son (mute ou pas). Persiste tant que la
+  // Discussion n'a pas été ouverte (pas de délai fixe : un badge "non lu"
+  // qu'on manque en 2-3 secondes ne sert à rien).
   const [isDiscussionBlinking, setIsDiscussionBlinking] = useState(false);
   const actorHeaders = options.actorHeaders ?? {};
+
+  const clearDiscussionBlinking = useCallback((): void => {
+    setIsDiscussionBlinking(false);
+  }, []);
 
   // Ref plutôt que dépendance d'effet : évite de rouvrir un socket à chaque
   // fois que le composant appelant recrée sa fonction de callback. La mise à
@@ -39,7 +45,6 @@ export const useSessionParticipants = (
   const onTimerUpdatedRef = useRef(options.onTimerUpdated);
   const onSessionClosedRef = useRef(options.onSessionClosed);
   const isSoundEnabledRef = useRef(options.isSoundEnabled ?? true);
-  const discussionBlinkTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     onSessionStartedRef.current = options.onSessionStarted;
@@ -131,9 +136,6 @@ export const useSessionParticipants = (
       // Ni son ni clignotement pour son propre message (déjà visible à l'envoi).
       if (message.authorId !== self.participantId) {
         setIsDiscussionBlinking(true);
-        if (discussionBlinkTimeoutRef.current) clearTimeout(discussionBlinkTimeoutRef.current);
-        discussionBlinkTimeoutRef.current = setTimeout(() => setIsDiscussionBlinking(false), 2500);
-
         if (isSoundEnabledRef.current) playMessageNotificationSound();
       }
     };
@@ -171,7 +173,6 @@ export const useSessionParticipants = (
 
     return () => {
       isActive = false;
-      if (discussionBlinkTimeoutRef.current) clearTimeout(discussionBlinkTimeoutRef.current);
       socket.off("connect", handleConnect);
       socket.off("session:participants-updated", handleParticipantsUpdated);
       socket.off("session:started", handleSessionStarted);
@@ -184,5 +185,5 @@ export const useSessionParticipants = (
     };
   }, [sessionId, self, options.actorHeaders]);
 
-  return { participants, messages, setMessages, actions, setActions, lastCommentAdded, isDiscussionBlinking };
+  return { participants, messages, setMessages, actions, setActions, lastCommentAdded, isDiscussionBlinking, clearDiscussionBlinking };
 };

@@ -48,6 +48,7 @@ export interface SessionContextType {
   setActions: Dispatch<SetStateAction<ActionItem[]>>;
   lastCommentAdded: { cardId: number; comment: CardComment } | null;
   isDiscussionBlinking: boolean;
+  clearDiscussionBlinking: () => void;
   isSoundEnabled: boolean;
   toggleSound: () => void;
 

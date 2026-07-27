@@ -162,7 +162,7 @@ const SessionDashboard = () => {
     hasShownClosedToastRef.current = true;
   }, [addToast, setStatus]);
 
-  const { participants, messages, setMessages, actions, setActions, lastCommentAdded, isDiscussionBlinking } = useSessionParticipants(
+  const { participants, messages, setMessages, actions, setActions, lastCommentAdded, isDiscussionBlinking, clearDiscussionBlinking } = useSessionParticipants(
     sessionId,
     identity.selfIdentityForSocket,
     {
@@ -278,6 +278,7 @@ const SessionDashboard = () => {
         setActions,
         lastCommentAdded,
         isDiscussionBlinking,
+        clearDiscussionBlinking,
         isSoundEnabled,
         toggleSound,
 

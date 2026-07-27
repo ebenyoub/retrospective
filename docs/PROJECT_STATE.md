@@ -4,6 +4,13 @@
 
 ## Date de dernière mise à jour
 
+2026-07-27 (Correctif de persistance du clignotement (`UX-DISCUSSION-SOUND-01`/`UX-COMMENTS-SOUND-01`, `US-16`), suite au retour utilisateur "les boutons ne persistent toujours pas".
+- **Diagnostic** : script Playwright à deux contextes navigateur (deux vrais participants dans la même session, sockets réels, pas de mock) pour isoler la cause. Résultat : la préférence de son (`localStorage`) persistait déjà correctement après reload ; le vrai problème était que le clignotement des boutons Discussion et Commentaires disparaissait de lui-même après un délai fixe de 2,5 secondes (`setTimeout`), avant que le facilitateur n'ait forcément eu le temps de le remarquer — un badge "non lu" qui s'efface tout seul ne sert à rien.
+- **Correctif** : suppression de la minuterie fixe des deux côtés. Le clignotement persiste désormais indéfiniment jusqu'à l'ouverture réelle du panneau concerné : `useSessionParticipants.ts` expose une nouvelle fonction `clearDiscussionBlinking`, appelée par `SessionContextBar.tsx` au clic sur le bouton Discussion (en plus du bascule d'ouverture) ; côté commentaires, `RetroCardItem.tsx` effaçait déjà le clignotement au clic sur son bouton "Commentaires" — seule la minuterie de secours a été retirée.
+- **Vérifié en conditions réelles** (Playwright, deux participants, sockets réels — pas de mock) : le clignotement reste actif après 4,5 secondes (au-delà de l'ancien délai) et ne s'efface qu'à l'ouverture du panneau correspondant, pour Discussion comme pour les commentaires.
+- **Bug de test annexe découvert et corrigé** : en ouvrant réellement `DiscussionDrawer` dans un nouveau test (clic sur le bouton), `messagesEndRef.current?.scrollIntoView(...)` plantait car jsdom n'implémente pas `scrollIntoView`. Stub ajouté dans `src/test/setup.ts` (`HTMLElement.prototype.scrollIntoView`), sans impact sur le comportement réel en navigateur.
+- **Vérification** : 200/200 tests frontend au vert (2 tests enrichis : persistance au-delà de l'ancien délai + effacement à l'ouverture, pour Discussion et pour les commentaires), `tsc --noEmit` propre.)
+
 2026-07-27 (Lot Écriture de `US-16` terminé : les 5 tickets UX-WRITING-01 à 05.
 - **UX-WRITING-01** : bouton "← Retour" de la navbar renommé "Accueil" (icône `Home` au lieu de `ArrowLeft`), jugé plus clair. Tests mis à jour (`SessionDashboard.test.tsx`).
 - **UX-WRITING-02** : `ParticipantsDrawer` docké à gauche sur desktop au lieu de la droite. Le composant générique `Drawer` (`components/ui/Drawer.tsx`) ne supportait que `'right' | 'bottom' | 'full'` — ajout de `'left'` au type `DrawerSide` et à la classe de positionnement (`left-0 ... border-r`), réutilisable par d'autres panneaux futurs.
