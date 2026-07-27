@@ -29,7 +29,7 @@ const ParticipantsDrawer = () => {
       onClose={onClose}
       labelledBy="participants-drawer-title"
       overlayLabel="Fermer le panneau Participants"
-      side={isDesktop ? 'right' : 'bottom'}
+      side={isDesktop ? 'left' : 'bottom'}
       size="sm"
     >
       <header className="flex h-14 flex-shrink-0 items-center justify-between border-b border-navy-border px-4">

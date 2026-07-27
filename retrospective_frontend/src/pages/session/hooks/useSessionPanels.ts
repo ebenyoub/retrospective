@@ -1,11 +1,15 @@
 import { useCallback, useState } from 'react';
 
-import type { RetroCard } from '../types/card.types';
-
 export const useSessionPanels = () => {
   const [isParticipantsDrawerOpen, setIsParticipantsDrawerOpen] = useState<boolean>(false);
   const [isDiscussionDrawerOpen, setIsDiscussionDrawerOpen] = useState<boolean>(false);
-  const [commentsCard, setCommentsCard] = useState<RetroCard | null>(null);
+  // Un seul panneau de commentaires ouvert à la fois, toutes cartes/colonnes
+  // confondues : ouvrir celui d'une carte ferme automatiquement le précédent.
+  const [openCommentsCardId, setOpenCommentsCardId] = useState<number | null>(null);
+
+  const toggleComments = useCallback((cardId: number): void => {
+    setOpenCommentsCardId((current) => (current === cardId ? null : cardId));
+  }, []);
 
   const toggleParticipantsDrawer = useCallback((): void => {
     setIsParticipantsDrawerOpen((isOpen) => {
@@ -22,13 +26,12 @@ export const useSessionPanels = () => {
   }, []);
 
   return {
-    closeComments: (): void => setCommentsCard(null),
     closeDiscussionDrawer: (): void => setIsDiscussionDrawerOpen(false),
     closeParticipantsDrawer: (): void => setIsParticipantsDrawerOpen(false),
-    commentsCard,
     isDiscussionDrawerOpen,
     isParticipantsDrawerOpen,
-    openComments: setCommentsCard,
+    openCommentsCardId,
+    toggleComments,
     toggleDiscussionDrawer,
     toggleParticipantsDrawer,
   };

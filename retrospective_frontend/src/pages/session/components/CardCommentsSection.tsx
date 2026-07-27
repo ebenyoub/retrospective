@@ -98,6 +98,11 @@ const CardCommentsSection = ({ cardId }: CardCommentsSectionProps) => {
     }
   }, [sessionId, actorHeaders, cardId, addToast, onCommentsChanged]);
 
+  // Affichage inversé : le plus récent commentaire reste visible en haut,
+  // sans avoir à faire défiler la liste. L'état interne reste dans l'ordre
+  // chronologique (nouveaux ajoutés en fin de tableau), seul l'affichage est inversé.
+  const orderedComments = [...comments].reverse();
+
   return (
     <div
       role="region"
@@ -116,7 +121,7 @@ const CardCommentsSection = ({ cardId }: CardCommentsSectionProps) => {
         <p className="text-center text-xs text-slate-500 py-2">Aucun commentaire pour le moment.</p>
       ) : (
         <ul className="flex flex-col gap-2.5 max-h-[200px] overflow-y-auto pr-1">
-          {comments.map((comment) => (
+          {orderedComments.map((comment) => (
             <li key={comment.id} className="flex items-start gap-2 text-xs text-left">
               <Avatar name={comment.authorName} colorSeed={comment.authorId} size={22} fontSize={10} />
               <div className="min-w-0 flex-1 bg-navy-surface rounded-lg p-2 border border-navy-border-med">

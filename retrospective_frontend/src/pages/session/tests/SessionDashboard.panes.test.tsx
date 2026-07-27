@@ -281,7 +281,8 @@ describe('SessionDashboard - Tiroirs et Modals (Panes)', () => {
     renderDashboard();
 
     await screen.findByText('Carte à commenter');
-    expect(screen.getByText('2 votes')).toBeTruthy();
+    // Le nombre de votes n'est pas pertinent avant le vote : masqué à l'étape Écriture.
+    expect(screen.queryByText('2 votes')).toBeNull();
 
     const commentsButton = screen.getByRole('button', { name: 'Commentaires' });
     expect(commentsButton.textContent).toBe('Commentaires');
@@ -367,6 +368,13 @@ describe('SessionDashboard - Tiroirs et Modals (Panes)', () => {
     fireEvent.click(within(section).getByRole('button', { name: 'Envoyer le commentaire' }));
 
     await within(section).findByText('Une précision utile');
+
+    // Affichage inversé : le commentaire le plus récent ("Une précision
+    // utile") reste visible en haut de la liste, sans avoir à défiler.
+    const commentTexts = within(section)
+      .getAllByText(/Un premier commentaire|Une précision utile/)
+      .map((element) => element.textContent);
+    expect(commentTexts).toEqual(['Une précision utile', 'Un premier commentaire']);
   });
 
   it("permet à l'auteur de supprimer son propre commentaire", async () => {
@@ -578,5 +586,60 @@ describe('SessionDashboard - Tiroirs et Modals (Panes)', () => {
     });
 
     await waitFor(() => expect(commentsButton.className).toContain('animate-pulse'));
+  });
+
+  it('ouvrir les commentaires d\'une carte ferme ceux déjà ouverts sur une autre (accordéon)', async () => {
+    const fetchMock = createDashboardFetchMock({
+      cardsSequence: [
+        {
+          ok: true,
+          json: async () => ({
+            success: true,
+            data: [
+              {
+                id: 1,
+                sessionId: 1,
+                authorId: 1,
+                authorName: 'Elyas',
+                columnType: 'start',
+                content: 'Première carte',
+                createdAt: '2026-07-07T10:00:00.000Z',
+                votesCount: 0,
+                commentsCount: 0,
+              },
+              {
+                id: 2,
+                sessionId: 1,
+                authorId: 1,
+                authorName: 'Elyas',
+                columnType: 'stop',
+                content: 'Deuxième carte',
+                createdAt: '2026-07-07T10:01:00.000Z',
+                votesCount: 0,
+                commentsCount: 0,
+              },
+            ],
+          }),
+        },
+      ],
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderDashboard();
+
+    await screen.findByText('Première carte');
+    await screen.findByText('Deuxième carte');
+
+    const [firstCommentsButton, secondCommentsButton] = screen.getAllByRole('button', { name: 'Commentaires' });
+
+    fireEvent.click(firstCommentsButton);
+    expect(await screen.findByRole('region', { name: 'Discussion' })).toBeTruthy();
+    expect(firstCommentsButton.getAttribute('aria-expanded')).toBe('true');
+
+    fireEvent.click(secondCommentsButton);
+
+    expect(firstCommentsButton.getAttribute('aria-expanded')).toBe('false');
+    expect(secondCommentsButton.getAttribute('aria-expanded')).toBe('true');
+    expect(screen.getAllByRole('region', { name: 'Discussion' })).toHaveLength(1);
   });
 });

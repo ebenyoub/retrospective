@@ -1,4 +1,4 @@
-import { ArrowLeft, Check, Copy, MessageCircle, Users, Volume2, VolumeX } from 'lucide-react';
+import { Check, Copy, Home, MessageCircle, Users, Volume2, VolumeX } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import IconButton from '@/components/ui/IconButton';
 
@@ -57,11 +57,11 @@ const SessionContextBar = ({
           variant="ghost"
           size="sm"
           onClick={onBack}
-          aria-label="Retour"
+          aria-label="Accueil"
           className="inline-flex h-[30px] shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border border-navy-border bg-transparent px-2.5 font-sans text-xs font-medium leading-none text-slate-400 transition-colors select-none hover:bg-navy-surface hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-navy-mid"
         >
-          <ArrowLeft size={14} aria-hidden="true" />
-          <span className="hidden sm:inline">Retour</span>
+          <Home size={14} aria-hidden="true" />
+          <span className="hidden sm:inline">Accueil</span>
         </Button>
         <span className="inline-flex h-[30px] shrink-0 items-center font-sans text-[15px] font-extrabold leading-none text-green-figma">
           Range ta chambre

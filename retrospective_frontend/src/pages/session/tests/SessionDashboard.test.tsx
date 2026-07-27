@@ -238,7 +238,7 @@ describe('SessionDashboard - Configuration, Initialisation & Routage', () => {
 
     const contextBar = await screen.findByRole('navigation', { name: 'Contexte de session' });
 
-    expect(within(contextBar).getByRole('button', { name: 'Retour' })).toBeTruthy();
+    expect(within(contextBar).getByRole('button', { name: 'Accueil' })).toBeTruthy();
     expect(within(contextBar).getByText('Rétro sprint 12')).toBeTruthy();
     expect(within(contextBar).getAllByText('Écriture des cartes').length).toBeGreaterThan(0);
     expect(within(contextBar).getByRole('button', { name: 'Copier le code de session' })).toBeTruthy();
@@ -304,7 +304,7 @@ describe('SessionDashboard - Configuration, Initialisation & Routage', () => {
       expect(fetchSpy.mock.calls.some(([url]) => String(url).endsWith('/session/1/participants'))).toBe(true);
     });
 
-    const backButton = screen.getByRole('button', { name: 'Retour' });
+    const backButton = screen.getByRole('button', { name: 'Accueil' });
     fireEvent.click(backButton);
 
     expect(await screen.findByText("Page d'accueil")).toBeTruthy();

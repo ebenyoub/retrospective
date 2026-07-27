@@ -78,6 +78,7 @@ const Drawer = ({
   if (!open) return null;
 
   const sideClassName: Record<DrawerSide, string> = {
+    left: 'left-0 top-0 h-full translate-x-0 border-r',
     right: 'right-0 top-0 h-full translate-x-0 border-l',
     bottom: 'inset-x-0 bottom-0 max-h-[70vh] translate-y-0 rounded-t-2xl border-t',
     full: 'inset-0 translate-x-0',
@@ -105,7 +106,7 @@ const Drawer = ({
         className={cn(
           'absolute flex flex-col overflow-hidden border-navy-border bg-navy-mid shadow-2xl transition-transform duration-200 ease-out focus:outline-none',
           sideClassName[side],
-          side === 'right' && sizeClassName[size]
+          (side === 'right' || side === 'left') && sizeClassName[size]
         )}
       >
         {children}

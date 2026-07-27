@@ -8,10 +8,17 @@ import CardCommentsSection from './CardCommentsSection';
 import { useSessionContext } from '../context/useSessionContext';
 
 const RetroCardItem = ({ card, accentClassName, currentUserId, onVote, onUpdateCard, onDeleteCard, canVote = true, canEdit = true }: RetroCardItemProps) => {
-  const { lastCommentAdded } = useSessionContext();
+  const { lastCommentAdded, details, panels } = useSessionContext();
+  // Le nombre de votes n'a pas de sens tant que le vote n'a pas commencé :
+  // masqué à l'étape Écriture, affiché dès le vote (RetroCardItem n'est
+  // utilisé qu'à ces deux étapes, jamais après).
+  const showVotesCount = details.step !== 'writing';
+  // Un seul panneau de commentaires ouvert à la fois (toutes cartes
+  // confondues), état centralisé dans useSessionPanels : ouvrir celui d'une
+  // carte ferme automatiquement celui d'une autre, pour économiser l'espace.
+  const isCommentsExpanded = panels.openCommentsCardId === card.id;
   const [isEditing, setIsEditing] = useState(false);
   const [draftContent, setDraftContent] = useState(card.content);
-  const [isCommentsExpanded, setIsCommentsExpanded] = useState(false);
   const [isCommentsBlinking, setIsCommentsBlinking] = useState(false);
   // Dernier événement déjà traité par cette carte : comparé pendant le rendu
   // plutôt que dans un effet, pour éviter un setState synchrone dans le corps
@@ -112,16 +119,18 @@ const RetroCardItem = ({ card, accentClassName, currentUserId, onVote, onUpdateC
 
       {/* Action Buttons Section */}
       <div className="flex items-center justify-end gap-2 mt-1.5 flex-wrap">
-        <span className="text-xs font-mono text-slate-400 select-none mr-auto">
-          {card.votesCount} vote{card.votesCount !== 1 ? "s" : ""}
-        </span>
+        {showVotesCount && (
+          <span className="text-xs font-mono text-slate-400 select-none mr-auto">
+            {card.votesCount} vote{card.votesCount !== 1 ? "s" : ""}
+          </span>
+        )}
         {!isEditing && (
           <Button
             type="button"
             variant="ghost"
             size="sm"
             onClick={() => {
-              setIsCommentsExpanded(!isCommentsExpanded);
+              panels.toggleComments(card.id);
               setIsCommentsBlinking(false);
             }}
             aria-label="Commentaires"

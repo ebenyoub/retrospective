@@ -186,11 +186,11 @@ Retour utilisateur après un tour manuel dans le navigateur, session réelle (`R
 
 | ID | Description | Statut |
 | :--- | :--- | :--- |
-| **UX-WRITING-01** | Bouton "← Retour" peu clair ; à renommer (ex. "Accueil"). | ⬜ À faire |
-| **UX-WRITING-02** | Panneau Participants à repositionner à gauche (actuellement à droite). | ⬜ À faire |
-| **UX-WRITING-03** | Cartes : nombre de votes affiché dès l'étape Écriture à retirer (pas pertinent avant le vote). | ⬜ À faire |
-| **UX-WRITING-04** | Commentaires : un seul panneau ouvert à la fois — fermeture automatique du précédent à l'ouverture d'un nouveau, et/ou fermeture au clic en dehors de la carte, pour optimiser l'espace. | ⬜ À faire |
-| **UX-WRITING-05** | Commentaires : affichage inversé (les plus récents en haut) pour garder les derniers échanges toujours visibles. | ⬜ À faire |
+| **UX-WRITING-01** | Bouton "← Retour" peu clair ; à renommer (ex. "Accueil"). | ✅ Terminé (2026-07-27 : renommé "Accueil", icône Home) |
+| **UX-WRITING-02** | Panneau Participants à repositionner à gauche (actuellement à droite). | ✅ Terminé (2026-07-27 : `Drawer` supporte désormais `side="left"`) |
+| **UX-WRITING-03** | Cartes : nombre de votes affiché dès l'étape Écriture à retirer (pas pertinent avant le vote). | ✅ Terminé (2026-07-27 : masqué si `details.step === 'writing'`, toujours affiché au vote) |
+| **UX-WRITING-04** | Commentaires : un seul panneau ouvert à la fois — fermeture automatique du précédent à l'ouverture d'un nouveau, et/ou fermeture au clic en dehors de la carte, pour optimiser l'espace. | ✅ Terminé (2026-07-27 : accordéon centralisé dans `useSessionPanels` — `openCommentsCardId`, une seule carte ouverte à la fois) |
+| **UX-WRITING-05** | Commentaires : affichage inversé (les plus récents en haut) pour garder les derniers échanges toujours visibles. | ✅ Terminé (2026-07-27 : affichage inversé, état interne inchangé) |
 
 **UX — Résultats**
 
@@ -217,6 +217,8 @@ Retour utilisateur après un tour manuel dans le navigateur, session réelle (`R
 **Point découvert hors périmètre, signalé sans être corrigé**
 
 En vérifiant `BUG-WAITING-DISCUSSION-01`/`UX-WAITING-*` en conditions réelles (navigateur, 2026-07-27), une requête `GET /session/:id/cards` renvoie parfois un unique 403 transitoire juste après la création d'une session (le polling de fond démarre avant que les en-têtes d'acteur du facilitateur soient complètement résolus). Sans impact visible : aucune carte n'est affichée à l'étape `waiting`, et le polling suivant se corrige de lui-même. Confirmé pré-existant (reproduit avant toute modification de cette session de travail, sur du code non touché par `US-16`). Hors périmètre de `US-16` — à traiter dans un ticket dédié si jugé prioritaire.
+
+**Retour utilisateur à préciser** : après la livraison de `UX-DISCUSSION-SOUND-01`/`UX-COMMENTS-SOUND-01`/`UX-SOUND-TOGGLE-01`, l'utilisateur a signalé (2026-07-27) que « les boutons ne persistent toujours pas », sans plus de détail. Non reproduit ni corrigé — la préférence de son (`localStorage`) a été vérifiée fonctionnelle en conditions réelles au moment de la livraison (bascule Activer/Désactiver + `aria-pressed` corrects). Hypothèses possibles à vérifier avec l'utilisateur : préférence son qui ne survit pas à un rechargement de page, clignotement qui ne dure pas assez longtemps pour être remarqué, ou tout autre bouton visé non identifié. À reproduire précisément avant correction.
 
 ---
 
