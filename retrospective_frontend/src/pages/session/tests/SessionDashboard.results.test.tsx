@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { screen, fireEvent } from '@testing-library/react';
+import { screen, fireEvent, within } from '@testing-library/react';
 import {
   emptyCardsResponse,
   renderDashboard,
@@ -125,6 +125,75 @@ describe('SessionDashboard - Vue des résultats (Results Step)', () => {
     const cards = screen.getAllByText(/Carte (peu|très) votée/);
     expect(cards[0].textContent).toBe('Carte très votée');
     expect(cards[1].textContent).toBe('Carte peu votée');
+  });
+
+  it('permet de consulter les commentaires d\'une carte depuis l\'écran Résultats', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockImplementation((url: string, init?: RequestInit) => {
+        const method = init?.method ?? 'GET';
+
+        if (url.endsWith('/session/1')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({
+              success: true,
+              data: {
+                id: 1,
+                name: 'Tableau de rétrospective — session 1',
+                code: '1234',
+                status: 'open',
+                step: 'results',
+                ownerId: 1,
+              },
+            }),
+          });
+        }
+        if (method === 'GET' && url.includes('/comments')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({
+              success: true,
+              data: [
+                { id: 5, cardId: 1, authorId: 2, authorName: 'Sarah', content: 'Un avis sur cette carte', createdAt: '2026-07-07T10:05:00.000Z' },
+              ],
+            }),
+          });
+        }
+        if (url.endsWith('/cards')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({
+              success: true,
+              data: [
+                {
+                  id: 1,
+                  sessionId: 1,
+                  authorId: 1,
+                  authorName: 'Elyas',
+                  columnType: 'start',
+                  content: 'Carte à commenter',
+                  createdAt: '2026-07-07T10:00:00.000Z',
+                  votesCount: 1,
+                  commentsCount: 1,
+                },
+              ],
+            }),
+          });
+        }
+
+        return Promise.resolve({ ok: true, json: async () => ({ success: true, data: [] }) });
+      })
+    );
+
+    renderDashboard();
+
+    expect(await screen.findByText('Top 3 des cartes')).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Commentaires' }));
+
+    const section = await screen.findByRole('region', { name: 'Discussion' });
+    await within(section).findByText('Un avis sur cette carte');
   });
 
   it('affiche les libellés du format choisi dans la vue résultats', async () => {

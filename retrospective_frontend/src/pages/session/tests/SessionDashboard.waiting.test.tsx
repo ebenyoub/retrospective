@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { screen, fireEvent, render, within } from '@testing-library/react';
+import { screen, fireEvent, render, within, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import SessionDashboard from '../SessionDashboard';
 import {
@@ -64,6 +64,7 @@ describe('SessionDashboard - Salle d\'attente (Waiting Step)', () => {
     authState.email = 'e@test.com';
     localStorage.clear();
     mockSocket.__clear();
+    mockSocket.on.mockClear();
     ioMock.mockClear();
   });
 
@@ -276,6 +277,13 @@ describe('SessionDashboard - Salle d\'attente (Waiting Step)', () => {
 
     await screen.findByText('En attente du lancement par le facilitateur...');
     expect(localStorage.getItem('retro:guest:1')).toContain('guest-9');
+
+    // Le socket applicatif ne s'établit qu'une fois l'identité résolue,
+    // légèrement après le rendu : on attend l'abonnement réel avant de
+    // déclencher l'événement, pour ne pas tester dans le vide (flaky sinon).
+    await waitFor(() => {
+      expect(mockSocket.on).toHaveBeenCalledWith('session:started', expect.any(Function));
+    });
 
     mockSocket.__trigger('session:started', { step: 'writing' });
 

@@ -198,7 +198,11 @@ Retour utilisateur après un tour manuel dans le navigateur, session réelle (`R
 
 | ID | Description | Statut |
 | :--- | :--- | :--- |
-| **UX-RESULTS-01** | Pouvoir continuer à consulter les commentaires des cartes sur l'écran Résultats. | ⬜ À faire |
+| **UX-RESULTS-01** | Pouvoir continuer à consulter les commentaires des cartes sur l'écran Résultats. | ✅ Terminé (2026-07-27 : bouton "Commentaires" + `CardCommentsSection` ajoutés à `ResultCard`, même accordéon global qu'à l'étape Écriture) |
+
+**Bug pré-existant découvert et corrigé au passage (hors périmètre initial d'`UX-RESULTS-01`, mais partagé par toutes les cartes commentables)**
+
+En vérifiant `UX-RESULTS-01` en conditions réelles (deux requêtes/deux sources pour le même commentaire), un commentaire pouvait s'afficher **en double** dans `CardCommentsSection` : le backend diffuse l'événement socket `session:comment-added` **avant** de renvoyer la réponse HTTP du `POST` (`comment.controller.ts`), donc l'écho socket ajoute souvent le commentaire avant que la réponse de la requête d'origine ne revienne — et l'ajout optimiste de `handleSubmit` n'avait aucune déduplication par id (contrairement à l'ajout par socket, qui en avait déjà une). Confirmé pré-existant, reproductible sur Écriture comme sur Résultats, avant toute modification de cette session de travail. Corrigé par l'ajout de la même déduplication par id des deux côtés. Voir `docs/PROJECT_STATE.md` pour le détail et la méthode de vérification.
 
 **UX — Plan d'action / Résumé**
 

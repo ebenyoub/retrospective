@@ -1,5 +1,9 @@
+import { MessageCircle } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
+import Button from '@/components/ui/Button';
 import type { RetroCard } from '../types/card.types';
+import { useSessionContext } from '../context/useSessionContext';
+import CardCommentsSection from './CardCommentsSection';
 import type { ResultCategory, SessionResultsProps } from './types/SessionResults.types';
 import TopVotedCards from './TopVotedCards';
 
@@ -30,24 +34,46 @@ const VoteBar = ({ votes, maxVotes, color }: { votes: number; maxVotes: number; 
 };
 
 // Carte compacte affichée dans une colonne de catégorie.
-const ResultCard = ({ card, category, maxVotes }: { card: RetroCard; category: ResultCategory; maxVotes: number }) => (
-  <article
-    className="rounded-[10px] border border-navy-border border-l-[3px] bg-navy-mid px-3 py-2.5"
-    style={{ borderLeftColor: category.color }}
-  >
-    <div className="mb-1.5 flex items-center gap-[7px]">
-      <Avatar name={card.authorName} colorSeed={card.authorId} size={18} fallback="P" />
-      <span className="text-[11px] text-slate-500">{card.authorName}</span>
-    </div>
-    <p className="mb-2 text-[13px] leading-[1.45] text-slate-200 break-words">{card.content}</p>
-    <VoteBar votes={card.votesCount} maxVotes={maxVotes} color={category.color} />
-    <div className="mt-2 flex justify-end">
-      <span className="font-mono text-xs font-bold" style={{ color: category.color }}>
-        {card.votesCount} vote{card.votesCount !== 1 ? 's' : ''}
-      </span>
-    </div>
-  </article>
-);
+const ResultCard = ({ card, category, maxVotes }: { card: RetroCard; category: ResultCategory; maxVotes: number }) => {
+  const { panels } = useSessionContext();
+  // Même accordéon global qu'à l'étape Écriture (useSessionPanels) : un seul
+  // panneau de commentaires ouvert à la fois, toutes cartes/écrans confondus.
+  const isCommentsExpanded = panels.openCommentsCardId === card.id;
+
+  return (
+    <article
+      className="rounded-[10px] border border-navy-border border-l-[3px] bg-navy-mid px-3 py-2.5"
+      style={{ borderLeftColor: category.color }}
+    >
+      <div className="mb-1.5 flex items-center gap-[7px]">
+        <Avatar name={card.authorName} colorSeed={card.authorId} size={18} fallback="P" />
+        <span className="text-[11px] text-slate-500">{card.authorName}</span>
+      </div>
+      <p className="mb-2 text-[13px] leading-[1.45] text-slate-200 break-words">{card.content}</p>
+      <VoteBar votes={card.votesCount} maxVotes={maxVotes} color={category.color} />
+      <div className="mt-2 flex items-center justify-between gap-2">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => panels.toggleComments(card.id)}
+          aria-label="Commentaires"
+          aria-expanded={isCommentsExpanded}
+          aria-controls={`card-comments-${card.id}`}
+          className="h-auto inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-slate-300 bg-transparent hover:bg-navy-surface rounded-[8px] border border-transparent hover:border-navy-border px-2 py-1.5 transition-all cursor-pointer"
+        >
+          <MessageCircle size={13} aria-hidden="true" />
+          <span>Commentaires{card.commentsCount > 0 ? ` (${card.commentsCount})` : ''}</span>
+        </Button>
+        <span className="font-mono text-xs font-bold" style={{ color: category.color }}>
+          {card.votesCount} vote{card.votesCount !== 1 ? 's' : ''}
+        </span>
+      </div>
+
+      {isCommentsExpanded && <CardCommentsSection cardId={card.id} />}
+    </article>
+  );
+};
 
 const SessionResults = ({ cards, formatColumns, isDesktop }: SessionResultsProps) => {
   const categories = buildCategories(formatColumns);

@@ -71,7 +71,14 @@ const CardCommentsSection = ({ cardId }: CardCommentsSectionProps) => {
     try {
       const result = await createComment(sessionId, actorHeaders, cardId, content);
       if (result.ok) {
-        setComments((previous) => [...previous, result.data]);
+        // Déduplication par id : l'écho socket (session:comment-added,
+        // diffusé par le backend avant même la réponse HTTP, voir
+        // comment.controller.ts) arrive souvent avant cette réponse et peut
+        // avoir déjà ajouté ce commentaire via l'effet ci-dessus.
+        setComments((previous) => {
+          if (previous.some((comment) => comment.id === result.data.id)) return previous;
+          return [...previous, result.data];
+        });
         setDraftContent('');
         onCommentsChanged?.();
       } else {
