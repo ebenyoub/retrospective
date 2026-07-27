@@ -26,7 +26,7 @@ const CardCommentsSection = ({ cardId }: CardCommentsSectionProps) => {
     throw new Error('CardCommentsSection must be used within a SessionContext.Provider');
   }
 
-  const { sessionId, actorHeaders, selfParticipantId, onCommentsChanged, isReadOnly } = session;
+  const { sessionId, actorHeaders, selfParticipantId, onCommentsChanged, isReadOnly, lastCommentAdded } = session;
 
   const loadComments = useCallback(async (): Promise<void> => {
     setIsLoading(true);
@@ -48,6 +48,18 @@ const CardCommentsSection = ({ cardId }: CardCommentsSectionProps) => {
   useEffect(() => {
     void loadComments();
   }, [loadComments]);
+
+  // Temps réel : un commentaire ajouté par un autre participant sur cette
+  // même carte apparaît immédiatement, sans devoir rouvrir le panneau ou
+  // recharger la page (déduplication par id, le sien arrive déjà par
+  // handleSubmit ci-dessous).
+  useEffect(() => {
+    if (!lastCommentAdded || lastCommentAdded.cardId !== cardId) return;
+    setComments((previous) => {
+      if (previous.some((comment) => comment.id === lastCommentAdded.comment.id)) return previous;
+      return [...previous, lastCommentAdded.comment];
+    });
+  }, [lastCommentAdded, cardId]);
 
   const handleSubmit = useCallback(async (): Promise<void> => {
     const content = draftContent.trim();

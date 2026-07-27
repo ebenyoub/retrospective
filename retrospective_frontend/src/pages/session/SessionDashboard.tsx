@@ -160,7 +160,7 @@ const SessionDashboard = () => {
     hasShownClosedToastRef.current = true;
   }, [addToast, setStatus]);
 
-  const { participants, messages, setMessages, actions, setActions } = useSessionParticipants(
+  const { participants, messages, setMessages, actions, setActions, lastCommentAdded } = useSessionParticipants(
     sessionId,
     identity.selfIdentityForSocket,
     {
@@ -170,6 +170,15 @@ const SessionDashboard = () => {
       actorHeaders: identity.actorHeaders ?? EMPTY_HEADERS,
     }
   );
+
+  // Un commentaire ajouté (par soi ou par un autre participant) rafraîchit le
+  // compteur affiché sur la carte concernée pour tout le monde. Le panneau de
+  // commentaires déjà ouvert sur cette carte se met à jour de son côté (voir
+  // CardCommentsSection, qui écoute aussi lastCommentAdded).
+  useEffect(() => {
+    if (!lastCommentAdded) return;
+    void sessionCards.fetchCards();
+  }, [lastCommentAdded, sessionCards.fetchCards]);
 
   const handleAddAction = useCallback(async (payload: CreateActionPayload): Promise<void> => {
     if (!sessionId || !identity.actorHeaders || details.status === 'closed') return;
@@ -264,6 +273,7 @@ const SessionDashboard = () => {
         setMessages,
         actions,
         setActions,
+        lastCommentAdded,
 
         votesLeft: sessionCards.votesLeft,
         stepEndsAt: details.stepEndsAt,

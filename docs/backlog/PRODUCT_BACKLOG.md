@@ -170,7 +170,7 @@ Retour utilisateur après un tour manuel dans le navigateur, session réelle (`R
 | ID | Écran | Description | Statut |
 | :--- | :--- | :--- | :--- |
 | **BUG-WAITING-DISCUSSION-01** | Salle d'attente | Le bouton "Discussion" ne fonctionne pas en salle d'attente, alors que c'est le meilleur moment pour échanger entre participants déjà connectés. | ✅ Terminé (2026-07-27 : `DiscussionDrawer` n'était monté que hors étape `waiting` ; désormais rendu en frère docké/overlay de `WaitingStep`, comme sur les autres étapes) |
-| **BUG-COMMENTS-REALTIME-01** | Écriture | Un commentaire ajouté par un participant ne s'affiche pas en temps réel pour les autres : il faut rouvrir le panneau ("Commentaires (2)") ou recharger la page pour le voir. | ⬜ À faire |
+| **BUG-COMMENTS-REALTIME-01** | Écriture | Un commentaire ajouté par un participant ne s'affiche pas en temps réel pour les autres : il faut rouvrir le panneau ("Commentaires (2)") ou recharger la page pour le voir. | ✅ Terminé (2026-07-27 : aucun événement socket n'existait pour les commentaires ; ajout de `session:comment-added` côté backend et écoute côté frontend, panneau déjà ouvert et compteur de la carte mis à jour en direct) |
 
 **UX — Salle d'attente**
 

@@ -5,6 +5,7 @@ import {
   removeComment as removeCommentService,
 } from "../services/comment.service";
 import { resolveSessionActor } from "../utils/sessionActor";
+import { emitCommentAdded } from "../realtime/socket";
 
 export const getComments = async (req: Request, res: Response) => {
   const sessionId = Number(req.params.sessionId);
@@ -26,6 +27,10 @@ export const createComment = async (req: Request, res: Response) => {
   const actor = await resolveSessionActor(req, sessionId, { requireOpen: true });
 
   const data = await addCommentService({ participantId: actor.participantId, sessionId, cardId, content });
+
+  // Diffusion temps réel : sans ça, les autres participants ne voient le
+  // nouveau commentaire qu'en rouvrant le panneau ou en rechargeant la page.
+  emitCommentAdded(sessionId, cardId, data);
 
   return res.status(201).json({
     success: true,

@@ -9,6 +9,7 @@ import type { RetroCard } from '../types/card.types';
 import type { ParticipantSummary } from '../types/participant.types';
 import type { SessionMessage } from '../types/message.types';
 import type { ActionItem } from '../types/action.types';
+import type { CardComment } from '../types/comment.types';
 import type { SessionStep } from '../types/session.types';
 
 // Fil d'eau (viewport) : dérivé une seule fois par SessionDashboard, plutôt
@@ -45,6 +46,7 @@ export interface SessionContextType {
   setMessages: Dispatch<SetStateAction<SessionMessage[]>>;
   actions: ActionItem[];
   setActions: Dispatch<SetStateAction<ActionItem[]>>;
+  lastCommentAdded: { cardId: number; comment: CardComment } | null;
 
   // Champs directs pratiques pour la barre d'actions (SessionActionBar) :
   // évite de faire traverser sessionCards/details/useSessionActions à chaque

@@ -423,4 +423,54 @@ describe('SessionDashboard - Tiroirs et Modals (Panes)', () => {
 
     await within(section).findByText('Aucun commentaire pour le moment.');
   });
+
+  it("affiche en direct un commentaire ajouté par un autre participant, sans devoir rouvrir le panneau", async () => {
+    const fetchMock = createDashboardFetchMock({
+      cardsSequence: [
+        {
+          ok: true,
+          json: async () => ({
+            success: true,
+            data: [
+              {
+                id: 1,
+                sessionId: 1,
+                authorId: 1,
+                authorName: 'Elyas',
+                columnType: 'start',
+                content: 'Carte à commenter',
+                createdAt: '2026-07-07T10:00:00.000Z',
+                votesCount: 2,
+                commentsCount: 0,
+              },
+            ],
+          }),
+        },
+      ],
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderDashboard();
+
+    await screen.findByText('Carte à commenter');
+    fireEvent.click(screen.getByRole('button', { name: 'Commentaires' }));
+
+    const section = await screen.findByRole('region', { name: 'Discussion' });
+    await within(section).findByText('Aucun commentaire pour le moment.');
+
+    mockSocket.__trigger('session:comment-added', {
+      cardId: 1,
+      comment: {
+        id: 9,
+        cardId: 1,
+        authorId: 2,
+        authorName: 'Sarah',
+        content: 'Un commentaire posté depuis un autre onglet',
+        createdAt: '2026-07-07T10:07:00.000Z',
+      },
+    });
+
+    await within(section).findByText('Un commentaire posté depuis un autre onglet');
+    expect(within(section).getByText('Sarah')).toBeTruthy();
+  });
 });

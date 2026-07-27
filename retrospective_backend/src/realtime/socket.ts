@@ -127,3 +127,8 @@ export const emitActionAdded = (sessionId: number, action: any): void => {
   if (!io) return;
   io.to(roomName(sessionId)).emit("session:action-added", action);
 };
+
+export const emitCommentAdded = (sessionId: number, cardId: number, comment: any): void => {
+  if (!io) return;
+  io.to(roomName(sessionId)).emit("session:comment-added", { cardId, comment });
+};

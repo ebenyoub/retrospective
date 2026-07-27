@@ -12,6 +12,8 @@ vi.mock("../../utils/sessionActor", () => ({
   resolveSessionActor: vi.fn(),
 }));
 
+vi.mock("../../realtime/socket");
+
 import { createComment, deleteComment, getComments } from "../comment.controller";
 import {
   addComment as addCommentService,
@@ -19,6 +21,7 @@ import {
   removeComment as removeCommentService,
 } from "../../services/comment.service";
 import { resolveSessionActor } from "../../utils/sessionActor";
+import * as socketRealtime from "../../realtime/socket";
 import type { AuthRequest } from "../../types";
 
 const mockAddCommentService = addCommentService as unknown as Mock;
@@ -59,6 +62,7 @@ describe("comment.controller", () => {
     mockRemoveCommentService.mockReset();
     mockResolveSessionActor.mockReset();
     mockResolveSessionActor.mockResolvedValue({ participantId: 9, displayName: "Sarah", role: "participant" });
+    vi.mocked(socketRealtime.emitCommentAdded).mockReset();
   });
 
   it("GET : renvoie 200 et les commentaires de la carte", async () => {
@@ -79,14 +83,15 @@ describe("comment.controller", () => {
   });
 
   it("POST : appelle le service puis renvoie 201", async () => {
-    mockAddCommentService.mockResolvedValueOnce({
+    const created = {
       id: 1,
       cardId: 5,
       authorId: 9,
       authorName: "Sarah",
       content: "Peut-on préciser ce point ?",
       createdAt: new Date(),
-    });
+    };
+    mockAddCommentService.mockResolvedValueOnce(created);
     const req = createMockRequest({ content: "Peut-on préciser ce point ?" });
     const res = createMockResponse();
 
@@ -103,6 +108,9 @@ describe("comment.controller", () => {
       content: "Peut-on préciser ce point ?",
     });
     expect(mockResolveSessionActor).toHaveBeenCalledWith(req, 1, { requireOpen: true });
+    // Diffusion temps réel : sans cet appel, les autres participants ne
+    // voient le nouveau commentaire qu'en rouvrant le panneau ou en rechargeant.
+    expect(socketRealtime.emitCommentAdded).toHaveBeenCalledWith(1, 5, created);
   });
 
   it("POST : ne capture pas les erreurs du service", async () => {

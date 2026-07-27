@@ -8,6 +8,7 @@ import { getActions } from "../services/actionApi";
 import type { ParticipantSummary, SelfIdentity } from '../types/participant.types';
 import type { SessionMessage } from "../types/message.types";
 import type { ActionItem } from "../types/action.types";
+import type { CardComment } from "../types/comment.types";
 import type { UseSessionParticipantsOptions } from './types/useSessionParticipants.types';
 
 // Source de vérité = backend : liste initiale par API, puis mises à jour en
@@ -22,6 +23,9 @@ export const useSessionParticipants = (
   const [participants, setParticipants] = useState<ParticipantSummary[]>([]);
   const [messages, setMessages] = useState<SessionMessage[]>([]);
   const [actions, setActions] = useState<ActionItem[]>([]);
+  // Les commentaires restent gérés localement par carte (CardCommentsSection) :
+  // on ne fait que relayer le dernier événement reçu, pas de liste agrégée ici.
+  const [lastCommentAdded, setLastCommentAdded] = useState<{ cardId: number; comment: CardComment } | null>(null);
   const actorHeaders = options.actorHeaders ?? {};
 
   // Ref plutôt que dépendance d'effet : évite de rouvrir un socket à chaque
@@ -127,6 +131,10 @@ export const useSessionParticipants = (
       }
     };
 
+    const handleCommentAdded = (payload: { cardId: number; comment: CardComment }) => {
+      if (isActive) setLastCommentAdded(payload);
+    };
+
     socket.on("connect", handleConnect);
     socket.on("session:participants-updated", handleParticipantsUpdated);
     socket.on("session:started", handleSessionStarted);
@@ -134,6 +142,7 @@ export const useSessionParticipants = (
     socket.on("session:closed", handleSessionClosed);
     socket.on("session:message-added", handleMessageAdded);
     socket.on("session:action-added", handleActionAdded);
+    socket.on("session:comment-added", handleCommentAdded);
 
     return () => {
       isActive = false;
@@ -144,9 +153,10 @@ export const useSessionParticipants = (
       socket.off("session:closed", handleSessionClosed);
       socket.off("session:message-added", handleMessageAdded);
       socket.off("session:action-added", handleActionAdded);
+      socket.off("session:comment-added", handleCommentAdded);
       socket.disconnect();
     };
   }, [sessionId, self, options.actorHeaders]);
 
-  return { participants, messages, setMessages, actions, setActions };
+  return { participants, messages, setMessages, actions, setActions, lastCommentAdded };
 };
