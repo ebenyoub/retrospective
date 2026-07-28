@@ -160,7 +160,7 @@ describe('SessionDashboard - Plan d\'action (Action Step)', () => {
 
     await screen.findByText('Aucune action définie');
     expect(screen.queryByRole('button', { name: 'Ajouter une action' })).toBeNull();
-    expect(screen.queryByRole('button', { name: "Passer au plan d'action →" })).toBeNull();
+    expect(screen.queryByRole('button', { name: "Passer au plan d'action" })).toBeNull();
   });
 
   it('ajoute en direct une action reçue par socket', async () => {
@@ -202,7 +202,7 @@ describe('SessionDashboard - Plan d\'action (Action Step)', () => {
 
     renderDashboard();
 
-    expect(await screen.findByRole('button', { name: "Passer au plan d'action →" })).toBeTruthy();
+    expect(await screen.findByRole('button', { name: "Passer au plan d'action" })).toBeTruthy();
   });
 
   it('rappelle les cartes les plus votées pendant le plan d\'action', async () => {

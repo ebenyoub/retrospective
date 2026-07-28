@@ -18,4 +18,7 @@ export interface RetroColumnProps {
   onDeleteCard?: (cardId: number) => Promise<void> | void;
   canVote?: boolean;
   canEdit?: boolean;
+  /** Masque l'en-tête (titre + compteur) : sur mobile, l'onglet au-dessus
+   * affiche déjà ces informations, les répéter est redondant. */
+  showHeader?: boolean;
 }

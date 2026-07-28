@@ -309,7 +309,7 @@ describe('SessionDashboard - Vue des résultats (Results Step)', () => {
 
     renderDashboard();
 
-    const backButton = await screen.findByRole('button', { name: '← Étape précédente' });
+    const backButton = await screen.findByRole('button', { name: 'Étape précédente' });
     fireEvent.click(backButton);
 
     expect(await screen.findByText('Revenir à l\'étape précédente ?')).toBeTruthy();

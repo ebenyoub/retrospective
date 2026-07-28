@@ -41,6 +41,10 @@ services:
       DB_PASSWORD: retrospective_password
       JWT_SECRET: ${JWT_SECRET:-dev_only_change_me_jwt_secret_32_chars_min}
       JWT_EXPIRES_IN: 24h
+      # Reste http://localhost:5173 même pour un accès depuis le réseau local :
+      # isOriginAllowed (corsOrigin.ts) autorise déjà en plus, hors production,
+      # toute IP privée du réseau local sur un port Vite — pas besoin de coder
+      # une IP ici, qui changerait à chaque réseau/poste.
       FRONTEND_ORIGIN: http://localhost:5173
       SMTP_HOST: ${SMTP_HOST:-smtp-relay.brevo.com}
       SMTP_PORT: ${SMTP_PORT:-587}

@@ -236,18 +236,20 @@ describe('SessionDashboard - Configuration, Initialisation & Routage', () => {
 
     renderDashboard();
 
-    const contextBar = await screen.findByRole('navigation', { name: 'Contexte de session' });
+    const identityBar = await screen.findByRole('navigation', { name: 'Identité de session' });
+    const navigationBar = screen.getByRole('navigation', { name: 'Navigation de session' });
 
-    expect(within(contextBar).getByRole('button', { name: 'Accueil' })).toBeTruthy();
-    expect(within(contextBar).getByText('Rétro sprint 12')).toBeTruthy();
-    expect(within(contextBar).getAllByText('Écriture des cartes').length).toBeGreaterThan(0);
-    expect(within(contextBar).getByRole('button', { name: 'Copier le code de session' })).toBeTruthy();
-    expect(within(contextBar).getByRole('button', { name: 'Participants' })).toBeTruthy();
-    expect(within(contextBar).getByRole('button', { name: 'Discussion' })).toBeTruthy();
+    expect(within(identityBar).getByRole('button', { name: 'Accueil' })).toBeTruthy();
+    expect(within(identityBar).getByText('Rétro sprint 12')).toBeTruthy();
+    expect(within(navigationBar).getByLabelText('Progression de la session : étape 2 sur 6, Écriture des cartes')).toBeTruthy();
+    expect(within(navigationBar).getByRole('button', { name: 'Copier le code de session' })).toBeTruthy();
+    expect(within(navigationBar).getByRole('button', { name: 'Participants' })).toBeTruthy();
+    expect(within(navigationBar).getByRole('button', { name: 'Discussion' })).toBeTruthy();
 
-    expect(within(contextBar).queryByText(/carte.*au total/)).toBeNull();
-    expect(within(contextBar).queryByText('05:00')).toBeNull();
-    expect(within(contextBar).queryByRole('button', { name: /Passer au vote/ })).toBeNull();
+    expect(within(identityBar).queryByText(/carte.*au total/)).toBeNull();
+    expect(within(navigationBar).queryByText(/carte.*au total/)).toBeNull();
+    expect(within(navigationBar).queryByText('05:00')).toBeNull();
+    expect(within(navigationBar).queryByRole('button', { name: /Passer au vote/ })).toBeNull();
   });
 
   it('le bouton Retour ramène à l\'accueil sans supprimer la participation', async () => {
@@ -334,8 +336,8 @@ describe('SessionDashboard - Configuration, Initialisation & Routage', () => {
 
     renderDashboard();
 
-    const contextBar = await screen.findByRole('navigation', { name: 'Contexte de session' });
-    expect(within(contextBar).queryByText('Facilitateur')).toBeNull();
+    await screen.findByRole('navigation', { name: 'Identité de session' });
+    expect(screen.queryByText('Facilitateur')).toBeNull();
   });
 
   it("redirige vers /sessions si authentifié et affiche une erreur si l'identifiant de session est invalide", async () => {
@@ -431,7 +433,7 @@ describe('SessionDashboard - Configuration, Initialisation & Routage', () => {
 
     renderDashboard();
 
-    expect(await screen.findByRole('navigation', { name: 'Contexte de session' })).toBeTruthy();
+    expect(await screen.findByRole('navigation', { name: 'Identité de session' })).toBeTruthy();
     expect(screen.queryByText(/accessibles uniquement aux participants déjà autorisés/i)).toBeNull();
     await vi.waitFor(() => expect(fetchSpy).toHaveBeenCalledWith(
       expect.stringContaining('/session/1/cards'),

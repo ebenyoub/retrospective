@@ -270,7 +270,7 @@ describe('SessionDashboard - Distribution des votes (Voting Step)', () => {
     renderDashboard();
 
     expect(await screen.findByText('Carte avant la transition')).toBeTruthy();
-    fireEvent.click(screen.getByRole('button', { name: 'Passer au vote →' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Passer au vote' }));
 
     expect(await screen.findByText('Carte reçue après la transition')).toBeTruthy();
     await vi.waitFor(() => {

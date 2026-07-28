@@ -56,6 +56,7 @@ const SessionCardsGrid = ({
           className={isMobileViewport
             ? (activeMobileColumn === column.key ? 'pt-11' : 'hidden')
             : ''}
+          showHeader={!isMobileViewport}
           title={column.title}
           emoji={column.emoji}
           color={column.color}

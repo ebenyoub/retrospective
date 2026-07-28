@@ -9,7 +9,8 @@ import { SessionContext } from './context/SessionContext';
 import DiscussionDrawer from './components/DiscussionDrawer';
 import ParticipantsDrawer from './components/ParticipantsDrawer';
 import SessionActionBar from './components/SessionActionBar';
-import SessionContextBar from './components/SessionContextBar';
+import SessionIdentityBar from './components/SessionIdentityBar';
+import SessionNavigationBar from './components/SessionNavigationBar';
 import JoinSessionModal from './components/JoinSessionModal';
 import { useSessionActions } from './hooks/useSessionActions';
 import { useSessionCards } from './hooks/useSessionCards';
@@ -77,7 +78,7 @@ const SessionDashboard = () => {
   const navigate = useNavigate();
   const [isSessionCodeCopied, setIsSessionCodeCopied] = useState(false);
   const hasShownClosedToastRef = useRef(false);
-  const { activeMobileColumn, isMobileViewport, setActiveMobileColumn } = useSessionViewport();
+  const { activeMobileColumn, isMobileViewport, isDesktopViewport, setActiveMobileColumn } = useSessionViewport();
   const panels = useSessionPanels();
   const details = useSessionDetails({ sessionId });
   const identity = useSessionIdentity({
@@ -99,9 +100,14 @@ const SessionDashboard = () => {
   // session close en lecture seule sous son pseudo déjà connu : sans jeton,
   // getSessionDetailsForViewer (backend) la traite comme inexistante (404) et
   // redemande un pseudo à tort (bug remonté).
+  // `fetchSessionDetails`/`guestIdentity` extraits seuls, comme `setStep` plus
+  // bas : useCallback exige des dépendances stables, ce que `details.xxx`/
+  // `identity.xxx` ne garantissent pas pour le compilateur React.
+  const { fetchSessionDetails } = details;
+  const { guestIdentity } = identity;
   const fetchSessionDetailsWithGuestToken = useCallback(
-    (): Promise<void> => details.fetchSessionDetails(identity.guestIdentity?.guestToken),
-    [details.fetchSessionDetails, identity.guestIdentity]
+    (): Promise<void> => fetchSessionDetails(guestIdentity?.guestToken),
+    [fetchSessionDetails, guestIdentity]
   );
   const isLoading = useSessionPolling({
     sessionId,
@@ -186,10 +192,11 @@ const SessionDashboard = () => {
   // compteur affiché sur la carte concernée pour tout le monde. Le panneau de
   // commentaires déjà ouvert sur cette carte se met à jour de son côté (voir
   // CardCommentsSection, qui écoute aussi lastCommentAdded).
+  const { fetchCards } = sessionCards;
   useEffect(() => {
     if (!lastCommentAdded) return;
-    void sessionCards.fetchCards();
-  }, [lastCommentAdded, sessionCards.fetchCards]);
+    void fetchCards();
+  }, [lastCommentAdded, fetchCards]);
 
   const handleAddAction = useCallback(async (payload: CreateActionPayload): Promise<void> => {
     if (!sessionId || !identity.actorHeaders || details.status === 'closed') return;
@@ -269,6 +276,7 @@ const SessionDashboard = () => {
           activeMobileColumn,
           isMobileViewport,
           isDesktop,
+          isDesktopViewport,
           setActiveMobileColumn,
         },
         panels,
@@ -300,17 +308,21 @@ const SessionDashboard = () => {
       }}
     >
       <div className="flex flex-col flex-1 overflow-hidden">
-      <SessionContextBar
-        isSessionCodeCopied={isSessionCodeCopied}
+      <SessionIdentityBar
         canRenameSelf={!isAuthenticated && details.status !== 'closed'}
         onBack={handleGoHome}
+        isDesktopViewport={isDesktopViewport}
+      />
+      <SessionNavigationBar
+        isSessionCodeCopied={isSessionCodeCopied}
         onCopySessionCode={handleCopySessionCode}
+        isDesktopViewport={isDesktopViewport}
       />
       {activeStep === 'waiting' ? (
         // Discussion en docké (desktop) / overlay (mobile), comme sur les
         // autres étapes : le bouton "Discussion" de la navbar doit rester
         // utilisable pendant l'attente, pas seulement une fois la rétro lancée.
-        <div className="flex flex-1 overflow-hidden">
+        <div className="relative flex flex-1 overflow-hidden">
           <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
             <WaitingStep />
           </div>
@@ -319,12 +331,16 @@ const SessionDashboard = () => {
         </div>
       ) : (
         <>
-          <SessionActionBar />
+          <SessionActionBar
+            isDesktopViewport={isDesktopViewport}
+            isSessionCodeCopied={isSessionCodeCopied}
+            onCopySessionCode={handleCopySessionCode}
+          />
           <ParticipantsDrawer />
 
           {/* Discussion en docké (desktop) : panneau à côté des cartes, pas
               par-dessus — on peut lire/commenter tout en discutant. */}
-          <div className="flex flex-1 overflow-hidden">
+          <div className="relative flex flex-1 overflow-hidden">
             <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
               {activeStep === 'summary' ? (
                 <SummaryStep />

@@ -371,7 +371,7 @@ describe('SessionDashboard - Salle d\'attente (Waiting Step)', () => {
 
     await screen.findByRole('button', { name: 'Lancer la rétro' });
 
-    const navbar = screen.getByRole('navigation', { name: 'Contexte de session' });
+    const navbar = screen.getByRole('navigation', { name: 'Navigation de session' });
     expect(within(navbar).queryByRole('button', { name: 'Participants' })).toBeNull();
     expect(within(navbar).queryByLabelText(/Copier le code de session|Code copié/)).toBeNull();
     expect(within(navbar).getByRole('button', { name: 'Discussion' })).toBeTruthy();

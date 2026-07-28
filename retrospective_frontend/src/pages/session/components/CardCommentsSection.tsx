@@ -132,6 +132,44 @@ const CardCommentsSection = ({ cardId }: CardCommentsSectionProps) => {
         <span>Discussion</span>
       </div>
 
+      {/* Champ de saisie au-dessus de la liste : les commentaires sont déjà
+          affichés du plus récent au plus ancien (UX-WRITING-05), le champ
+          reste ainsi juste au-dessus du dernier commentaire, pas en dessous
+          de toute la liste. */}
+      {!isReadOnly && <div className="flex items-end gap-2">
+        <textarea
+          ref={textareaRef}
+          aria-label="Écrire un commentaire"
+          value={draftContent}
+          onChange={(event) => setDraftContent(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' && !event.shiftKey) {
+              event.preventDefault();
+              void handleSubmit();
+            }
+          }}
+          disabled={isSubmitting}
+          maxLength={280}
+          rows={1}
+          placeholder="Écrire un commentaire…"
+          // text-base (16px) en dessous de sm : en dessous de cette taille,
+          // Safari/Chrome iOS zooment automatiquement la page au focus d'un
+          // champ, ce qui masque des boutons. sm:text-xs restaure la taille
+          // compacte voulue sur desktop.
+          className="min-h-[34px] flex-1 resize-none rounded-lg border border-navy-border-med bg-navy-surface px-3 py-1.5 text-base sm:text-xs text-slate-100 placeholder:text-slate-500 outline-none focus:border-white/30 disabled:cursor-not-allowed disabled:opacity-70"
+        />
+        <IconButton
+          onClick={() => void handleSubmit()}
+          disabled={isSubmitting || draftContent.trim() === ''}
+          aria-label="Envoyer le commentaire"
+          variant="ghost"
+          size="sm"
+          className="border-0 bg-navy-surface-med text-slate-300 hover:bg-navy-surface-med hover:text-slate-100 disabled:opacity-40 h-[34px] w-[34px] cursor-pointer"
+        >
+          <Send size={13} aria-hidden="true" />
+        </IconButton>
+      </div>}
+
       {isLoading ? (
         <p className="text-center text-xs text-slate-500 py-2">Chargement des commentaires...</p>
       ) : comments.length === 0 ? (
@@ -166,36 +204,6 @@ const CardCommentsSection = ({ cardId }: CardCommentsSectionProps) => {
           ))}
         </ul>
       )}
-
-      {!isReadOnly && <div className="flex items-end gap-2 mt-1">
-        <textarea
-          ref={textareaRef}
-          aria-label="Écrire un commentaire"
-          value={draftContent}
-          onChange={(event) => setDraftContent(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter' && !event.shiftKey) {
-              event.preventDefault();
-              void handleSubmit();
-            }
-          }}
-          disabled={isSubmitting}
-          maxLength={280}
-          rows={1}
-          placeholder="Écrire un commentaire…"
-          className="min-h-[34px] flex-1 resize-none rounded-lg border border-navy-border-med bg-navy-surface px-3 py-1.5 text-xs text-slate-100 placeholder:text-slate-500 outline-none focus:border-white/30 disabled:cursor-not-allowed disabled:opacity-70"
-        />
-        <IconButton
-          onClick={() => void handleSubmit()}
-          disabled={isSubmitting || draftContent.trim() === ''}
-          aria-label="Envoyer le commentaire"
-          variant="ghost"
-          size="sm"
-          className="border-0 bg-navy-surface-med text-slate-300 hover:bg-navy-surface-med hover:text-slate-100 disabled:opacity-40 h-[34px] w-[34px] cursor-pointer"
-        >
-          <Send size={13} aria-hidden="true" />
-        </IconButton>
-      </div>}
     </div>
   );
 };
