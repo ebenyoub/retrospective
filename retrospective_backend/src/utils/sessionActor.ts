@@ -80,7 +80,13 @@ export const resolveSessionActor = async (
     assertSessionOpen(session);
   }
   const role = session.ownerId === payload.userId ? "facilitator" : "participant";
-  const participant = options?.requireOpen
+  // Sur une session ouverte, une lecture doit pouvoir créer la ligne de
+  // participation à la volée si elle n'existe pas encore (ex: GET /cards
+  // déclenché juste après la création de session, avant que joinAsSelf n'ait
+  // eu le temps de s'exécuter côté client) : sinon 403 transitoire pour le
+  // facilitateur. Seule une session close reste strictement en lecture seule
+  // (pas d'auto-jointure), pour rester consultable sans jamais y écrire.
+  const participant = session.status === "open"
     ? await ensureAuthenticatedParticipant({ sessionId, userId: payload.userId, displayName: payload.username, role })
     : await getAuthenticatedParticipantForRead(sessionId, payload.userId);
 
