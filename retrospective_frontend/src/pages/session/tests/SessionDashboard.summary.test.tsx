@@ -191,6 +191,6 @@ describe('SessionDashboard - Summary Step', () => {
     renderDashboard();
 
     const actionBar = await screen.findByRole('toolbar', { name: "Actions de l'étape" });
-    expect(within(actionBar).getByRole('button', { name: 'Voir le récapitulatif →' })).toBeTruthy();
+    expect(within(actionBar).getByRole('button', { name: 'Voir le récapitulatif' })).toBeTruthy();
   });
 });

@@ -47,6 +47,10 @@ app.use(errorHandler);
 const httpServer = createServer(app);
 initSocket(httpServer, (origin) => isOriginAllowed(origin, frontendOrigin));
 
-httpServer.listen(port, () => {
-  logger.http(`Server API sur http://localhost:${port}`);
+// '0.0.0.0' explicite (déjà le comportement par défaut de Node sans host,
+// mais mieux vaut ne pas en dépendre implicitement) : le serveur accepte les
+// connexions sur toutes les interfaces réseau, pas seulement localhost —
+// nécessaire pour être joignable depuis un autre poste du réseau local.
+httpServer.listen(Number(port), '0.0.0.0', () => {
+  logger.http(`Server API sur http://localhost:${port} (accessible aussi depuis le réseau local sur ce port)`);
 });

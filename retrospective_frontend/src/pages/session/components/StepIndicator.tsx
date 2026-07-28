@@ -1,11 +1,14 @@
 import { SESSION_STEP_LABELS, SESSION_STEPS } from '../sessionStep';
 import type { StepIndicatorProps } from './types/StepIndicator.types';
 
+// Ligne complète de points reliés : demande assez de largeur pour rester
+// lisible, réservée au desktop (affichée dans SessionIdentityBar, entre le
+// titre et le badge de compte). En dessous, voir StepIndicatorCompact.
 const StepIndicator = ({ currentStep }: StepIndicatorProps) => {
   const currentIndex = SESSION_STEPS.indexOf(currentStep);
 
   return (
-    <div className="hidden items-center justify-center md:flex" aria-label="Progression de la session">
+    <div className="flex items-center justify-center" aria-label="Progression de la session">
       {SESSION_STEPS.map((step, index) => {
         const isActive = step === currentStep;
         const isDone = index < currentIndex;

@@ -18,6 +18,10 @@ export interface SessionViewportContext {
   activeMobileColumn: RetroCard['columnType'];
   isMobileViewport: boolean;
   isDesktop: boolean;
+  // Assez large pour docker Discussion à côté des cartes sans les écraser
+  // (>= 1280px, même seuil que la navbar) — en dessous (mais pas mobile),
+  // Discussion flotte par-dessus les colonnes plutôt que de partager l'espace.
+  isDesktopViewport: boolean;
   setActiveMobileColumn: (column: RetroCard['columnType']) => void;
 }
 

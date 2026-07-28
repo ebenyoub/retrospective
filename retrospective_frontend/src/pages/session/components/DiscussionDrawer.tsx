@@ -190,7 +190,11 @@ const DiscussionPanelContent = ({
           maxLength={500}
           rows={1}
           placeholder="Écrire un message…"
-          className="min-h-[38px] flex-1 resize-none rounded-lg border border-navy-border-med bg-navy-surface px-3 py-2 font-sans text-sm text-slate-100 placeholder:text-slate-500 disabled:cursor-not-allowed disabled:opacity-70 outline-none focus:border-white/30 transition-colors"
+          // text-base (16px) en dessous de sm : en dessous de cette taille,
+          // Safari/Chrome iOS zooment automatiquement la page au focus d'un
+          // champ, ce qui masque des boutons. sm:text-sm restaure la taille
+          // voulue sur desktop.
+          className="min-h-[38px] flex-1 resize-none rounded-lg border border-navy-border-med bg-navy-surface px-3 py-2 font-sans text-base sm:text-sm text-slate-100 placeholder:text-slate-500 disabled:cursor-not-allowed disabled:opacity-70 outline-none focus:border-white/30 transition-colors"
         />
         <IconButton
           type="submit"
@@ -210,7 +214,13 @@ const DiscussionDrawer = () => {
   const { panels, viewport, messages, setMessages, sessionId, actorHeaders, isReadOnly } = useSessionContext();
   const isOpen = panels.isDiscussionDrawerOpen;
   const isDesktop = viewport.isDesktop;
+  // En dessous de ce seuil (mais pas mobile), il n'y a pas assez de place
+  // pour partager l'espace avec les colonnes sans les écraser (constaté à
+  // 800px) : Discussion flotte alors par-dessus plutôt que de les rétrécir.
+  const isWideEnoughToDock = viewport.isDesktopViewport;
   const onClose = panels.closeDiscussionDrawer;
+  const isFloating = isDesktop && !isWideEnoughToDock;
+  const floatingPanelRef = useRef<HTMLElement>(null);
 
   // Reproduit à l'identique la dédup par id auparavant faite dans
   // SessionDashboard (`onMessageSent`) : un message reçu deux fois (envoi +
@@ -245,16 +255,49 @@ const DiscussionDrawer = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, isDesktop, onClose]);
 
+  // Mode flottant : par-dessus les colonnes plutôt qu'à côté, un clic en
+  // dehors du panneau doit donc le refermer (comme une modale), contrairement
+  // au mode docké qui ne masque rien et peut rester ouvert indéfiniment.
+  useEffect(() => {
+    if (!isOpen || !isFloating) return;
+
+    const handleClickOutside = (event: MouseEvent): void => {
+      if (floatingPanelRef.current?.contains(event.target as Node)) return;
+      onClose();
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen, isFloating, onClose]);
+
   if (!isOpen) return null;
 
-  // Desktop : panneau docké à côté des cartes (pas d'overlay), pour pouvoir
-  // lire les cartes/commenter en même temps que discuter.
-  if (isDesktop) {
+  // Desktop large : panneau docké à côté des cartes (pas d'overlay), pour
+  // pouvoir lire les cartes/commenter en même temps que discuter.
+  if (isWideEnoughToDock) {
     return (
       <aside
         role="complementary"
         aria-labelledby="discussion-drawer-title"
         className="flex w-[380px] flex-shrink-0 flex-col overflow-hidden border-l border-navy-border bg-navy-mid"
+      >
+        <DiscussionPanelContent {...panelProps} />
+      </aside>
+    );
+  }
+
+  // Desktop étroit (pas assez large pour docker sans écraser les colonnes,
+  // mais pas mobile) : panneau flottant ancré à droite, par-dessus les
+  // colonnes plutôt qu'à côté — les colonnes gardent leur largeur normale,
+  // simplement masquées derrière sur cette zone. Se referme au clic en
+  // dehors (voir l'effet plus haut), comme une modale.
+  if (isFloating) {
+    return (
+      <aside
+        ref={floatingPanelRef}
+        role="complementary"
+        aria-labelledby="discussion-drawer-title"
+        className="absolute inset-y-0 right-0 z-20 flex w-[380px] max-w-full flex-col overflow-hidden border-l border-navy-border bg-navy-mid shadow-[-8px_0_24px_rgba(0,0,0,0.35)]"
       >
         <DiscussionPanelContent {...panelProps} />
       </aside>
