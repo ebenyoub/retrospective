@@ -121,7 +121,14 @@ describe('SessionDashboard - Plan d\'action (Action Step)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Priorité Haute' }));
     fireEvent.click(screen.getByRole('button', { name: "Ajouter l'action" }));
 
-    expect(await screen.findByText('Rédiger le compte-rendu')).toBeTruthy();
+    // Attendre la fermeture du formulaire (signal fiable de fin de soumission)
+    // plutôt que de chercher directement le texte : tant que le formulaire est
+    // encore ouvert, son textarea désactivé affiche aussi "Rédiger le
+    // compte-rendu", ce qui rend `findByText` ambigu et flaky sous exécution
+    // lente (matché sur le champ au lieu de la carte d'action créée).
+    expect(await screen.findByRole('button', { name: 'Ajouter une action' })).toBeTruthy();
+
+    expect(screen.getByText('Rédiger le compte-rendu')).toBeTruthy();
     expect(screen.getByText('Priorité Haute')).toBeTruthy();
     expect(screen.getByText('Bob')).toBeTruthy();
   });
