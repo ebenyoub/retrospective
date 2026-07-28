@@ -43,9 +43,9 @@ export const signup = async (req: Request, res: Response) => {
   const { token, ...user } = await signupUser({ username, email, password });
   setAuthCookie(res, token);
 
-  return res.status(200).json({
+  return res.status(201).json({
     success: true,
-    message: "Connexion réussie.",
+    message: "Inscription réussie.",
     data: user,
   });
 };
