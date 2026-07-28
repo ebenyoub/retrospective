@@ -100,7 +100,7 @@
 - [x] **ARCHI-06 — Code mort supprimé** : `App.tsx`, `assets/Logo.tsx`, `context/theme/useTheme.ts`, `HomeFeatureSection.tsx`, dossier `styleComonent/`.
 - [ ] **ARCHI-07 — Formulaires `Login/Signup/SessionCreate` en `useFormValidation` (manuel)** : le skill `react` préconise React Hook Form (déjà utilisé par les formulaires d'accueil). Migration non faite cette revue (changement de comportement de formulaire, hors périmètre « structure »). À planifier.
 - [ ] **ARCHI-08 — Toast en styled-components** : `ToastStyled.tsx` (déplacé dans `components/ui/`) reste hors Tailwind (fond blanc, `styled-components` + CDN Font Awesome). Réécriture Tailwind = changement visuel, à décider (voir aussi le ticket styles Tailwind/Figma plus haut).
-- [ ] **ARCHI-09 — `signup` renvoie 200 + message "Connexion réussie."** : le skill `express-nodejs` préconise 201 pour un POST créant une ressource, et le message devrait refléter l'inscription. Non corrigé (changement de comportement/copy). À décider.
+- [x] **ARCHI-09 — `signup` renvoie 200 + message "Connexion réussie."** : résolu le 2026-07-28 — `auth.controller.ts` renvoie désormais 201 + "Inscription réussie." Vérifié : aucun code frontend ne dépendait de la valeur exacte 200 (seul `409` est vérifié explicitement).
 
 ## Tickets issus des tests manuels du 2026-07-09
 

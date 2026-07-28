@@ -90,7 +90,7 @@ describe("auth.controller", () => {
   });
 
   describe("signup", () => {
-    it("appelle le service puis renvoie 200", async () => {
+    it("appelle le service puis renvoie 201", async () => {
       mockSignupUser.mockResolvedValueOnce({
         token: "token",
         userId: 42,
@@ -101,9 +101,10 @@ describe("auth.controller", () => {
 
       await signup(req, res as unknown as Response);
 
-      expect(res.statusCode).toBe(200);
-      const body = res.body as { success: boolean; data: Record<string, unknown> };
+      expect(res.statusCode).toBe(201);
+      const body = res.body as { success: boolean; message: string; data: Record<string, unknown> };
       expect(body.success).toBe(true);
+      expect(body.message).toBe("Inscription réussie.");
       // Le token ne circule que dans le cookie, jamais dans le JSON.
       expect(body.data).toEqual({ userId: 42, username: "Elyas" });
       expect(res.cookies.token).toBe("token");
