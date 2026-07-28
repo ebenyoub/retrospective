@@ -2,61 +2,55 @@
 
 ## Ticket en cours
 
-US-17 — Navbar de session responsive (terminé et commité, en attente de la suite)
+BUG-CARDS-403-01 — 403 transitoire sur `GET /session/:id/cards` (terminé, en attente de commit)
 
 ## Objectif
 
-Rendre `SessionContextBar`/`SessionActionBar` réellement responsives : plus aucune ligne compressée ou débordante entre 390px et 1920px.
+Corriger le 403 transitoire signalé lors de `US-16` (2026-07-27) : juste après la création d'une session, `GET /session/:id/cards` pouvait échouer une fois avant de se corriger tout seul au polling suivant.
 
 ## Note — ce fichier décrivait auparavant un autre ticket
 
-Ce fichier référençait `TEST-BOUNCE-01 — Test de la boucle QA` (branche `feature/TEST-BOUNCE-01-qa-loop`), qui ne correspondait plus à la branche réellement active (`feature/US-17-navbar-responsive`). Dérive détectée et corrigée le 2026-07-28 — état Git réel pris comme source de vérité, conformément à `T-AI-PLATFORM-03`. Voir `docs/PROJECT_STATE.md` pour l'historique de `TEST-BOUNCE-01` et de `US-17`.
+Ce fichier référençait `US-17 — Navbar de session responsive` (branche `feature/US-17-navbar-responsive`), désormais commitée et mergée dans `dev` via PR #35 (2026-07-28). Voir `docs/PROJECT_STATE.md` pour le détail complet de `US-17`.
 
 ## État Git
 
-Branche `feature/US-17-navbar-responsive` (= `dev` + 1 commit `3a00511`). Arbre de travail propre après commit. Pas encore de PR ouverte vers `dev`.
+Branche `feature/BUG-CARDS-403-01` (créée depuis `dev` après le merge de `US-17`). Modifications en cours dans l'arbre de travail (non commitées) : `retrospective_backend/src/utils/sessionActor.ts`, `retrospective_backend/src/utils/tests/sessionActor.test.ts`, `docs/PROJECT_STATE.md`, `docs/backlog/PRODUCT_BACKLOG.md`.
 
 ## Implémentation terminée
 
-- `SessionContextBar` scindé en `SessionIdentityBar.tsx` + `SessionNavigationBar.tsx`, toujours sur une seule ligne à toutes les tailles (stepper compact sous `xl`, icônes sous `lg`, 2 barres au lieu de 3 à partir de `xl` via `isDesktopViewport` calculé en JS).
-- `DiscussionDrawer` flottant (par-dessus les colonnes) entre 768 et 1280px au lieu de docké.
-- Bug mobile réel corrigé (`min-w-0` manquant sur le conteneur de `SessionToolsGroup`).
-- Accès LAN en dev ajouté au même commit (Docker `0.0.0.0`, CORS élargi aux IP privées, `vite --host`, auto-détection de l'URL API).
-- Commit unique `3a00511` effectué après validation utilisateur explicite (2026-07-28).
+- Diagnostic : régression secondaire du commit `b9751dc` (« enforce read-only behavior for closed sessions », 2026-07-22). Ce commit a scindé `resolveSessionActor` en deux chemins (écriture → auto-création de la ligne de participation ; lecture → stricte, 403 si absente), dans le but de permettre la consultation d'une session **close** sans jointure mutatrice. Effet de bord non voulu : une lecture sur session **ouverte** est devenue elle aussi strictement dépendante d'une ligne déjà existante. Juste après la création de session, `GET /session/:id/cards` (déclenché immédiatement au montage par `useSessionPolling`, avant que `joinAsSelf` ait eu le temps de créer la ligne du facilitateur) tombe dans cette fenêtre → 403 transitoire.
+- Correctif : dans `resolveSessionActor`, la lecture appelle `ensureAuthenticatedParticipant` (auto-création) quand `session.status === "open"`, et reste sur `getAuthenticatedParticipantForRead` (stricte) uniquement pour une session close — restaure le comportement d'avant `b9751dc` sur les sessions ouvertes, préserve intact le correctif du 22/07 sur les sessions closes.
+- 1 test mis à jour dans `sessionActor.test.ts`.
+- `docs/PROJECT_STATE.md` et `docs/backlog/PRODUCT_BACKLOG.md` mis à jour (entrée `BUG-CARDS-403-01` ajoutée).
 
 ## Implémentation restante
 
-- Inscrire `US-17` dans `docs/backlog/PRODUCT_BACKLOG.md` (nécessite validation explicite du Product Owner, pas encore obtenue).
-- Décider du sort de la branche `feature/US-17-navbar-responsive` : PR vers `dev` maintenant ou empiler la suite dessus.
-- Choisir la prochaine tâche prioritaire (candidats : bug 403 transitoire non corrigé, nettoyage `docs/TODO.md`, ou autre demande utilisateur).
+- Commit unique pour ce correctif.
+- PR vers `dev`.
+- Ensuite : revue de `docs/TODO.md` avec l'utilisateur (entrées potentiellement obsolètes : `ARCHI-08` Toast, `ARCHI-09` signup 200 vs 201, formulaire d'accueil partiellement décoratif, compteur de participants en dur).
 
 ## Tests exécutés
 
-- `npx vitest run` (frontend) : 203/203.
-- `npx vitest run src/utils/tests/corsOrigin.test.ts` (backend) : 6/6.
-- `npx tsc --noEmit` (frontend + backend) : propre.
-- `eslint` (frontend) : propre.
-- Vérification visuelle Playwright : 1920/1440/1280/1100/900/768/390px, plus test réel sur téléphone via LAN.
+- `npx vitest run` (backend) : 329/329.
+- `npx vitest run` (frontend, non retouché) : 203/203.
+- `npx tsc --noEmit` (backend + frontend) : propre.
 
 ## Résultats
 
-US-17 livré et commité de bout en bout : constat initial → 2 passes rejetées/ajustées par retour utilisateur avec captures → correctif final validé → bug mobile réel trouvé et corrigé → commit.
+Bug transitoire (signalé hors périmètre lors de `US-16`, jamais traité depuis) diagnostiqué à sa vraie racine (régression secondaire de `b9751dc`) et corrigé sans toucher au comportement des sessions closes.
 
 ## Bugs connus
 
-- 403 transitoire sur `GET /session/:id/cards` juste après création de session (polling démarrant avant résolution des en-têtes facilitateur). Sans impact visible, non corrigé, hors périmètre `US-16`/`US-17`. Signalé dans `docs/PROJECT_STATE.md`, à traiter dans un ticket dédié si jugé prioritaire.
+Aucun restant, pour ce périmètre.
 
 ## Décisions prises
 
-- Chaque barre de navbar de session reste sur une seule ligne à toutes les tailles (pas de stacking 2 lignes) — décision utilisateur après rejet de la première passe.
-- 2 barres au lieu de 3 à partir de `xl` (1280px) — décision utilisateur après la deuxième passe.
-- `DiscussionDrawer` flotte par-dessus les colonnes plutôt que de partager l'espace entre 768 et 1280px — décision utilisateur (3e option choisie sur 3 proposées).
-- Config d'accès LAN incluse dans le même commit que `US-17` plutôt qu'en commit séparé ou laissée de côté — décision utilisateur (2026-07-28).
+- La lecture sur une session ouverte doit pouvoir créer la ligne de participation à la volée (comme une écriture) ; seule une session close reste strictement en lecture seule — décision technique découlant directement du diagnostic (restaure le comportement pré-`b9751dc` sans réintroduire le bug que `b9751dc` corrigeait).
 
 ## Fichiers principaux
 
-`retrospective_frontend/src/pages/session/components/SessionIdentityBar.tsx`, `SessionNavigationBar.tsx`, `SessionToolsGroup.tsx`, `StepIndicatorCompact.tsx`, `SessionActionBar.tsx`, `DiscussionDrawer.tsx`, `useSessionViewport.ts` ; config LAN (`docker-compose.yml`, `vite.config.ts`, `corsOrigin.ts`, `server.ts`, `.env.example`). Détail complet dans `docs/PROJECT_STATE.md`.
+`retrospective_backend/src/utils/sessionActor.ts`, `retrospective_backend/src/utils/tests/sessionActor.test.ts`.
 
 ## Prochaine action exacte
 
-Décider avec l'utilisateur : inscription de `US-17` au Product Backlog, sort de la branche, et choix du prochain ticket.
+Committer, proposer une PR vers `dev`, puis passer à la revue de `docs/TODO.md` avec l'utilisateur.

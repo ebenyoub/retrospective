@@ -99,10 +99,10 @@ describe("resolveSessionActor", () => {
     expect(mockGetGuestParticipantForRead).toHaveBeenCalledWith(2, 9, "guest-9");
   });
 
-  it("valide un utilisateur connecté via JWT et session_participants", async () => {
+  it("crée la ligne de participation à la volée pour une lecture sur une session ouverte (évite le 403 transitoire juste après la création)", async () => {
     mockVerify.mockReturnValueOnce({ userId: 1, username: "Elyas" });
-    mockGetSessionDetails.mockResolvedValueOnce({ ownerId: 1 });
-    mockGetAuthenticatedParticipantForRead.mockResolvedValueOnce({
+    mockGetSessionDetails.mockResolvedValueOnce({ ownerId: 1, status: "open" });
+    mockEnsureAuthenticatedParticipant.mockResolvedValueOnce({
       id: 3,
       displayName: "Elyas",
       role: "facilitator",
@@ -115,8 +115,14 @@ describe("resolveSessionActor", () => {
       displayName: "Elyas",
       role: "facilitator",
     });
-    expect(mockGetAuthenticatedParticipantForRead).toHaveBeenCalledWith(1, 1);
-    expect(mockEnsureAuthenticatedParticipant).not.toHaveBeenCalled();
+    expect(mockEnsureAuthenticatedParticipant).toHaveBeenCalledWith({
+      sessionId: 1,
+      userId: 1,
+      displayName: "Elyas",
+      role: "facilitator",
+    });
+    expect(mockGetAuthenticatedParticipantForRead).not.toHaveBeenCalled();
+    // Pas de garde d'ouverture ici : c'est une lecture, pas une écriture.
     expect(mockAssertSessionOpen).not.toHaveBeenCalled();
   });
 
