@@ -98,14 +98,14 @@
 - [x] **ARCHI-04 — Suppression du `any` backend** : `AuthUser` + helper `requireAuthUser`, doublon d'interface `AuthRequest` supprimé.
 - [x] **ARCHI-05 — `SELECT *` restants** : `session.model.ts`, `auth.model.ts`, `passwordReset.model.ts` passés en colonnes explicites.
 - [x] **ARCHI-06 — Code mort supprimé** : `App.tsx`, `assets/Logo.tsx`, `context/theme/useTheme.ts`, `HomeFeatureSection.tsx`, dossier `styleComonent/`.
-- [ ] **ARCHI-07 — Formulaires `Login/Signup/SessionCreate` en `useFormValidation` (manuel)** : le skill `react` préconise React Hook Form (déjà utilisé par les formulaires d'accueil). Migration non faite cette revue (changement de comportement de formulaire, hors périmètre « structure »). À planifier.
+- [x] **ARCHI-07 — Formulaires `Login/Signup/SessionCreate` en `useFormValidation` (manuel)** : entrée obsolète, déjà résolue via `T-ARCHI-01` (2026-07-20, voir `docs/backlog/PRODUCT_BACKLOG.md`) — les 4 formulaires utilisent React Hook Form + Zod. Vérifié 2026-07-28 : `CreateAccountForm.tsx` utilise bien `useForm`/`zodResolver`.
 - [ ] **ARCHI-08 — Toast en styled-components** : `ToastStyled.tsx` (déplacé dans `components/ui/`) reste hors Tailwind (fond blanc, `styled-components` + CDN Font Awesome). Réécriture Tailwind = changement visuel, à décider (voir aussi le ticket styles Tailwind/Figma plus haut).
 - [ ] **ARCHI-09 — `signup` renvoie 200 + message "Connexion réussie."** : le skill `express-nodejs` préconise 201 pour un POST créant une ressource, et le message devrait refléter l'inscription. Non corrigé (changement de comportement/copy). À décider.
 
 ## Tickets issus des tests manuels du 2026-07-09
 
-- [ ] **Formulaire "Créer une rétro" de la page d'accueil partiellement décoratif** : les champs "Votre prénom" et "Mot de passe" de la maquette Figma correspondent à un démarrage rapide anonyme non implémenté. Aujourd'hui le bouton redirige vers le vrai parcours (inscription ou `/session`). Décider : implémenter le démarrage anonyme, ou simplifier le formulaire pour ne garder que le nom.
-- [ ] **Compteur "7 participants connectés" en dur** sur la page d'accueil (`home.tsx`, commentaire existant) — à brancher sur une vraie donnée ou à retirer avant la soutenance pour éviter une question piège du jury.
+- [x] **Formulaire "Créer une rétro" de la page d'accueil partiellement décoratif** : entrée obsolète — `CreateAccountForm.tsx` (onglet "Créer une rétro" pour un visiteur non connecté) est aujourd'hui un formulaire complet et réel (prénom, nom, email, mot de passe, nom de la rétro, format, durée), qui crée le compte puis la session. Aucun champ décoratif, vérifié 2026-07-28.
+- [x] **Compteur "7 participants connectés" en dur** sur la page d'accueil : entrée obsolète, déjà résolue via `TODO-HOME-01` (voir plus haut) — aucune trace dans le code, vérifié 2026-07-28.
 - [ ] **Rafraîchissement du tableau par polling (4 s)** : les changements d'étape/cartes des autres participants apparaissent avec un léger délai. Acceptable pour le MVP, à savoir expliquer à l'oral (alternative : WebSocket, hors périmètre DWWM).
 
 ## À faire ensuite (mis à jour 2026-07-08)
