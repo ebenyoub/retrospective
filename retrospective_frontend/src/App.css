@@ -96,11 +96,22 @@ main {
   z-index: 1;
 }
 
+/* Barre de progression du Toast (délai avant disparition automatique) */
+@keyframes toast-countdown {
+  from {
+    width: 100%;
+  }
+
+  to {
+    width: 0%;
+  }
+}
+
 @keyframes animate {
   from {
     transform: rotate(0deg);
   }
-  
+
   to {
     transform: rotate(360deg);
   }

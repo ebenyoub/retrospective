@@ -45,7 +45,7 @@
 
 ## Tickets issus de l'audit styles Tailwind/Figma du 2026-07-09
 
-- [ ] **Toast en styled-components avec fond blanc** (`ToastStyled.tsx` + icônes Font Awesome via CDN dans `index.html`) : seul composant hors Tailwind, style clair qui détonne sur le thème sombre Figma. Décider : réécrire le toast en Tailwind avec les tokens du thème (et retirer `styled-components` + le CDN Font Awesome), ou l'assumer tel quel devant le jury.
+- [x] **Toast en styled-components avec fond blanc** : doublon de `ARCHI-08` (voir plus bas) — résolu le 2026-07-28.
 - [ ] **Compteur de votes restants absent** : la maquette Figma affiche "5 votes restants" pendant la phase de vote ; l'application n'informe l'utilisateur qu'au moment du refus du 6e vote. Amélioration UX à chiffrer.
 - [x] **Liste des participants avec avatars** : implémentée le 2026-07-10 (temps réel, avatars à initiales, statut, rôle).
 - [ ] **Éléments maquette encore hors périmètre MVP** (à assumer à l'oral, pas à corriger) : chat "Discussion", timer d'étape, code à 6 caractères (le MVP utilise 4 chiffres).
@@ -99,7 +99,7 @@
 - [x] **ARCHI-05 — `SELECT *` restants** : `session.model.ts`, `auth.model.ts`, `passwordReset.model.ts` passés en colonnes explicites.
 - [x] **ARCHI-06 — Code mort supprimé** : `App.tsx`, `assets/Logo.tsx`, `context/theme/useTheme.ts`, `HomeFeatureSection.tsx`, dossier `styleComonent/`.
 - [x] **ARCHI-07 — Formulaires `Login/Signup/SessionCreate` en `useFormValidation` (manuel)** : entrée obsolète, déjà résolue via `T-ARCHI-01` (2026-07-20, voir `docs/backlog/PRODUCT_BACKLOG.md`) — les 4 formulaires utilisent React Hook Form + Zod. Vérifié 2026-07-28 : `CreateAccountForm.tsx` utilise bien `useForm`/`zodResolver`.
-- [ ] **ARCHI-08 — Toast en styled-components** : `ToastStyled.tsx` (déplacé dans `components/ui/`) reste hors Tailwind (fond blanc, `styled-components` + CDN Font Awesome). Réécriture Tailwind = changement visuel, à décider (voir aussi le ticket styles Tailwind/Figma plus haut).
+- [x] **ARCHI-08 — Toast en styled-components** : résolu le 2026-07-28 — `ToastStyled.tsx` supprimé, `ToastNotification.tsx` réécrit en Tailwind pur (icônes `lucide-react` déjà utilisées ailleurs dans le projet à la place de Font Awesome, thème navy cohérent). Dépendances `styled-components`/`@types/styled-components` retirées, CDN Font Awesome retiré de `index.html`. Vérifié visuellement (Playwright) et par les tests (203/203), `tsc`/`eslint`/`build` propres.
 - [x] **ARCHI-09 — `signup` renvoie 200 + message "Connexion réussie."** : résolu le 2026-07-28 — `auth.controller.ts` renvoie désormais 201 + "Inscription réussie." Vérifié : aucun code frontend ne dépendait de la valeur exacte 200 (seul `409` est vérifié explicitement).
 
 ## Tickets issus des tests manuels du 2026-07-09
