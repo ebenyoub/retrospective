@@ -2,52 +2,61 @@
 
 ## Ticket en cours
 
-TEST-BOUNCE-01 — Test de la boucle QA
+US-17 — Navbar de session responsive (terminé et commité, en attente de la suite)
 
 ## Objectif
 
-Valider le mécanisme de rebond `TEST_FAILED` de l'orchestrateur (`.claude/ORCHESTRATOR.md`) en conditions réelles : une régression détectée par les tests doit déclencher un retour en phase de correction, puis une validation finale.
+Rendre `SessionContextBar`/`SessionActionBar` réellement responsives : plus aucune ligne compressée ou débordante entre 390px et 1920px.
 
 ## Note — ce fichier décrivait auparavant un autre ticket
 
-Ce fichier référençait `US-13 — Plan d'action & Écran résumé` comme ticket en cours, avec un diff non commité sur `feature/US-13`. **Ce travail est terminé depuis** : commité et mergé via PR #27 (commit `26c173d`, 2026-07-20), avec `US-14`/`US-15`/`T-PART-02` dans le même commit (choix explicite de l'utilisateur, voir `docs/PROJECT_STATE.md`). L'entrée était obsolète et vient d'être remplacée (revue du 2026-07-27).
+Ce fichier référençait `TEST-BOUNCE-01 — Test de la boucle QA` (branche `feature/TEST-BOUNCE-01-qa-loop`), qui ne correspondait plus à la branche réellement active (`feature/US-17-navbar-responsive`). Dérive détectée et corrigée le 2026-07-28 — état Git réel pris comme source de vérité, conformément à `T-AI-PLATFORM-03`. Voir `docs/PROJECT_STATE.md` pour l'historique de `TEST-BOUNCE-01` et de `US-17`.
 
 ## État Git
 
-Branche `feature/TEST-BOUNCE-01-qa-loop` (= `dev` + commits `ai-platform`/finalisation du vote, pas encore mergée vers `dev`/`main`). Après le correctif ci-dessous, modifications en cours dans l'arbre de travail (non commitées) : `retrospective_backend/src/services/session.service.ts`, `docs/PROJECT_STATE.md`.
+Branche `feature/US-17-navbar-responsive` (= `dev` + 1 commit `3a00511`). Arbre de travail propre après commit. Pas encore de PR ouverte vers `dev`.
 
 ## Implémentation terminée
 
-- Détection d'une régression réelle : `deleteSessionService` refusait la suppression d'une session close (`assertSessionOpen(session)` ajouté par erreur dans le commit `b9751dc`), contredisant la décision produit déjà actée le 2026-07-19 (suppression toujours autorisée sur session close).
-- Correctif : retrait de l'appel `assertSessionOpen(session)` dans `deleteSessionService`.
+- `SessionContextBar` scindé en `SessionIdentityBar.tsx` + `SessionNavigationBar.tsx`, toujours sur une seule ligne à toutes les tailles (stepper compact sous `xl`, icônes sous `lg`, 2 barres au lieu de 3 à partir de `xl` via `isDesktopViewport` calculé en JS).
+- `DiscussionDrawer` flottant (par-dessus les colonnes) entre 768 et 1280px au lieu de docké.
+- Bug mobile réel corrigé (`min-w-0` manquant sur le conteneur de `SessionToolsGroup`).
+- Accès LAN en dev ajouté au même commit (Docker `0.0.0.0`, CORS élargi aux IP privées, `vite --host`, auto-détection de l'URL API).
+- Commit unique `3a00511` effectué après validation utilisateur explicite (2026-07-28).
 
 ## Implémentation restante
 
-- Validation utilisateur du correctif avant commit.
-- Décider si `feature/TEST-BOUNCE-01-qa-loop` doit être mergée vers `dev`/`main`.
+- Inscrire `US-17` dans `docs/backlog/PRODUCT_BACKLOG.md` (nécessite validation explicite du Product Owner, pas encore obtenue).
+- Décider du sort de la branche `feature/US-17-navbar-responsive` : PR vers `dev` maintenant ou empiler la suite dessus.
+- Choisir la prochaine tâche prioritaire (candidats : bug 403 transitoire non corrigé, nettoyage `docs/TODO.md`, ou autre demande utilisateur).
 
 ## Tests exécutés
 
-- `npx vitest run` (backend) : 320/320 (contre 318/320 avant correctif).
-- `npx tsc --noEmit` (backend) : propre.
-- Frontend non retouché dans ce ticket : 193/193 toujours au vert (vérifié lors de la revue).
+- `npx vitest run` (frontend) : 203/203.
+- `npx vitest run src/utils/tests/corsOrigin.test.ts` (backend) : 6/6.
+- `npx tsc --noEmit` (frontend + backend) : propre.
+- `eslint` (frontend) : propre.
+- Vérification visuelle Playwright : 1920/1440/1280/1100/900/768/390px, plus test réel sur téléphone via LAN.
 
 ## Résultats
 
-Boucle QA validée de bout en bout : régression détectée par les tests → rebond `TEST_FAILED` documenté dans `docs/PROJECT_STATE.md` (entrée 2026-07-21) → correction appliquée → tests repassés au vert (2026-07-27).
+US-17 livré et commité de bout en bout : constat initial → 2 passes rejetées/ajustées par retour utilisateur avec captures → correctif final validé → bug mobile réel trouvé et corrigé → commit.
 
 ## Bugs connus
 
-Aucun restant après le correctif.
+- 403 transitoire sur `GET /session/:id/cards` juste après création de session (polling démarrant avant résolution des en-têtes facilitateur). Sans impact visible, non corrigé, hors périmètre `US-16`/`US-17`. Signalé dans `docs/PROJECT_STATE.md`, à traiter dans un ticket dédié si jugé prioritaire.
 
 ## Décisions prises
 
-- `deleteSessionService` doit rester non gardé par `assertSessionOpen` : supprimer une session close reste autorisé (décision réaffirmée, régression corrigée).
+- Chaque barre de navbar de session reste sur une seule ligne à toutes les tailles (pas de stacking 2 lignes) — décision utilisateur après rejet de la première passe.
+- 2 barres au lieu de 3 à partir de `xl` (1280px) — décision utilisateur après la deuxième passe.
+- `DiscussionDrawer` flotte par-dessus les colonnes plutôt que de partager l'espace entre 768 et 1280px — décision utilisateur (3e option choisie sur 3 proposées).
+- Config d'accès LAN incluse dans le même commit que `US-17` plutôt qu'en commit séparé ou laissée de côté — décision utilisateur (2026-07-28).
 
 ## Fichiers principaux
 
-`retrospective_backend/src/services/session.service.ts`, `docs/PROJECT_STATE.md`.
+`retrospective_frontend/src/pages/session/components/SessionIdentityBar.tsx`, `SessionNavigationBar.tsx`, `SessionToolsGroup.tsx`, `StepIndicatorCompact.tsx`, `SessionActionBar.tsx`, `DiscussionDrawer.tsx`, `useSessionViewport.ts` ; config LAN (`docker-compose.yml`, `vite.config.ts`, `corsOrigin.ts`, `server.ts`, `.env.example`). Détail complet dans `docs/PROJECT_STATE.md`.
 
 ## Prochaine action exacte
 
-Attendre la validation utilisateur du correctif, puis proposer un commit unique.
+Décider avec l'utilisateur : inscription de `US-17` au Product Backlog, sort de la branche, et choix du prochain ticket.
