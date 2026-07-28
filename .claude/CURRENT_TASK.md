@@ -1,43 +1,50 @@
 # Ticket actuel
 
-**BUG-CARDS-403-01 — 403 transitoire sur `GET /session/:id/cards`** (terminé, en attente de commit)
+**ARCHI-08 — Toast en Tailwind** (terminé, PR #39 en attente de CI/merge)
 
 # Objectif
 
-Corriger le 403 transitoire signalé lors de `US-16` (2026-07-27) : juste après la création d'une session, `GET /session/:id/cards` pouvait échouer une fois avant de se corriger tout seul au polling suivant.
+Migrer `ToastNotification`/`ToastStyled` de `styled-components` vers Tailwind, dans le cadre de la revue de `docs/TODO.md` (session du 2026-07-28).
 
 # Branche
 
-`feature/BUG-CARDS-403-01` (= `dev` + correctif, pas encore commité).
+`feature/ARCHI-08-toast-tailwind` (= `dev` + le correctif). PR #39 ouverte vers `dev`, CI en cours.
 
-# Note — ce fichier décrivait auparavant un autre ticket
+# Contexte — session de revue TODO.md (2026-07-28)
 
-Ce fichier décrivait `US-17 — Navbar de session responsive` (branche `feature/US-17-navbar-responsive`), désormais commitée et mergée dans `dev` via PR #35 (2026-07-28). Voir `docs/PROJECT_STATE.md` pour le détail complet de `US-17` (navbar + correctif du test flaky `SessionDashboard.action.test.tsx`, pré-existant sur `dev`, sans lien avec ce ticket).
+Après le merge de `US-17` (PR #35) et `BUG-CARDS-403-01` (PR #36), l'utilisateur a demandé une revue de `docs/TODO.md` pour trier les entrées non cochées. Vérification de chaque point contre le code réel :
+- 3 entrées obsolètes (déjà résolues ailleurs) retirées — PR #37, mergée.
+- `ARCHI-09` (signup renvoie 200 au lieu de 201) — corrigé, PR #38, mergée.
+- `ARCHI-08` (Toast en styled-components) — ce ticket, PR #39.
+- Formulaire d'accueil "partiellement décoratif" — vérifié obsolète (le formulaire réel `CreateAccountForm.tsx` n'a rien de décoratif), aucune modification nécessaire, documenté dans le même commit que PR #37.
 
 # Travail terminé
 
-- Diagnostic complet via `git log -S`/`git blame` sur `retrospective_backend/src/utils/sessionActor.ts` : régression secondaire du commit `b9751dc` (« enforce read-only behavior for closed sessions », 2026-07-22), qui avait rendu toute lecture authentifiée strictement dépendante d'une ligne de participation déjà existante — y compris sur une session **ouverte**, alors que seule la lecture sur session **close** avait besoin de rester stricte.
-- Correctif appliqué dans `resolveSessionActor` : lecture sur session ouverte → auto-création de la ligne de participation (`ensureAuthenticatedParticipant`), comme une écriture ; lecture sur session close → reste stricte (`getAuthenticatedParticipantForRead`, comportement de `b9751dc` inchangé).
-- 1 test mis à jour dans `sessionActor.test.ts` pour couvrir explicitement ce cas.
-- Vérification : backend 329/329, frontend 203/203 (non retouché), `tsc` propre des deux côtés.
-- `docs/PROJECT_STATE.md` et `docs/backlog/PRODUCT_BACKLOG.md` mis à jour (entrée `BUG-CARDS-403-01` ajoutée, marquée ✅ Terminé).
+- `ToastStyled.tsx` supprimé, `ToastNotification.tsx` réécrit en Tailwind pur (icônes `lucide-react`, tokens de thème existants).
+- CDN Font Awesome retiré de `index.html`, dépendance `styled-components` retirée du `package.json`.
+- `@keyframes toast-countdown` ajouté dans `App.css` pour la barre de progression.
+- Vérifié visuellement via Playwright (toast "invalid" sur `/login`) : thème navy cohérent, plus de fond blanc.
+- 203/203 tests frontend, `tsc`/`eslint`/`build` propres.
+- `docs/TODO.md` mis à jour (2 entrées `ARCHI-08` dupliquées marquées résolues).
 
 # Travail restant
 
-- Commit unique pour ce correctif (fichiers ci-dessous).
-- Décider de la suite : PR vers `dev`, puis revue de `docs/TODO.md` (entrées potentiellement obsolètes signalées : `ARCHI-08` Toast, `ARCHI-09` signup 200 vs 201, formulaire d'accueil décoratif, compteur de participants en dur).
+- Attendre le CI de la PR #39, merger si vert.
+- Après ça : `docs/TODO.md` devrait être entièrement à jour — vérifier s'il reste d'autres entrées non cochées à trier avec l'utilisateur, sinon revenir au Product Backlog (actuellement 100% ✅ Terminé) pour la prochaine tâche.
 
 # Fichiers concernés
 
-- `retrospective_backend/src/utils/sessionActor.ts`
-- `retrospective_backend/src/utils/tests/sessionActor.test.ts`
-- `docs/PROJECT_STATE.md`
-- `docs/backlog/PRODUCT_BACKLOG.md`
+- `retrospective_frontend/src/components/ui/ToastNotification.tsx`
+- `retrospective_frontend/src/components/ui/ToastStyled.tsx` (supprimé)
+- `retrospective_frontend/index.html`
+- `retrospective_frontend/src/App.css`
+- `retrospective_frontend/package.json` / `package-lock.json`
+- `docs/TODO.md`
 
 # Tests requis
 
-`npx vitest run` (backend + frontend), `npx tsc --noEmit` (les deux). Déjà exécutés et au vert.
+`npx vitest run`, `npx tsc --noEmit`, `npm run build` (frontend). Déjà exécutés et au vert.
 
 # Prochaine action unique
 
-Committer, puis proposer une PR vers `dev`.
+Merger la PR #39 une fois le CI vert, puis proposer la suite (revue complète de `docs/TODO.md` terminée, ou prochain sujet à définir avec l'utilisateur).
