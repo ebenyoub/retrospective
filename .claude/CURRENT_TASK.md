@@ -1,46 +1,42 @@
 # Ticket actuel
 
-**BUG-FORGOT-PASSWORD-01 — `/auth/forgot` renvoie systématiquement 500** (terminé, en attente de commit)
+**DEV-ENV-01 — Fiabiliser le hot reload backend Docker** (terminé, en attente de commit)
 
 # Objectif
 
-Corriger un bug réel et actif : le parcours "mot de passe oublié" plante systématiquement, retrouvé lors d'une revue des idées sauvegardées (`docs/backlog/BACKLOG_IDEAS.md`) et de l'historique du projet demandée par l'utilisateur.
+Refaire un correctif déjà validé une première fois le 2026-07-20 mais perdu (commit jamais mergé dans `dev`, dérive de pipeline agent) : `ts-node-dev` ne détectait pas toujours les modifications de fichiers sur bind mount Docker, redémarrage manuel fréquent en développement.
 
 # Branche
 
-`feature/BUG-FORGOT-PASSWORD-01` (= `dev` + le correctif, pas encore commité).
+`feature/DEV-ENV-01-hot-reload` (= `dev` + le correctif, pas encore commité).
 
 # Contexte — revue des choses en attente (2026-07-29)
 
-L'utilisateur a demandé de retrouver les idées sauvegardées et les points en attente. Trois trouvés :
-1. **Ce bug** (le plus sérieux, traité immédiatement) — `/auth/forgot` casse en 500 sur toute base initialisée depuis `schema.sql`.
-2. `DEV-ENV-01` (`BACKLOG_IDEAS.md`) — hot reload Docker, idée validée le 2026-07-20 mais orpheline d'un commit jamais mergé dans `dev`. Toujours "À valider" dans le fichier. Pas encore traité.
-3. Flakiness E2E connue sur `e2e/session-voting.spec.ts` (non bloquante). Pas encore traitée.
+Deuxième des deux points retrouvés lors de la revue de `docs/backlog/BACKLOG_IDEAS.md`/historique demandée par l'utilisateur (le premier était `BUG-FORGOT-PASSWORD-01`, déjà commité/mergé, PR #40). Reste un troisième point non traité : flakiness E2E connue sur `e2e/session-voting.spec.ts`.
 
 # Travail terminé
 
-- Diagnostic : `passwordReset.model.ts` interroge une table `password` absente de `schema.sql` depuis toujours — découvert le 2026-07-20 (`T-ARCHI-01`), jamais corrigé depuis (le ticket qui a suivi, `T-AUTH-FORGOT-BREVO-01`, n'a testé que le transport SMTP, pas contre une vraie base).
-- Correctif : table `password` ajoutée à `schema.sql` (nouvelles installations) + script `alter_create_password.sql` (bases déjà initialisées, appliqué manuellement sur `retrospective-db` local).
-- Vérifié en conditions réelles contre le backend Docker (pas seulement les tests, qui mockent `db.execute` et n'auraient rien détecté) : avant → `Table 'retrospective.password' doesn't exist` en logs ; après → insertion SQL réussie, `POST /auth/verify-code` renvoie une réponse métier propre (400) au lieu d'un 500.
+- Flag `--poll` ajouté au script `dev` de `retrospective_backend/package.json`.
+- Vérifié en conditions réelles sur le conteneur Docker local (`retrospective-backend`) : après redémarrage du conteneur pour charger le nouveau script, `server.ts` édité deux fois sans jamais faire `docker restart` manuellement — logs `[INFO] Restarting: /app/server.ts has been modified` à chaque fois, serveur repassé sain ensuite.
 - 329/329 tests backend (inchangé), `tsc --noEmit` propre.
-- `docs/PROJECT_STATE.md` et `docs/backlog/PRODUCT_BACKLOG.md` mis à jour (`BUG-FORGOT-PASSWORD-01` ✅ Terminé).
+- `docs/backlog/BACKLOG_IDEAS.md`, `docs/backlog/PRODUCT_BACKLOG.md`, `docs/PROJECT_STATE.md` mis à jour.
 
 # Travail restant
 
 - Commit unique pour ce correctif.
-- Décider si on traite aussi `DEV-ENV-01` et/ou la flakiness `session-voting.spec.ts` dans la foulée.
+- Décider avec l'utilisateur si on traite aussi la flakiness `session-voting.spec.ts`, ou si on s'arrête là.
 
 # Fichiers concernés
 
-- `retrospective_backend/sql/schema.sql`
-- `retrospective_backend/sql/alter_create_password.sql` (nouveau)
-- `docs/PROJECT_STATE.md`
+- `retrospective_backend/package.json`
+- `docs/backlog/BACKLOG_IDEAS.md`
 - `docs/backlog/PRODUCT_BACKLOG.md`
+- `docs/PROJECT_STATE.md`
 
 # Tests requis
 
-`npx vitest run` (backend), `npx tsc --noEmit` (backend), vérification manuelle contre le backend Docker réel (déjà faite). Au vert.
+`npx vitest run` (backend), `npx tsc --noEmit` (backend), vérification manuelle du hot reload contre le conteneur Docker réel (déjà faite). Au vert.
 
 # Prochaine action unique
 
-Committer, proposer une PR vers `dev`, puis décider avec l'utilisateur de la suite (`DEV-ENV-01` ou flakiness E2E).
+Committer, proposer une PR vers `dev`, puis demander à l'utilisateur s'il veut traiter la flakiness `session-voting.spec.ts` ou s'arrêter là.
