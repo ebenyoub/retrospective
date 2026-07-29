@@ -122,6 +122,15 @@ En local Docker Compose, `JWT_SECRET` peut être fourni depuis l'environnement :
 JWT_SECRET="$(openssl rand -base64 48)" docker compose up --build
 ```
 
+Alternative plus pratique pour un usage répété : copier `.env.example` (racine
+du projet) en `.env` et y renseigner `JWT_SECRET` — Docker Compose charge
+automatiquement ce fichier, aucun préfixe de commande à retaper à chaque
+lancement. `docker-compose.yml` ne fournit **aucune valeur par défaut** pour
+`JWT_SECRET` (un secret par défaut codé en dur dans un fichier suivi par Git
+serait public) : sans l'une de ces deux méthodes, le backend démarre mais
+toute tentative de connexion/inscription échoue en 500 (`jsonwebtoken` refuse
+de signer avec un secret vide).
+
 ### Frontend
 ```env
 VITE_API_URL=http://localhost:8000
