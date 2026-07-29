@@ -1,0 +1,15 @@
+{
+  "project": {
+    "name": "retrospective-dwwm",
+    "type": "fullstack-web",
+    "level": "DWWM",
+    "language": "fr",
+    "platform": "antigravity"
+  },
+  "orchestrator": {
+    "entry_point": ".gemini/rules.md",
+    "bootstrap": ".gemini/agents/bootstrap.md",
+    "delegation_protocol": ".claude/DELEGATION.md",
+    "workflow": ".claude/PROJECT_WORKFLOW.md"
+  }
+}

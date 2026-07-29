@@ -1,0 +1,62 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: retrospective-db
+    restart: unless-stopped
+    command:
+      - --performance-schema=OFF
+      - --innodb-buffer-pool-size=64M
+      - --max-connections=50
+      - --table-open-cache=200
+    environment:
+      MYSQL_DATABASE: retrospective
+      MYSQL_USER: retrospective_user
+      MYSQL_PASSWORD: retrospective_password
+      MYSQL_ROOT_PASSWORD: root_password
+    ports:
+      - "3308:3306"
+    volumes:
+      - retrospective_mysql_data:/var/lib/mysql
+      - ./retrospective_backend/sql/schema.sql:/docker-entrypoint-initdb.d/001_schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u retrospective_user -pretrospective_password --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  backend:
+    build:
+      context: ./retrospective_backend
+    container_name: retrospective-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PORT: 8000
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: retrospective
+      DB_USER: retrospective_user
+      DB_PASSWORD: retrospective_password
+      JWT_SECRET: ${JWT_SECRET:-}
+      JWT_EXPIRES_IN: 24h
+      # Reste http://localhost:5173 même pour un accès depuis le réseau local :
+      # isOriginAllowed (corsOrigin.ts) autorise déjà en plus, hors production,
+      # toute IP privée du réseau local sur un port Vite — pas besoin de coder
+      # une IP ici, qui changerait à chaque réseau/poste.
+      FRONTEND_ORIGIN: http://localhost:5173
+      SMTP_HOST: ${SMTP_HOST:-smtp-relay.brevo.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      EMAIL_PROVIDER_API_KEY: ${EMAIL_PROVIDER_API_KEY:-}
+      EMAIL_FROM: "${EMAIL_FROM:-Range Ta Chambre <no-reply@rangetachambre.com>}"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./retrospective_backend:/app
+      - /app/node_modules
+
+volumes:
+  retrospective_mysql_data:

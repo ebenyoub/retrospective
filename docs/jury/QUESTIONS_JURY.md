@@ -75,7 +75,11 @@
 → Cross-Origin Resource Sharing. Limite les domaines qui peuvent appeler l'API. Sans configuration, le navigateur bloque les requêtes cross-origin.
 
 **Où stockez-vous vos secrets (clés JWT, mots de passe BDD) ?**
-→ Dans les variables d'environnement (fichier `.env` non versionné).
+→ Dans les variables d'environnement (`.env` local non versionné, ou variables
+du serveur en production). Le dépôt ne contient que `.env.example` avec les noms
+des variables. La clé JWT est générée avec une valeur longue et aléatoire, par
+exemple `openssl rand -base64 48`. Le mot de passe Gmail est un mot de passe
+d'application stocké hors Git.
 
 ---
 

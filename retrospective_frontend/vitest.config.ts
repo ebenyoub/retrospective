@@ -1,4 +1,4 @@
-import { defineConfig } from 'vitest/config'
+import { defineConfig, defaultExclude } from 'vitest/config'
 import path from 'path'
 
 // Config de test séparée de vite.config.ts (utilisé pour le build/dev)
@@ -13,6 +13,12 @@ export default defineConfig({
   },
   test: {
     environment: 'jsdom',
+    // jsdom désactive localStorage/sessionStorage tant qu'aucune origine
+    // http(s) n'est définie (sécurité par défaut sur "about:blank").
+    environmentOptions: {
+      jsdom: { url: 'http://localhost/' },
+    },
     setupFiles: ['./src/test/setup.ts'],
+    exclude: [...defaultExclude, 'e2e/**'],
   },
 })

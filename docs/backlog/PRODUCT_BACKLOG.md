@@ -1,66 +1,376 @@
-# Product Backlog
+# Product Backlog Officiel
 
-> Liste priorisée de toutes les fonctionnalités à développer.
-> Ordre = priorité. On commence par le haut.
-
-## Légende
-
-| Statut | Signification |
-|---|---|
-| ⬜ À faire | Pas encore démarré |
-| 🔵 En cours | En développement |
-| ✅ Terminé | Livré et testé |
-| ❌ Annulé | Hors scope |
+> Référence centrale de planification et d'avancement des fonctionnalités du projet.
+> Réordonné de façon stricte en fonction des sources d'origine et de la valeur pour le MVP.
 
 ---
 
-## Priorité 1 — Fondation (CCP1 + CCP2)
+## Légende des Statuts
 
-| ID | Fonctionnalité | Complexité | Statut | US liée |
-|---|---|---|---|---|
-| B01 | Inscription utilisateur | Faible | ⬜ | US-01 |
-| B02 | Connexion + JWT | Faible | ⬜ | US-02 |
-| B03 | Déconnexion | Très faible | ⬜ | US-03 |
-| B04 | Middleware auth (routes protégées) | Faible | ⬜ | — |
-| B05 | Schéma BDD initial (users, sessions, cards, votes) | Moyenne | ⬜ | — |
+| Statut | Signification |
+| :--- | :--- |
+| ⬜ À faire | Pas encore démarré |
+| 🔵 En cours | En cours de développement ou de rédaction |
+| 🟡 Partiellement terminé | Base technique ou UI présente, mais fonctionnalité produit non complète |
+| ✅ Terminé | Livré, validé techniquement (tests) et fonctionnellement |
 
-## Priorité 2 — Sessions (CCP1 + CCP2)
+---
 
-| ID | Fonctionnalité | Complexité | Statut | US liée |
-|---|---|---|---|---|
-| B06 | Créer une session | Faible | ⬜ | US-04 |
-| B07 | Lister ses sessions | Faible | ⬜ | US-05 |
-| B08 | Rejoindre une session | Moyenne | ⬜ | US-06 |
-| B09 | Vue détail d'une session | Faible | ⬜ | — |
+## 1. Périmètre MVP (Must Have avant la soutenance)
 
-## Priorité 3 — Rétrospective (CCP1 + CCP2)
+Fonctionnalités explicitement justifiées par le cahier des charges, les User Stories d'origine, le Product Backlog initial ou le prototype Figma.
 
-| ID | Fonctionnalité | Complexité | Statut | US liée |
-|---|---|---|---|---|
-| B10 | Ajouter une carte | Faible | ⬜ | US-07 |
-| B11 | Modifier sa carte | Faible | ⬜ | US-07 |
-| B12 | Supprimer sa carte | Très faible | ⬜ | US-07 |
-| B13 | Voir les cartes des autres | Faible | ⬜ | US-07 |
+| ID | User Story / Tâche | Origine | Justification MVP | Statut |
+| :--- | :--- | :--- | :--- | :--- |
+| **US-01** | Inscription utilisateur | User Story (`US-01`), Cahier des charges (4.) | Indispensable pour la création de comptes facilitateurs réels. | ✅ Terminé |
+| **US-02** | Connexion utilisateur & JWT | User Story (`US-02`), Cahier des charges (4.) | Permet l'accès sécurisé aux sessions et à l'historique. | ✅ Terminé |
+| **US-03** | Déconnexion | User Story (`US-03`), Cahier des charges (4.) | Assure la sécurité d'accès après la réunion. | ✅ Terminé |
+| **US-04** | Création de session | User Story (`US-04`), Cahier des charges (4.) | Permet au facilitateur d'initialiser une rétrospective. | ✅ Terminé |
+| **US-05** | Liste des sessions | User Story (`US-05`), Product Backlog d'origine (`B07`) | Fournit au facilitateur et aux inscrits leur historique de rétros. | ✅ Terminé |
+| **US-06** | Rejoindre une session | User Story (`US-06`), Cahier des charges (4.) | Indispensable pour la participation collaborative des équipes. | ✅ Terminé |
+| **US-07** | Écriture des cartes | User Story (`US-07`), Cahier des charges (4.) | Cœur métier : expression écrite des retours de sprint. | ✅ Terminé |
+| **US-08** | Distribution de votes | User Story (`US-08`), Cahier des charges (4.) | Cœur métier : priorisation démocratique des sujets de discussion. Le vote, le quota, les erreurs et les transitions sont validés. | ✅ Terminé |
+| **US-09** | Vue des résultats | User Story (`US-09`), Cahier des charges (4.) | Permet la synthèse finale des cartes triées par votes. | ✅ Terminé |
+| **US-10** | Rôles & Transitions d'étape | Cahier des charges (3. Facilitateur), Figma (`App.tsx`) | Permet au facilitateur de guider la session (salle d'attente -> écriture -> vote -> résultats). | ✅ Terminé |
+| **T-FIG-01**| Timer d'étape visuel et fonctionnel | Figma (`screens/WritingScreen.tsx`/`VoteScreen.tsx`) | Timer visible et réellement utile pour piloter le temps de l'étape. | ✅ Terminé |
+| **T-FIG-02**| Menu d'actions `…` | Figma (Bouton de sortie de session en cours) | Permet aux participants de quitter la session à tout moment. | ✅ Terminé |
+| **T-NAV-01**| Navigation de retour | Correction d'agencement (Cahier des charges : 14. Interface claire) | Bloque la boucle de redirection automatique vers la session active. | ✅ Terminé |
+| **T-UX-01** | Affichage du quota de votes restants | Figma (`VoteScreen.tsx` : pastilles + texte) | **Indispensable** pour permettre au participant de piloter la consommation de ses 5 votes au cours de la phase. | ✅ Terminé |
+| **T-DOC-02**| Finalisation docs techniques (`API.md`/`DATABASE.md`) | Référentiel jury DWWM (Livrables académiques obligatoires) | Indispensable pour la validation du titre professionnel. | ✅ Terminé |
 
-## Priorité 4 — Votes (CCP1 + CCP2)
+### Roadmap MVP par User Story — 2026-07-14
 
-| ID | Fonctionnalité | Complexité | Statut | US liée |
-|---|---|---|---|---|
-| B14 | Voter pour une carte | Moyenne | ⬜ | US-08 |
-| B15 | Vue résultats triés par votes | Faible | ⬜ | US-09 |
+> `BACKLOG-REALIGN-01` corrige l'écart entre "fonctionnalité techniquement présente" et "fonctionnalité produit terminée".
+> Une User Story large reste 🟡 tant que toutes ses sous-tâches MVP ne sont pas livrées, testées et validées.
+> L'orchestrateur exécute en priorité la première tâche `P0` non terminée dans l'ordre d'implémentation MVP.
 
-## Priorité 5 — Polish MVP
+#### **US-07 — Écriture des cartes**
 
-| ID | Fonctionnalité | Complexité | Statut |
-|---|---|---|---|
-| B16 | Responsive design basique | Faible | ⬜ |
-| B17 | Messages d'erreur cohérents | Très faible | ⬜ |
-| B18 | États de chargement (loading) | Très faible | ⬜ |
+| ID | Priorité | Objectif | Critères d'acceptation courts | Statut |
+| :--- | :--- | :--- | :--- | :--- |
+| **US-07-DONE-01** | P0 | Création des cartes dans les 3 colonnes techniques. | Une carte peut être créée dans chaque colonne technique. | ✅ Terminé |
+| **TODO-FORMAT-01** | P0 | Formats MVP dynamiques à 3 colonnes. | Le format choisi est persisté et affiché en Écriture/Résultats. | ✅ Terminé |
+| **MVP-WRITING-01** | P0 | Finaliser le design des cartes et actions Modifier/Supprimer. | Les actions ne cassent plus le design, restent accessibles et ne régressent pas. | ✅ Terminé |
+| **MVP-TIMER-01** | P0 | Rendre le timer d'étape fonctionnel. | Le timer démarre, se met à jour et reste cohérent avec l'étape. | ✅ Terminé |
+| **MVP-PARTICIPANTS-01** | P1 | Corriger l'UX du drawer Participants. | Le drawer affiche les vrais participants et respecte l'UX cible desktop/mobile. | ✅ Terminé |
+| **MVP-DISCUSSION-01** | P1 | Finaliser Discussion. | Le panneau affiche des messages réels ou un périmètre produit borné explicitement. | ✅ Terminé |
+| **MVP-COMMENTS-01** | P1 | Implémenter les commentaires de cartes utilisables. | Les commentaires peuvent être consultés/ajoutés sans données fictives. | ✅ Terminé (2026-07-16, réellement implémenté : table `card_comments`, routes dédiées, suppression par l'auteur) |
+| **MVP-WRITING-STATE-01** | P2 | Finaliser états chargement/erreur/vides. | Les états sont clairs, non bloquants et testés. | ✅ Terminé |
 
-## Hors scope V1
+#### **US-08 — Distribution de votes**
 
-| ID | Fonctionnalité | Raison |
-|---|---|---|
-| B19 | Invitations par email | Complexité nodemailer + UX |
-| B20 | Temps réel (WebSocket) | Complexité technique non justifiée pour MVP |
-| B21 | Export résultats | Hors périmètre jury |
+| ID | Priorité | Objectif | Critères d'acceptation courts | Statut |
+| :--- | :--- | :--- | :--- | :--- |
+| **US-08-DONE-01** | P0 | Backend de vote avec limite de 5 votes. | Le backend refuse les votes invalides et expose le quota après vote. | ✅ Terminé |
+| **US-08-DONE-02** | P0 | Bouton de vote et compteur sur les cartes. | L'UI affiche l'état de vote et le compteur mis à jour après action. | ✅ Terminé |
+| **T-UX-01** | P0 | Quota de votes restants visible. | Le quota reste cohérent après vote, erreur et transition. | ✅ Terminé |
+| **MVP-VOTE-01** | P0 | Salle de vote complète. | La salle de vote est validée avec données réelles simulées et parcours participant. | ✅ Terminé |
+| **MVP-VOTE-TRANSITION-01** | P1 | Vérifier les votes lors des transitions. | Les cartes sont rafraîchies au passage en vote et restent cohérentes ensuite. | ✅ Terminé |
+| **MVP-VOTE-03** | P0 | Finaliser et valider le vote de bout en bout. | Un participant autorisé vote au plus cinq fois ; compteur, quota, erreurs et résultats restent cohérents après rechargement et transition. | ✅ Terminé |
+
+#### **US-09 — Vue des résultats**
+
+| ID | Priorité | Objectif | Critères d'acceptation courts | Statut |
+| :--- | :--- | :--- | :--- | :--- |
+| **US-09-DONE-01** | P0 | Cartes triées par votes décroissants. | Les cartes les plus votées remontent en premier. | ✅ Terminé |
+| **US-09-DONE-02** | P0 | Top 3, statistiques et libellés de format. | Les résultats affichent votes, cartes et colonnes du format choisi. | ✅ Terminé |
+| **MVP-RESULTS-01** | P0 | Finaliser l'écran Résultats. | L'écran est validé desktop/mobile avec données réelles et états limites. | ✅ Terminé |
+
+#### **US-10 — Rôles & transitions d'étape**
+
+| ID | Priorité | Objectif | Critères d'acceptation courts | Statut |
+| :--- | :--- | :--- | :--- | :--- |
+| **US-10-DONE-01** | P0 | Rôle facilitateur/participant connu par la session. | Les permissions de base sont identifiées. | ✅ Terminé |
+| **US-10-DONE-02** | P0 | Passage salle d'attente -> écriture. | Le facilitateur lance l'écriture et les participants suivent. | ✅ Terminé |
+| **MVP-TRANSITION-01** | P0 | Valider toutes les transitions d'étape. | Écriture -> Vote -> Résultats fonctionne pour plusieurs navigateurs. | ✅ Terminé |
+| **MVP-PERMISSION-01** | P1 | Vérifier les permissions par rôle sur chaque étape. | Les participants ne déclenchent pas les actions facilitateur. | ✅ Terminé |
+
+#### **US-13 — Plan d'action & Résumé produit**
+
+| ID | Priorité | Objectif | Critères d'acceptation courts | Statut |
+| :--- | :--- | :--- | :--- | :--- |
+| **MVP-ACTION-01** | P1 | Ajouter le plan d'action. | Le facilitateur peut consulter/préparer les actions prévues par le prototype ; l'écriture est refusée en session clôturée. | ✅ Terminé |
+| **MVP-SUMMARY-01** | P1 | Ajouter l'écran résumé. | Le résumé clôture la rétrospective proprement et reste lisible pour les participants autorisés. | ✅ Terminé |
+| **MVP-E2E-01** | P0 | Vérifier le parcours MVP jusqu'aux résultats. | Le parcours création -> écriture -> vote -> résultats est couvert et validé sans rupture majeure. | ✅ Terminé |
+
+#### **US-14 — Sessions clôturées en lecture seule**
+
+| ID | Priorité | Objectif | Critères d'acceptation courts | Statut |
+| :--- | :--- | :--- | :--- | :--- |
+| **MVP-CLOSED-SESSION-01** | P0 | Finaliser le cycle de vie d'une session clôturée. | Après clôture, le code ne permet plus de rejoindre la session ; toute écriture, vote ou modification est refusée, tandis que la consultation autorisée reste en lecture seule. | ✅ Terminé |
+
+### Ordre d'implémentation MVP
+
+| Ordre | ID | Parent | Priorité | Objectif | Statut |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | **MVP-WRITING-01** | US-07 | P0 | Finaliser le design des cartes et des actions Modifier/Supprimer. | ✅ Terminé |
+| 2 | **MVP-TIMER-01** | US-07 / US-10 | P0 | Rendre le timer d'étape fonctionnel. | ✅ Terminé |
+| 3 | **MVP-VOTE-03** | US-08 | P0 | Finaliser et valider le vote de bout en bout. | ✅ Terminé |
+| 3.1 | **MVP-VOTE-01** | US-08 | P0 | Salle de vote : capacité existante à qualifier. | ✅ Terminé |
+| 3.2 | **MVP-VOTE-02** | US-08 | P0 | Validation E2E de la salle de vote. | ✅ Terminé |
+| 4 | **MVP-RESULTS-01** | US-09 | P0 | Finaliser l'écran Résultats. | ✅ Terminé |
+| 4.1 | **MVP-RESULTS-02** | US-09 | P0 | Validation E2E de l'écran Résultats. | ✅ Terminé |
+| 5 | **MVP-TRANSITION-01** | US-10 | P0 | Valider toutes les transitions d'étape. | ✅ Terminé |
+| 5.1 | **MVP-TRANSITION-02** | US-10 | P0 | Validation E2E de l'enchaînement des étapes. | ✅ Terminé |
+| 6 | **MVP-E2E-01** | Transverse (US-07 à US-10) | P0 | Vérifier le parcours MVP jusqu'aux résultats. | ✅ Terminé |
+| 6.1 | **MVP-E2E-02** | Transverse (US-07 à US-13) | P0 | Validation E2E du parcours produit complet. | ✅ Terminé |
+| 6.2 | **MVP-CLOSED-SESSION-01** | US-14 | P0 | Finaliser le cycle de vie d'une session clôturée. | ✅ Terminé |
+| 7 | **MVP-PARTICIPANTS-01** | US-07 | P1 | Corriger l'UX du drawer Participants. | ✅ Terminé |
+| 7.1 | **MVP-PARTICIPANTS-02** | US-07 | P1 | Validation E2E du drawer Participants. | ✅ Terminé |
+| 8 | **MVP-DISCUSSION-01** | US-07 | P1 | Finaliser Discussion. | ✅ Terminé |
+| 8.1 | **MVP-DISCUSSION-02** | US-07 | P1 | Validation E2E du drawer Discussion. | ✅ Terminé |
+| 9 | **MVP-COMMENTS-01** | US-07 | P1 | Implémenter les commentaires de cartes. | ✅ Terminé |
+| 9.1 | **MVP-COMMENTS-02** | US-07 | P1 | Validation E2E de la modal Commentaires. | ✅ Terminé |
+| 10 | **MVP-ACTION-01** | US-13 | P1 | Plan d'action : capacité existante à qualifier. | ✅ Terminé |
+| 11 | **MVP-SUMMARY-01** | US-13 | P1 | Résumé : capacité existante à qualifier. | ✅ Terminé |
+| 12 | **MVP-WRITING-STATE-01** | US-07 | P2 | Finaliser les états chargement/erreur/vides. | ✅ Terminé |
+| 12.1 | **MVP-WRITING-STATE-02** | US-07 | P2 | Validation E2E des états de chargement et vides. | ✅ Terminé |
+
+### Historique des chantiers techniques
+
+> Ces tickets servent d'historique. L'orchestrateur ne doit plus les choisir comme prochaines tâches MVP.
+
+| ID | Résultat | Statut actuel |
+| :--- | :--- | :--- |
+| **T-SESSION-BAR-01** | `SessionContextBar` isolée : retour, breadcrumb, étape, code, déclencheurs. | ✅ Base validée |
+| **T-SESSION-BAR-02** | `SessionActionBar` isolée : compteur, timer visuel, bouton principal. | ✅ Base validée |
+| **T-SESSION-BAR-03** | Participants affichés dans un drawer avec données réelles. | 🟡 À reprendre via `MVP-PARTICIPANTS-01` |
+| **T-SESSION-BAR-04** | Discussion affichée dans un drawer sans données fictives. | 🟡 À reprendre via `MVP-DISCUSSION-01` |
+| **T-SESSION-BAR-05** | Modal de commentaires sans persistance fictive. | ✅ Repris et terminé via `MVP-COMMENTS-01` (2026-07-16) |
+| **T-SESSION-BAR-06** | Revue UI finale de base de l'écran Écriture. | ✅ Historique validé |
+
+---
+
+## 2. Évolutions (Hors MVP / Après la soutenance)
+
+Fonctionnalités issues du prototype Figma ou des chantiers de stabilisation technique, intéressantes mais non bloquantes pour le flux MVP.
+
+| ID | User Story / Tâche | Origine | Justification Évolution | Statut |
+| :--- | :--- | :--- | :--- | :--- |
+| **US-11** | Chat de discussion de session | Figma (`components/DiscussionPanel`), Backlog (`B20` Hors scope) | Communication écrite annexe ; le débat a lieu à l'oral pendant la réunion. Capacité existante qualifiée par tests backend, frontend et E2E. | ✅ Terminé |
+| **US-13** | Plan d'action & Écran résumé | Figma (`screens/ActionScreen.tsx` / `SummaryScreen.tsx`) | Capacités post-réunion distinctes du parcours MVP, qualifiées par tests ciblés et parcours E2E produit complet. | ✅ Terminé |
+| **US-14** | Cycle de vie du code de session / sessions clôturées en lecture seule | Investigation utilisateur (401 `/auth/profile`) ayant mené à une revue du cycle de vie des sessions, 2026-07-19/20 | Sécurité et cohérence métier : un code à 4 chiffres ne doit pas être un identifiant permanent, une session close ne doit plus être modifiable ni rejoignable. | ✅ Terminé |
+| **US-15** | Corrections UX post-tests réels (retour d'étape, Discussion docké, podium Plan d'action) | Retours utilisateur après un test de charge réel (50 participants, cartes, votes, commentaires), 2026-07-20 | Ergonomie facilitateur (erreur de manipulation récupérable) et productivité (discuter et consulter le podium sans changer d'écran). | ✅ Terminé |
+| **US-16** | Corrections UX & bugs post-revue navigateur (Résultats, Salle d'attente, Écriture, Plan d'action) | Tour manuel de l'utilisateur dans le navigateur sur une session réelle, 2026-07-27 | Lisibilité, réduction des informations redondantes, clarté des libellés, et 2 bugs fonctionnels réels (Discussion inopérante en salle d'attente, commentaires non temps réel). Détail des sous-tickets ci-dessous. | ✅ Terminé (2026-07-27 : les 21 sous-tickets livrés — 2 bugs, 5 Salle d'attente, 5 Écriture, 3 notifications sonores, 2 comportements commentaires, 1 Résultats, 3 Plan d'action — plus un bug de duplication des commentaires découvert et corrigé en cours de route) |
+| **US-17** | Navbar de session responsive (identité + navigation + actions facilitateur) | Retour utilisateur après tests réels navigateur/mobile, 2026-07-27/28 | Lisibilité de la navbar de session à toutes les tailles (390px à 1920px) : `SessionContextBar` compressait titre/stepper/outils sur une seule ligne de 56px dès 768px, `SessionActionBar` débordait sur mobile. | ✅ Terminé (2026-07-28, branche `feature/US-17-navbar-responsive`, commit `3a00511` : `SessionContextBar` scindé en `SessionIdentityBar`/`SessionNavigationBar` — toujours 1 ligne, stepper compact et boutons en icônes sous `lg`/`xl`, 2 barres au lieu de 3 à partir de `xl` (1280px) ; `DiscussionDrawer` flottant par-dessus les colonnes entre 768 et 1280px au lieu de docké ; bug mobile réel corrigé (`min-w-0`) ; accès LAN en dev ajouté au même commit pour le test mobile réel. 203/203 tests frontend, 6/6 tests CORS backend, `tsc`/`eslint` propres. Détail complet dans `docs/PROJECT_STATE.md`.) |
+| **T-UI-01** | Homogénéisation des Toasts (Tailwind) | Audit technique ultérieur (2026-07-09) | Polish visuel mineur ; les alertes de l'application sont déjà fonctionnelles. | ✅ Terminé (2026-07-19 : `ToastStyled.tsx`/`ToastNotification.tsx` alignés sur le thème navy de l'app) |
+| **T-ARCHI-01**| Migration des formulaires vers RHF | Audit technique ultérieur (2026-07-13) | Harmonisation interne du code ; la validation manuelle actuelle est déjà OK. | ✅ Terminé (2026-07-20 : Login/Signup/SessionCreate/Forgot migrés vers React Hook Form + Zod, une PR par formulaire) |
+| **T-AUTH-FORGOT-BREVO-01** | Finaliser le mot de passe oublié avec Brevo | Retour utilisateur 2026-07-22 ; référence technique existante dans `loge_restaurant` | Le parcours forgot/reset existe déjà mais l'envoi réel d'e-mail doit être configuré via SMTP Brevo, sans dépendre de l'ancien transport Gmail. | ✅ Terminé (2026-07-22 : transport SMTP Brevo configuré, `.env.example`/Docker/docs alignés, tests ciblés OK) |
+| **BUG-FORGOT-PASSWORD-01** | `/auth/forgot` renvoie systématiquement 500 | Découvert pendant `T-ARCHI-01` (2026-07-20), signalé sans être corrigé, retrouvé et traité le 2026-07-29 | `passwordReset.model.ts` interroge une table `password` absente de `schema.sql` — plantait sur toute base initialisée depuis ce fichier, y compris l'environnement du jury. | ✅ Terminé (2026-07-29 : table `password` ajoutée à `schema.sql` + script `alter_create_password.sql` pour les bases déjà initialisées. Vérifié en conditions réelles contre le backend Docker : `/auth/forgot` et `/auth/verify-code` ne renvoient plus l'erreur SQL. L'envoi réel d'e-mail reste bloqué en local par l'absence de `SMTP_USER`/`SMTP_PASS` — secret d'environnement, hors périmètre.) |
+| **T-PART-02**| Expiration du jeton invité | Audit technique ultérieur (2026-07-13) | Optimisation de sécurité de BDD en production. | ✅ Terminé (2026-07-20 : jeton invité limité à 24h depuis la jointure, alignée sur le cookie de reprise) |
+| **T-CLEANUP-01**| Nettoyage des anciens invités | Audit technique ultérieur (2026-07-10) | Nettoyage de données de test en base de développement. | ✅ Terminé (2026-07-20 : script SQL manuel `cleanup_dev_test_guests.sql`, 65 lignes supprimées sur la base de dev) |
+| **T-CLEANUP-02**| Suppression du hook mort `useFormValidation` | Audit technique post T-ARCHI-01 (2026-07-20) | Suppression du code mort frontend devenu obsolète après migration RHF. | ✅ Terminé (2026-07-21 : hook `useFormValidation.ts`, types et tests supprimés) |
+| **DEV-ENV-01**| Fiabiliser le hot reload backend Docker | `docs/backlog/BACKLOG_IDEAS.md`, découvert pendant `TODO-FORMAT-01` | `ts-node-dev` ne détectait pas toujours les modifications de fichiers sur bind mount Docker (macOS→conteneur Linux), redémarrage manuel fréquent en développement. | ✅ Terminé (2026-07-29 : flag `--poll` ajouté au script `dev`. Validé une première fois le 2026-07-20 mais commit perdu dans une dérive de pipeline agent — refait et vérifié en conditions réelles sur le conteneur Docker local, hot reload confirmé sans intervention manuelle) |
+| **T-AI-PLATFORM-03**| Synchronisation automatique du contexte partagé | Audit du workflow IA après dérive `CURRENT_TASK.md` / `HANDOVER.md` constatée le 2026-07-21 | Fiabiliser la reprise de session multi-IA en rendant la synchronisation de l'état partagé obligatoire, vérifiable et la plus dérivée possible de l'état Git réel. | ✅ Terminé (2026-07-22 : décision `CONTEXT_SYNC.md`, contrats Claude/Codex alignés) |
+| **T-AI-PLATFORM-CODEX-BOOTSTRAP** | Qualification & Bootstrap de l'Infrastructure Codex CLI | Qualification adaptateur Codex suite aux revues d'architecture multi-agents | Adapter la couche Codex au mécanisme natif de subagents, conserver `.codex/agents/` comme roster projet et valider par une exécution réelle dans Codex. | ✅ Terminé (2026-07-22 : agents natifs `analyst-ticket` et `architect` lancés avec succès ; scénarios avancés à éprouver sur tickets réels) |
+
+### US-16 — Corrections UX & bugs post-revue navigateur (2026-07-27)
+
+Retour utilisateur après un tour manuel dans le navigateur, session réelle (`Retro spring 6`, id 77). Regroupe des ajustements de lisibilité par écran et deux bugs fonctionnels réels. Un sous-ticket = un sujet, développé, testé et validé séparément (règle CLAUDE.md "un sujet à la fois").
+
+**Bugs fonctionnels (priorité haute — avant le polish UX)**
+
+| ID | Écran | Description | Statut |
+| :--- | :--- | :--- | :--- |
+| **BUG-WAITING-DISCUSSION-01** | Salle d'attente | Le bouton "Discussion" ne fonctionne pas en salle d'attente, alors que c'est le meilleur moment pour échanger entre participants déjà connectés. | ✅ Terminé (2026-07-27 : `DiscussionDrawer` n'était monté que hors étape `waiting` ; désormais rendu en frère docké/overlay de `WaitingStep`, comme sur les autres étapes) |
+| **BUG-COMMENTS-REALTIME-01** | Écriture | Un commentaire ajouté par un participant ne s'affiche pas en temps réel pour les autres : il faut rouvrir le panneau ("Commentaires (2)") ou recharger la page pour le voir. | ✅ Terminé (2026-07-27 : aucun événement socket n'existait pour les commentaires ; ajout de `session:comment-added` côté backend et écoute côté frontend, panneau déjà ouvert et compteur de la carte mis à jour en direct) |
+
+**UX — Salle d'attente**
+
+| ID | Description | Statut |
+| :--- | :--- | :--- |
+| **UX-WAITING-01** | Sidebar, ligne "Format" : gap manquant entre le libellé et le menu déroulant. | ✅ Terminé (2026-07-27 : `gap-3` ajouté à la ligne, libellé `shrink-0`) |
+| **UX-WAITING-02** | Cartes participants : point vert redondant devant "En ligne" (déjà porté par l'avatar), à retirer. | ✅ Terminé (2026-07-27 : le texte coloré suffit, le point ne restait que sur l'avatar) |
+| **UX-WAITING-03** | Navbar : bouton "Participants" jugé inutile (déjà accessible via la sidebar), à retirer. | ✅ Terminé (2026-07-27 : masqué uniquement à l'étape `waiting` — reste indispensable sur les autres étapes, où il pilote `ParticipantsDrawer`) |
+| **UX-WAITING-04** | Navbar : code de session à copier redondant avec la sidebar, à retirer. | ✅ Terminé (2026-07-27 : masqué uniquement à l'étape `waiting`, pour la même raison que UX-WAITING-03) |
+| **UX-WAITING-05** | Carte "Votre accès" : mention "1 en ligne maintenant" redondante avec l'info déjà affichée ailleurs, à retirer. | ✅ Terminé (2026-07-27 : déjà porté par le résumé principal juste au-dessus) |
+
+**UX — Écriture**
+
+| ID | Description | Statut |
+| :--- | :--- | :--- |
+| **UX-WRITING-01** | Bouton "← Retour" peu clair ; à renommer (ex. "Accueil"). | ✅ Terminé (2026-07-27 : renommé "Accueil", icône Home) |
+| **UX-WRITING-02** | Panneau Participants à repositionner à gauche (actuellement à droite). | ✅ Terminé (2026-07-27 : `Drawer` supporte désormais `side="left"`) |
+| **UX-WRITING-03** | Cartes : nombre de votes affiché dès l'étape Écriture à retirer (pas pertinent avant le vote). | ✅ Terminé (2026-07-27 : masqué si `details.step === 'writing'`, toujours affiché au vote) |
+| **UX-WRITING-04** | Commentaires : un seul panneau ouvert à la fois — fermeture automatique du précédent à l'ouverture d'un nouveau, et/ou fermeture au clic en dehors de la carte, pour optimiser l'espace. | ✅ Terminé (2026-07-27 : accordéon centralisé dans `useSessionPanels` — `openCommentsCardId`, une seule carte ouverte à la fois) |
+| **UX-WRITING-05** | Commentaires : affichage inversé (les plus récents en haut) pour garder les derniers échanges toujours visibles. | ✅ Terminé (2026-07-27 : affichage inversé, état interne inchangé) |
+| **UX-COMMENTS-FOCUS-01** | Commentaires : à la soumission, le focus doit rester dans le champ de saisie (pour enchaîner plusieurs commentaires sans re-cliquer). | ✅ Terminé (2026-07-27 : même motif que le chat de Discussion — refocus différé après réactivation du champ) |
+| **UX-COMMENTS-SCROLL-01** | Commentaires : à la soumission, le défilement de la liste doit revenir tout en haut pour voir le dernier commentaire (affichage inversé depuis UX-WRITING-05). | ✅ Terminé (2026-07-27) |
+
+**UX — Résultats**
+
+| ID | Description | Statut |
+| :--- | :--- | :--- |
+| **UX-RESULTS-01** | Pouvoir continuer à consulter les commentaires des cartes sur l'écran Résultats. | ✅ Terminé (2026-07-27 : bouton "Commentaires" + `CardCommentsSection` ajoutés à `ResultCard`, même accordéon global qu'à l'étape Écriture) |
+
+**Bug pré-existant découvert et corrigé au passage (hors périmètre initial d'`UX-RESULTS-01`, mais partagé par toutes les cartes commentables)**
+
+En vérifiant `UX-RESULTS-01` en conditions réelles (deux requêtes/deux sources pour le même commentaire), un commentaire pouvait s'afficher **en double** dans `CardCommentsSection` : le backend diffuse l'événement socket `session:comment-added` **avant** de renvoyer la réponse HTTP du `POST` (`comment.controller.ts`), donc l'écho socket ajoute souvent le commentaire avant que la réponse de la requête d'origine ne revienne — et l'ajout optimiste de `handleSubmit` n'avait aucune déduplication par id (contrairement à l'ajout par socket, qui en avait déjà une). Confirmé pré-existant, reproductible sur Écriture comme sur Résultats, avant toute modification de cette session de travail. Corrigé par l'ajout de la même déduplication par id des deux côtés. Voir `docs/PROJECT_STATE.md` pour le détail et la méthode de vérification.
+
+**UX — Plan d'action / Résumé**
+
+| ID | Description | Statut |
+| :--- | :--- | :--- |
+| **UX-ACTION-01** | Pouvoir choisir le nombre de cartes affichées dans le podium ("Top"). | ✅ Terminé (2026-07-27 : sélecteur Top 3/5/10 ajouté à `TopVotedCards`, visible uniquement au Plan d'action) |
+| **UX-ACTION-02** | Pouvoir continuer à consulter les commentaires des cartes dans le Plan d'action. | ✅ Terminé (2026-07-27 : bouton "Commentaires" + `CardCommentsSection` ajoutés au podium via `TopVotedCards`, option `showComments`) |
+| **UX-ACTION-03** | Ligne de plan d'action : priorité et responsable trop excentrés à droite, peu lisibles ; à rapprocher du texte de l'action (ex. les afficher avant le texte plutôt qu'en bout de ligne). | ✅ Terminé (2026-07-27 : priorité + responsable déplacés avant le texte de l'action, échéance seule en bout de ligne) |
+
+**UX — Notifications sonores (demande complémentaire, 2026-07-27)**
+
+| ID | Description | Statut |
+| :--- | :--- | :--- |
+| **UX-DISCUSSION-SOUND-01** | Nouveau message de Discussion d'un autre participant : son + clignotement du bouton "Discussion" de la navbar, à chaque fois (même panneau déjà ouvert). Rien pour son propre message. | ✅ Terminé (2026-07-27) |
+| **UX-COMMENTS-SOUND-01** | Nouveau commentaire de carte d'un autre participant : son distinct + clignotement du bouton "Commentaires (N)" de la carte concernée, à chaque fois (même panneau déjà ouvert). Rien pour son propre commentaire. | ✅ Terminé (2026-07-27) |
+| **UX-SOUND-TOGGLE-01** | Bouton dans la navbar pour activer/désactiver le son des deux notifications ci-dessus (préférence persistée). | ✅ Terminé (2026-07-27) |
+
+**Point découvert hors périmètre, signalé sans être corrigé — traité depuis via `BUG-CARDS-403-01`**
+
+En vérifiant `BUG-WAITING-DISCUSSION-01`/`UX-WAITING-*` en conditions réelles (navigateur, 2026-07-27), une requête `GET /session/:id/cards` renvoie parfois un unique 403 transitoire juste après la création d'une session. Sans impact visible : aucune carte n'est affichée à l'étape `waiting`, et le polling suivant se corrige de lui-même. Confirmé pré-existant (reproduit avant toute modification de cette session de travail, sur du code non touché par `US-16`). Hors périmètre de `US-16` à l'époque — repris et corrigé ci-dessous.
+
+| **BUG-CARDS-403-01** | 403 transitoire sur `GET /session/:id/cards` juste après la création d'une session | Point signalé hors périmètre lors de `US-16`, 2026-07-27 | Racine identifiée (2026-07-28, branche `feature/BUG-CARDS-403-01`) : `b9751dc` (« enforce read-only behavior for closed sessions ») avait rendu toute lecture authentifiée strictement dépendante d'une ligne de participation déjà existante, y compris sur une session **ouverte** — alors que seule la lecture sur session **close** avait besoin de rester stricte (le but réel de `b9751dc`). Juste après la création de session, `GET /cards` peut arriver avant que `joinAsSelf` ait créé cette ligne → 403. | ✅ Terminé (2026-07-28 : `resolveSessionActor` — `retrospective_backend/src/utils/sessionActor.ts` — crée désormais la ligne de participation à la volée pour une lecture sur session ouverte, comme une écriture ; une session close reste strictement en lecture seule, comportement de `b9751dc` inchangé. Backend 329/329, frontend 203/203, `tsc` propre des deux côtés.) |
+
+**Retour utilisateur résolu** : après la livraison de `UX-DISCUSSION-SOUND-01`/`UX-COMMENTS-SOUND-01`/`UX-SOUND-TOGGLE-01`, l'utilisateur a signalé (2026-07-27) que « les boutons ne persistent toujours pas ». Cause identifiée par un test réel à deux navigateurs (deux participants dans la même session, Playwright) : le clignotement des boutons Discussion/Commentaires disparaissait de lui-même après un délai fixe de 2,5 secondes, avant même que le facilitateur n'ait le temps de le remarquer — la préférence de son elle-même persistait déjà correctement (vérifié au reload). Corrigé : le clignotement persiste désormais indéfiniment jusqu'à l'ouverture réelle du panneau concerné (Discussion ou commentaires de la carte), plus de minuterie fixe. Voir l'entrée dédiée dans `docs/PROJECT_STATE.md`.
+
+---
+
+
+
+### T-AI-PLATFORM-03 — Synchronisation automatique du contexte partagé
+
+**Objectif**
+
+Empêcher qu'une nouvelle session IA reparte d'un contexte obsolète alors que le dépôt a
+déjà avancé. Le ticket doit rendre la synchronisation de `CURRENT_TASK.md` et
+`HANDOVER.md` impossible à oublier, cohérente avec Git, et portable entre Claude, Codex
+et AGY.
+
+**Problème observé**
+
+Le 2026-07-21, une reprise de session a montré une divergence entre :
+- l'état Git réel (`feature/T-CLEANUP-02-dead-code-useFormValidation`) ;
+- le ticket effectivement en cours ;
+- `CURRENT_TASK.md` et `HANDOVER.md`, restés sur `US-13`.
+
+Cette divergence n'a pas cassé le dépôt, mais elle fragilise la reprise de session, la
+qualité des mandats, la review et l'audit.
+
+**Périmètre**
+
+- Définir les sources de vérité du workflow IA.
+- Définir les éléments dérivables automatiquement et ceux qui restent éditables.
+- Définir la responsabilité exclusive de mise à jour du contexte partagé.
+- Définir les garde-fous bloquants à la clôture d'un ticket.
+- Définir les scénarios de reprise et d'échec à couvrir.
+
+**Hors périmètre**
+
+- Instrumentation complète du workflow (ticket dédié `T-AI-PLATFORM-05`).
+- Portage complet multi-IA et matrice de compatibilité (ticket dédié
+  `T-AI-PLATFORM-06`).
+- Refonte globale du pipeline d'agents hors besoin direct de synchronisation.
+
+**Sources de vérité à arbitrer explicitement**
+
+- Git : branche active, dernier commit, état du working tree.
+- Ticket actif dans le backlog.
+- Dernier `STATUS` du pipeline.
+- `CURRENT_TASK.md`.
+- `HANDOVER.md`.
+
+**Hypothèse directrice**
+
+`CURRENT_TASK.md` et `HANDOVER.md` ne doivent plus être traités comme des documents libres
+indépendants. Ils doivent devenir des artefacts fortement contraints, idéalement générés
+ou au minimum synchronisés à partir de l'état réel du workflow.
+
+**Responsabilités attendues**
+
+- Orchestrateur : vérifie l'état Git réel, synchronise l'état partagé, bloque la clôture
+  si le contexte n'est pas cohérent.
+- Developer : modifie uniquement le code du ticket ; ne touche jamais au contexte
+  partagé.
+- Reviewer : valide ou bloque le diff ; ne modifie jamais le contexte partagé.
+- Documentation : enrichit la documentation technique si demandé, mais ne devient pas la
+  source de vérité du ticket actif.
+- Tous les autres agents : lecture seule sur le contexte partagé.
+
+**Invariants attendus**
+
+- Impossible d'avoir un `CURRENT_TASK.md` incohérent avec la branche active sans signal
+  explicite de divergence.
+- Impossible de clôturer un ticket avec `STATUS: SUCCESS` sans synchronisation explicite
+  de l'état partagé.
+- Une reprise de session doit permettre d'identifier sans ambiguïté : branche active,
+  ticket actif, dernier `STATUS`, prochaine action.
+- En cas de divergence entre Git et un document, Git gagne ; l'écart est signalé et non
+  masqué.
+
+**Critères d'acceptation**
+
+- Le workflow définit noir sur blanc quelle donnée est source de vérité, dérivée ou
+  éditable.
+- La responsabilité de mise à jour de `CURRENT_TASK.md` et `HANDOVER.md` appartient à un
+  seul rôle : l'orchestrateur.
+- La clôture d'un ticket terminé inclut obligatoirement une étape de synchronisation de
+  l'état partagé avant l'autorisation de commit ou de fin de workflow.
+- Une reprise de session sur Claude, Codex ou AGY suit la même logique de lecture de
+  l'état partagé, même si l'implémentation diffère selon la plateforme.
+- Le système prévoit explicitement quoi faire si la synchronisation échoue, si Git a
+  changé entre deux étapes, ou si les documents partagés sont obsolètes.
+
+**Scénarios de test à couvrir**
+
+- Changement de branche entre deux tickets.
+- Ticket abandonné puis repris plus tard.
+- Reprise après 24 h avec dépôt modifié.
+- Conflit entre branche active et ticket déclaré.
+- Crash ou interruption d'un subagent en cours de workflow.
+- Interruption entre review, documentation et commit.
+
+**Livrable attendu**
+
+Une décision d'architecture opérationnelle décrivant :
+- le modèle de vérité retenu ;
+- le cycle de synchronisation ;
+- les responsabilités exactes ;
+- les garde-fous de clôture ;
+- les scénarios de test à automatiser ou à exécuter manuellement ensuite.
+
+---
+
+### T-AI-PLATFORM-CODEX-BOOTSTRAP — Qualification & Bootstrap de l'Infrastructure Codex CLI
+
+**Objectif**
+
+Construire et qualifier l'adaptateur Codex CLI (`.codex/`, agents personnalisés natifs, politique de timeout) sans altérer le noyau fonctionnel commun (`.claude/`, `docs/ai-platform/`), puis faire valider l'exécution réelle par Codex CLI sur son propre adaptateur.
+
+**Principe d'Ingénierie**
+
+*« AntiGravity construit, Codex valide que ça marche. »*
+
+AGY est une plateforme qualifiée et stable. Elle crée l'adaptateur Codex de manière isolée. Codex n'intervient qu'en étape finale pour tester et prouver l'exécution effective de son adaptateur.
+
+**Périmètre du Ticket**
+
+1. **Analyse AGY** : Étudier les capacités réelles de la version installée de Codex CLI (sub-agents, flags CLI, sandboxing, formats).
+2. **Construction AGY / Codex** : Créer le dossier `.codex/`, porter les rôles sous forme d'agents personnalisés Codex natifs, définir la politique de résilience `AGENT_TIMEOUT` (1 retry max → arrêt propre / escalade).
+3. **Mise à jour AGENTS.md** : Aligner le point d'entrée Codex avec l'adaptateur `.codex/`.
+4. **Pilote de Qualification Codex** : Rédiger le test minimal de qualification pour Codex CLI.
+5. **Validation par Codex** : Passer la main à Codex CLI pour exécuter le test minimal sur son adaptateur. En cas d'erreur, AGY ajuste l'adaptateur à partir des logs d'échec.
+
+**Livrables Attendu**
+
+- Adaptateur `.codex/` complet et documenté.
+- `AGENTS.md` mis à jour.
+- Pilote de qualification Codex réussi.
+
+---
+
+
+## 3. Évolutions futures / V2 (Sans source d'origine)
+
+Idées d'évolutions n'ayant aucune source dans le cahier des charges, les User Stories, le Product Backlog d'origine ou le prototype Figma.
+
+* **Le regroupement des cartes (Clustering / Fusion de doublons)** :
+  * *Origine* : Aucune.
+  * *Pourquoi V2* : Tâche absente de l'ensemble des documents initiaux. Exclue du MVP en raison de la forte complexité de restructuration du schéma de base de données et de l'UI qu'elle introduirait (non justifiée pour le titre professionnel).

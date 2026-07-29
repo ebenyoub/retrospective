@@ -1,202 +1,149 @@
-import Button from '@/components/ui/Button';
-import Container from '@/components/ui/Container';
-import FormContainer, { FormGroup, FormTitle, Input } from '@/components/ui/FormContainer';
+import { useForm, useWatch } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import Form, { FormTitle } from '@/components/ui/Form';
+import FormField from '@/components/ui/FormField';
 import SpinContainer from '@/components/ui/SpinContainer';
+import Container from '@/components/ui/Container';
+import Button from '@/components/ui/Button';
 import { useAuth } from '@/context/auth/useAuth';
 import { useToast } from '@/context/toast/useToast';
-import useFormValidation, { type ValidationSchema } from '@/hooks/useFormValidation';
+import { getApiErrorMessage, NETWORK_ERROR_MESSAGE } from '@/lib/apiError';
 import React from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { signupApi } from '@/pages/auth/services/authApi';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-interface SignupValues {
-    username: string;
-    email: string;
-    password: string;
-    confirm: string;
-}
+const signupSchema = z.object({
+    username: z.string()
+        .refine((value) => value.trim() !== "", "Le pseudo est requis.")
+        .refine((value) => value.trim().length >= 4, "Doit contenir au moins 4 caractères."),
+    email: z.string()
+        .refine((value) => value.trim() !== "", "L'adresse e-mail est requise.")
+        .refine((value) => EMAIL_REGEX.test(value), "Le format de l'adresse e-mail est invalide."),
+    password: z.string()
+        .refine((value) => value.trim() !== "", "Le mot de passe est requis.")
+        .refine((value) => value.trim().length >= 8, "Le mot de passe doit contenir au moins 8 caractères."),
+    confirm: z.string()
+        .refine((value) => value.trim() !== "", "La confirmation est requise."),
+}).refine((data) => data.confirm === data.password, {
+    message: "Les mots de passe ne correspondent pas.",
+    path: ["confirm"],
+});
 
-const validateConfirmPassword = (confirmValue: string, allvalues: SignupValues) => {
-    if (confirmValue !== allvalues.password) {
-        return "Les mots de passe de correspondent pas."
-    }
-
-    return undefined;
-}
-
-const signupValidationSchema: ValidationSchema<SignupValues> = {
-    username: [
-        (value) => value.trim() === "" ? "Le pseudo est requis." : undefined,
-        (value) => value.trim().length < 4 ? "Doit contenir au moins 4 caractères." : undefined
-    ],
-    email: [
-        (value) => value.trim() === "" ? "L'adresse e-mail est requise." : undefined,
-        (value) => !EMAIL_REGEX.test(value) ? "Le format de l'adresse e-mail est invalide." : undefined
-    ],
-    password: [
-        (value) => value.trim().length <= 6 ? "Le mot de passe doit contenir au moins 3 caractères." : undefined,
-        (value) => value.trim() === "" ? "Le mot de passe est requis." : undefined,
-        validateConfirmPassword
-    ],
-    confirm: [
-        (value) => value.trim() === "" ? "La confirmation est requis." : undefined,
-        validateConfirmPassword
-    ]
-}
+type SignupValues = z.infer<typeof signupSchema>;
 
 const Signup: React.FC = () => {
     const { login } = useAuth();
     const { addToast } = useToast();
+    const navigate = useNavigate();
 
     const {
-        values,
-        errors,
-        isLoading,
-        handleInputChange,
-        validateAll,
-        setIsLoading
-    } = useFormValidation<SignupValues>(
-        { username: "", email: "", password: "", confirm: "" },
-        signupValidationSchema
-    )
+        register,
+        handleSubmit,
+        control,
+        formState: { errors, isSubmitting },
+    } = useForm<SignupValues>({
+        resolver: zodResolver(signupSchema),
+        defaultValues: { username: "", email: "", password: "", confirm: "" },
+        mode: "all",
+    });
 
-    const getInputClass = (fieldName: 'username' | 'email' | 'password' | 'confirm' , value: string) => {
-        // 1. Le champ n'a pas été touché ou est vide : Gris par défaut
-        if (value.trim() === "") {
-            return 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500';
+    const usernameValue = useWatch({ control, name: "username" });
+    const emailValue = useWatch({ control, name: "email" });
+    const passwordValue = useWatch({ control, name: "password" });
+    const confirmValue = useWatch({ control, name: "confirm" });
+
+    const onSubmit = async (values: SignupValues) => {
+        try {
+            const result = await signupApi(values);
+
+            if (result.ok) {
+                login({ ...result.data, email: result.data.email ?? values.email });
+                addToast("success", "Compte créé.");
+                navigate('/', { replace: true });
+            } else {
+                addToast("error", getApiErrorMessage(result.payload, "Inscription impossible."));
+            }
+        } catch (error) {
+            console.error(error);
+            addToast("error", NETWORK_ERROR_MESSAGE);
         }
-
-        // 2. Le champ est valide : Vert
-        if (!errors[fieldName]) {
-            return 'border-green-500 focus:border-green-500 focus:ring-green-500';
-        }
-
-        // 3. Le champ est invalide : Rouge
-        return 'border-red-500 focus:border-red-500 focus:ring-red-500';
     };
 
-    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-
-        if (!validateAll) {
-            setIsLoading(false);
-            addToast("invalid", "Veuillez corriger les erreurs du formulaire.");
-            return;
-        }
-
-        try {
-            setIsLoading(true);
-
-            const response = await fetch("http://localhost:8000/auth/signup", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(values)
-            })
-
-            const data = await response.json();
-
-            if (data.success) {
-                login(data.data)
-                addToast("success", data.message);
-            } else {
-                addToast("error", data.message || "Erreur de connexion inconnue.");
-            }
-
-        } catch (error) {
-            console.log(error);
-            addToast("error", "Échec de la connexion au serveur (réseau).");
-} finally {
-    setIsLoading(false);
-}
-    }
+    const onInvalid = () => {
+        addToast("invalid", "Veuillez corriger les erreurs du formulaire.");
+    };
 
 return (
-    <Container className='flex justify-center mt-20'>
-        <SpinContainer onSpin={isLoading}>
-            <FormContainer onSubmit={handleSubmit}>
+    <Container className='flex justify-center items-center min-h-[60vh]'>
+        <SpinContainer onSpin={isSubmitting} className="w-full max-w-md">
+            <Form onSubmit={handleSubmit(onSubmit, onInvalid)} aria-busy={isSubmitting}>
                 <FormTitle>S'enregistrer</FormTitle>
 
-                <FormGroup>
-                    <label htmlFor="username">
-                        Pseudonyme
-                    </label>
-                    <Input
-                        id="username"
-                        name="username"
-                        type='text'
-                        placeholder="Minerva McGonagal"
-                        autoComplete="username"
-                        disabled={isLoading}
-                        value={values.username}
-                        className={getInputClass("username", values.username)}
-                        aria-describedby="username-error"
-                        onChange={handleInputChange}
-                        onBlur={handleInputChange}
-                    />
-                    {errors.username && <small className="text-red-500" id="username-error">{errors.username}</small>}
-                </FormGroup>
+                <FormField
+                    id="username"
+                    label="Pseudonyme (Nom d'utilisateur)"
+                    type="text"
+                    placeholder="Minerva McGonagal"
+                    autoComplete="username"
+                    disabled={isSubmitting}
+                    value={usernameValue}
+                    error={errors.username?.message}
+                    showValidState
+                    {...register("username")}
+                />
 
-                <FormGroup>
-                    <label htmlFor="email">
-                        Email
-                    </label>
-                    <Input
-                        id="email"
-                        name="email"
-                        type='text'
-                        placeholder="rtc@example.com"
-                        autoComplete="email"
-                        disabled={isLoading}
-                        value={values.email}
-                        className={getInputClass("email", values.email)}
-                        aria-describedby="email-error"
-                        onChange={handleInputChange}
-                        onBlur={handleInputChange}
-                    />
-                    {errors.email && <small className="text-red-500" id="email-error">{errors.email}</small>}
-                </FormGroup>
+                <FormField
+                    id="email"
+                    label="Adresse e-mail"
+                    type="text"
+                    placeholder="rtc@example.com"
+                    autoComplete="email"
+                    disabled={isSubmitting}
+                    value={emailValue}
+                    error={errors.email?.message}
+                    showValidState
+                    {...register("email")}
+                />
 
-                <FormGroup>
-                    <label htmlFor="password">
-                        Mot de passe
-                    </label>
-                    <Input
-                        id="password"
-                        name="password"
-                        type='password'
-                        autoComplete="new-password"
-                        disabled={isLoading}
-                        value={values.password}
-                        className={getInputClass("password", values.password)}
-                        aria-describedby="password-error"
-                        onChange={handleInputChange}
-                        onBlur={handleInputChange}
-                    />
-                    {errors.password && <small className="text-red-500" id="password-error">{errors.password}</small>}
-                </FormGroup>
+                <FormField
+                    id="password"
+                    label="Mot de passe"
+                    type="password"
+                    autoComplete="new-password"
+                    disabled={isSubmitting}
+                    value={passwordValue}
+                    error={errors.password?.message}
+                    showValidState
+                    {...register("password")}
+                />
 
-                <FormGroup>
-                    <label htmlFor="confirm">
-                        Confimation
-                    </label>
-                    <Input
-                        id="confirm"
-                        name="confirm"
-                        type='password'
-                        autoComplete="new-confirm"
-                        disabled={isLoading}
-                        value={values.confirm}
-                        className={getInputClass("confirm", values.confirm)}
-                        aria-describedby="confirm-error"
-                        onChange={handleInputChange}
-                        onBlur={handleInputChange}
-                    />
-                    {errors.confirm && <small className="text-red-500" id="confirm-error">{errors.confirm}</small>}
-                </FormGroup>
+                <FormField
+                    id="confirm"
+                    label="Confirmation du mot de passe"
+                    type="password"
+                    autoComplete="new-confirm"
+                    disabled={isSubmitting}
+                    value={confirmValue}
+                    error={errors.confirm?.message}
+                    showValidState
+                    {...register("confirm")}
+                />
 
                 <Button type="submit">S'inscrire</Button>
 
-            </FormContainer>
+                <div className="flex flex-col gap-2 mt-4 text-center text-sm">
+                    <NavLink to="/login" className="text-blue-400 hover:underline">
+                        Déjà un compte ? Se connecter
+                    </NavLink>
+                    <NavLink to="/" className="text-gray-400 hover:underline">
+                        Retour à l'accueil
+                    </NavLink>
+                </div>
+
+            </Form>
         </SpinContainer>
     </Container>
 );

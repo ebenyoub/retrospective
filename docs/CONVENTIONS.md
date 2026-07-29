@@ -32,6 +32,41 @@ test: ajout des tests de la route login
 
 Types : `feat`, `fix`, `docs`, `style`, `refactor`, `test`
 
+## Workflow Git
+
+```
+main
+└── production — jamais de développement direct, ne reçoit que des PR depuis dev
+
+dev
+└── intégration — toutes les fonctionnalités terminées y sont fusionnées
+
+feature/nom-fonctionnalité
+└── développement d'une seule fonctionnalité, part de dev
+
+fix/nom-du-bug
+└── correction d'un bug, part de dev (ou de main pour un hotfix urgent)
+
+chore/nom-de-la-tache
+└── outillage, config, dépendances, nettoyage — pas de code métier
+```
+
+### Règles
+
+- Aucun commit direct sur `main` ni `dev` — tout passe par une branche `feature/*`, `fix/*` ou `chore/*`.
+- Une branche = une fonctionnalité ou un correctif, cohérent avec la règle "un sujet à la fois" du projet.
+- Toutes les fusions se font via **Pull Request**, jamais de merge local poussé directement.
+- `main` ne reçoit que des Pull Requests provenant de `dev` (jamais directement depuis une `feature/*`).
+- Le déploiement se déclenche uniquement depuis `main` (voir `docs/technical/DEPLOYMENT.md`).
+- Le nom de la branche annonce le type de commit qu'elle contiendra (`feature/*` → commits `feat:`, `fix/*` → commits `fix:`, `chore/*` → commits `chore:`/`docs:`/`refactor:`).
+
+### Checklist avant d'ouvrir une Pull Request
+
+- [ ] La branche cible est la bonne (`feature/*`/`fix/*` → `dev`, jamais `main`)
+- [ ] `npm run test` passe (frontend et/ou backend selon ce qui a été touché)
+- [ ] `npm run build` passe côté frontend
+- [ ] `docs/PROJECT_STATE.md` mis à jour si la fonctionnalité change l'état du projet
+
 ## Organisation du code
 
 ### Frontend — ordre dans un composant

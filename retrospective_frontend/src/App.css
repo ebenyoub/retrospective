@@ -1,33 +1,70 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
 @import '@csstools/normalize.css';
 @import "tailwindcss";
 @import "tw-animate-css";
 
+@theme {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --color-navy: #0f172a;
+  --color-navy-mid: #1e293b;
+  --color-navy-light: #334155;
+  --color-navy-border: rgba(255,255,255,0.08);
+  --color-navy-border-med: rgba(255,255,255,0.13);
+  --color-navy-surface: rgba(255,255,255,0.05);
+  --color-navy-surface-med: rgba(255,255,255,0.08);
+
+  --color-green-figma: #16a34a;
+  --color-green-light: #dcfce7;
+  --color-green-mid: #bbf7d0;
+  --color-green-border: #15803d;
+  --color-green-text: #14532d;
+
+  --color-red-figma: #dc2626;
+  --color-red-light: #fee2e2;
+  --color-red-mid: #fca5a5;
+  --color-red-border: #b91c1c;
+  --color-red-text: #7f1d1d;
+
+  --color-yellow-figma: #d97706;
+  --color-yellow-light: #fef3c7;
+  --color-yellow-mid: #fde68a;
+  --color-yellow-border: #b45309;
+  --color-yellow-text: #78350f;
+
+  --radius-figma-sm: 8px;
+  --radius-figma-md: 10px;
+  --radius-figma-lg: 12px;
+  --radius-figma-xl: 16px;
+}
+
 html {
-  height: 100vh;
+  height: 100%;
 }
 
 body {
   position: relative;
-  background-color: #111;
+  background-color: #0f172a;
   color: white;
   height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
-#codeSession {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-} 
+#root {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
 
-#overlay {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: #000;
-  opacity: 0.9;
-  z-index: 3;
-  display: none;
+main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .spin-card {
@@ -44,10 +81,9 @@ body {
   position: absolute;
   width: 230%;
   height: 20%;
-  background-image: 
-    linear-gradient(180deg, #ff00c8, cyan);
+  background-image:
+    linear-gradient(180deg, var(--color-green-figma), var(--color-navy-mid));
   animation: animate 3s linear infinite;
-  transition: al .3s linear;
   z-index: 0;
 }
 
@@ -55,17 +91,54 @@ body {
   content: "";
   position: absolute;
   inset: 5px;
-  background: #141414;
+  background: var(--color-navy-mid);
   border-radius: 15px;
   z-index: 1;
+}
+
+/* Barre de progression du Toast (délai avant disparition automatique) */
+@keyframes toast-countdown {
+  from {
+    width: 100%;
+  }
+
+  to {
+    width: 0%;
+  }
 }
 
 @keyframes animate {
   from {
     transform: rotate(0deg);
   }
-  
+
   to {
     transform: rotate(360deg);
   }
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.2);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.35);
+}
+
+/* For Firefox compatibility */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.2) rgba(15, 23, 42, 0.3);
 }

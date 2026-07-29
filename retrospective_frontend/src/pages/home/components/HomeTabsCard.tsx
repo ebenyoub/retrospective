@@ -1,41 +1,30 @@
-import { useState, type ChangeEvent } from "react";
-import Button from "@/components/ui/Button";
-import { Input } from "@/components/ui/FormContainer";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/auth/useAuth";
+import CreateAccountForm from "./CreateAccountForm";
+import CreateSessionForm from "./CreateSessionForm";
+import JoinSessionForm from "./JoinSessionForm";
+import Card, { CardContent } from "@/components/ui/Card";
+import type { HomeTabsCardProps, Tab } from "./types/HomeTabsCard.types";
 
-type Tab = "create" | "join";
+const HomeTabsCard = ({ initialTab = "create" }: HomeTabsCardProps) => {
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  const [tab, setTab] = useState<Tab>(initialTab);
 
-interface HomeTabsCardProps {
-  onCreateSession?: (retroName: string, userName: string) => void;
-  onJoinSession?: (code: string) => void;
-}
-
-const HomeTabsCard = ({ onCreateSession, onJoinSession }: HomeTabsCardProps) => {
-  const [tab, setTab] = useState<Tab>("create");
-  const [retroName, setRetroName] = useState("Sprint 42 – Revue");
-  const [userName, setUserName] = useState("");
-  const [password, setPassword] = useState("");
-  const [code, setCode] = useState("");
-
-  const handleCreate = () => {
-    onCreateSession?.(retroName, userName);
-  };
-
-  const handleJoin = () => {
-    onJoinSession?.(code);
-  };
-
-  const handleCodeChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setCode(event.target.value.replace(/\D/g, "").slice(0, 4));
-  };
+  const goToSession = (sessionId: number) => navigate(`/session/${sessionId}`);
 
   return (
-    <div className="w-full max-w-md mx-auto rounded-2xl border border-white/10 bg-slate-800 overflow-hidden shadow-xl">
-      <div className="flex border-b border-white/10">
+    <Card className="w-full overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.25)] bg-navy-mid border-navy-border">
+      <div className="flex border-b border-navy-border">
         <button
           type="button"
           onClick={() => setTab("create")}
-          className={`flex-1 py-3 text-sm font-semibold border-b-2 transition-colors cursor-pointer ${
-            tab === "create" ? "text-slate-50 border-slate-50" : "text-slate-500 border-transparent"
+          style={{
+            borderBottom: `2px solid ${tab === "create" ? "var(--color-slate-50)" : "transparent"}`
+          }}
+          className={`flex-1 py-[13px] text-[13px] font-semibold transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-inset ${
+            tab === "create" ? "text-slate-50" : "text-slate-500 hover:text-slate-300"
           }`}
         >
           Créer une rétro
@@ -43,73 +32,29 @@ const HomeTabsCard = ({ onCreateSession, onJoinSession }: HomeTabsCardProps) => 
         <button
           type="button"
           onClick={() => setTab("join")}
-          className={`flex-1 py-3 text-sm font-semibold border-b-2 transition-colors cursor-pointer ${
-            tab === "join" ? "text-slate-50 border-slate-50" : "text-slate-500 border-transparent"
+          style={{
+            borderBottom: `2px solid ${tab === "join" ? "var(--color-slate-50)" : "transparent"}`
+          }}
+          className={`flex-1 py-[13px] text-[13px] font-semibold transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-inset ${
+            tab === "join" ? "text-slate-50" : "text-slate-500 hover:text-slate-300"
           }`}
         >
           Rejoindre
         </button>
       </div>
 
-      <div className="p-6 flex flex-col gap-4">
+      <CardContent className="px-6 pt-6 pb-5">
         {tab === "create" ? (
-          <>
-            <label className="flex flex-col gap-1 text-sm text-slate-300">
-              Nom de la rétro
-              <Input
-                value={retroName}
-                onChange={(event) => setRetroName(event.target.value)}
-                placeholder="Sprint 42 – Revue"
-              />
-            </label>
-
-            <label className="flex flex-col gap-1 text-sm text-slate-300">
-              Votre prénom
-              <Input
-                value={userName}
-                onChange={(event) => setUserName(event.target.value)}
-                placeholder="Ex : Elyas"
-              />
-            </label>
-
-            <label className="flex flex-col gap-1 text-sm text-slate-300">
-              Mot de passe
-              <Input
-                type="password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                placeholder="••••••"
-              />
-              <span className="text-xs text-slate-500">
-                Pour revenir sur la session si vous êtes déconnecté.
-              </span>
-            </label>
-
-            <Button className="w-full mt-1" onClick={handleCreate}>
-              Lancer la rétro →
-            </Button>
-          </>
+          isAuthenticated ? (
+            <CreateSessionForm onSessionCreated={goToSession} />
+          ) : (
+            <CreateAccountForm onSessionCreated={goToSession} />
+          )
         ) : (
-          <>
-            <label className="flex flex-col gap-1 text-sm text-slate-300">
-              Code de la session
-              <Input
-                value={code}
-                onChange={handleCodeChange}
-                placeholder="1234"
-                inputMode="numeric"
-                maxLength={4}
-                className="text-center tracking-widest text-lg"
-              />
-            </label>
-
-            <Button className="w-full mt-1" onClick={handleJoin}>
-              Rejoindre →
-            </Button>
-          </>
+          <JoinSessionForm onSessionJoined={goToSession} />
         )}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 

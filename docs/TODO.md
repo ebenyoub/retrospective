@@ -2,28 +2,143 @@
 
 > Tickets simples et tâches en attente. Les gros sujets sont dans `docs/backlog/PRODUCT_BACKLOG.md`.
 
-## À faire maintenant
+## Bootstrap initial du projet — entièrement obsolète, vérifié 2026-07-28
 
-- [ ] Analyser le code existant frontend et backend
-- [ ] Remplir `docs/technical/ARCHITECTURE.md` avec l'état réel du code
-- [ ] Remplir `docs/technical/DATABASE.md` avec le schéma existant
-- [ ] Définir le périmètre MVP dans `docs/project/PERIMETRE_MVP.md`
+Cette section datait du tout début du projet (avant même le premier commit de code). Chaque point vérifié individuellement :
+- [x] `MVP-WRITING-01` : terminé depuis longtemps (voir Product Backlog, `US-07`).
+- [x] Analyse du code existant frontend/backend : dépassé, le projet est aujourd'hui à 100% MVP + Évolutions.
+- [x] `docs/technical/ARCHITECTURE.md` : rempli (222 lignes).
+- [x] `docs/technical/DATABASE.md` : rempli (177 lignes).
+- [x] `docs/project/PERIMETRE_MVP.md` : rempli (54 lignes).
+- [x] `docs/project/USER_STORIES.md` : rempli (80 lignes).
+- [x] `docs/backlog/PRODUCT_BACKLOG.md` : rempli et maintenu à jour.
+- [x] `.env.example` (frontend + backend) : configurés.
+- [x] Démarrage frontend + backend : vérifié à de très nombreuses reprises depuis.
+- [x] `docs/jury/REFERENTIEL_DWWM.md` : rempli (41 lignes).
+- [x] `docs/jury/PREUVES_A_COLLECTER.md` : rempli (58 lignes).
 
-## À faire ensuite
+## À faire maintenant (mis à jour 2026-07-09 — phase de stabilisation)
 
-- [ ] Créer les User Stories dans `docs/project/USER_STORIES.md`
-- [ ] Remplir le backlog produit `docs/backlog/PRODUCT_BACKLOG.md`
-- [ ] Configurer les variables d'environnement (`.env.example`)
-- [ ] Vérifier que le projet démarre correctement frontend + backend
+- [x] Préparer la démo locale : `docker compose up --build` vérifié le 2026-07-09 (backend + MySQL démarrent, schéma initialisé automatiquement).
+- [x] Parcours utilisateur complet vérifié en conditions réelles (Playwright, 2 utilisateurs) le 2026-07-09 : inscription, connexion, création/join de session, workflow d'étapes, CRUD cartes, limite de 5 votes, résultats triés, déconnexion, responsive 390px.
 
-## Améliorations documentaires
+## Tickets issus de l'audit MVP final — soutenance (2026-07-09)
 
-- [ ] Compléter `docs/jury/REFERENTIEL_DWWM.md` avec les compétences couvertes
-- [ ] Commencer à collecter les preuves dans `docs/jury/PREUVES_A_COLLECTER.md`
+### Bugs corrigés dans cette session
+- [x] **Reprise de session par Cookie HttpOnly** : Validation sécurisée du cookie retro_resume côté backend, nettoyage automatique sur session close/inexistante, bouton d'accueil dynamique, et étanchéité du menu participant invité.
+- [x] **B-SIGNUP-01 — Validator mot de passe incohérent** : règle `<= 6` avec message "3 caractères" → corrigé en `< 6` + message "6 caractères minimum" (`Signup.tsx`).
+- [x] **B-AUTH-01 — Logout incomplet** : `token`, `userId`, `username`, `email` pas remis à zéro dans le state React lors du logout → nettoyage complet dans `logout()` (`AuthContext.tsx`).
+- [x] **UX-HOME-01 — Champs décoratifs sans indication** : le formulaire "Créer une rétro" de la home page utilise des champs non fonctionnels → ajout d'une note "Un compte est requis" sous le bouton (`HomeTabsCard.tsx`).
 
-## À faire ensuite (mis à jour 2026-07-07)
+### Tickets créés (non bloquants — à faire après soutenance)
+- [x] **TODO-HOME-01 — Compteur "7 participants" en dur** : badge supprimé de l'accueil (`HomeHero`), aucune donnée fictive affichée comme réelle. Résolu.
+- [x] **TODO-HOME-02 — Formulaire "quick start" home page** : remplacé par le vrai flux `CreateAccountForm` (compte + rétro en un seul envoi, React Hook Form + Zod). Résolu.
+- [x] **TODO-URL-01 — API base URL en dur (`http://localhost:8000`)** : résolu le 2026-07-13 — centralisé dans `src/lib/api.ts` (`API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8000"`) + `.env.example`. Plus aucune URL en dur dans le code source.
+- [x] **TODO-AUTH-02 — Pas de redirection post-login vers la page d'origine** : après connexion, redirection selon les sessions actives (une seule → dedans, plusieurs → Mes sessions, aucune → accueil) via `resolveLandingRoute`. Résolu le 2026-07-09.
+- [x] **TODO-DOCS-01 — Régénérer secrets** : `JWT_SECRET` et `GMAIL_APP_PASSWORD` ne sont plus codés en dur dans `docker-compose.yml` ; procédure de génération/rotation documentée pour la soutenance et la production.
+- [x] **TODO-SESSION-01 — Liste des participants absente** : `GET /session/:id/participants` + table `session_participants` + Socket.IO. Résolu le 2026-07-10 (voir `docs/decisions/DECISIONS.md`).
 
-- [ ] Système de votes — pas commencé, prochaine tâche
+## Tickets issus de l'audit styles Tailwind/Figma du 2026-07-09
+
+- [x] **Toast en styled-components avec fond blanc** : doublon de `ARCHI-08` (voir plus bas) — résolu le 2026-07-28.
+- [x] **Compteur de votes restants absent** : doublon de `TODO-UX-02` (voir plus bas) — déjà résolu.
+- [x] **Liste des participants avec avatars** : implémentée le 2026-07-10 (temps réel, avatars à initiales, statut, rôle).
+- [ ] **Éléments maquette encore hors périmètre MVP** (à assumer à l'oral, pas à corriger) : chat "Discussion", timer d'étape, code à 6 caractères (le MVP utilise 4 chiffres).
+
+## Tickets issus de la salle d'attente temps réel (2026-07-10)
+
+- [x] **TODO-PARTICIPANT-01 — Participant invité limité à la salle d'attente** : résolu — `retro_cards.author_participant_id`/`votes.participant_id` référencent `session_participants` (plus `users.id`), un invité peut écrire des cartes et voter une fois la rétro lancée.
+- [x] **TODO-FORMAT-01 — Format de rétrospective non reflété sur le tableau d'écriture** : résolu — le MVP propose exactement 6 formats français à 3 colonnes, le format choisi est persisté (`sessions.format_name`/`format_columns`), la salle d'attente ne propose plus d'ancien format personnalisé, et les écrans Écriture/Résultats affichent les libellés du format réel tout en conservant les clés techniques `start`/`stop`/`continue` pour les cartes.
+- [x] **TODO-CLEANUP-01 — Comptes techniques invités de l'ancienne implémentation** : doublon de `T-CLEANUP-01` (voir `docs/backlog/PRODUCT_BACKLOG.md`) — résolu le 2026-07-20, script SQL manuel exécuté (65 lignes supprimées en base de dev).
+
+## Tickets issus de la correction du parcours participant (2026-07-13)
+
+- [x] **BUG-PARTICIPANT-01 — Lien d'invitation direct inutilisable** : un participant ouvrant `/session/:id` sans passer par l'accueil (pas de compte, pas d'identité invitée stockée) était silencieusement renvoyé vers `/` au lieu de se voir proposer un pseudo pour cette session — il ne rejoignait donc jamais la salle d'attente ni l'écran d'écriture. Cause : `JoinSessionModal.tsx` existait (avec ses propres tests) mais n'était jamais rendu dans `SessionDashboard.tsx`. Corrigé : le composant est affiché à la place de la redirection, y compris quand un jeton invité stocké est devenu invalide.
+- [x] **BUG-PARTICIPANT-02 — Code de session masqué après le démarrage** : le code à 4 chiffres n'était visible que dans la salle d'attente ; disparaissait dès le passage à l'étape écriture/vote/résultats. Ajout d'un badge « Code : XXXX » permanent dans la barre d'outils de ces trois étapes.
+
+## Tickets issus de l'alignement Figma & Navigation (2026-07-13)
+
+- [x] **BUG-NAV-01 — Navigation en boucle sur Mes sessions** : la redirection automatique vers la session active s'activait lors du clic sur le bouton *Retour*. Corrigé en passant `tab: 'join'` au state de navigation pour marquer une intention explicite et désactiver le rebond.
+- [x] **BUG-PARTICIPANT-03 — Ajout de cartes impossible** : correction de la synchronisation de l'identité de l'invité après refresh et validation du flux d'ajout.
+- [x] **TODO-FIGMA-03 — Chronomètre (TimerChip) absent** : intégration de la puce de chronomètre d'étape statique (`"05:00"` à l'écriture, `"04:30"` au vote) dans la sub-toolbar.
+- [x] **TODO-FIGMA-04 — Bouton d'actions `…` absent** : intégration du menu d'actions de session `…` à l'écriture et au vote pour permettre la sortie de session des participants à tout moment.
+- [x] **TODO-FIGMA-05 — Alignement complet de l'écran d'Écriture** : intégration du composant `EmptyState` avec emojis, layout vertical fluide, onglets mobiles mis en conformité.
+- [x] **TODO-UX-02 — Compteur de votes restants en continu** : afficher le nombre de votes restants pendant la phase de vote au lieu de ne lever l'erreur qu'au 6e vote (Priorité P0 / MVP).
+- [x] **TODO-UI-02 — Refonte du système de Toast en Tailwind** : doublon de `ARCHI-08` (voir plus bas) — résolu le 2026-07-28.
+
+## Découpage navbar de session sous le header principal (2026-07-13)
+
+- [x] **T-SESSION-BAR-01 — SessionContextBar** : terminé et validé utilisateur. Première barre sous le header principal : retour, breadcrumb, nom de session, `StepIndicator`, code, déclencheurs Participants/Discussion. Aucun compteur, timer ou bouton principal dans cette barre.
+- [x] **T-SESSION-BAR-02 — SessionActionBar** : terminé et validé utilisateur. Seconde barre uniquement après validation de `SessionContextBar` : compteur total de cartes ou votes restants, timer, bouton principal, sans troisième barre.
+- [x] **T-SESSION-BAR-03 — ParticipantsDrawer** : terminé. Panneau Participants déclenché depuis `SessionContextBar`, avec vraies données.
+- [x] **T-SESSION-BAR-04 — DiscussionDrawer (Chat)** : terminé. Panneau Discussion déclenché depuis `SessionContextBar`, avec persistance réelle en base et synchronisation temps réel via Socket.IO (US-11).
+- [x] **T-SESSION-BAR-05 — Commentaires des cartes** : UI livrée le 2026-07-14 sans persistance ; persistance réelle ajoutée le 2026-07-16 via `MVP-COMMENTS-01` (table `card_comments`, routes dédiées).
+- [x] **T-SESSION-BAR-06 — Revue UI finale écran Écriture** : terminé. Comparaison globale au prototype après validation des composants précédents.
+
+## Tickets issus de l'audit de conformité skills (2026-07-13)
+
+- [x] **AUDIT-01 — Validateur invité orphelin** : `leaveParticipantSchema` (Zod) existait mais n'était branché sur aucune route — `DELETE /:sessionId/participants/:participantId` n'avait aucune validation d'entrée. Corrigé : `validate(leaveParticipantSchema)` ajouté sur la route.
+- [x] **AUDIT-02 — Code mort dans `RetroCardItem`** : fallback `authorName` (+ `useAuth`) inatteignable car le backend renvoie toujours `authorName` (jointure SQL obligatoire). Supprimé, fixtures de test corrigées en conséquence.
+- [x] **AUDIT-03 — Nom de fonction hérité de l'ancien modèle** : `countVotesByUserInSession` prenait déjà un `participantId` depuis la migration vers `session_participants`. Renommé en `countVotesByParticipantInSession`.
+- [x] **AUDIT-04 — `SELECT *` dans `participant.model.ts`** : remplacé par une liste de colonnes explicite (`PARTICIPANT_COLUMNS`), cohérent avec `card.model.ts`/`vote.model.ts` du même chantier.
+- [x] **AUDIT-05 — `guest_token` sans expiration propre** : résolu le 2026-07-28 — décision produit enregistrée dans `docs/decisions/DECISIONS.md` (« Accès invité vs. accès par compte à l'historique des sessions ») : un invité perd tout accès 24h après sa jointure, sans exception, y compris en lecture seule ; seul un compte donne un accès permanent. Comportement déjà conforme dans le code (`assertGuestTokenNotExpired`), aucune modification nécessaire.
+- [x] **AUDIT-06 — Avatar dupliqué entre salle d'attente et cartes** : résolu depuis (vérifié 2026-07-28) — `WaitingScreen.tsx`, `RetroCardItem.tsx` et `ActionStep.tsx` utilisent tous le composant partagé `components/ui/Avatar.tsx`. Reste une nuance mineure : `colorSeed` diffère (nom pour la salle d'attente, id pour les cartes), un même participant peut donc avoir une couleur légèrement différente entre les deux écrans — non bloquant, à égaliser seulement si remarqué par un utilisateur.
+- [x] **AUDIT-07 — Documentation technique incomplète** : `docs/technical/ARCHITECTURE.md` a été mis à jour (participants, Socket.IO, routes, arborescence par page, contrôleurs consolidés), et `docs/technical/API.md` et `docs/technical/DATABASE.md` ont été mis à jour pour documenter la table `session_participants` et les routes `/participants/*`..
+
+## Tickets issus de la revue d'architecture (2026-07-13)
+
+- [x] **ARCHI-01 — Frontend organisé par page** : `src/pages/private/` renommé `src/pages/session/` (nom cohérent avec la route). Composants/hooks spécifiques dans le dossier de la page, partagés dans `src/components/`.
+- [x] **ARCHI-02 — Contrôleurs backend 1 fichier/ressource** : auth (7 fichiers) → `auth.controller.ts` + `passwordReset.controller.ts` ; session (4 fichiers) → `session.controller.ts`. 6 contrôleurs 1:1 avec services et modèles.
+- [x] **ARCHI-03 — URL API centralisée** : `src/lib/api.ts` + `.env.example` (voir TODO-URL-01).
+- [x] **ARCHI-04 — Suppression du `any` backend** : `AuthUser` + helper `requireAuthUser`, doublon d'interface `AuthRequest` supprimé.
+- [x] **ARCHI-05 — `SELECT *` restants** : `session.model.ts`, `auth.model.ts`, `passwordReset.model.ts` passés en colonnes explicites.
+- [x] **ARCHI-06 — Code mort supprimé** : `App.tsx`, `assets/Logo.tsx`, `context/theme/useTheme.ts`, `HomeFeatureSection.tsx`, dossier `styleComonent/`.
+- [x] **ARCHI-07 — Formulaires `Login/Signup/SessionCreate` en `useFormValidation` (manuel)** : entrée obsolète, déjà résolue via `T-ARCHI-01` (2026-07-20, voir `docs/backlog/PRODUCT_BACKLOG.md`) — les 4 formulaires utilisent React Hook Form + Zod. Vérifié 2026-07-28 : `CreateAccountForm.tsx` utilise bien `useForm`/`zodResolver`.
+- [x] **ARCHI-08 — Toast en styled-components** : résolu le 2026-07-28 — `ToastStyled.tsx` supprimé, `ToastNotification.tsx` réécrit en Tailwind pur (icônes `lucide-react` déjà utilisées ailleurs dans le projet à la place de Font Awesome, thème navy cohérent). Dépendances `styled-components`/`@types/styled-components` retirées, CDN Font Awesome retiré de `index.html`. Vérifié visuellement (Playwright) et par les tests (203/203), `tsc`/`eslint`/`build` propres.
+- [x] **ARCHI-09 — `signup` renvoie 200 + message "Connexion réussie."** : résolu le 2026-07-28 — `auth.controller.ts` renvoie désormais 201 + "Inscription réussie." Vérifié : aucun code frontend ne dépendait de la valeur exacte 200 (seul `409` est vérifié explicitement).
+
+## Tickets issus des tests manuels du 2026-07-09
+
+- [x] **Formulaire "Créer une rétro" de la page d'accueil partiellement décoratif** : entrée obsolète — `CreateAccountForm.tsx` (onglet "Créer une rétro" pour un visiteur non connecté) est aujourd'hui un formulaire complet et réel (prénom, nom, email, mot de passe, nom de la rétro, format, durée), qui crée le compte puis la session. Aucun champ décoratif, vérifié 2026-07-28.
+- [x] **Compteur "7 participants connectés" en dur** sur la page d'accueil : entrée obsolète, déjà résolue via `TODO-HOME-01` (voir plus haut) — aucune trace dans le code, vérifié 2026-07-28.
+- [ ] **Rafraîchissement du tableau par polling (4 s)** : les changements d'étape/cartes des autres participants apparaissent avec un léger délai. Acceptable pour le MVP, à savoir expliquer à l'oral (alternative : WebSocket, hors périmètre DWWM).
+
+## À faire ensuite (mis à jour 2026-07-08)
+
+- [x] Dette documentée : la table `sessions` n'a pas de colonne `name`, alors que le cahier des charges (F04/US-04) exige un nom de session obligatoire à la création (Résolu le 2026-07-08).
+- [x] **Dette d'architecture backend — audit 2026-07-08** : refactor backend homogène livré via PR #15 ; controllers sans `db`/SQL/`bcrypt`/`jwt`/provider direct, services pour logique métier, models pour SQL.
+- [x] Tests manquants côté auth/reset : `forgot.controller.ts`, `code.controller.ts`, `reset.controller.ts`, `delete.controller.ts` couverts via PR #15.
+- [x] **Lot 1 cartes** : `createCard`, `getCards`, `deleteCard` déplacés vers `card.service.ts` (PR #15).
+- [x] **Lot 2 sessions** : `create.controller.ts` et `join.controller.ts` refactorés vers services/models (PR #15).
+- [x] **Lot 3 auth de base** : `login.controller.ts`, `signup.controller.ts`, `delete.controller.ts` refactorés vers services/models ; `profile` passe par service (PR #15).
+- [x] **Lot 4 reset password** : `forgot.controller.ts`, `code.controller.ts`, `reset.controller.ts` refactorés vers services/models (PR #15).
+- [x] **B17 Messages d'erreur cohérents** : helper frontend `apiError`, fallbacks réseau cohérents, erreurs API affichées sur les écrans clés.
+- [x] `validators/` (dossier prévu dans l'architecture cible) mis en place avec Zod pour valider les requêtes API (Résolu le 2026-07-08).
+- [x] Modification d'une carte existante (US-07, B11) — `PATCH /session/:sessionId/cards/:cardId`, bouton auteur uniquement, édition inline, refetch après succès, toast sur erreur.
+- [x] Responsive design basique (B16) — formulaires fluides, header/menu qui wrap, dashboard en 1/2/3 colonnes selon largeur, captures mobile/tablette vérifiées.
+- [x] `mail.controller.ts` et `test_transporter.js` (racine backend) — code mort supprimé (Résolu le 2026-07-08).
+- [ ] **Mode backend hors Docker** — recréer `retrospective_backend/.env` depuis `.env.example` avec de vraies valeurs avant de démarrer le serveur manuellement. En mode Docker Compose, les variables locales sont fournies par `docker-compose.yml`.
+- [x] Secrets (`JWT_SECRET`, `GMAIL_APP_PASSWORD`) à régénérer — procédure documentée ; les vraies valeurs doivent rester hors Git et être configurées dans l'environnement cible.
+
+## Fait ✅ (2026-07-08, suite de journée — votes, résultats, rôles, delete-card, Express 5, UI)
+
+- [x] Migration Express 4.22.2 → 5.2.1 (`refactor/express5`), zéro changement de code, vérifié par tests + démarrage serveur réel avec vraies requêtes HTTP
+- [x] Système de votes backend (`POST /session/:sessionId/cards/:cardId/vote`, `refactor/voting-backend`) — pattern `controller → service → model`, 1 vote/carte/utilisateur, limite 5 votes/session
+- [x] Bouton "Voter" + compteur frontend (`feature/vote-ui`) sur `RetroCardItem.tsx`
+- [x] Composant `FormField` (`refactor/frontend-ui-components`) — déduplique 12 blocs JSX sur Login/Signup/Forgot/Profile, corrige un bug d'input non contrôlé sur `Login.tsx`
+- [x] Vue "Résultats" triée par votes (`feature/results-view`, US-09) — réutilise `RetroColumn` avec formulaire d'ajout rendu optionnel
+- [x] Badge de rôle facilitateur/participant sur le tableau (`feature/session-role-badge`) — composant `Badge` créé, réutilisé sur `RetroColumn` et `SessionList`
+- [x] Suppression de carte, **backend uniquement** (`feature/delete-card`) — `DELETE /session/:sessionId/cards/:cardId`, 403 si pas l'auteur, votes supprimés avant la carte (pas de cascade en base). PR ouverte, pas mergée.
+- [x] Suppression de carte côté frontend (`feature/delete-card`) — bouton "Supprimer" visible uniquement pour l'auteur (`card.authorId === userId`), appel `DELETE /session/:sessionId/cards/:cardId`, refetch après succès, toast sur erreur. Frontend 26/26, build et lint OK.
+
+## Fait ✅ (nettoyage dette technique, 2026-07-08)
+
+- [x] `console.log` résiduel supprimé dans `create.controller.ts`
+- [x] `retrospective_backend/logs/all.log` et `logs/error.log` retirés du suivi Git (`git rm --cached`) — fichiers conservés en local, déjà couverts par la règle `.gitignore` racine (`logs`), aucune modification de `.gitignore` nécessaire
+
+## Dette technique backend TypeScript
+
+- [x] Rendre `retrospective_backend` compatible avec `npx tsc --noEmit` sans erreur (Résolu le 2026-07-09 : validateurs migrés vers la syntaxe Zod v4 `error`, tests des messages ajoutés).
 
 ## Phase tests unitaires minimum — terminée (2026-07-07)
 
@@ -36,6 +151,10 @@ Plus de test unitaire "de fond" à ajouter en dehors de ceux qui accompagnent ch
 - [x] Endpoint `GET /session/:sessionId/cards` + tests (`npm run test` : 19/19 passés) (2026-07-07)
 - [x] Premier écran `SessionDashboard.tsx` : 3 colonnes + lecture des cartes (`npm run test` frontend : 11/11 passés, `npm run build` : succès) (2026-07-07)
 - [x] Formulaire d'ajout de carte (`RetroAddCardForm.tsx`, React Hook Form + Zod) dans chaque colonne — `npm run test` frontend : 14/14 passés, `npm run build` : succès (2026-07-07)
+- [x] `feature/auth-session` : correction `any` dans `create.controller.ts`, tests `create`/`join.controller.ts`, endpoint `GET /session` (US-05) + `SessionList.tsx` — backend 29/29, frontend 17/17, build et lint OK (2026-07-08)
+- [x] Refactor pilote `session/list.controller.ts` en `controller → service → model` + middleware d'erreur centralisé (`asyncHandler`/`errorHandler`) — backend 38/38, frontend 17/17, build et lint OK (2026-07-08)
+- [x] `AppError` ajoutée (statusCode/message/code/details), `errorHandler` distingue AppError vs erreur inconnue, stack masquée en production — backend 42/42 (2026-07-08)
+- [x] Réorganisation complète du backend sous `src/` (`refactor/backend-architecture`, 7 commits : types, utils, routes, middlewares, controllers, services, models) — déplacement structurel uniquement, aucune logique modifiée, backend 42/42 à chaque étape (2026-07-08)
 
 ## Fait ✅
 

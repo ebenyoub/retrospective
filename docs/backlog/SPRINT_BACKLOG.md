@@ -105,6 +105,109 @@
 
 ---
 
+## Sprint 5 — `feature/auth-session` : combler les trous auth/session
+
+**Objectif** : couvrir US-05 ("lister ses sessions"), combler les trous de tests sur les contrôleurs de session déjà en prod, corriger un `any` résiduel.
+
+**Période** : 2026-07-08
+
+| ID | Tâche | Statut | Notes |
+|---|---|---|---|
+| S5-01 | Correction `(req as any).user` → `AuthRequest` dans `create.controller.ts` | ✅ | Alignement avec le pattern déjà utilisé dans `join.controller.ts` |
+| S5-02 | Tests `create.controller.ts` / `join.controller.ts` | ✅ | Aucun test n'existait sur ces fichiers pourtant en prod |
+| S5-03 | Endpoint `GET /session` (US-05) | ✅ | `session/list.controller.ts` — UNION SQL owner/participant, rôle `facilitator`/`participant`, tri `created_at DESC` |
+| S5-04 | Page `SessionList.tsx` + lien depuis `Profile.tsx` | ✅ | Réutilise `Container`/`Button` existants |
+| S5-05 | Tests associés (backend + frontend) | ✅ | |
+
+**Décision d'architecture (validée avec l'utilisateur)** : la table `sessions` n'a pas de colonne `name` alors que le cahier des charges (F04/US-04) l'exige. Non traité dans ce ticket — dette documentée, voir section "Dette technique" plus bas.
+
+**Preuve de validation (2026-07-08)** :
+- Backend : `npm run test` → 29 passés (19 précédents + 10 nouveaux)
+- Frontend : `npm run test` → 17 passés (14 précédents + 3 nouveaux) ; `npm run build` → succès ; `npm run lint` → aucune erreur
+
+**Prochaine tâche proposée** : système de votes (backend puis frontend) — inchangé, cœur métier MVP restant.
+
+---
+
+## Sprint 6 — Cœur métier MVP : votes, résultats, rôles, delete-card, Express 5
+
+**Objectif** : livrer les dernières briques du cœur métier (votes, vue résultats, rôle affiché), migrer Express 5, déduplicater l'UI frontend, démarrer la suppression de carte.
+
+**Période** : 2026-07-08
+
+| ID | Tâche | Statut | Notes |
+|---|---|---|---|
+| S6-01 | Amélioration middleware d'erreur (`AppError`, `errorHandler`) | ✅ | PR #3, `refactor/session-service-model` |
+| S6-02 | Réorganisation backend sous `src/` (7 étapes) | ✅ | PR #4, `refactor/backend-architecture` |
+| S6-03 | Migration Express 4 → 5 | ✅ | PR #5, `refactor/express5`, zéro changement fonctionnel |
+| S6-04 | Système de votes — backend | ✅ | PR #6, `feature/voting-backend`, pattern controller→service→model, limite 5 votes/session |
+| S6-05 | Système de votes — frontend | ✅ | PR #7, `feature/vote-ui`, bouton + compteur sur `RetroCardItem.tsx` |
+| S6-06 | Composant `FormField` (dédup formulaires) | ✅ | PR #8, `refactor/frontend-ui-components` |
+| S6-07 | Vue résultats triée par votes (US-09) | ✅ | PR #9, `feature/results-view` |
+| S6-08 | Badge de rôle facilitateur/participant | ✅ | PR #10, `feature/session-role-badge`, composant `Badge` créé |
+| S6-09 | Suppression de carte — backend | ✅ | `feature/delete-card`, `DELETE /session/:sessionId/cards/:cardId`, PR **non mergée** |
+| S6-10 | Suppression de carte — frontend | ✅ | Bouton auteur uniquement, `DELETE`, refetch, toast erreur |
+
+**Preuve de validation (2026-07-08)** :
+- Backend : 58/58 tests passés (dernière exécution, ticket delete-card), `npx tsc --noEmit` propre à chaque étape
+- Frontend : 26/26 tests passés (après suppression frontend), `npm run build` et `npm run lint` propres
+
+**Prochaine tâche proposée** : B16, responsive design basique du tableau, après revue/merge de `feature/delete-card`.
+
+---
+
+## Sprint 7 — Polish MVP responsive
+
+**Objectif** : rendre les vues MVP lisibles sur mobile/tablette sans refonte visuelle.
+
+**Période** : 2026-07-08
+
+| ID | Tâche | Statut | Notes |
+|---|---|---|---|
+| S7-01 | Formulaires auth/profil fluides sur mobile | ✅ | `FormContainer` passe en `w-full max-w-md min-w-0`, `SpinContainer` borné |
+| S7-02 | Header et menu profil adaptatifs | ✅ | wrap des boutons, espacements réduits sur mobile |
+| S7-03 | Dashboard responsive | ✅ | en-tête empilé sur mobile, bouton plein largeur, grille 1/2/3 colonnes |
+| S7-04 | Liste de sessions responsive | ✅ | cartes empilées sur mobile, badge conservé sans débordement |
+
+**Preuve de validation (2026-07-08)** :
+- Frontend : `npm run lint`, `npm run test` (26/26), `npm run build`
+- Vérification locale : serveur Vite + captures Playwright CLI sur Home mobile 390px, Login mobile 390px, Home tablette 768px
+
+---
+
+## Sprint 8 — Modification de carte
+
+**Objectif** : permettre à l'auteur de modifier le contenu de sa propre carte.
+
+**Période** : 2026-07-08
+
+| ID | Tâche | Statut | Notes |
+|---|---|---|---|
+| S8-01 | Endpoint backend `PATCH /session/:sessionId/cards/:cardId` | ✅ | 400 contenu vide, 404 carte introuvable, 403 si pas auteur |
+| S8-02 | Mode édition frontend auteur uniquement | ✅ | bouton "Modifier", textarea inline, annulation sans appel réseau |
+| S8-03 | Tests backend/frontend | ✅ | backend 62/62, frontend 31/31 |
+
+**Preuve de validation (2026-07-08)** :
+- Backend : `npm run test`, `npx tsc --noEmit`
+- Frontend : `npm run test`, `npm run build`, `npm run lint`
+
+---
+
+## Sprint 9 — Polish messages d'erreur
+
+**Objectif** : rendre les messages d'erreur frontend cohérents et exploiter les messages API quand ils existent.
+
+**Période** : 2026-07-08
+
+| ID | Tâche | Statut | Notes |
+|---|---|---|
+| S9-01 | Helper `apiError` frontend | ✅ | Extraction du message API, fallback par défaut, fallback réseau |
+| S9-02 | Login/Signup/Forgot/Profile | ✅ | Messages réseau harmonisés, `Signup` appelle réellement `validateAll()` |
+| S9-03 | SessionList/SessionDashboard | ✅ | Erreurs API visibles pour chargement sessions et actions cartes |
+| S9-04 | Tests et validation | ✅ | Frontend 37/37, lint OK, build OK |
+
+---
+
 ## Template sprint suivant
 
 ```markdown

@@ -1,206 +1,201 @@
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import Button from "@/components/ui/Button";
 import Container from "@/components/ui/Container";
-import FormContainer, { FormGroup, FormTitle, Input } from "@/components/ui/FormContainer";
+import Form, { FormTitle } from "@/components/ui/Form";
+import FormField from "@/components/ui/FormField";
 import SpinContainer from "@/components/ui/SpinContainer";
-import React, { useState, type ChangeEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { getApiErrorMessage, NETWORK_ERROR_MESSAGE } from "@/lib/apiError";
+import { useState } from "react";
+import { useNavigate, NavLink } from "react-router-dom";
+import { forgotApi, verifyCodeApi, resetPasswordApi } from "@/pages/auth/services/authApi";
+import type { Step } from "@/pages/auth/types/Forgot.types";
 
-type Step = 'EMAIL' | 'CODE' | 'NEW_PASSWORD';
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const emailSchema = z.object({
+  email: z.string().refine((value) => EMAIL_REGEX.test(value), "Veuillez entrer un email valide."),
+});
+type EmailFormValues = z.infer<typeof emailSchema>;
+
+const codeSchema = z.object({
+  code: z.string().refine((value) => value.trim().length === 4, "Le code doit contenir 4 chiffres exactement"),
+});
+type CodeFormValues = z.infer<typeof codeSchema>;
+
+interface PasswordFormValues {
+  newPassword: string;
+  confirmation: string;
+}
 
 const Forgot = () => {
   const [step, setStep] = useState<Step>('EMAIL');
-
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmation, setConfirmation] = useState("");
-
-  const [isLoading, setIsLoading] = useState(false);
   const [globalError, setGlobalError] = useState("");
-  const [inputErrors, setInputErrors] = useState<{ [key: string]: string }>({});
   const navigate = useNavigate();
 
+  const emailForm = useForm<EmailFormValues>({
+    resolver: zodResolver(emailSchema),
+    defaultValues: { email: "" },
+  });
+
+  const codeForm = useForm<CodeFormValues>({
+    resolver: zodResolver(codeSchema),
+    defaultValues: { code: "" },
+  });
+
+  const passwordForm = useForm<PasswordFormValues>({
+    defaultValues: { newPassword: "", confirmation: "" },
+  });
+
+  const isLoading = emailForm.formState.isSubmitting
+    || codeForm.formState.isSubmitting
+    || passwordForm.formState.isSubmitting;
+
   // --- ENVOI DE L'EMAIL ---
-  const handleEmailSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setInputErrors({});
+  const onEmailSubmit = async (values: EmailFormValues) => {
     setGlobalError("");
 
-
-    const errors: { [key: string]: string } = {};
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) errors.email = "Veuillez entrer un email valide.";
-
-    if (Object.keys(errors).length > 0) {
-      setInputErrors(errors);
-      return;
-    }
-
     try {
-      setIsLoading(true);
-      const response = await fetch("http://localhost:8000/auth/forgot", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email })
-      });
+      const result = await forgotApi(values.email);
 
-      const data = await response.json();
-
-      if (response.ok && data.success) {
+      if (result.ok) {
+        setEmail(values.email);
         setStep('CODE');
       } else {
-        setGlobalError(data.message || "Une erreur est survenue.");
+        setGlobalError(getApiErrorMessage(result.payload, "Impossible d'envoyer le code."));
       }
     } catch (err) {
-      setGlobalError("Impossible de contacter le serveur.");
+      setGlobalError(NETWORK_ERROR_MESSAGE);
       console.error(err);
-    } finally {
-      setIsLoading(false);
     }
   };
 
   // --- VÉRIFICATION DU CODE ---
-  const handleCodeSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setInputErrors({});
+  const onCodeSubmit = async (values: CodeFormValues) => {
     setGlobalError("");
 
-    if (code.trim().length !== 4) {
-      setInputErrors({ code: "Le code doit contenir 4 chiffres exactement" });
-      return;
-    }
-
-    setIsLoading(true);
     try {
-      const response = await fetch("http://localhost:8000/auth/verify-code", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, code })
-      });
+      const result = await verifyCodeApi(email, values.code);
 
-      const data = await response.json();
-
-      if (response.ok && data.success) {
+      if (result.ok) {
+        setCode(values.code);
         setStep('NEW_PASSWORD');
       } else {
-        setGlobalError(data.message || "Code invalide.");
+        setGlobalError(getApiErrorMessage(result.payload, "Code invalide."));
       }
     } catch (err) {
-      console.log(err);
-      setGlobalError("Erreur de connexion.");
-    } finally {
-      setIsLoading(false);
+      console.error(err);
+      setGlobalError(NETWORK_ERROR_MESSAGE);
     }
   };
 
   // --- Étape 3 : MODIFICATION DU MOT DE PASSE ---
-
-  const handlePasswordSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setInputErrors({});
+  // Validation manuelle (pas de schéma Zod) : la règle "mots de passe non
+  // identiques" doit remplacer entièrement les erreurs de champ (longueur,
+  // champs vides) plutôt que coexister avec elles, comportement intentionnel
+  // du code d'origine qu'un schéma déclaratif classique ne reproduit pas.
+  const onPasswordSubmit = async (values: PasswordFormValues) => {
+    passwordForm.clearErrors();
     setGlobalError("");
 
-    const errors: { [key: string]: string } = {};
+    const fieldErrors: Partial<Record<keyof PasswordFormValues, string>> = {};
 
-    if (newPassword.length < 8) errors.newPassword = "8 caractères minimum."
-    if (!newPassword) errors.newPassword = "Veuillez remplir tous les champs.";
-    if (confirmation.length < 8) errors.confirmation = "8 caractères minimum."
-    if (!confirmation) errors.confirmation = "Veuillez remplir tous les champs.";
-    if (newPassword !== confirmation) {
+    if (values.newPassword.length < 8) fieldErrors.newPassword = "8 caractères minimum.";
+    if (!values.newPassword) fieldErrors.newPassword = "Veuillez remplir tous les champs.";
+    if (values.confirmation.length < 8) fieldErrors.confirmation = "8 caractères minimum.";
+    if (!values.confirmation) fieldErrors.confirmation = "Veuillez remplir tous les champs.";
+
+    if (values.newPassword !== values.confirmation) {
       setGlobalError("Les mots de passe ne sont pas identiques");
       return;
     }
 
-    if (Object.keys(errors).length > 0) {
-      setInputErrors(errors);
+    if (Object.keys(fieldErrors).length > 0) {
+      (Object.keys(fieldErrors) as Array<keyof PasswordFormValues>).forEach((field) => {
+        passwordForm.setError(field, { message: fieldErrors[field] });
+      });
       return;
     }
 
     try {
-      setIsLoading(true);
+      const result = await resetPasswordApi(email, values.newPassword, code);
 
-      const response = await fetch("http://localhost:8000/auth/reset-password", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, newPassword, code })
-      })
-
-      const data = await response.json();
-
-      if (response.ok && data.success) {
-        console.log("Mot de passe modifié avec succès !");
+      if (result.ok) {
         navigate("/login");
       } else {
-        setGlobalError(data.message || "Erreur lors du changement de mot de passe.");
+        setGlobalError(getApiErrorMessage(result.payload, "Erreur lors du changement de mot de passe."));
       }
     } catch (error) {
-      console.log(error);
-      setGlobalError("Erreur de connexion au serveur.");
-    } finally {
-      setIsLoading(false);
+      console.error(error);
+      setGlobalError(NETWORK_ERROR_MESSAGE);
     }
-  }
-
+  };
 
   // --- RENDER ---
   return (
     <Container className="flex justify-center items-center min-h-[60vh]">
-      <SpinContainer onSpin={isLoading}>
+      <SpinContainer onSpin={isLoading} className="w-full max-w-md">
 
         {globalError && (
-          <div className="mb-4 p-3 bg-red-500/20 border border-red-500 text-red-200 rounded text-center text-sm">
+          <div
+            role="alert"
+            className="mb-4 p-3 bg-red-500/20 border border-red-500 text-red-200 rounded text-center text-sm"
+          >
             {globalError}
           </div>
         )}
 
         {/* --- FORMULAIRE 1 : EMAIL --- */}
         {step === 'EMAIL' && (
-          <FormContainer onSubmit={handleEmailSubmit}>
+          <Form onSubmit={emailForm.handleSubmit(onEmailSubmit)} aria-busy={isLoading}>
             <FormTitle>Récupération du mot de passe</FormTitle>
-            <FormGroup>
-              <label htmlFor="email" className="block text-sm mb-1">Entrez votre email</label>
-              <Input
-                type="email"
-                id="email"
-                value={email}
-                autoFocus
-                disabled={isLoading}
-                onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
-                placeholder="exemple@email.com"
-                className={inputErrors.email ? "border-red-500" : ""}
-              />
-              {inputErrors.email && <small className="text-red-400 text-xs mt-1">{inputErrors.email}</small>}
-            </FormGroup>
+            <FormField
+              id="email"
+              label="Adresse e-mail"
+              type="text"
+              autoComplete="email"
+              autoFocus
+              disabled={isLoading}
+              placeholder="exemple@email.com"
+              error={emailForm.formState.errors.email?.message}
+              {...emailForm.register("email")}
+            />
             <Button disabled={isLoading}>
               {isLoading ? "Envoi..." : "Recevoir un code"}
             </Button>
-          </FormContainer>
+
+            <div className="flex flex-col gap-2 mt-4 text-center text-sm">
+                <NavLink to="/login" className="text-blue-400 hover:underline">
+                    Retour à la connexion
+                </NavLink>
+            </div>
+          </Form>
         )}
 
         {/* --- FORMULAIRE 2 : CODE --- */}
         {step === 'CODE' && (
-          <FormContainer onSubmit={handleCodeSubmit}>
+          <Form onSubmit={codeForm.handleSubmit(onCodeSubmit)} aria-busy={isLoading}>
             <FormTitle>Code de vérification</FormTitle>
             <p className="text-gray-400 text-sm text-center mb-4">
               Envoyé à : <span className="text-white font-semibold">{email}</span>
             </p>
 
-            <FormGroup>
-              <label htmlFor="code" className="block text-sm mb-1">Code à 4 chiffres</label>
-              <Input
-                type="text"
-                inputMode="numeric"
-                id="code"
-                maxLength={4}
-                value={code}
-                autoFocus
-                disabled={isLoading}
-                onChange={(e: ChangeEvent<HTMLInputElement>) => setCode(e.target.value)}
-                placeholder="1234"
-                className={inputErrors.code ? "border-red-500 text-center tracking-widest text-lg" : "text-center tracking-widest text-lg"}
-              />
-              {inputErrors.code && <small className="text-red-400 text-xs mt-1">{inputErrors.code}</small>}
-            </FormGroup>
+            <FormField
+              id="code"
+              label="Code à 4 chiffres"
+              type="text"
+              inputMode="numeric"
+              maxLength={4}
+              autoFocus
+              disabled={isLoading}
+              placeholder="1234"
+              className="text-center tracking-widest text-lg"
+              error={codeForm.formState.errors.code?.message}
+              {...codeForm.register("code")}
+            />
 
             <Button disabled={isLoading}>
               {isLoading ? "Vérification..." : "Valider le code"}
@@ -213,42 +208,34 @@ const Forgot = () => {
             >
               Ce n'est pas le bon email ?
             </button>
-          </FormContainer>
+          </Form>
         )}
 
-        {/* --- FORMULAIRE 3 : NOUVEAU PASSWORD (Placeholder) --- */}
+        {/* --- FORMULAIRE 3 : NOUVEAU PASSWORD --- */}
         {step === 'NEW_PASSWORD' && (
-          <FormContainer onSubmit={handlePasswordSubmit}>
+          <Form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} aria-busy={isLoading}>
             <FormTitle>Nouveau mot de passe</FormTitle>
-            <FormGroup>
-              <label htmlFor="new-password" className="block text-sm mb-1">Nouveau mot de passe</label>
-              <Input
-                type="password"
-                id="new-password"
-                value={newPassword}
-                autoComplete="new-password"
-                autoFocus
-                disabled={isLoading}
-                onChange={(e: ChangeEvent<HTMLInputElement>) => setNewPassword(e.target.value)}
-                className={inputErrors.newPassword ? "border-red-500" : ""}
-              />
-              {inputErrors.newPassword && <small className="text-red-400 text-xs mt-1">{inputErrors.newPassword}</small>}
-            </FormGroup>
-            <FormGroup>
-              <label htmlFor="confirm" className="block text-sm mb-1">confirmez le mot de passe</label>
-              <Input
-                type="password"
-                id="confirm"
-                value={confirmation}
-                autoComplete="confirm"
-                disabled={isLoading}
-                onChange={(e: ChangeEvent<HTMLInputElement>) => setConfirmation(e.target.value)}
-                className={inputErrors.confirmation ? "border-red-500" : ""}
-              />
-              {inputErrors.confirmation && <small className="text-red-400 text-xs mt-1">{inputErrors.confirmation}</small>}
-            </FormGroup>
+            <FormField
+              id="new-password"
+              label="Nouveau mot de passe"
+              type="password"
+              autoComplete="new-password"
+              autoFocus
+              disabled={isLoading}
+              error={passwordForm.formState.errors.newPassword?.message}
+              {...passwordForm.register("newPassword")}
+            />
+            <FormField
+              id="confirm"
+              label="Confirmation du nouveau mot de passe"
+              type="password"
+              autoComplete="confirm"
+              disabled={isLoading}
+              error={passwordForm.formState.errors.confirmation?.message}
+              {...passwordForm.register("confirmation")}
+            />
             <Button type="submit" disabled={isLoading}>Modifier</Button>
-          </FormContainer>
+          </Form>
         )}
 
       </SpinContainer>

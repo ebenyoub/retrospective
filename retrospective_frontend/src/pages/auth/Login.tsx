@@ -1,138 +1,114 @@
-import FormContainer, { FormTitle, Input } from '@/components/ui/FormContainer';
+import { useForm, useWatch } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import Form, { FormTitle } from '@/components/ui/Form';
+import FormField from '@/components/ui/FormField';
 import SpinContainer from '@/components/ui/SpinContainer';
 import Container from '@/components/ui/Container';
 import Button from '@/components/ui/Button';
 import { useAuth } from '@/context/auth/useAuth';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useToast } from '@/context/toast/useToast';
-import type { ValidationSchema } from '@/hooks/useFormValidation';
-import useFormValidation from '@/hooks/useFormValidation';
+import { getApiErrorMessage, NETWORK_ERROR_MESSAGE } from '@/lib/apiError';
+import { loginApi } from '@/pages/auth/services/authApi';
 
-interface LoginValues {
-    username: string;
-    password: string;
-}
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-const loginValidationSchema: ValidationSchema<LoginValues> = {
-    username: [
-        (value) => value.trim() === "" ? "Le pseudo est requis." : undefined,
-        (value) => value.trim().length < 4 ? "Doit contenir au moins 4 caractères." : undefined,
-    ],
-    password: [
-        (value) => value.trim() === "" ? "Le mot de passe est requis." : undefined,
-        (value) => value.trim().length < 4 ? "Doit contenir au moins 4 caractères." : undefined,
-    ]
-};
+const loginSchema = z.object({
+    email: z.string()
+        .refine((value) => value.trim() !== "", "L'adresse e-mail est requise.")
+        .refine((value) => EMAIL_REGEX.test(value), "Le format de l'adresse e-mail est invalide."),
+    password: z.string().refine((value) => value.trim() !== "", "Le mot de passe est requis."),
+});
+
+type LoginValues = z.infer<typeof loginSchema>;
 
 const Login: React.FC = () => {
     const { login } = useAuth();
     const { addToast } = useToast();
+    const navigate = useNavigate();
 
     const {
-        values,
-        errors,
-        isLoading,
-        handleInputChange,
-        validateAll,
-        setIsLoading
-    } = useFormValidation<LoginValues>(
-        { username: "", password: "" },
-        loginValidationSchema
-    )
+        register,
+        handleSubmit,
+        control,
+        formState: { errors, isSubmitting },
+    } = useForm<LoginValues>({
+        resolver: zodResolver(loginSchema),
+        defaultValues: { email: "", password: "" },
+        mode: "all",
+    });
 
-    const getInputClass = (fieldName: 'username' | 'password', value: string) => {
-        // 1. Le champ n'a pas été touché ou est vide : Gris par défaut
-        if (value.trim() === "") {
-            return 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500';
-        }
+    const emailValue = useWatch({ control, name: "email" });
+    const passwordValue = useWatch({ control, name: "password" });
 
-        // 2. Le champ est valide : Vert
-        if (!errors[fieldName]) {
-            return 'border-green-500 focus:border-green-500 focus:ring-green-500';
-        }
-
-        // 3. Le champ est invalide : Rouge
-        return 'border-red-500 focus:border-red-500 focus:ring-red-500';
-    };
-
-    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-
-        if (!validateAll()) {
-            setIsLoading(false);
-            addToast('invalid', "Veuillez corriger les erreurs du formulaire.");
-            return;
-        }
-
+    const onSubmit = async (values: LoginValues) => {
         try {
-            setIsLoading(true);
+            const result = await loginApi(values);
 
-            const response = await fetch("http://localhost:8000/auth/login", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(values)
-            })
-            const data = await response.json();
+            if (result.ok) {
+                login(result.data);
+                addToast("success", "Vous êtes connectés.");
 
-            if (response.ok && data.success) {
-                login(data.data)
-                addToast("success", "Vous êtes connectés.")
+                // Redirection directe vers l'accueil neutre après connexion
+                navigate('/', { replace: true });
             } else {
-                addToast("error", data.message || "Erreur de connexion inconnue.");
+                addToast("error", getApiErrorMessage(result.payload, "Connexion impossible."));
             }
         } catch (err) {
-            console.log(err);
-            addToast("error", "Échec de la connexion au serveur (réseau).");
-        } finally {
-            setIsLoading(false);
+            console.error(err);
+            addToast("error", NETWORK_ERROR_MESSAGE);
         }
-    }
+    };
+
+    const onInvalid = () => {
+        addToast('invalid', "Veuillez corriger les erreurs du formulaire.");
+    };
 
     return (
-        <Container className='flex justify-center mt-20'>
-            <SpinContainer onSpin={isLoading}>
-                <FormContainer onSubmit={handleSubmit}>
+        <Container className='flex justify-center items-center min-h-[60vh]'>
+            <SpinContainer onSpin={isSubmitting} className="w-full max-w-md">
+                <Form onSubmit={handleSubmit(onSubmit, onInvalid)} aria-busy={isSubmitting}>
                     <FormTitle>Connexion</FormTitle>
-                    <div className='flex flex-col gap-4'>
-                        <label htmlFor="username">
-                            Pseudonyme
-                        </label>
-                        <Input
-                            id="username"
-                            name="username"
-                            type='text'
-                            value={values.username}
-                            placeholder="Albus Dumbledore"
-                            autoComplete="username"
-                            disabled={isLoading}
-                            onChange={handleInputChange}
-                            onBlur={handleInputChange}
-                            className={getInputClass('username', values.username)}
-                            aria-describedby="username-error"
-                        />
-                        {errors.username && <small className="text-red-500" id="username-error">{errors.username}</small>}
-                    </div>
-
-                    <label htmlFor="username">
-                        Mot de passe
-                    </label>
-                    <Input
-                        id="password"
-                        name="password"
-                        type='password'
-                        autoComplete="new-password"
-                        disabled={isLoading}
-                        onChange={handleInputChange}
-                        onBlur={handleInputChange}
-                        className={getInputClass('password', values.password)}
-                        aria-describedby="password-error"
+                    <FormField
+                        id="email"
+                        label="Adresse e-mail"
+                        type="text"
+                        value={emailValue}
+                        placeholder="rtc@example.com"
+                        autoComplete="email"
+                        disabled={isSubmitting}
+                        error={errors.email?.message}
+                        showValidState
+                        {...register("email")}
                     />
-                    {errors.password && <small className="text-red-500" id="password-error">{errors.password}</small>}
+
+                    <FormField
+                        id="password"
+                        label="Mot de passe"
+                        type="password"
+                        value={passwordValue}
+                        autoComplete="current-password"
+                        disabled={isSubmitting}
+                        error={errors.password?.message}
+                        showValidState
+                        {...register("password")}
+                    />
 
                     <Button type="submit">Se connecter</Button>
 
-                    <NavLink to="/forgot">Mot de pass oublié</NavLink>
-                </FormContainer>
+                    <div className="flex flex-col gap-2 mt-4 text-center text-sm">
+                        <NavLink to="/signup" className="text-blue-400 hover:underline">
+                            Pas encore de compte ? S'inscrire
+                        </NavLink>
+                        <NavLink to="/forgot" className="text-blue-400 hover:underline">
+                            Mot de passe oublié ?
+                        </NavLink>
+                        <NavLink to="/" className="text-gray-400 hover:underline">
+                            Retour à l'accueil
+                        </NavLink>
+                    </div>
+                </Form>
             </SpinContainer>
         </Container>
     );

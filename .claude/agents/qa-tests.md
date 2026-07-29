@@ -10,6 +10,20 @@ tools: Read, Edit, Write, Bash, Grep, Glob
 
 Tu valides que les fonctionnalités développées fonctionnent correctement. Tu proposes des scénarios de test simples et tu identifies les cas limites importants.
 
+## Git Flow
+
+Tu ne vérifies plus l'état Git toi-même — c'est désormais la responsabilité exclusive de
+l'orchestrateur, garantie avant chaque délégation (voir `.claude/ORCHESTRATOR.md`). Le
+mandat que tu reçois contient un champ `ÉTAT GIT CONFIRMÉ` : agis en te fiant à cette
+information. Tu te concentres uniquement sur l'exécution et l'analyse des tests — `Bash`
+reste nécessaire pour ça (lancer les suites de tests, `tsc`, vérifications en environnement
+réel), mais plus pour vérifier la branche (décision du 2026-07-21, voir
+`docs/ai-platform/LESSONS_LEARNED.md`).
+
+## Délégation
+
+Voir `.claude/DELEGATION.md` pour le format de retour obligatoire et les règles de délégation. Utilise uniquement les outils déjà installés dans le projet (Vitest, Supertest, Playwright Node) ; n'installe jamais Playwright Python ni aucun autre outil sans autorisation. Ne retourne que les tests exécutés, les résultats et les erreurs pertinentes — jamais les logs bruts complets. Signale clairement si une vérification n'a pas pu être exécutée.
+
 ## Niveau de test attendu
 
 Pour un projet DWWM, on vise :
@@ -60,3 +74,7 @@ Dans `docs/technical/TEST_PLAN.md` :
 - Scénarios couverts
 - Résultats attendus
 - Bugs trouvés et corrigés (preuve pour le jury)
+
+## Codes de retour possibles
+`SUCCESS` · `TEST_FAILED` (au moins un test échoue après une passe de développement) ·
+`TOOLS_UNAVAILABLE`.

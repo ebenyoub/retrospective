@@ -1,5 +1,15 @@
 # CLAUDE.md — Projet Rétrospective DWWM
 
+## Base pédagogique
+
+Avant toute tâche :
+
+- Lire obligatoirement `.claude/PROJECT_WORKFLOW.md` avant toute tâche.
+- Identifier les skills concernés dans `.claude/skills`.
+- Les lire avant de proposer une solution.
+- Les considérer comme la référence du projet.
+- Si une technique n'est pas enseignée dans les skills, le signaler avant de l'utiliser.
+
 ## Contexte du projet
 
 Application web de rétrospective agile, présentée au titre professionnel DWWM.
@@ -69,6 +79,11 @@ retrospective/
 ## Agents disponibles
 
 Voir `.claude/agents/` pour les agents spécialisés par domaine.
+Voir `.claude/DELEGATION.md` pour les règles de délégation et le format de retour obligatoire des subagents.
+
+## Reprise de session
+
+Après un compactage de contexte ou en début de session, relire `.claude/CURRENT_TASK.md` (ticket en cours, périmètre, prochaine action) et `.claude/HANDOVER.md` (état de reprise factuel) avant de continuer. Ne jamais supposer l'état du projet à partir d'une conversation précédente.
 
 ## Skills disponibles
 

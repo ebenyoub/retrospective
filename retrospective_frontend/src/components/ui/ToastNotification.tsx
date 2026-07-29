@@ -1,40 +1,56 @@
-import type { Toast } from '@/context/toast/ToastContext';
-import { ToastStyled } from '../styleComonent/ToastStyled';
+import { CircleAlert, CircleCheck, CircleX } from 'lucide-react';
+import type { Toast, ToastType } from '@/context/toast/types/toast.types';
 import { cn } from '@/lib/utils';
 
+const TOAST_ICON: Record<ToastType, typeof CircleCheck> = {
+  success: CircleCheck,
+  error: CircleX,
+  invalid: CircleAlert,
+};
+
+const TOAST_COLOR: Record<ToastType, string> = {
+  success: 'text-green-figma',
+  error: 'text-red-figma',
+  invalid: 'text-yellow-figma',
+};
+
+const TOAST_BAR_COLOR: Record<ToastType, string> = {
+  success: 'bg-green-figma',
+  error: 'bg-red-figma',
+  invalid: 'bg-yellow-figma',
+};
+
 const ShowToast = ({ toast }: { toast: Toast }) => {
-    
-    const iconClass = {
-        success: 'fa-circle-check text-green-500', 
-        error: 'fa-circle-xmark text-red-500',      
-        invalid: 'fa-circle-exclamation text-yellow-500', 
-    };
-    
-    // Simplification : Les couleurs de fond/bordure viennent maintenant du CSS
-    const baseClass = iconClass[toast.type] || 'fa-circle-info';
-    
-    return (
-        <div 
-            // 1. APPLIQUE LE TYPE DIRECTEMENT COMME CLASSE CSS (.toast.success, .toast.error, etc.)
-            //    Cela permet à ToastStyled d'appliquer le border-left-color et l'animation ::after
-            className={cn("toast flex items-center p-3", toast.type)} 
-            // 2. Ajout du onClick pour la suppression manuelle (voir point 2)
-            onClick={() => toast.remove(toast.id)} 
-        >
-            <i className={cn("fa-solid mr-2", baseClass)}></i>
-            <span className="text-sm text-gray-800">{toast.message}</span>
-        </div>
-    );
-}
+  const Icon = TOAST_ICON[toast.type];
+
+  return (
+    <div
+      className="relative flex cursor-pointer items-center gap-2.5 overflow-hidden rounded-figma-md border border-navy-border-med bg-navy-mid px-3.5 py-3 font-sans font-medium shadow-[0_8px_24px_rgba(0,0,0,0.35)] animate-in fade-in slide-in-from-bottom-2 duration-200"
+      onClick={() => toast.remove(toast.id)}
+    >
+      <Icon aria-hidden="true" className={cn('size-[15px] shrink-0', TOAST_COLOR[toast.type])} />
+      <span className="text-sm text-slate-200">{toast.message}</span>
+      <span
+        aria-hidden="true"
+        className={cn(
+          'absolute inset-x-0 bottom-0 h-0.5 animate-[toast-countdown_4s_linear_forwards]',
+          TOAST_BAR_COLOR[toast.type]
+        )}
+      />
+    </div>
+  );
+};
 
 const ToastNotification = ({ list }: { list: Toast[] }) => {
-    console.log(list);
-
-    return (
-        <ToastStyled id='toastBox'>
-            {list.map(toast => <ShowToast key={toast.id} toast={toast} />)}
-        </ToastStyled>
-    );
+  return (
+    <div className="pointer-events-none fixed right-6 bottom-6 z-9999 flex w-[320px] flex-col items-end gap-2.5">
+      {list.map((toast) => (
+        <div key={toast.id} className="pointer-events-auto w-full">
+          <ShowToast toast={toast} />
+        </div>
+      ))}
+    </div>
+  );
 };
 
 export default ToastNotification;
