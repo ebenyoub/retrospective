@@ -2,25 +2,20 @@
 
 > Tickets simples et tâches en attente. Les gros sujets sont dans `docs/backlog/PRODUCT_BACKLOG.md`.
 
-## À faire maintenant
+## Bootstrap initial du projet — entièrement obsolète, vérifié 2026-07-28
 
-- [ ] **MVP-WRITING-01 — Finaliser le design des cartes et des actions Modifier/Supprimer sur l'écran Écriture** : première tâche MVP après `BACKLOG-REALIGN-01`. Rester strictement sur les cartes et leurs actions visuelles/fonctionnelles ; ne pas démarrer timer, discussion, commentaires, vote, résultats, plan d'action ou résumé.
-- [ ] Analyser le code existant frontend et backend
-- [ ] Remplir `docs/technical/ARCHITECTURE.md` avec l'état réel du code
-- [ ] Remplir `docs/technical/DATABASE.md` avec le schéma existant
-- [ ] Définir le périmètre MVP dans `docs/project/PERIMETRE_MVP.md`
-
-## À faire ensuite
-
-- [ ] Créer les User Stories dans `docs/project/USER_STORIES.md`
-- [ ] Remplir le backlog produit `docs/backlog/PRODUCT_BACKLOG.md`
-- [ ] Configurer les variables d'environnement (`.env.example`)
-- [ ] Vérifier que le projet démarre correctement frontend + backend
-
-## Améliorations documentaires
-
-- [ ] Compléter `docs/jury/REFERENTIEL_DWWM.md` avec les compétences couvertes
-- [ ] Commencer à collecter les preuves dans `docs/jury/PREUVES_A_COLLECTER.md`
+Cette section datait du tout début du projet (avant même le premier commit de code). Chaque point vérifié individuellement :
+- [x] `MVP-WRITING-01` : terminé depuis longtemps (voir Product Backlog, `US-07`).
+- [x] Analyse du code existant frontend/backend : dépassé, le projet est aujourd'hui à 100% MVP + Évolutions.
+- [x] `docs/technical/ARCHITECTURE.md` : rempli (222 lignes).
+- [x] `docs/technical/DATABASE.md` : rempli (177 lignes).
+- [x] `docs/project/PERIMETRE_MVP.md` : rempli (54 lignes).
+- [x] `docs/project/USER_STORIES.md` : rempli (80 lignes).
+- [x] `docs/backlog/PRODUCT_BACKLOG.md` : rempli et maintenu à jour.
+- [x] `.env.example` (frontend + backend) : configurés.
+- [x] Démarrage frontend + backend : vérifié à de très nombreuses reprises depuis.
+- [x] `docs/jury/REFERENTIEL_DWWM.md` : rempli (41 lignes).
+- [x] `docs/jury/PREUVES_A_COLLECTER.md` : rempli (58 lignes).
 
 ## À faire maintenant (mis à jour 2026-07-09 — phase de stabilisation)
 
@@ -45,8 +40,8 @@
 
 ## Tickets issus de l'audit styles Tailwind/Figma du 2026-07-09
 
-- [ ] **Toast en styled-components avec fond blanc** (`ToastStyled.tsx` + icônes Font Awesome via CDN dans `index.html`) : seul composant hors Tailwind, style clair qui détonne sur le thème sombre Figma. Décider : réécrire le toast en Tailwind avec les tokens du thème (et retirer `styled-components` + le CDN Font Awesome), ou l'assumer tel quel devant le jury.
-- [ ] **Compteur de votes restants absent** : la maquette Figma affiche "5 votes restants" pendant la phase de vote ; l'application n'informe l'utilisateur qu'au moment du refus du 6e vote. Amélioration UX à chiffrer.
+- [x] **Toast en styled-components avec fond blanc** : doublon de `ARCHI-08` (voir plus bas) — résolu le 2026-07-28.
+- [x] **Compteur de votes restants absent** : doublon de `TODO-UX-02` (voir plus bas) — déjà résolu.
 - [x] **Liste des participants avec avatars** : implémentée le 2026-07-10 (temps réel, avatars à initiales, statut, rôle).
 - [ ] **Éléments maquette encore hors périmètre MVP** (à assumer à l'oral, pas à corriger) : chat "Discussion", timer d'étape, code à 6 caractères (le MVP utilise 4 chiffres).
 
@@ -54,7 +49,7 @@
 
 - [x] **TODO-PARTICIPANT-01 — Participant invité limité à la salle d'attente** : résolu — `retro_cards.author_participant_id`/`votes.participant_id` référencent `session_participants` (plus `users.id`), un invité peut écrire des cartes et voter une fois la rétro lancée.
 - [x] **TODO-FORMAT-01 — Format de rétrospective non reflété sur le tableau d'écriture** : résolu — le MVP propose exactement 6 formats français à 3 colonnes, le format choisi est persisté (`sessions.format_name`/`format_columns`), la salle d'attente ne propose plus d'ancien format personnalisé, et les écrans Écriture/Résultats affichent les libellés du format réel tout en conservant les clés techniques `start`/`stop`/`continue` pour les cartes.
-- [ ] **TODO-CLEANUP-01 — Comptes techniques invités de l'ancienne implémentation** : avant l'introduction de `session_participants`, une version précédente créait un compte réel dans `users` pour chaque invité (pseudo suivi d'un email `@guest.local`). Ces lignes historiques (créées lors de sessions de test) peuvent être nettoyées en base de dev ; sans impact fonctionnel.
+- [x] **TODO-CLEANUP-01 — Comptes techniques invités de l'ancienne implémentation** : doublon de `T-CLEANUP-01` (voir `docs/backlog/PRODUCT_BACKLOG.md`) — résolu le 2026-07-20, script SQL manuel exécuté (65 lignes supprimées en base de dev).
 
 ## Tickets issus de la correction du parcours participant (2026-07-13)
 
@@ -69,7 +64,7 @@
 - [x] **TODO-FIGMA-04 — Bouton d'actions `…` absent** : intégration du menu d'actions de session `…` à l'écriture et au vote pour permettre la sortie de session des participants à tout moment.
 - [x] **TODO-FIGMA-05 — Alignement complet de l'écran d'Écriture** : intégration du composant `EmptyState` avec emojis, layout vertical fluide, onglets mobiles mis en conformité.
 - [x] **TODO-UX-02 — Compteur de votes restants en continu** : afficher le nombre de votes restants pendant la phase de vote au lieu de ne lever l'erreur qu'au 6e vote (Priorité P0 / MVP).
-- [ ] **TODO-UI-02 — Refonte du système de Toast en Tailwind** : supprimer styled-components et le CDN Font Awesome pour unifier le design avec les tokens Figma (Priorité P2 / Évolution).
+- [x] **TODO-UI-02 — Refonte du système de Toast en Tailwind** : doublon de `ARCHI-08` (voir plus bas) — résolu le 2026-07-28.
 
 ## Découpage navbar de session sous le header principal (2026-07-13)
 
@@ -86,8 +81,8 @@
 - [x] **AUDIT-02 — Code mort dans `RetroCardItem`** : fallback `authorName` (+ `useAuth`) inatteignable car le backend renvoie toujours `authorName` (jointure SQL obligatoire). Supprimé, fixtures de test corrigées en conséquence.
 - [x] **AUDIT-03 — Nom de fonction hérité de l'ancien modèle** : `countVotesByUserInSession` prenait déjà un `participantId` depuis la migration vers `session_participants`. Renommé en `countVotesByParticipantInSession`.
 - [x] **AUDIT-04 — `SELECT *` dans `participant.model.ts`** : remplacé par une liste de colonnes explicite (`PARTICIPANT_COLUMNS`), cohérent avec `card.model.ts`/`vote.model.ts` du même chantier.
-- [ ] **AUDIT-05 — `guest_token` sans expiration propre** : un jeton invité reste valide indéfiniment tant que la ligne `session_participants` existe, même après `sessions.expires_at`/`status='closed'`. Non corrigé cette session (changement de comportement produit à valider : que doit-il se passer pour un invité sur une session expirée/fermée ?). Voir `docs/technical/ARCHITECTURE.md`.
-- [ ] **AUDIT-06 — Avatar dupliqué entre salle d'attente et cartes** : `WaitingScreen.tsx` (hash sur le nom) et `RetroCardItem.tsx` (hash sur l'id) réimplémentent chacun un avatar à initiales avec des algorithmes de couleur différents. Mutualisation possible dans `components/ui/`, non faite cette session pour éviter un changement visuel non validé (les couleurs assignées à chaque participant changeraient).
+- [x] **AUDIT-05 — `guest_token` sans expiration propre** : résolu le 2026-07-28 — décision produit enregistrée dans `docs/decisions/DECISIONS.md` (« Accès invité vs. accès par compte à l'historique des sessions ») : un invité perd tout accès 24h après sa jointure, sans exception, y compris en lecture seule ; seul un compte donne un accès permanent. Comportement déjà conforme dans le code (`assertGuestTokenNotExpired`), aucune modification nécessaire.
+- [x] **AUDIT-06 — Avatar dupliqué entre salle d'attente et cartes** : résolu depuis (vérifié 2026-07-28) — `WaitingScreen.tsx`, `RetroCardItem.tsx` et `ActionStep.tsx` utilisent tous le composant partagé `components/ui/Avatar.tsx`. Reste une nuance mineure : `colorSeed` diffère (nom pour la salle d'attente, id pour les cartes), un même participant peut donc avoir une couleur légèrement différente entre les deux écrans — non bloquant, à égaliser seulement si remarqué par un utilisateur.
 - [x] **AUDIT-07 — Documentation technique incomplète** : `docs/technical/ARCHITECTURE.md` a été mis à jour (participants, Socket.IO, routes, arborescence par page, contrôleurs consolidés), et `docs/technical/API.md` et `docs/technical/DATABASE.md` ont été mis à jour pour documenter la table `session_participants` et les routes `/participants/*`..
 
 ## Tickets issus de la revue d'architecture (2026-07-13)
@@ -99,7 +94,7 @@
 - [x] **ARCHI-05 — `SELECT *` restants** : `session.model.ts`, `auth.model.ts`, `passwordReset.model.ts` passés en colonnes explicites.
 - [x] **ARCHI-06 — Code mort supprimé** : `App.tsx`, `assets/Logo.tsx`, `context/theme/useTheme.ts`, `HomeFeatureSection.tsx`, dossier `styleComonent/`.
 - [x] **ARCHI-07 — Formulaires `Login/Signup/SessionCreate` en `useFormValidation` (manuel)** : entrée obsolète, déjà résolue via `T-ARCHI-01` (2026-07-20, voir `docs/backlog/PRODUCT_BACKLOG.md`) — les 4 formulaires utilisent React Hook Form + Zod. Vérifié 2026-07-28 : `CreateAccountForm.tsx` utilise bien `useForm`/`zodResolver`.
-- [ ] **ARCHI-08 — Toast en styled-components** : `ToastStyled.tsx` (déplacé dans `components/ui/`) reste hors Tailwind (fond blanc, `styled-components` + CDN Font Awesome). Réécriture Tailwind = changement visuel, à décider (voir aussi le ticket styles Tailwind/Figma plus haut).
+- [x] **ARCHI-08 — Toast en styled-components** : résolu le 2026-07-28 — `ToastStyled.tsx` supprimé, `ToastNotification.tsx` réécrit en Tailwind pur (icônes `lucide-react` déjà utilisées ailleurs dans le projet à la place de Font Awesome, thème navy cohérent). Dépendances `styled-components`/`@types/styled-components` retirées, CDN Font Awesome retiré de `index.html`. Vérifié visuellement (Playwright) et par les tests (203/203), `tsc`/`eslint`/`build` propres.
 - [x] **ARCHI-09 — `signup` renvoie 200 + message "Connexion réussie."** : résolu le 2026-07-28 — `auth.controller.ts` renvoie désormais 201 + "Inscription réussie." Vérifié : aucun code frontend ne dépendait de la valeur exacte 200 (seul `409` est vérifié explicitement).
 
 ## Tickets issus des tests manuels du 2026-07-09

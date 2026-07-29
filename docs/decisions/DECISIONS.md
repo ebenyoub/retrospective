@@ -220,4 +220,15 @@
 
 ---
 
+## 2026-07-28 — Accès invité vs. accès par compte à l'historique des sessions
+
+**Décision** : Un invité (sans compte) ne peut consulter une session que tant que son jeton d'invité reste valide, c'est-à-dire dans les 24h suivant sa jointure (`T-PART-02`), y compris en lecture seule sur une session close (`US-14`). Passé ce délai, l'accès est définitivement coupé — pas d'exception, pas de prolongation. Seul un utilisateur avec un compte conserve un accès permanent à tout l'historique des sessions auxquelles il a participé ou qu'il a créées, via « Mes sessions ».
+
+**Pourquoi** : Clarifie `AUDIT-05` (`docs/TODO.md`), qui laissait ouverte la question du devenir d'un jeton invité sur une session très ancienne. Le comportement actuel du code (`assertGuestTokenNotExpired`, appelé sans condition de statut de session dans `participant.service.ts`) applique déjà cette règle — **aucune modification de code nécessaire**, décision purement déclarative qui ferme `AUDIT-05`.
+
+**Alternatives considérées** :
+- Laisser un jeton invité valide indéfiniment tant que la ligne `session_participants` existe → écarté explicitement par l'utilisateur : un invité sans compte ne doit pas pouvoir revenir sur une session au-delà de sa fenêtre de validité.
+
+---
+
 > Ajouter une entrée à chaque fois qu'une décision technique importante est prise.
