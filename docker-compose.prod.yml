@@ -1,0 +1,73 @@
+services:
+  db:
+    image: mysql:8.0
+    restart: unless-stopped
+    command:
+      - --performance-schema=OFF
+      - --innodb-buffer-pool-size=64M
+      - --max-connections=50
+      - --table-open-cache=200
+    environment:
+      MYSQL_DATABASE: ${DB_NAME:-retrospective}
+      MYSQL_USER: ${DB_USER:-retrospective_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    volumes:
+      - retrospective_db_data:/var/lib/mysql
+      - ./retrospective_backend/sql/schema.sql:/docker-entrypoint-initdb.d/001_schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p${DB_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks:
+      web:
+        aliases:
+          - retrospective_db
+
+  backend:
+    build:
+      context: ./retrospective_backend
+    restart: unless-stopped
+    command: npm start
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 8000
+      DB_HOST: retrospective_db
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-retrospective}
+      DB_USER: ${DB_USER:-retrospective_user}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: 24h
+      FRONTEND_ORIGIN: https://retrospective.elyasbenyoub.dev
+      SMTP_HOST: ${SMTP_HOST:-smtp-relay.brevo.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      EMAIL_PROVIDER_API_KEY: ${EMAIL_PROVIDER_API_KEY:-}
+      EMAIL_FROM: "${EMAIL_FROM:-Retrospective <no-reply@elyasbenyoub.dev>}"
+    networks:
+      - web
+
+  frontend:
+    build:
+      context: ./retrospective_frontend
+      args:
+        VITE_API_URL: ${VITE_API_URL:-}
+    restart: unless-stopped
+    depends_on:
+      - backend
+    networks:
+      - web
+
+volumes:
+  retrospective_db_data:
+    external: true
+
+networks:
+  web:
+    external: true

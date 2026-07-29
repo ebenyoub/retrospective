@@ -11,7 +11,7 @@ Le déploiement ne se déclenche **que** depuis la branche `main` (production). 
 | Environnement | Usage | URL |
 |---|---|---|
 | Development | Dev local | http://localhost:5173 (frontend), http://localhost:8000 (backend) |
-| Production | À définir | À définir |
+| Production | VPS Hetzner partagé | https://retrospective.elyasbenyoub.dev |
 
 ## Prérequis
 
@@ -148,11 +148,57 @@ cd backend
 npm run build
 ```
 
-## Déploiement production (à définir)
+## Déploiement production
 
-Options envisagées :
-- VPS avec PM2 pour le backend Node.js
-- Nginx pour servir le frontend et faire reverse proxy
-- Base MySQL sur le même serveur ou service managé
+Le projet est déployé sur un VPS Hetzner partagé (`167.233.194.26`), aux côtés de 3
+autres projets (portfolio, la-loge, atelier_dein, marsai). Convention commune à ce VPS :
+chaque projet vit dans `/srv/apps/<projet>/`, un unique conteneur nginx partagé
+(réseau Docker externe `web`) fait office de reverse proxy pour tous les projets, avec
+une configuration centralisée dans `/srv/infrastructure/nginx/conf.d/main.conf` (un
+bloc `server{}` par projet dans ce même fichier, jamais un fichier séparé). Le
+certificat utilisé est un certificat Cloudflare Origin wildcard déjà en place
+(`*.elyasbenyoub.dev`) — aucun certificat propre à ce projet n'est généré.
 
-> Cette section sera complétée avant la soutenance.
+### Sous-domaine et routage
+
+Sous-domaine : `retrospective.elyasbenyoub.dev` (DNS créé côté Cloudflare par
+l'utilisateur, hors du périmètre de déploiement).
+
+Contrairement à `atelier_dein`/`mediatheque` (frontend et backend sur des ports
+séparés), frontend et backend de ce projet sont servis **sous le même sous-domaine**,
+routés par chemin :
+- `/auth/`, `/session/`, `/socket.io/` → backend (conteneur `retrospective-backend-1`)
+- `/` → frontend (conteneur `retrospective-frontend-1`)
+
+Ce choix (identique à La Loge) est nécessaire car l'authentification repose sur un
+cookie HttpOnly : le cookie ne pose aucun problème CORS cross-origin tant que
+frontend et backend partagent la même origine.
+
+Particularité propre à ce projet (aucun des 3 autres n'utilise de WebSocket) : le
+bloc `/socket.io/` porte les en-têtes `proxy_http_version 1.1`,
+`proxy_set_header Upgrade $http_upgrade` et `proxy_set_header Connection "upgrade"`,
+indispensables au bon fonctionnement de Socket.IO derrière nginx.
+
+Le contenu exact du bloc nginx à ajouter (à la suite des blocs existants) dans
+`/srv/infrastructure/nginx/conf.d/main.conf` est documenté dans
+`docs/technical/nginx-retrospective.conf`.
+
+### Modèle de conteneurs
+
+Aucun port n'est publié sur l'hôte pour la base de données, le backend ou le
+frontend (modèle le plus récent utilisé sur ce VPS, projet `marsai`) : seul le
+conteneur nginx partagé publie les ports 80/443.
+
+### Déploiement continu
+
+`.github/workflows/deploy.yml` se déclenche uniquement sur push vers `main` :
+rsync du code vers le VPS, puis par SSH `docker compose -f docker-compose.prod.yml
+build --no-cache && up -d`, `docker image prune -f`, et rechargement de nginx
+(`docker exec nginx nginx -t && nginx -s reload`). Secrets GitHub requis sur le
+dépôt : `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY`.
+
+Le tout premier déploiement est réalisé manuellement (création du volume Docker
+externe, `.env` réel sur le VPS, rsync initial, `docker compose up`, ajout du bloc
+nginx avec sauvegarde préalable de `main.conf` dans `conf.d/backups/`, `nginx -t`
+puis `nginx -s reload`) : la CI ne fait ensuite que rejouer les mêmes étapes de
+build/up à chaque push sur `main`.
