@@ -195,7 +195,7 @@ Aucune violation connue dans les controllers applicatifs après PR #15.
 - Variables d'environnement pour les secrets
 - CORS configuré côté backend, règle partagée Express/Socket.IO (`src/utils/corsOrigin.ts`)
 
-**Dette connue (non bloquante)** : un `guest_token` n'a pas de durée de vie propre — il reste valide tant que la ligne `session_participants` existe, même après l'expiration (`sessions.expires_at`) ou la clôture de la session. Voir `TODO.md`.
+**Durée de vie du `guest_token`** : un invité perd tout accès à une session 24h après sa jointure (`assertGuestTokenNotExpired`, `participant.service.ts`), y compris en lecture seule sur une session close — sans exception. Seul un compte donne un accès permanent à l'historique des sessions. Décision produit enregistrée dans `docs/decisions/DECISIONS.md` (2026-07-28).
 
 ## Variables d'environnement
 
