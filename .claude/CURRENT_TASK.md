@@ -1,50 +1,46 @@
 # Ticket actuel
 
-**ARCHI-08 — Toast en Tailwind** (terminé, PR #39 en attente de CI/merge)
+**BUG-FORGOT-PASSWORD-01 — `/auth/forgot` renvoie systématiquement 500** (terminé, en attente de commit)
 
 # Objectif
 
-Migrer `ToastNotification`/`ToastStyled` de `styled-components` vers Tailwind, dans le cadre de la revue de `docs/TODO.md` (session du 2026-07-28).
+Corriger un bug réel et actif : le parcours "mot de passe oublié" plante systématiquement, retrouvé lors d'une revue des idées sauvegardées (`docs/backlog/BACKLOG_IDEAS.md`) et de l'historique du projet demandée par l'utilisateur.
 
 # Branche
 
-`feature/ARCHI-08-toast-tailwind` (= `dev` + le correctif). PR #39 ouverte vers `dev`, CI en cours.
+`feature/BUG-FORGOT-PASSWORD-01` (= `dev` + le correctif, pas encore commité).
 
-# Contexte — session de revue TODO.md (2026-07-28)
+# Contexte — revue des choses en attente (2026-07-29)
 
-Après le merge de `US-17` (PR #35) et `BUG-CARDS-403-01` (PR #36), l'utilisateur a demandé une revue de `docs/TODO.md` pour trier les entrées non cochées. Vérification de chaque point contre le code réel :
-- 3 entrées obsolètes (déjà résolues ailleurs) retirées — PR #37, mergée.
-- `ARCHI-09` (signup renvoie 200 au lieu de 201) — corrigé, PR #38, mergée.
-- `ARCHI-08` (Toast en styled-components) — ce ticket, PR #39.
-- Formulaire d'accueil "partiellement décoratif" — vérifié obsolète (le formulaire réel `CreateAccountForm.tsx` n'a rien de décoratif), aucune modification nécessaire, documenté dans le même commit que PR #37.
+L'utilisateur a demandé de retrouver les idées sauvegardées et les points en attente. Trois trouvés :
+1. **Ce bug** (le plus sérieux, traité immédiatement) — `/auth/forgot` casse en 500 sur toute base initialisée depuis `schema.sql`.
+2. `DEV-ENV-01` (`BACKLOG_IDEAS.md`) — hot reload Docker, idée validée le 2026-07-20 mais orpheline d'un commit jamais mergé dans `dev`. Toujours "À valider" dans le fichier. Pas encore traité.
+3. Flakiness E2E connue sur `e2e/session-voting.spec.ts` (non bloquante). Pas encore traitée.
 
 # Travail terminé
 
-- `ToastStyled.tsx` supprimé, `ToastNotification.tsx` réécrit en Tailwind pur (icônes `lucide-react`, tokens de thème existants).
-- CDN Font Awesome retiré de `index.html`, dépendance `styled-components` retirée du `package.json`.
-- `@keyframes toast-countdown` ajouté dans `App.css` pour la barre de progression.
-- Vérifié visuellement via Playwright (toast "invalid" sur `/login`) : thème navy cohérent, plus de fond blanc.
-- 203/203 tests frontend, `tsc`/`eslint`/`build` propres.
-- `docs/TODO.md` mis à jour (2 entrées `ARCHI-08` dupliquées marquées résolues).
+- Diagnostic : `passwordReset.model.ts` interroge une table `password` absente de `schema.sql` depuis toujours — découvert le 2026-07-20 (`T-ARCHI-01`), jamais corrigé depuis (le ticket qui a suivi, `T-AUTH-FORGOT-BREVO-01`, n'a testé que le transport SMTP, pas contre une vraie base).
+- Correctif : table `password` ajoutée à `schema.sql` (nouvelles installations) + script `alter_create_password.sql` (bases déjà initialisées, appliqué manuellement sur `retrospective-db` local).
+- Vérifié en conditions réelles contre le backend Docker (pas seulement les tests, qui mockent `db.execute` et n'auraient rien détecté) : avant → `Table 'retrospective.password' doesn't exist` en logs ; après → insertion SQL réussie, `POST /auth/verify-code` renvoie une réponse métier propre (400) au lieu d'un 500.
+- 329/329 tests backend (inchangé), `tsc --noEmit` propre.
+- `docs/PROJECT_STATE.md` et `docs/backlog/PRODUCT_BACKLOG.md` mis à jour (`BUG-FORGOT-PASSWORD-01` ✅ Terminé).
 
 # Travail restant
 
-- Attendre le CI de la PR #39, merger si vert.
-- Après ça : `docs/TODO.md` devrait être entièrement à jour — vérifier s'il reste d'autres entrées non cochées à trier avec l'utilisateur, sinon revenir au Product Backlog (actuellement 100% ✅ Terminé) pour la prochaine tâche.
+- Commit unique pour ce correctif.
+- Décider si on traite aussi `DEV-ENV-01` et/ou la flakiness `session-voting.spec.ts` dans la foulée.
 
 # Fichiers concernés
 
-- `retrospective_frontend/src/components/ui/ToastNotification.tsx`
-- `retrospective_frontend/src/components/ui/ToastStyled.tsx` (supprimé)
-- `retrospective_frontend/index.html`
-- `retrospective_frontend/src/App.css`
-- `retrospective_frontend/package.json` / `package-lock.json`
-- `docs/TODO.md`
+- `retrospective_backend/sql/schema.sql`
+- `retrospective_backend/sql/alter_create_password.sql` (nouveau)
+- `docs/PROJECT_STATE.md`
+- `docs/backlog/PRODUCT_BACKLOG.md`
 
 # Tests requis
 
-`npx vitest run`, `npx tsc --noEmit`, `npm run build` (frontend). Déjà exécutés et au vert.
+`npx vitest run` (backend), `npx tsc --noEmit` (backend), vérification manuelle contre le backend Docker réel (déjà faite). Au vert.
 
 # Prochaine action unique
 
-Merger la PR #39 une fois le CI vert, puis proposer la suite (revue complète de `docs/TODO.md` terminée, ou prochain sujet à définir avec l'utilisateur).
+Committer, proposer une PR vers `dev`, puis décider avec l'utilisateur de la suite (`DEV-ENV-01` ou flakiness E2E).

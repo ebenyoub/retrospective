@@ -16,6 +16,17 @@ CREATE TABLE IF NOT EXISTS users (
   UNIQUE KEY unique_users_email (email)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Jetons de réinitialisation de mot de passe (mot de passe oublié). Une seule
+-- ligne active par email à la fois (purgée avant chaque nouvelle demande, voir
+-- deletePasswordTokenByEmail) : pas de contrainte UNIQUE nécessaire sur email.
+CREATE TABLE IF NOT EXISTS password (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  email VARCHAR(255) NOT NULL,
+  token VARCHAR(500) NOT NULL,
+  expire_at DATETIME NOT NULL,
+  INDEX idx_password_email (email)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS sessions (
   id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
