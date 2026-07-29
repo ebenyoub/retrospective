@@ -1,42 +1,42 @@
 # Ticket actuel
 
-**DEV-ENV-01 — Fiabiliser le hot reload backend Docker** (terminé, en attente de commit)
+**E2E-VOTING-01 — Corriger la flakiness de `session-voting.spec.ts`** (terminé, en attente de commit)
 
 # Objectif
 
-Refaire un correctif déjà validé une première fois le 2026-07-20 mais perdu (commit jamais mergé dans `dev`, dérive de pipeline agent) : `ts-node-dev` ne détectait pas toujours les modifications de fichiers sur bind mount Docker, redémarrage manuel fréquent en développement.
+Dernier des points en attente retrouvés lors de la revue de la veille (idées sauvegardées/points en attente), traité à la demande explicite de l'utilisateur.
 
 # Branche
 
-`feature/DEV-ENV-01-hot-reload` (= `dev` + le correctif, pas encore commité).
-
-# Contexte — revue des choses en attente (2026-07-29)
-
-Deuxième des deux points retrouvés lors de la revue de `docs/backlog/BACKLOG_IDEAS.md`/historique demandée par l'utilisateur (le premier était `BUG-FORGOT-PASSWORD-01`, déjà commité/mergé, PR #40). Reste un troisième point non traité : flakiness E2E connue sur `e2e/session-voting.spec.ts`.
+`feature/E2E-VOTING-01-fix-flakiness` (= `dev` + le correctif, pas encore commité).
 
 # Travail terminé
 
-- Flag `--poll` ajouté au script `dev` de `retrospective_backend/package.json`.
-- Vérifié en conditions réelles sur le conteneur Docker local (`retrospective-backend`) : après redémarrage du conteneur pour charger le nouveau script, `server.ts` édité deux fois sans jamais faire `docker restart` manuellement — logs `[INFO] Restarting: /app/server.ts has been modified` à chaque fois, serveur repassé sain ensuite.
-- 329/329 tests backend (inchangé), `tsc --noEmit` propre.
-- `docs/backlog/BACKLOG_IDEAS.md`, `docs/backlog/PRODUCT_BACKLOG.md`, `docs/PROJECT_STATE.md` mis à jour.
+- **Cause d'origine corrigée** : assertion synchrone (`votePayloadCaptured`) juste après un clic déclenchant une requête réseau asynchrone. Réordonnée pour attendre le bouton "Voté" (auto-attente Playwright) avant de vérifier l'appel API.
+- **Régression bien plus large découverte en vérifiant** : 18 tests E2E sur 26 échouaient en réalité, pas juste ce fichier. Cause : `playwright.config.ts` fait tourner les tests sur `127.0.0.1`, alors que `API_BASE` (ajouté par `US-17`) déduit l'hôte de l'API depuis `window.location.hostname` et que 10 fichiers E2E moquent leurs routes sur `localhost:8000` — deux origines différentes pour Playwright. Invisible depuis le merge de `US-17` car le CI ne fait tourner aucun test E2E.
+- Corrigé : `playwright.config.ts` passé sur `localhost` (un seul fichier plutôt que 10).
+- Effet en cascade découvert et corrigé : 3 tests supplémentaires référençaient des libellés de boutons obsolètes (flèches retirées par la conversion en icônes de `US-17`) — `session-action-summary.spec.ts`, `session-full-journey.spec.ts`, `session-transition.spec.ts` mis à jour.
+- Vérifié : suite E2E complète 26/26 (2 runs), `session-voting.spec.ts` seul 15/15 en répétition sous parallélisme complet. 203/203 Vitest (inchangé), `tsc`/`build` propres.
+- `docs/PROJECT_STATE.md` mis à jour.
 
 # Travail restant
 
-- Commit unique pour ce correctif.
-- Décider avec l'utilisateur si on traite aussi la flakiness `session-voting.spec.ts`, ou si on s'arrête là.
+- Commit unique, PR vers `dev`.
+- Recommandation à soumettre à l'utilisateur (pas encore décidée) : ajouter les tests E2E au CI GitHub Actions pour détecter ce type de régression immédiatement plutôt que silencieusement.
 
 # Fichiers concernés
 
-- `retrospective_backend/package.json`
-- `docs/backlog/BACKLOG_IDEAS.md`
-- `docs/backlog/PRODUCT_BACKLOG.md`
+- `retrospective_frontend/playwright.config.ts`
+- `retrospective_frontend/e2e/session-voting.spec.ts`
+- `retrospective_frontend/e2e/session-action-summary.spec.ts`
+- `retrospective_frontend/e2e/session-full-journey.spec.ts`
+- `retrospective_frontend/e2e/session-transition.spec.ts`
 - `docs/PROJECT_STATE.md`
 
 # Tests requis
 
-`npx vitest run` (backend), `npx tsc --noEmit` (backend), vérification manuelle du hot reload contre le conteneur Docker réel (déjà faite). Au vert.
+`npx playwright test` (frontend, 26/26), `npx vitest run` (203/203), `npx tsc --noEmit`, `npm run build`. Tous au vert.
 
 # Prochaine action unique
 
-Committer, proposer une PR vers `dev`, puis demander à l'utilisateur s'il veut traiter la flakiness `session-voting.spec.ts` ou s'arrêter là.
+Committer, proposer une PR vers `dev`, puis soumettre à l'utilisateur la recommandation d'ajouter l'E2E au CI.
