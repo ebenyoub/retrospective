@@ -52,7 +52,7 @@ export const requestPasswordReset = async ({ email }: ForgotPasswordInput): Prom
             `,
     });
 
-    logger.info("Message sent: %s", info.messageId);
+    logger.info("Message sent: ", info.messageId);
   } catch (error) {
     if (error instanceof AppError) {
       throw error;
