@@ -231,4 +231,16 @@
 
 ---
 
+## 2026-07-29 — Déploiement VPS : même sous-domaine avec routage par chemin, alias réseau `retrospective_db`
+
+**Décision** : Le projet est déployé sur le VPS Hetzner partagé (`167.233.194.26`), aux côtés de 3 autres projets. Frontend et backend sont servis sous le **même sous-domaine** `retrospective.elyasbenyoub.dev`, routés par chemin par le nginx partagé (`/auth/`, `/session/`, `/socket.io/` → backend ; `/` → frontend), plutôt que par ports séparés. Le service MySQL du `docker-compose.prod.yml` porte l'alias réseau Docker `retrospective_db`, déjà utilisé comme nom d'hôte de connexion par le backend.
+
+**Pourquoi** : L'authentification de ce projet repose sur un cookie HttpOnly (contrairement aux 3 autres projets déjà déployés sur ce VPS, qui utilisent un token en localStorage) et le projet utilise Socket.IO pour le temps réel. Un cookie HttpOnly pose des complications CORS en cross-origin ; le servir sous la même origine que le frontend supprime le problème à la racine, au prix d'un routage par chemin plutôt que par port (modèle déjà éprouvé sur ce VPS pour La Loge). L'alias réseau `retrospective_db` garde une convention de nommage stable et lisible entre l'environnement Docker local et la production, sans dépendre d'une IP ou d'un nom de conteneur généré automatiquement.
+
+**Alternatives considérées** :
+- Frontend et backend sur deux sous-domaines/ports distincts (modèle `atelier_dein`/`mediatheque`) → rejeté, obligerait à configurer CORS cross-origin pour un cookie HttpOnly, plus complexe à expliquer et à sécuriser que le routage par chemin sous une même origine.
+- Publier les ports de la base/backend/frontend sur l'hôte → rejeté, le modèle le plus récent de ce VPS (projet `marsai`) ne publie que 80/443 via le nginx partagé, cohérence retenue pour ce déploiement.
+
+---
+
 > Ajouter une entrée à chaque fois qu'une décision technique importante est prise.

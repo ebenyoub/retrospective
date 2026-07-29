@@ -1,0 +1,54 @@
+name: Deploy Retrospective
+on:
+  push:
+    branches:
+      - main
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install rsync
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y rsync
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+      - name: Sync code to VPS
+        run: |
+          rsync -az --delete \
+            --exclude='.git/' \
+            --exclude='node_modules/' \
+            --exclude='retrospective_backend/node_modules/' \
+            --exclude='retrospective_frontend/node_modules/' \
+            --exclude='.env' \
+            --exclude='retrospective_backend/.env' \
+            --exclude='retrospective_frontend/.env' \
+            --exclude='retrospective_frontend/dist/' \
+            --exclude='retrospective_backend/test-results/' \
+            --exclude='retrospective_frontend/test-results/' \
+            --exclude='retrospective_frontend/playwright-report/' \
+            --exclude='retrospective_frontend/e2e/' \
+            -e "ssh -i ~/.ssh/id_ed25519" \
+            ./ \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/srv/apps/retrospective/
+      - name: Build and restart containers on VPS
+        run: |
+          ssh -i ~/.ssh/id_ed25519 ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
+            set -e
+            cd /srv/apps/retrospective
+            docker compose -f docker-compose.prod.yml build --no-cache
+            docker compose -f docker-compose.prod.yml up -d
+            docker image prune -f
+            until docker inspect -f '{{.State.Running}}' nginx | grep -q true; do
+              echo "Waiting for nginx..."
+              sleep 2
+            done
+            docker exec nginx nginx -t
+            docker exec nginx nginx -s reload
+        EOF

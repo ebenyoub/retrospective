@@ -4,6 +4,12 @@
 
 ## Date de dernière mise à jour
 
+2026-07-29 (`DEPLOY-VPS-01` — Déploiement du projet sur le VPS partagé Hetzner (`167.233.194.26`), sur `feature/DEPLOY-VPS-01-deploiement-vps`. Architecture validée par l'utilisateur, en cours de mise en place (documentation faite en parallèle de la création des fichiers techniques par `frontend-react`/`backend-express` ; premier déploiement réel pas encore exécuté).
+- Sous-domaine `retrospective.elyasbenyoub.dev`, nginx partagé du VPS, routage par chemin sous un même sous-domaine (`/auth/`, `/session/`, `/socket.io/` → backend, `/` → frontend) — nécessaire pour le cookie HttpOnly d'authentification, particularité de ce projet par rapport aux 3 autres déjà déployés sur ce VPS.
+- Bloc nginx complet documenté dans `docs/technical/nginx-retrospective.conf` (en-têtes WebSocket pour Socket.IO, autre particularité de ce projet).
+- Détails et justifications dans `docs/technical/DEPLOYMENT.md` (section "Déploiement production") et `docs/decisions/DECISIONS.md` (entrée du 2026-07-29).
+- Prochaine étape : premier déploiement manuel par l'orchestrateur (volume Docker, `.env` réel, rsync initial, ajout du bloc nginx, `nginx -t`/`reload`), puis la CI (`.github/workflows/deploy.yml`) prend le relais sur chaque push `main`.)
+
 2026-07-29 (`CI-E2E-01` — Ajouter les tests E2E au CI GitHub Actions, sur `feature/CI-E2E-01-playwright`. Suite directe de `E2E-VOTING-01` (ci-dessous) : la régression `US-17`/hostname (18 tests E2E sur 26 cassés) était restée invisible plusieurs jours faute de couverture CI — recommandation soumise à l'utilisateur et acceptée.
 - Nouveau job `e2e` dans `.github/workflows/ci.yml` (`Frontend - E2E (Playwright)`) : `npm install`, `npx playwright install --with-deps chromium`, `npx playwright test`.
 - Aucun service backend/DB nécessaire dans ce job : vérifié en conditions réelles en arrêtant `retrospective-backend`/`retrospective-db` en local et en rejouant la suite (26/26 toujours au vert) — chaque spec `e2e/*.spec.ts` moque intégralement ses appels API via `page.route()`, et `playwright.config.ts` démarre lui-même le serveur de dev frontend (`webServer`).
