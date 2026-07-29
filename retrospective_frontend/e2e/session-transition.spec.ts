@@ -127,7 +127,7 @@ test('visualise et enchaîne les 4 étapes de session contrôlées par le facili
   const writingTextarea = page.getByPlaceholder('Nouvelle carte...').first();
   await expect(writingTextarea).toBeVisible();
 
-  const startVotingButton = page.getByRole('button', { name: 'Passer au vote →' });
+  const startVotingButton = page.getByRole('button', { name: 'Passer au vote' });
   await expect(startVotingButton).toBeVisible();
   await startVotingButton.click();
 
@@ -135,7 +135,7 @@ test('visualise et enchaîne les 4 étapes de session contrôlées par le facili
   const quotaStatus = page.getByRole('status', { name: '5 votes restants sur 5' });
   await expect(quotaStatus).toBeVisible();
 
-  const viewResultsButton = page.getByRole('button', { name: 'Voir les résultats →' });
+  const viewResultsButton = page.getByRole('button', { name: 'Voir les résultats' });
   await expect(viewResultsButton).toBeVisible();
   await viewResultsButton.click();
 

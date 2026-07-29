@@ -9,7 +9,11 @@ export default defineConfig({
   reporter: 'html',
   outputDir: 'test-results',
   use: {
-    baseURL: 'http://127.0.0.1:5174',
+    // localhost (pas 127.0.0.1) : API_BASE (src/lib/api.ts) déduit l'hôte de
+    // l'API depuis window.location.hostname, et les mocks page.route() des
+    // specs E2E ciblent tous http://localhost:8000 — un hôte différent de
+    // 127.0.0.1 pour Playwright, donc aucun mock ne matchait plus rien.
+    baseURL: 'http://localhost:5174',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
@@ -20,8 +24,8 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run dev -- --host 127.0.0.1 --port 5174',
-    url: 'http://127.0.0.1:5174',
+    command: 'npm run dev -- --host localhost --port 5174',
+    url: 'http://localhost:5174',
     reuseExistingServer: !process.env.CI,
   },
 });

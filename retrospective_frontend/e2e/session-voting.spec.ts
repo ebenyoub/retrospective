@@ -131,13 +131,17 @@ test('visualise la barre de quota et effectue un vote sur une carte', async ({ p
   await expect(voteButton).toBeVisible();
   await voteButton.click();
 
-  // 4. Vérification que l'API de vote a bien été appelée
-  expect(votePayloadCaptured).toBe(true);
-
-  // 5. Vérification du changement d'état du bouton et de la décrémentation du quota à l'écran
+  // 4. Vérification du changement d'état du bouton (attend la réponse réseau
+  // du vote via le auto-retry de Playwright, plutôt qu'une assertion
+  // synchrone juste après le clic — la requête est asynchrone).
   const votedButton = cardItem.getByRole('button', { name: 'Voté' });
   await expect(votedButton).toBeVisible();
   await expect(votedButton).toBeDisabled();
+
+  // 5. Vérification que l'API de vote a bien été appelée (le bouton "Voté"
+  // ci-dessus ne peut être visible qu'une fois la réponse reçue et l'état
+  // mis à jour, donc plus de race ici).
+  expect(votePayloadCaptured).toBe(true);
 
   // 6. Vérification du quota mis à jour dans la barre
   const updatedQuotaStatus = page.getByRole('status', { name: '4 votes restants sur 5' });

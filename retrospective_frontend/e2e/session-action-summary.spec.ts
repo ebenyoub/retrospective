@@ -173,7 +173,7 @@ test('le facilitateur ajoute une action, voit le podium de référence, revient 
   await expect(page.getByText('Alice')).toBeVisible();
 
   // ── Retour en arrière (US-15) : revient aux Résultats sans perdre l'action ──
-  await page.getByRole('button', { name: '← Étape précédente' }).click();
+  await page.getByRole('button', { name: 'Étape précédente' }).click();
   await expect(page.getByText("Revenir à l'étape précédente ?")).toBeVisible();
   await page.getByRole('button', { name: 'Revenir en arrière' }).click();
 
@@ -184,9 +184,9 @@ test('le facilitateur ajoute une action, voit le podium de référence, revient 
   await expect(page.getByRole('button', { name: 'Terminer la session' })).toHaveCount(1);
 
   // Reprendre l'avancement jusqu'au récapitulatif final.
-  await page.getByRole('button', { name: "Passer au plan d'action →" }).click();
+  await page.getByRole('button', { name: "Passer au plan d'action" }).click();
   await expect(page.getByText("Rédiger le compte-rendu de sprint")).toBeVisible();
-  await page.getByRole('button', { name: 'Voir le récapitulatif →' }).click();
+  await page.getByRole('button', { name: 'Voir le récapitulatif' }).click();
 
   // ── Récapitulatif final ──
   await expect(page.getByText('✓ Prêt à clôturer')).toBeVisible();
@@ -212,5 +212,5 @@ test('un participant non-facilitateur ne voit ni le formulaire d\'ajout d\'actio
   await expect(page.getByText('Action déjà prévue')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Ajouter une action' })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Terminer la session' })).toHaveCount(0);
-  await expect(page.getByRole('button', { name: '← Étape précédente' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Étape précédente' })).toHaveCount(0);
 });

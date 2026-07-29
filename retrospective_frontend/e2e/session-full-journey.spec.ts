@@ -316,7 +316,7 @@ test('parcours produit complet : inscription, création, écriture, vote, plan d
   await page.getByRole('button', { name: 'Ajouter' }).first().click();
 
   // Passage aux votes
-  const startVotingButton = page.getByRole('button', { name: 'Passer au vote →' });
+  const startVotingButton = page.getByRole('button', { name: 'Passer au vote' });
   await expect(startVotingButton).toBeVisible();
   await startVotingButton.click();
 
@@ -333,7 +333,7 @@ test('parcours produit complet : inscription, création, écriture, vote, plan d
   await expect(cardItem.getByRole('button', { name: 'Voté' })).toBeVisible();
 
   // Passage aux résultats
-  const viewResultsButton = page.getByRole('button', { name: 'Voir les résultats →' });
+  const viewResultsButton = page.getByRole('button', { name: 'Voir les résultats' });
   await expect(viewResultsButton).toBeVisible();
   await viewResultsButton.click();
 
@@ -347,7 +347,7 @@ test('parcours produit complet : inscription, création, écriture, vote, plan d
   await expect(topCard.getByText('1')).toBeVisible();
 
   // 7. Plan d'action
-  await page.getByRole('button', { name: "Passer au plan d'action →" }).click();
+  await page.getByRole('button', { name: "Passer au plan d'action" }).click();
   await expect(page.getByRole('heading', { name: "Plan d'action" })).toBeVisible();
   await page.getByRole('button', { name: 'Ajouter une action' }).click();
   await page.getByLabel("Description de l'action").fill('Partager les résultats avec l’équipe');
@@ -357,7 +357,7 @@ test('parcours produit complet : inscription, création, écriture, vote, plan d
   await expect(page.getByText('Partager les résultats avec l’équipe')).toBeVisible();
 
   // 8. Récapitulatif
-  await page.getByRole('button', { name: 'Voir le récapitulatif →' }).click();
+  await page.getByRole('button', { name: 'Voir le récapitulatif' }).click();
   await expect(page.getByText('✓ Prêt à clôturer')).toBeVisible();
   await expect(page.getByText('Une idée de test')).toBeVisible();
   await expect(page.getByText('Partager les résultats avec l’équipe')).toBeVisible();
