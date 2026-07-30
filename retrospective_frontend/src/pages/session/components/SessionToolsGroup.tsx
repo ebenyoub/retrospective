@@ -30,7 +30,7 @@ const SessionToolsGroup = ({ isSessionCodeCopied, onCopySessionCode }: SessionTo
   const isWaiting = step === 'waiting';
 
   return (
-    <div className="flex min-w-0 shrink-0 items-center gap-1.5 overflow-x-auto" aria-label="Accès rapides de session">
+    <div className="flex min-w-0 shrink-0 items-center gap-1.5" aria-label="Accès rapides de session">
       {sessionCode && !isWaiting && (
         <Button
           type="button"
@@ -38,6 +38,7 @@ const SessionToolsGroup = ({ isSessionCodeCopied, onCopySessionCode }: SessionTo
           size="sm"
           onClick={onCopySessionCode}
           aria-label={isSessionCodeCopied ? 'Code copié' : 'Copier le code de session'}
+          title={isSessionCodeCopied ? 'Code copié' : 'Copier le code de session'}
           className={`flex h-[30px] shrink-0 items-center gap-1.5 rounded-lg border px-3 font-mono text-[11px] leading-none transition-colors cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-navy-mid ${
             isSessionCodeCopied
               ? 'bg-green-figma/10 border-green-figma/40 text-green-figma'
@@ -55,6 +56,7 @@ const SessionToolsGroup = ({ isSessionCodeCopied, onCopySessionCode }: SessionTo
           size="sm"
           onClick={onToggleParticipants}
           aria-label="Participants"
+          title="Participants"
           aria-expanded={isParticipantsOpen}
           className={`inline-flex h-[30px] shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border px-2.5 font-sans text-xs font-medium leading-none transition-colors select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-navy-mid ${
             isParticipantsOpen
@@ -63,7 +65,7 @@ const SessionToolsGroup = ({ isSessionCodeCopied, onCopySessionCode }: SessionTo
           }`}
         >
           <Users size={14} aria-hidden="true" />
-          <span className="hidden min-[1152px]:inline">Participants</span>
+          <span className="hidden md:inline">Participants</span>
           {participantCount > 0 && (
             <span className="rounded-full bg-green-figma/20 px-1.5 font-mono text-[10px] text-green-figma">
               {participantCount}
@@ -80,6 +82,7 @@ const SessionToolsGroup = ({ isSessionCodeCopied, onCopySessionCode }: SessionTo
           clearDiscussionBlinking();
         }}
         aria-label="Discussion"
+        title="Discussion"
         aria-expanded={isDiscussionOpen}
         className={`inline-flex h-[30px] shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border px-2.5 font-sans text-xs font-medium leading-none transition-colors select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-navy-mid ${
           isDiscussionOpen
@@ -88,11 +91,12 @@ const SessionToolsGroup = ({ isSessionCodeCopied, onCopySessionCode }: SessionTo
         } ${isDiscussionBlinking ? 'animate-pulse border-green-figma/50 bg-green-figma/10 text-green-figma' : ''}`}
       >
         <MessageCircle size={14} aria-hidden="true" />
-        <span className="hidden min-[1152px]:inline">Discussion</span>
+        <span className="hidden md:inline">Discussion</span>
       </Button>
       <IconButton
         onClick={onToggleSound}
         aria-label={isSoundEnabled ? 'Désactiver le son' : 'Activer le son'}
+        title={isSoundEnabled ? 'Désactiver le son' : 'Activer le son'}
         aria-pressed={isSoundEnabled}
         variant="ghost"
         size="sm"

@@ -102,7 +102,7 @@ const prepareDynamicMocks = async (page: Page, state: { currentStep: string }): 
 
 test('visualise et enchaîne les 4 étapes de session contrôlées par le facilitateur', async ({ page }) => {
   const state = { currentStep: 'waiting' };
-  let patchStepPayloads: string[] = [];
+  const patchStepPayloads: string[] = [];
 
   await prepareDynamicMocks(page, state);
 
