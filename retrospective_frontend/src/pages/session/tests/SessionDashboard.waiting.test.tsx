@@ -186,9 +186,16 @@ describe('SessionDashboard - Salle d\'attente (Waiting Step)', () => {
   it('propose de rejoindre avec un pseudo si le visiteur ouvre le lien d\'invitation sans guestToken (jamais de redirection)', async () => {
     authState.isAuthenticated = false;
     authState.token = '';
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ success: true, data: { id: 1, name: 'Retro', code: '1234', status: 'open', step: 'writing', ownerId: 1 } }),
+    vi.stubGlobal('fetch', vi.fn().mockImplementation((url: string) => {
+      // Aucun cookie retro_resume pour ce visiteur : la reprise auto échoue,
+      // JoinSessionModal doit donc bien s'afficher (comportement inchangé).
+      if (url.endsWith('/session/1/participants/resume-from-cookie')) {
+        return Promise.resolve({ ok: false, status: 401, json: async () => ({ success: false, message: 'Aucune session à reprendre.' }) });
+      }
+      return Promise.resolve({
+        ok: true,
+        json: async () => ({ success: true, data: { id: 1, name: 'Retro', code: '1234', status: 'open', step: 'writing', ownerId: 1 } }),
+      });
     }));
 
     render(
@@ -212,6 +219,10 @@ describe('SessionDashboard - Salle d\'attente (Waiting Step)', () => {
     vi.stubGlobal('fetch', vi.fn().mockImplementation((url: string) => {
       if (url.endsWith('/session/1/participants/resume')) {
         return Promise.resolve({ ok: false, json: async () => ({ success: false, message: 'Participant introuvable.' }) });
+      }
+      // Pas de cookie retro_resume valide non plus : la modal doit prendre le relais.
+      if (url.endsWith('/session/1/participants/resume-from-cookie')) {
+        return Promise.resolve({ ok: false, status: 401, json: async () => ({ success: false, message: 'Aucune session à reprendre.' }) });
       }
       return Promise.resolve({ ok: true, json: async () => ({ success: true, data: { id: 1, name: 'Retro', code: '1234', status: 'open', step: 'writing', ownerId: 1 } }) });
     }));
@@ -242,6 +253,11 @@ describe('SessionDashboard - Salle d\'attente (Waiting Step)', () => {
           ok: true,
           json: async () => ({ success: true, data: { id: 9, displayName: 'Sarah', role: 'participant', guestToken: 'guest-9' } }),
         });
+      }
+      // Pas de cookie retro_resume pour ce visiteur : il doit passer par le
+      // formulaire de pseudo (guest-join) ci-dessus, pas être auto-reconnecté.
+      if (url.endsWith('/session/1/participants/resume-from-cookie')) {
+        return Promise.resolve({ ok: false, status: 401, json: async () => ({ success: false, message: 'Aucune session à reprendre.' }) });
       }
       if (url.endsWith('/session/1')) {
         return Promise.resolve({
@@ -333,6 +349,91 @@ describe('SessionDashboard - Salle d\'attente (Waiting Step)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Discussion' }));
 
     expect(await screen.findByRole('heading', { name: 'Discussion' })).toBeTruthy();
+  });
+
+  it('reconnecte automatiquement un visiteur via le cookie retro_resume, sans jamais afficher la modal de pseudo', async () => {
+    authState.isAuthenticated = false;
+    authState.token = '';
+
+    const fetchSpy = vi.fn().mockImplementation((url: string, init?: RequestInit) => {
+      const method = init?.method ?? 'GET';
+      if (method === 'POST' && url.endsWith('/session/1/participants/resume-from-cookie')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            success: true,
+            data: { id: 9, role: 'participant', guestToken: 'guest-from-cookie', displayName: 'Elyas' },
+          }),
+        });
+      }
+      if (url.endsWith('/session/1')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ success: true, data: { id: 1, name: 'Retro', code: '1234', status: 'open', step: 'waiting', ownerId: 1 } }),
+        });
+      }
+      if (url.endsWith('/session/1/participants')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ success: true, data: [{ id: 9, displayName: 'Elyas', role: 'participant', status: 'online' }] }),
+        });
+      }
+      return Promise.resolve({ ok: true, json: async () => ({ success: true, data: [] }) });
+    });
+    vi.stubGlobal('fetch', fetchSpy);
+
+    render(
+      <MemoryRouter initialEntries={['/session/1']}>
+        <Routes>
+          <Route path="/" element={<p>Accueil</p>} />
+          <Route path="/session/:id" element={<SessionDashboard />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await screen.findByText('En attente du lancement par le facilitateur...');
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(screen.queryByLabelText('Pseudo')).toBeNull();
+    expect(localStorage.getItem('retro:guest:1')).toContain('guest-from-cookie');
+  });
+
+  it("ne tente pas de reprise via cookie pour un utilisateur déjà authentifié ou déjà identifié en tant qu'invité", async () => {
+    authState.isAuthenticated = true;
+    authState.token = 'facilitator-token';
+
+    const fetchSpy = vi.fn().mockImplementation((url: string) => {
+      if (url.endsWith('/session/1')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ success: true, data: { id: 1, name: 'Retro', code: '1234', status: 'open', step: 'waiting', ownerId: 1 } }),
+        });
+      }
+      if (url.endsWith('/session/1/participants/self')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ success: true, data: { id: 9, role: 'facilitator' } }),
+        });
+      }
+      if (url.endsWith('/session/1/participants')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ success: true, data: [{ id: 9, displayName: 'Elyas', role: 'facilitator', status: 'online' }] }),
+        });
+      }
+      return Promise.resolve({ ok: true, json: async () => ({ success: true, data: [] }) });
+    });
+    vi.stubGlobal('fetch', fetchSpy);
+
+    render(
+      <MemoryRouter initialEntries={['/session/1']}>
+        <Routes>
+          <Route path="/session/:id" element={<SessionDashboard />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await screen.findByRole('button', { name: 'Lancer la rétro' });
+    expect(fetchSpy.mock.calls.some(([url]) => String(url).endsWith('/participants/resume-from-cookie'))).toBe(false);
   });
 
   it('masque les boutons Participants et code de session de la navbar pendant la salle d\'attente, déjà présents dans le panneau latéral', async () => {

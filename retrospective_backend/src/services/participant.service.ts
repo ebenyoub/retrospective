@@ -8,6 +8,7 @@ import {
   findParticipantByUserId,
   findParticipantsBySession,
   insertParticipant,
+  setParticipantGuestToken,
   touchParticipant,
   updateParticipantName,
 } from "../models/participant.model";
@@ -229,6 +230,34 @@ export const resumeGuestParticipant = async (
 
   await touchParticipant(participant.id, "online");
   return toSummary({ ...participant, status: "online" });
+};
+
+// Reprise via le cookie signé retro_resume (BUG-SESSION-RESUME-01) : contrairement
+// à resumeGuestParticipant, l'identité n'est pas prouvée par un guestToken fourni
+// par le client mais par le cookie lui-même (déjà vérifié par le contrôleur), donc
+// on ne compare rien ici. Couvre aussi le cas d'une jointure authentifiée dont le
+// JWT a expiré (guest_token encore NULL) : on lui attribue alors un jeton invité,
+// comme à une première jointure invitée.
+export const reconnectFromResumeCookie = async (
+  sessionId: number,
+  participantId: number
+): Promise<GuestJoinResult> => {
+  const participant = await findParticipantById(participantId);
+
+  if (!participant || participant.session_id !== sessionId) {
+    throw new AppError(404, "Participant introuvable.", "PARTICIPANT_NOT_FOUND");
+  }
+
+  assertGuestTokenNotExpired(participant);
+
+  const guestToken = participant.guest_token ?? crypto.randomBytes(24).toString("hex");
+  if (!participant.guest_token) {
+    await setParticipantGuestToken(participant.id, guestToken);
+  }
+
+  await touchParticipant(participant.id, "online");
+
+  return { participant: toSummary({ ...participant, status: "online" }), guestToken };
 };
 
 // Résolution destinée exclusivement aux lectures. Contrairement à une reprise,

@@ -92,6 +92,15 @@ export const updateParticipantName = async (participantId: number, displayName: 
   );
 };
 
+// Attribue un jeton invité à une ligne qui n'en avait pas encore (reprise
+// d'une jointure authentifiée dont le JWT a expiré, voir resume-from-cookie).
+export const setParticipantGuestToken = async (participantId: number, guestToken: string): Promise<void> => {
+  await db.execute<ResultSetHeader>(
+    "update session_participants set guest_token = ? where id = ?",
+    [guestToken, participantId]
+  );
+};
+
 export const touchParticipant = async (participantId: number, status: ParticipantStatus): Promise<void> => {
   await db.execute<ResultSetHeader>(
     "update session_participants set status = ?, last_seen_at = now() where id = ?",

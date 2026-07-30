@@ -4,6 +4,7 @@ import {
   joinAsSelf,
   leaveParticipant,
   renameParticipant,
+  resumeFromCookie,
   resumeGuestParticipant,
 } from '../services/participantApi';
 import type { GuestJoinResponse, SelfIdentity } from '../types/participant.types';
@@ -36,6 +37,10 @@ export const useSessionIdentity = ({
   } = useGuestParticipant(sessionId);
   const [selfParticipantId, setSelfParticipantId] = useState<number | null>(null);
   const [participantRole, setParticipantRole] = useState<SessionRole | null>(null);
+  // Vrai tant que la tentative de reprise via le cookie retro_resume n'a pas
+  // répondu : évite d'afficher JoinSessionModal avant de savoir si on peut
+  // reconnecter automatiquement l'utilisateur (flash modal → reconnexion).
+  const [isResumingFromCookie, setIsResumingFromCookie] = useState<boolean>(true);
 
   // L'utilisateur connecté est identifié par son cookie HttpOnly (envoyé
   // automatiquement) : ses "headers d'acteur" se limitent à son numéro de
@@ -144,6 +149,50 @@ export const useSessionIdentity = ({
     };
   }, [isSessionReady, isAuthenticated, guestIdentity, selfParticipantId, sessionId, clearGuestIdentity, sessionStatus]);
 
+  // JWT expiré mais cookie retro_resume (24h) encore valide : l'utilisateur
+  // avait rejoint cette session authentifié, on le reconnecte automatiquement
+  // sous la même identité (désormais portée par un guestToken, comme un
+  // invité classique). Ne se déclenche que si aucun des deux cas ci-dessus
+  // n'a déjà résolu l'identité.
+  useEffect(() => {
+    if (!isValidSessionId(sessionId)) return;
+    if (!isSessionReady || isAuthenticated || guestIdentity || selfParticipantId || sessionStatus === 'closed') {
+      return;
+    }
+
+    let isActive = true;
+
+    const resumeFromCookieAttempt = async (): Promise<void> => {
+      try {
+        const result = await resumeFromCookie(sessionId);
+
+        if (!isActive) return;
+
+        if (result.ok) {
+          setGuestIdentity({
+            participantId: result.data.id,
+            guestToken: result.data.guestToken,
+            displayName: result.data.displayName,
+          });
+          setSelfParticipantId(result.data.id);
+          setParticipantRole(result.data.role);
+        }
+        // Échec attendu (pas de cookie, ou cookie d'une autre session) : le
+        // comportement reste inchangé, JoinSessionModal prendra le relais.
+      } catch (error) {
+        console.error('Erreur lors de la reprise via cookie :', error);
+      } finally {
+        if (isActive) setIsResumingFromCookie(false);
+      }
+    };
+
+    void resumeFromCookieAttempt();
+
+    return () => {
+      isActive = false;
+    };
+  }, [isSessionReady, isAuthenticated, guestIdentity, selfParticipantId, sessionId, setGuestIdentity, sessionStatus]);
+
   const handleGuestJoined = useCallback((result: GuestJoinResponse): void => {
     setGuestIdentity({
       participantId: result.id,
@@ -191,6 +240,7 @@ export const useSessionIdentity = ({
     clearGuestIdentity,
     guestIdentity,
     handleGuestJoined,
+    isResumingFromCookie,
     leaveParticipation,
     renameSelf,
     role,

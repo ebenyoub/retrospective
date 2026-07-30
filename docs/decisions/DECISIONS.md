@@ -243,4 +243,16 @@
 
 ---
 
+## 2026-07-30 — Reconnexion via cookie de reprise : accès complet en écriture, pas une reprise en lecture seule
+
+**Décision** : Sur `BUG-SESSION-RESUME-01`, un participant dont le JWT (1h) a expiré mais dont le cookie signé `retro_resume` (24h) est encore valide est reconnecté avec les **mêmes droits qu'à sa jointure initiale** (écriture, vote, etc.), via un nouveau `guest_token` généré côté serveur (`POST /session/:sessionId/participants/resume-from-cookie`) et non plus par son JWT. Un participant initialement authentifié redevient ainsi "pilotable" comme un invité classique (jeton en `localStorage`) une fois cette reprise effectuée.
+
+**Pourquoi** : `retro_resume` est un cookie **signé côté serveur**, jamais falsifiable par le client — il constitue donc une preuve d'identité suffisante pour réactiver un participant sans lui redemander son mot de passe, et limiter la reprise à de la lecture seule aurait dégradé l'expérience sans bénéfice de sécurité réel.
+
+**Alternatives considérées** :
+- Pré-remplir seulement le pseudo dans la modale de jointure → rejeté par l'utilisateur, oblige à rejoindre à nouveau alors que l'identité est déjà prouvée par le cookie.
+- Reprise en lecture seule uniquement (comme une session close) → rejeté, la session reste ouverte et le participant doit pouvoir continuer à y contribuer normalement.
+
+---
+
 > Ajouter une entrée à chaque fois qu'une décision technique importante est prise.
