@@ -1,15 +1,16 @@
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Container from "@/components/ui/Container";
 import Form, { FormField, FormLabel, FormInput, FormTitle } from "@/components/ui/Form";
 import Button from "@/components/ui/Button";
 import SpinContainer from "@/components/ui/SpinContainer";
+import RetroFormatDropdown from "@/components/RetroFormatDropdown";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/context/toast/useToast";
 import { getApiErrorMessage, NETWORK_ERROR_MESSAGE } from "@/lib/apiError";
-import { DEFAULT_RETRO_FORMAT_ID, RETRO_FORMAT_OPTIONS, getRetroFormatById } from "@/lib/retroFormats";
+import { DEFAULT_RETRO_FORMAT_ID, getRetroFormatById } from "@/lib/retroFormats";
 import { createSession } from "./services/sessionApi";
 import type { CreatedSession } from './types/session.types';
 
@@ -19,6 +20,9 @@ const createSessionSchema = z.object({
     .refine((value) => value.trim().length >= 3, "Le nom doit faire au moins 3 caractères."),
   formatId: z.string()
     .refine((value) => value.trim() !== "", "Le format est requis."),
+  col1: z.string().trim().min(1, "Colonne 1 requise.").optional(),
+  col2: z.string().trim().min(1, "Colonne 2 requise.").optional(),
+  col3: z.string().trim().min(1, "Colonne 3 requise.").optional(),
 });
 
 type CreateSessionValues = z.infer<typeof createSessionSchema>;
@@ -30,22 +34,37 @@ const SessionCreate = () => {
 
   const {
     register,
+    control,
     handleSubmit,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<CreateSessionValues>({
     resolver: zodResolver(createSessionSchema),
-    defaultValues: { name: "", formatId: DEFAULT_RETRO_FORMAT_ID },
+    defaultValues: { name: "", formatId: DEFAULT_RETRO_FORMAT_ID, col1: "Colonne 1", col2: "Colonne 2", col3: "Colonne 3" },
     mode: "all",
   });
 
+  const formatId = watch("formatId");
+
   const onSubmit = async (values: CreateSessionValues) => {
     const selectedFormat = getRetroFormatById(values.formatId);
+    let formatName = selectedFormat.name;
+    let formatColumns = selectedFormat.columns;
+
+    if (values.formatId === "custom-3-columns") {
+      formatColumns = [
+        values.col1?.trim() || "Colonne 1",
+        values.col2?.trim() || "Colonne 2",
+        values.col3?.trim() || "Colonne 3",
+      ];
+      formatName = formatColumns.join(" / ");
+    }
 
     try {
       const result = await createSession({
         name: values.name,
-        formatName: selectedFormat.name,
-        formatColumns: selectedFormat.columns,
+        formatName,
+        formatColumns,
         stepDurationMinutes: 5,
       });
 
@@ -87,20 +106,57 @@ const SessionCreate = () => {
 
             <FormField>
               <FormLabel htmlFor="formatId">Format de rétro</FormLabel>
-              <select
-                id="formatId"
-                disabled={isSubmitting}
-                className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none transition-colors focus:border-blue-400 disabled:opacity-60"
-                {...register("formatId")}
-              >
-                {RETRO_FORMAT_OPTIONS.map((format) => (
-                  <option key={format.id} value={format.id}>
-                    {format.name}
-                  </option>
-                ))}
-              </select>
-              {errors.formatId && <small className="text-red-500 text-xs mt-1">{errors.formatId.message}</small>}
+              <Controller
+                name="formatId"
+                control={control}
+                render={({ field }) => (
+                  <RetroFormatDropdown
+                    id="formatId"
+                    value={field.value ?? ""}
+                    onChange={field.onChange}
+                    disabled={isSubmitting}
+                    aria-invalid={!!errors.formatId}
+                    aria-describedby={errors.formatId ? "formatId-error" : undefined}
+                  />
+                )}
+              />
+              {errors.formatId && <small id="formatId-error" className="text-red-500 text-xs mt-1">{errors.formatId.message}</small>}
             </FormField>
+
+            {formatId === "custom-3-columns" && (
+              <div className="grid grid-cols-3 gap-2">
+                <FormField>
+                  <FormLabel htmlFor="col1">Col. 1</FormLabel>
+                  <FormInput
+                    id="col1"
+                    disabled={isSubmitting}
+                    className={errors.col1 ? 'border-red-500' : ''}
+                    {...register("col1")}
+                  />
+                  {errors.col1 && <small className="text-red-500 text-xs mt-1">{errors.col1.message}</small>}
+                </FormField>
+                <FormField>
+                  <FormLabel htmlFor="col2">Col. 2</FormLabel>
+                  <FormInput
+                    id="col2"
+                    disabled={isSubmitting}
+                    className={errors.col2 ? 'border-red-500' : ''}
+                    {...register("col2")}
+                  />
+                  {errors.col2 && <small className="text-red-500 text-xs mt-1">{errors.col2.message}</small>}
+                </FormField>
+                <FormField>
+                  <FormLabel htmlFor="col3">Col. 3</FormLabel>
+                  <FormInput
+                    id="col3"
+                    disabled={isSubmitting}
+                    className={errors.col3 ? 'border-red-500' : ''}
+                    {...register("col3")}
+                  />
+                  {errors.col3 && <small className="text-red-500 text-xs mt-1">{errors.col3.message}</small>}
+                </FormField>
+              </div>
+            )}
 
             <Button unstyled type="submit" className="w-full justify-center">
               Créer la session

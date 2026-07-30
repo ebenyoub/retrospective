@@ -70,10 +70,15 @@ export const findRetroFormatByName = (formatName: string): RetroFormatPreset | n
 export const isValidRetroFormatSelection = (formatName: string, formatColumns: string[]): boolean => {
   const format = findRetroFormatByName(formatName);
 
-  if (!format) return false;
+  if (format) {
+    const expectedColumns = getRetroFormatColumnLabels(format);
+    return expectedColumns.length === formatColumns.length
+      && expectedColumns.every((column, index) => column === formatColumns[index]);
+  }
 
-  const expectedColumns = getRetroFormatColumnLabels(format);
-
-  return expectedColumns.length === formatColumns.length
-    && expectedColumns.every((column, index) => column === formatColumns[index]);
+  // Si le format n'est pas un preset, c'est un format personnalisé.
+  // On accepte s'il y a exactement 3 colonnes et qu'aucune n'est vide ou trop longue.
+  return Array.isArray(formatColumns) 
+    && formatColumns.length === 3 
+    && formatColumns.every((col) => typeof col === 'string' && col.trim() !== '' && col.trim().length <= 30);
 };

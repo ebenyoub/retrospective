@@ -106,7 +106,8 @@ describe('CreateAccountForm', () => {
 
     const onSessionCreated = renderForm();
     fillValidForm();
-    fireEvent.change(screen.getByLabelText('Format de rétro'), { target: { value: 'went-well-improve-next-actions' } });
+    fireEvent.click(screen.getByLabelText('Format de rétro'));
+    fireEvent.click(screen.getByRole('option', { name: 'Bien passé / À améliorer / Prochaines actions' }));
 
     fireEvent.click(screen.getByRole('button', { name: 'Créer et lancer' }));
 
@@ -120,16 +121,19 @@ describe('CreateAccountForm', () => {
     });
   });
 
-  it('affiche uniquement les 6 formats MVP validés', () => {
+  it('affiche uniquement les 7 formats de rétro validés', () => {
     renderForm();
 
-    expect(Array.from(screen.getByLabelText('Format de rétro').querySelectorAll('option')).map((option) => option.textContent)).toEqual([
+    fireEvent.click(screen.getByLabelText('Format de rétro'));
+
+    expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual([
       'Commencer / Arrêter / Continuer',
       'Points positifs / Points négatifs / Actions',
       'Succès / Difficultés / Idées',
       "J'ai aimé / J'ai moins aimé / Propositions",
       'Conserver / Améliorer / Innover',
       'Bien passé / À améliorer / Prochaines actions',
+      'Créer un format personnalisé (3 colonnes)',
     ]);
   });
 

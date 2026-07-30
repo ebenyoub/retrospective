@@ -130,7 +130,8 @@ test.describe('création de session avec format MVP', () => {
       await page.goto('/session');
 
       await page.getByLabel('Nom de la session').fill('Sprint format');
-      await page.getByLabel('Format de rétro').selectOption(format.id);
+      await page.getByLabel('Format de rétro').click();
+      await page.getByRole('option', { name: format.name }).click();
       await page.getByRole('button', { name: 'Créer la session' }).click();
 
       await expect(page.getByText('Félicitations !')).toBeVisible();

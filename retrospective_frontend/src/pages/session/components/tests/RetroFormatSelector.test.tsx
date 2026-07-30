@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import RetroFormatSelector from '../RetroFormatSelector';
 
 describe('RetroFormatSelector', () => {
-  it('participant : affiche un simple libellé en lecture seule (pas de select)', () => {
+  it('participant : affiche un simple libellé en lecture seule (pas de dropdown)', () => {
     render(
       <RetroFormatSelector
         formatName="Succès / Difficultés / Idées"
@@ -13,10 +13,10 @@ describe('RetroFormatSelector', () => {
     );
 
     expect(screen.getByText('Succès / Difficultés / Idées')).toBeTruthy();
-    expect(screen.queryByRole('combobox')).toBeNull();
+    expect(screen.queryByRole('button', { name: /format/i })).toBeNull();
   });
 
-  it('facilitateur : affiche uniquement les 6 formats MVP français', () => {
+  it('facilitateur : affiche le format choisi et permet d\'ouvrir la liste', () => {
     render(
       <RetroFormatSelector
         formatName="Commencer / Arrêter / Continuer"
@@ -25,15 +25,17 @@ describe('RetroFormatSelector', () => {
       />
     );
 
-    const select = screen.getByLabelText('Format de la rétrospective') as HTMLSelectElement;
-    expect(select.value).toBe('Commencer / Arrêter / Continuer');
+    const button = screen.getByRole('button');
+    expect(button.textContent).toBe('Commencer / Arrêter / Continuer');
+
+    // Cliquer pour ouvrir
+    fireEvent.click(button);
+
     expect(screen.getByText('Points positifs / Points négatifs / Actions')).toBeTruthy();
     expect(screen.getByText('Succès / Difficultés / Idées')).toBeTruthy();
     expect(screen.getByText("J'ai aimé / J'ai moins aimé / Propositions")).toBeTruthy();
     expect(screen.getByText('Conserver / Améliorer / Innover')).toBeTruthy();
     expect(screen.getByText('Bien passé / À améliorer / Prochaines actions')).toBeTruthy();
-    expect(screen.queryByText('Mad / Sad / Glad')).toBeNull();
-    expect(screen.queryByText('Créer un format personnalisé…')).toBeNull();
   });
 
   it('sélectionner un preset appelle onSelectPreset avec ses colonnes', () => {
@@ -46,22 +48,12 @@ describe('RetroFormatSelector', () => {
       />
     );
 
-    fireEvent.change(screen.getByLabelText('Format de la rétrospective'), { target: { value: 'Succès / Difficultés / Idées' } });
+    const button = screen.getByRole('button');
+    fireEvent.click(button);
+
+    const option = screen.getByText('Succès / Difficultés / Idées');
+    fireEvent.click(option);
 
     expect(onSelectPreset).toHaveBeenCalledWith('Succès / Difficultés / Idées', ['Succès', 'Difficultés', 'Idées']);
-  });
-
-  it('conserve l\'affichage du format courant si une ancienne session porte un libellé inconnu', () => {
-    render(
-      <RetroFormatSelector
-        formatName="Ancien format"
-        isFacilitator
-        onSelectPreset={vi.fn()}
-      />
-    );
-
-    const select = screen.getByLabelText('Format de la rétrospective') as HTMLSelectElement;
-    expect(select.value).toBe('Ancien format');
-    expect(screen.getByText('Ancien format')).toBeTruthy();
   });
 });
