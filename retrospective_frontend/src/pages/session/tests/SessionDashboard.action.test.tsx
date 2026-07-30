@@ -297,7 +297,7 @@ describe('SessionDashboard - Plan d\'action (Action Step)', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Commentaires' }));
 
-    const section = await screen.findByRole('region', { name: 'Discussion' });
+    const section = await screen.findByRole('region', { name: 'Commentaires' });
     await within(section).findByText('Un avis pendant le plan d\'action');
   });
 });

@@ -262,7 +262,9 @@ const DiscussionDrawer = () => {
     if (!isOpen || !isFloating) return;
 
     const handleClickOutside = (event: MouseEvent): void => {
-      if (floatingPanelRef.current?.contains(event.target as Node)) return;
+      const target = event.target as HTMLElement;
+      if (floatingPanelRef.current?.contains(target)) return;
+      if (target.closest('[aria-label="Discussion"]')) return;
       onClose();
     };
 

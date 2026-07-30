@@ -3,10 +3,11 @@ import { useEffect, useState } from 'react';
 import type { RetroCard } from '../types/card.types';
 
 const MOBILE_QUERY = '(max-width: 767px)';
-// Même seuil que le breakpoint Tailwind `xl` : au-delà, la navbar de session
-// fusionne outils + actions sur une seule ligne plutôt que d'empiler 3 barres
-// (voir SessionNavigationBar/SessionActionBar).
-const DESKTOP_QUERY = '(min-width: 1280px)';
+// Au-delà de ce seuil, la navbar de session fusionne outils + actions sur une
+// seule ligne plutôt que d'empiler 3 barres (voir
+// SessionNavigationBar/SessionActionBar). Abaissé sous le `xl` Tailwind
+// (1280px) car la place restait suffisante dès 1152px pour cette fusion.
+const DESKTOP_QUERY = '(min-width: 1152px)';
 
 const readMediaQuery = (query: string): boolean => (
   typeof window !== 'undefined'

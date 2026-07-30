@@ -4,6 +4,18 @@
 
 ## Date de dernière mise à jour
 
+2026-07-30 (Lot de 7 correctifs UI/UX de session, sur `feature/UI-FIXES-BATCH-01` :
+- `BUG-CARD-TEXT-WRAP-01` — texte de carte débordant, classe Tailwind invalide corrigée en `break-words`.
+- `BUG-DISCUSSION-TOGGLE-01` — re-clic sur "Discussion" refermait puis rouvrait aussitôt le panneau flottant, bouton exclu du clic-extérieur.
+- `BUG-CARD-INPUT-SCROLL-01` — ascenseur inesthétique du champ d'ajout de carte, overflow piloté dynamiquement en JS.
+- `BUG-CARD-COMMENTS-OUTSIDE-CLICK-01` — commentaires d'une carte ne se fermaient pas au clic extérieur, nouveau clic-extérieur ajouté.
+- `UX-STEP-BREAKPOINT-01` — indicateur d'étapes disparaissant trop tôt à 1280px, seuil abaissé à 1152px.
+- `UX-NAVBAR-RIGHT-STABLE-01` — éléments de la navbar droite instables au redimensionnement, synchronisés sur le même seuil 1152px que `UX-STEP-BREAKPOINT-01`.
+- `BUG-CARD-COMMENTS-TITLE-01` — titre "Discussion" retiré à tort du panneau de commentaires d'une carte, "Discussion" ne désignant que le panneau latéral de messages.
+- **Régression trouvée et corrigée en cours de route** sur `BUG-DISCUSSION-TOGGLE-01` : un premier correctif cassait complètement l'ouverture du panneau en mode flottant, re-testé sur les 3 scénarios exacts après correction.
+- **Tests** : 203/203 Vitest, 26/26 Playwright, vérification visuelle en navigateur réel pour `UX-STEP-BREAKPOINT-01`/`UX-NAVBAR-RIGHT-STABLE-01` à plusieurs largeurs de viewport.
+- **État** : revue de code PRÊT À COMMITTER, rien encore commité — commit unique prévu pour tout le lot.)
+
 2026-07-29 (`DEPLOY-VPS-01` — Déploiement du projet sur le VPS partagé Hetzner (`167.233.194.26`), sur `feature/DEPLOY-VPS-01-deploiement-vps`. Architecture validée par l'utilisateur, en cours de mise en place (documentation faite en parallèle de la création des fichiers techniques par `frontend-react`/`backend-express` ; premier déploiement réel pas encore exécuté).
 - Sous-domaine `retrospective.elyasbenyoub.dev`, nginx partagé du VPS, routage par chemin sous un même sous-domaine (`/auth/`, `/session/`, `/socket.io/` → backend, `/` → frontend) — nécessaire pour le cookie HttpOnly d'authentification, particularité de ce projet par rapport aux 3 autres déjà déployés sur ce VPS.
 - Bloc nginx complet documenté dans `docs/technical/nginx-retrospective.conf` (en-têtes WebSocket pour Socket.IO, autre particularité de ce projet).

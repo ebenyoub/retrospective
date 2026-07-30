@@ -289,13 +289,13 @@ describe('SessionDashboard - Tiroirs et Modals (Panes)', () => {
 
     fireEvent.click(commentsButton);
 
-    const section = await screen.findByRole('region', { name: 'Discussion' });
+    const section = await screen.findByRole('region', { name: 'Commentaires' });
     await within(section).findByText('Aucun commentaire pour le moment.');
     expect((within(section).getByRole('textbox', { name: 'Écrire un commentaire' }) as HTMLTextAreaElement).disabled).toBe(false);
     expect((within(section).getByRole('button', { name: 'Envoyer le commentaire' }) as HTMLButtonElement).disabled).toBe(true);
 
     fireEvent.click(commentsButton);
-    expect(screen.queryByRole('region', { name: 'Discussion' })).toBeNull();
+    expect(screen.queryByRole('region', { name: 'Commentaires' })).toBeNull();
   });
 
   it('affiche les commentaires existants et permet d\'en ajouter un', async () => {
@@ -359,7 +359,7 @@ describe('SessionDashboard - Tiroirs et Modals (Panes)', () => {
     await screen.findByText('Carte à commenter');
     fireEvent.click(screen.getByRole('button', { name: 'Commentaires' }));
 
-    const section = await screen.findByRole('region', { name: 'Discussion' });
+    const section = await screen.findByRole('region', { name: 'Commentaires' });
     await within(section).findByText('Un premier commentaire');
     expect(within(section).getByText('Sarah')).toBeTruthy();
 
@@ -429,7 +429,7 @@ describe('SessionDashboard - Tiroirs et Modals (Panes)', () => {
     await screen.findByText('Carte à commenter');
     fireEvent.click(screen.getByRole('button', { name: 'Commentaires' }));
 
-    const section = await screen.findByRole('region', { name: 'Discussion' });
+    const section = await screen.findByRole('region', { name: 'Commentaires' });
     await within(section).findByText('Mon commentaire');
 
     fireEvent.click(within(section).getByRole('button', { name: 'Supprimer le commentaire' }));
@@ -468,7 +468,7 @@ describe('SessionDashboard - Tiroirs et Modals (Panes)', () => {
     await screen.findByText('Carte à commenter');
     fireEvent.click(screen.getByRole('button', { name: 'Commentaires' }));
 
-    const section = await screen.findByRole('region', { name: 'Discussion' });
+    const section = await screen.findByRole('region', { name: 'Commentaires' });
     await within(section).findByText('Aucun commentaire pour le moment.');
 
     mockSocket.__trigger('session:comment-added', {
@@ -652,13 +652,13 @@ describe('SessionDashboard - Tiroirs et Modals (Panes)', () => {
     const [firstCommentsButton, secondCommentsButton] = screen.getAllByRole('button', { name: 'Commentaires' });
 
     fireEvent.click(firstCommentsButton);
-    expect(await screen.findByRole('region', { name: 'Discussion' })).toBeTruthy();
+    expect(await screen.findByRole('region', { name: 'Commentaires' })).toBeTruthy();
     expect(firstCommentsButton.getAttribute('aria-expanded')).toBe('true');
 
     fireEvent.click(secondCommentsButton);
 
     expect(firstCommentsButton.getAttribute('aria-expanded')).toBe('false');
     expect(secondCommentsButton.getAttribute('aria-expanded')).toBe('true');
-    expect(screen.getAllByRole('region', { name: 'Discussion' })).toHaveLength(1);
+    expect(screen.getAllByRole('region', { name: 'Commentaires' })).toHaveLength(1);
   });
 });
