@@ -25,7 +25,7 @@ const RetroFormatSelector = ({
   };
 
   return (
-    <div className="w-52">
+    <div className="w-72">
       <RetroFormatDropdown
         id="retro-format-lobby"
         value={selectedPreset.id}

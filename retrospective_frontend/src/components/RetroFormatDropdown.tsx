@@ -101,7 +101,7 @@ const RetroFormatDropdown = ({
           role="listbox"
           aria-label="Format de rétro"
           onKeyDown={handleMenuKeyDown}
-          className="absolute left-0 right-0 mt-2 rounded-[10px] border border-navy-border bg-navy-mid shadow-[0_8px_32px_rgba(0,0,0,0.35)] py-1.5 z-50"
+          className="absolute left-0 mt-2 min-w-full w-max max-w-[calc(100vw-2rem)] rounded-[10px] border border-navy-border bg-navy-mid shadow-[0_8px_32px_rgba(0,0,0,0.35)] py-1.5 z-50"
         >
           {RETRO_FORMAT_OPTIONS.map((format, index) => {
             const isSelected = format.id === value;
@@ -115,9 +115,9 @@ const RetroFormatDropdown = ({
                 tabIndex={index === activeIndex ? 0 : -1}
                 onClick={() => selectItem(index)}
                 onMouseEnter={() => setActiveIndex(index)}
-                className="w-full flex items-center justify-between gap-2 text-left px-3.5 py-2 text-xs font-sans cursor-pointer transition-colors text-slate-200 focus-visible:outline-none focus-visible:bg-white/10 hover:bg-white/10"
+                className="w-full flex items-center justify-between gap-4 text-left px-3.5 py-2 text-xs font-sans cursor-pointer transition-colors text-slate-200 focus-visible:outline-none focus-visible:bg-white/10 hover:bg-white/10"
               >
-                <span className="truncate">{format.name}</span>
+                <span className="whitespace-nowrap">{format.name}</span>
                 {isSelected && <Check className="h-4 w-4 shrink-0 text-blue-400" aria-hidden="true" />}
               </button>
             );
