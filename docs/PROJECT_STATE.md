@@ -4,6 +4,25 @@
 
 ## Date de dernière mise à jour
 
+2026-07-30 (`UX-RETRO-FORMAT-DROPDOWN-01` — Amélioration UX ponctuelle demandée par
+l'utilisateur, sur `feature/UX-RETRO-FORMAT-DROPDOWN-01` : remplacement du `<select>`
+natif du champ "Format de rétro" (dupliqué à l'identique dans 3 formulaires) par un
+menu déroulant custom accessible.
+- **Solution** : nouveau composant partagé `RetroFormatDropdown.tsx` (+ types dédiés),
+  reprenant le pattern accessible déjà utilisé par `ProfileMenu.tsx` (clic extérieur,
+  clavier Échap/flèches/Tab, gestion du focus) mais adapté en listbox de sélection de
+  valeur (`role="listbox"`/`"option"`, `aria-selected`, coche sur l'item choisi).
+  Intégré dans `CreateSessionForm.tsx`, `CreateAccountForm.tsx` et `SessionCreate.tsx`
+  via `Controller` de react-hook-form (remplace `{...register("formatId")}`,
+  incompatible avec un composant non natif).
+- **Point corrigé en revue** (`reviewer-code`) : `aria-describedby` de
+  `SessionCreate.tsx` référençait un id absent du DOM (`formatId-error`).
+- **Tests** : `tsc --noEmit` propre, 205 Vitest + 26 E2E Playwright verts (4 fichiers
+  de test adaptés au nouveau composant), vérification fonctionnelle réelle en
+  navigateur (souris, clavier, accessibilité, soumission). Revu deux fois par
+  `reviewer-code` : PRÊT À COMMITTER sur les 9 fichiers.
+- **État** : PRÊT À COMMITTER, pas encore commité.)
+
 2026-07-30 (`REFACTOR-SESSION-DASHBOARD-01` — Refactor pur (zéro changement de
 comportement) de `SessionDashboard.tsx` (373 → 305 lignes), sur
 `feature/REFACTOR-SESSION-DASHBOARD-01`, demandé par l'utilisateur car le fichier

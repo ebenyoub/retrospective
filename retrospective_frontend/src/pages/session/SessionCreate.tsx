@@ -1,15 +1,16 @@
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Container from "@/components/ui/Container";
 import Form, { FormField, FormLabel, FormInput, FormTitle } from "@/components/ui/Form";
 import Button from "@/components/ui/Button";
 import SpinContainer from "@/components/ui/SpinContainer";
+import RetroFormatDropdown from "@/components/RetroFormatDropdown";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/context/toast/useToast";
 import { getApiErrorMessage, NETWORK_ERROR_MESSAGE } from "@/lib/apiError";
-import { DEFAULT_RETRO_FORMAT_ID, RETRO_FORMAT_OPTIONS, getRetroFormatById } from "@/lib/retroFormats";
+import { DEFAULT_RETRO_FORMAT_ID, getRetroFormatById } from "@/lib/retroFormats";
 import { createSession } from "./services/sessionApi";
 import type { CreatedSession } from './types/session.types';
 
@@ -30,6 +31,7 @@ const SessionCreate = () => {
 
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<CreateSessionValues>({
@@ -87,19 +89,21 @@ const SessionCreate = () => {
 
             <FormField>
               <FormLabel htmlFor="formatId">Format de rétro</FormLabel>
-              <select
-                id="formatId"
-                disabled={isSubmitting}
-                className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none transition-colors focus:border-blue-400 disabled:opacity-60"
-                {...register("formatId")}
-              >
-                {RETRO_FORMAT_OPTIONS.map((format) => (
-                  <option key={format.id} value={format.id}>
-                    {format.name}
-                  </option>
-                ))}
-              </select>
-              {errors.formatId && <small className="text-red-500 text-xs mt-1">{errors.formatId.message}</small>}
+              <Controller
+                name="formatId"
+                control={control}
+                render={({ field }) => (
+                  <RetroFormatDropdown
+                    id="formatId"
+                    value={field.value}
+                    onChange={field.onChange}
+                    disabled={isSubmitting}
+                    aria-invalid={!!errors.formatId}
+                    aria-describedby={errors.formatId ? "formatId-error" : undefined}
+                  />
+                )}
+              />
+              {errors.formatId && <small id="formatId-error" className="text-red-500 text-xs mt-1">{errors.formatId.message}</small>}
             </FormField>
 
             <Button unstyled type="submit" className="w-full justify-center">

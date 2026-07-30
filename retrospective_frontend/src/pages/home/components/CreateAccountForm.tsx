@@ -1,16 +1,17 @@
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { NavLink } from "react-router-dom";
 import Button from "@/components/ui/Button";
 import { FormField, FormLabel, FormInput } from "@/components/ui/Form";
+import RetroFormatDropdown from "@/components/RetroFormatDropdown";
 import { useAuth } from "@/context/auth/useAuth";
 import type { AuthLoginData } from "@/context/auth/types/auth.types";
 import { getApiErrorMessage, isApiSuccess, NETWORK_ERROR_MESSAGE, readJsonSafely } from "@/lib/apiError";
 import FieldError from "@/components/ui/FieldError";
 
 import { API_BASE } from "@/lib/api";
-import { DEFAULT_RETRO_FORMAT_ID, RETRO_FORMAT_OPTIONS, getRetroFormatById } from "@/lib/retroFormats";
+import { DEFAULT_RETRO_FORMAT_ID, getRetroFormatById } from "@/lib/retroFormats";
 import type { CreateAccountFormProps } from "./types/CreateAccountForm.types";
 
 const createAccountSchema = z
@@ -39,6 +40,7 @@ const CreateAccountForm = ({ onSessionCreated }: CreateAccountFormProps) => {
 
   const {
     register,
+    control,
     handleSubmit,
     setError,
     formState: { errors, isSubmitting },
@@ -189,18 +191,20 @@ const CreateAccountForm = ({ onSessionCreated }: CreateAccountFormProps) => {
 
       <FormField>
         <FormLabel htmlFor="formatId">Format de rétro</FormLabel>
-        <select
-          id="formatId"
-          disabled={isSubmitting}
-          className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none transition-colors focus:border-blue-400 disabled:opacity-60"
-          {...register("formatId")}
-        >
-          {RETRO_FORMAT_OPTIONS.map((format) => (
-            <option key={format.id} value={format.id}>
-              {format.name}
-            </option>
-          ))}
-        </select>
+        <Controller
+          name="formatId"
+          control={control}
+          render={({ field }) => (
+            <RetroFormatDropdown
+              id="formatId"
+              value={field.value}
+              onChange={field.onChange}
+              disabled={isSubmitting}
+              aria-invalid={!!errors.formatId}
+              aria-describedby={errors.formatId ? "formatId-error" : undefined}
+            />
+          )}
+        />
         <FieldError id="formatId-error" message={errors.formatId?.message} />
       </FormField>
 

@@ -41,7 +41,8 @@ describe('CreateSessionForm', () => {
 
     const onSessionCreated = renderForm();
     fireEvent.change(screen.getByLabelText('Nom de la rétro'), { target: { value: 'Sprint 43' } });
-    fireEvent.change(screen.getByLabelText('Format de rétro'), { target: { value: 'success-difficulties-ideas' } });
+    fireEvent.click(screen.getByLabelText('Format de rétro'));
+    fireEvent.click(screen.getByRole('option', { name: 'Succès / Difficultés / Idées' }));
     fireEvent.click(screen.getByRole('button', { name: 'Créer et lancer' }));
 
     await vi.waitFor(() => expect(onSessionCreated).toHaveBeenCalledWith(7));
@@ -61,7 +62,9 @@ describe('CreateSessionForm', () => {
   it('affiche uniquement les 6 formats MVP validés', () => {
     renderForm();
 
-    expect(Array.from(screen.getByLabelText('Format de rétro').querySelectorAll('option')).map((option) => option.textContent)).toEqual([
+    fireEvent.click(screen.getByLabelText('Format de rétro'));
+
+    expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual([
       'Commencer / Arrêter / Continuer',
       'Points positifs / Points négatifs / Actions',
       'Succès / Difficultés / Idées',

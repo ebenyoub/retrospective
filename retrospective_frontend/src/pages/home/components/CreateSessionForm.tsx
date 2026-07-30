@@ -1,13 +1,14 @@
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Button from "@/components/ui/Button";
 import { FormField, FormLabel, FormInput } from "@/components/ui/Form";
+import RetroFormatDropdown from "@/components/RetroFormatDropdown";
 import { getApiErrorMessage, isApiSuccess, NETWORK_ERROR_MESSAGE, readJsonSafely } from "@/lib/apiError";
 import FieldError from "@/components/ui/FieldError";
 
 import { API_BASE } from "@/lib/api";
-import { DEFAULT_RETRO_FORMAT_ID, RETRO_FORMAT_OPTIONS, getRetroFormatById } from "@/lib/retroFormats";
+import { DEFAULT_RETRO_FORMAT_ID, getRetroFormatById } from "@/lib/retroFormats";
 import type { CreateSessionFormProps } from "./types/CreateSessionForm.types";
 
 const createSessionSchema = z.object({
@@ -24,6 +25,7 @@ type CreateSessionValues = z.infer<typeof createSessionSchema>;
 const CreateSessionForm = ({ onSessionCreated }: CreateSessionFormProps) => {
   const {
     register,
+    control,
     handleSubmit,
     setError,
     formState: { errors, isSubmitting },
@@ -77,18 +79,20 @@ const CreateSessionForm = ({ onSessionCreated }: CreateSessionFormProps) => {
 
       <FormField>
         <FormLabel htmlFor="formatId">Format de rétro</FormLabel>
-        <select
-          id="formatId"
-          disabled={isSubmitting}
-          className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none transition-colors focus:border-blue-400 disabled:opacity-60"
-          {...register("formatId")}
-        >
-          {RETRO_FORMAT_OPTIONS.map((format) => (
-            <option key={format.id} value={format.id}>
-              {format.name}
-            </option>
-          ))}
-        </select>
+        <Controller
+          name="formatId"
+          control={control}
+          render={({ field }) => (
+            <RetroFormatDropdown
+              id="formatId"
+              value={field.value}
+              onChange={field.onChange}
+              disabled={isSubmitting}
+              aria-invalid={!!errors.formatId}
+              aria-describedby={errors.formatId ? "formatId-error" : undefined}
+            />
+          )}
+        />
         <FieldError id="formatId-error" message={errors.formatId?.message} />
       </FormField>
 
