@@ -69,7 +69,7 @@ test('parcours produit complet : inscription, création, écriture, vote, plan d
   // ── MOCKS RÉSEAU DYNAMIQUES ──
 
   // 1. Inscription
-  await page.route('http://localhost:8000/auth/signup', async (route) => {
+  await page.route('http://localhost:8000/api/auth/signup', async (route) => {
     await route.fulfill({
       status: 201,
       contentType: 'application/json',
@@ -86,7 +86,7 @@ test('parcours produit complet : inscription, création, écriture, vote, plan d
   });
 
   // 2. Profil
-  await page.route('http://localhost:8000/auth/profile', async (route) => {
+  await page.route('http://localhost:8000/api/auth/profile', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -98,7 +98,7 @@ test('parcours produit complet : inscription, création, écriture, vote, plan d
   });
 
   // 3. Création de session
-  await page.route('http://localhost:8000/session/create-session', async (route) => {
+  await page.route('http://localhost:8000/api/session/create-session', async (route) => {
     await route.fulfill({
       status: 201,
       contentType: 'application/json',
@@ -110,7 +110,7 @@ test('parcours produit complet : inscription, création, écriture, vote, plan d
   });
 
   // 4. Détails de la session 600 (dynamique basé sur currentStep)
-  await page.route('http://localhost:8000/session/600', async (route) => {
+  await page.route('http://localhost:8000/api/session/600', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -133,7 +133,7 @@ test('parcours produit complet : inscription, création, écriture, vote, plan d
   });
 
   // 5. Participants
-  await page.route('http://localhost:8000/session/600/participants/self', async (route) => {
+  await page.route('http://localhost:8000/api/session/600/participants/self', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -141,7 +141,7 @@ test('parcours produit complet : inscription, création, écriture, vote, plan d
     });
   });
 
-  await page.route('http://localhost:8000/session/600/participants', async (route) => {
+  await page.route('http://localhost:8000/api/session/600/participants', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -153,7 +153,7 @@ test('parcours produit complet : inscription, création, écriture, vote, plan d
   });
 
   // Dépendances chargées au montage du tableau.
-  await page.route('http://localhost:8000/session/600/messages', async (route) => {
+  await page.route('http://localhost:8000/api/session/600/messages', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -161,7 +161,7 @@ test('parcours produit complet : inscription, création, écriture, vote, plan d
     });
   });
 
-  await page.route('http://localhost:8000/session/600/actions', async (route) => {
+  await page.route('http://localhost:8000/api/session/600/actions', async (route) => {
     if (route.request().method() === 'POST') {
       const payload: unknown = route.request().postDataJSON();
       if (!isActionPayload(payload)) {
@@ -195,7 +195,7 @@ test('parcours produit complet : inscription, création, écriture, vote, plan d
   });
 
   // 6. Gestion des cartes (dynamique)
-  await page.route('http://localhost:8000/session/600/cards', async (route) => {
+  await page.route('http://localhost:8000/api/session/600/cards', async (route) => {
     if (route.request().method() === 'POST') {
       const payload: unknown = route.request().postDataJSON();
       if (!isCardPayload(payload)) {
@@ -238,7 +238,7 @@ test('parcours produit complet : inscription, création, écriture, vote, plan d
   });
 
   // 7. Transition d'étape (dynamique)
-  await page.route('http://localhost:8000/session/600/step', async (route) => {
+  await page.route('http://localhost:8000/api/session/600/step', async (route) => {
     const payload: unknown = route.request().postDataJSON();
     if (!isStepPayload(payload)) {
       await route.fulfill({ status: 400, contentType: 'application/json', body: JSON.stringify({ success: false }) });
@@ -253,7 +253,7 @@ test('parcours produit complet : inscription, création, écriture, vote, plan d
   });
 
   // 8. Vote
-  await page.route('http://localhost:8000/session/600/cards/1/vote', async (route) => {
+  await page.route('http://localhost:8000/api/session/600/cards/1/vote', async (route) => {
     voted = true;
     await route.fulfill({
       status: 201,
@@ -266,7 +266,7 @@ test('parcours produit complet : inscription, création, écriture, vote, plan d
   });
 
   // 9. Clôture de session et liste affichée après redirection.
-  await page.route('http://localhost:8000/session/600/close', async (route) => {
+  await page.route('http://localhost:8000/api/session/600/close', async (route) => {
     closeRequestSucceeded = route.request().method() === 'POST';
     await route.fulfill({
       status: 200,
@@ -275,7 +275,7 @@ test('parcours produit complet : inscription, création, écriture, vote, plan d
     });
   });
 
-  await page.route('http://localhost:8000/session', async (route) => {
+  await page.route('http://localhost:8000/api/session', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',

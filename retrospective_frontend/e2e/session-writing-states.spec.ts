@@ -5,7 +5,7 @@ const prepareStatesSession = async (page: Page): Promise<void> => {
     window.localStorage.setItem('token', 'playwright-token');
   });
 
-  await page.route('http://localhost:8000/auth/profile', async (route) => {
+  await page.route('http://localhost:8000/api/auth/profile', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -17,7 +17,7 @@ const prepareStatesSession = async (page: Page): Promise<void> => {
   });
 
   // Mock de session avec un délai artificiel pour laisser le temps de voir l'état de chargement
-  await page.route('http://localhost:8000/session/400', async (route) => {
+  await page.route('http://localhost:8000/api/session/400', async (route) => {
     await new Promise((resolve) => setTimeout(resolve, 500));
     await route.fulfill({
       status: 200,
@@ -38,7 +38,7 @@ const prepareStatesSession = async (page: Page): Promise<void> => {
     });
   });
 
-  await page.route('http://localhost:8000/session/400/cards', async (route) => {
+  await page.route('http://localhost:8000/api/session/400/cards', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -46,7 +46,7 @@ const prepareStatesSession = async (page: Page): Promise<void> => {
     });
   });
 
-  await page.route('http://localhost:8000/session/400/participants/self', async (route) => {
+  await page.route('http://localhost:8000/api/session/400/participants/self', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -54,7 +54,7 @@ const prepareStatesSession = async (page: Page): Promise<void> => {
     });
   });
 
-  await page.route('http://localhost:8000/session/400/participants', async (route) => {
+  await page.route('http://localhost:8000/api/session/400/participants', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',

@@ -5,7 +5,7 @@ const prepareCommentsSession = async (page: Page): Promise<void> => {
     window.localStorage.setItem('token', 'playwright-token');
   });
 
-  await page.route('http://localhost:8000/auth/profile', async (route) => {
+  await page.route('http://localhost:8000/api/auth/profile', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -16,7 +16,7 @@ const prepareCommentsSession = async (page: Page): Promise<void> => {
     });
   });
 
-  await page.route('http://localhost:8000/session/300', async (route) => {
+  await page.route('http://localhost:8000/api/session/300', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -36,7 +36,7 @@ const prepareCommentsSession = async (page: Page): Promise<void> => {
     });
   });
 
-  await page.route('http://localhost:8000/session/300/cards', async (route) => {
+  await page.route('http://localhost:8000/api/session/300/cards', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -59,7 +59,7 @@ const prepareCommentsSession = async (page: Page): Promise<void> => {
     });
   });
 
-  await page.route('http://localhost:8000/session/300/participants/self', async (route) => {
+  await page.route('http://localhost:8000/api/session/300/participants/self', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -67,7 +67,7 @@ const prepareCommentsSession = async (page: Page): Promise<void> => {
     });
   });
 
-  await page.route('http://localhost:8000/session/300/participants', async (route) => {
+  await page.route('http://localhost:8000/api/session/300/participants', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -81,7 +81,7 @@ const prepareCommentsSession = async (page: Page): Promise<void> => {
   // Le premier chargement ne trouve aucun commentaire ; l'ajout en crée un.
   let comments: Array<{ id: number; cardId: number; authorId: number; authorName: string; content: string; createdAt: string }> = [];
 
-  await page.route('http://localhost:8000/session/300/cards/1/comments', async (route) => {
+  await page.route('http://localhost:8000/api/session/300/cards/1/comments', async (route) => {
     if (route.request().method() === 'GET') {
       await route.fulfill({
         status: 200,
@@ -112,7 +112,7 @@ const prepareCommentsSession = async (page: Page): Promise<void> => {
     return route.continue();
   });
 
-  await page.route('http://localhost:8000/session/300/cards/1/comments/1', async (route) => {
+  await page.route('http://localhost:8000/api/session/300/cards/1/comments/1', async (route) => {
     comments = comments.filter((comment) => comment.id !== 1);
     await route.fulfill({
       status: 200,
