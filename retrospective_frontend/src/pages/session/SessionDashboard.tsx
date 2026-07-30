@@ -6,11 +6,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { getApiErrorMessage, NETWORK_ERROR_MESSAGE } from '@/lib/apiError';
 import { getRetroFormatById, DEFAULT_RETRO_FORMAT_ID } from '@/lib/retroFormats';
 import { SessionContext } from './context/SessionContext';
-import DiscussionDrawer from './components/DiscussionDrawer';
-import ParticipantsDrawer from './components/ParticipantsDrawer';
-import SessionActionBar from './components/SessionActionBar';
-import SessionIdentityBar from './components/SessionIdentityBar';
-import SessionNavigationBar from './components/SessionNavigationBar';
+import SessionDashboardLayout from './components/SessionDashboardLayout';
 import JoinSessionModal from './components/JoinSessionModal';
 import { useSessionActions } from './hooks/useSessionActions';
 import { useSessionCards } from './hooks/useSessionCards';
@@ -19,18 +15,12 @@ import { useSessionIdentity } from './hooks/useSessionIdentity';
 import { useSessionPanels } from './hooks/useSessionPanels';
 import { useSessionParticipants } from './hooks/useSessionParticipants';
 import { useSessionPolling } from './hooks/useSessionPolling';
+import { useSessionSocketHandlers } from './hooks/useSessionSocketHandlers';
 import { useSessionViewport } from './hooks/useSessionViewport';
 import { useSoundPreference } from './hooks/useSoundPreference';
 import { createAction } from './services/actionApi';
 import type { CreateActionPayload } from './services/actionApi';
 import type { SessionBoardColumn } from './types/board.types';
-import type { SessionStep } from './types/session.types';
-import ActionStep from './steps/ActionStep';
-import ResultsStep from './steps/ResultsStep';
-import SummaryStep from './steps/SummaryStep';
-import VotingStep from './steps/VotingStep';
-import WaitingStep from './steps/WaitingStep';
-import WritingStep from './steps/WritingStep';
 
 // Référence stable pour éviter de recréer un objet à chaque rendu tant que
 // l'identité (auth ou invité) n'est pas encore résolue.
@@ -100,9 +90,9 @@ const SessionDashboard = () => {
   // session close en lecture seule sous son pseudo déjà connu : sans jeton,
   // getSessionDetailsForViewer (backend) la traite comme inexistante (404) et
   // redemande un pseudo à tort (bug remonté).
-  // `fetchSessionDetails`/`guestIdentity` extraits seuls, comme `setStep` plus
-  // bas : useCallback exige des dépendances stables, ce que `details.xxx`/
-  // `identity.xxx` ne garantissent pas pour le compilateur React.
+  // `fetchSessionDetails`/`guestIdentity` extraits seuls : useCallback exige
+  // des dépendances stables, ce que `details.xxx`/`identity.xxx` ne
+  // garantissent pas pour le compilateur React.
   const { fetchSessionDetails } = details;
   const { guestIdentity } = identity;
   const fetchSessionDetailsWithGuestToken = useCallback(
@@ -156,25 +146,13 @@ const SessionDashboard = () => {
     }));
   }, [details.formatColumns]);
 
-  // `setStep`/`setStepEndsAt`/`setStatus` sont extraits seuls : useCallback exige des
-  // dépendance stables, ce que `details.xxx` ne garantit pas pour le
-  // compilateur React.
-  const { setStep, setStepEndsAt, setStatus } = details;
-  const handleSessionStarted = useCallback((nextStep: string, stepEndsAt: string | null) => {
-    setStep(nextStep as SessionStep);
-    setStepEndsAt(stepEndsAt);
-  }, [setStep, setStepEndsAt]);
-
-  // L'échéance redéfinie par le facilitateur arrive en direct par socket.
-  const handleTimerUpdated = useCallback((stepEndsAt: string) => {
-    setStepEndsAt(stepEndsAt);
-  }, [setStepEndsAt]);
-
-  const handleSessionClosedBySocket = useCallback(() => {
-    addToast('success', 'Le facilitateur a mis fin à la session. Redirection vers les résultats.');
-    setStatus('closed');
-    hasShownClosedToastRef.current = true;
-  }, [addToast, setStatus]);
+  const { handleSessionStarted, handleTimerUpdated, handleSessionClosedBySocket } = useSessionSocketHandlers({
+    setStep: details.setStep,
+    setStepEndsAt: details.setStepEndsAt,
+    setStatus: details.setStatus,
+    addToast,
+    hasShownClosedToastRef,
+  });
 
   const { participants, messages, setMessages, actions, setActions, lastCommentAdded, isDiscussionBlinking, clearDiscussionBlinking } = useSessionParticipants(
     sessionId,
@@ -312,59 +290,13 @@ const SessionDashboard = () => {
         handleLeaveSession,
       }}
     >
-      <div className="flex flex-col flex-1 overflow-hidden">
-      <SessionIdentityBar
-        canRenameSelf={!isAuthenticated && details.status !== 'closed'}
-        onBack={handleGoHome}
-        isDesktopViewport={isDesktopViewport}
-      />
-      <SessionNavigationBar
+      <SessionDashboardLayout
         isSessionCodeCopied={isSessionCodeCopied}
         onCopySessionCode={handleCopySessionCode}
-        isDesktopViewport={isDesktopViewport}
+        onBack={handleGoHome}
+        writingColumns={writingColumns}
+        onAddAction={handleAddAction}
       />
-      {activeStep === 'waiting' ? (
-        // Discussion en docké (desktop) / overlay (mobile), comme sur les
-        // autres étapes : le bouton "Discussion" de la navbar doit rester
-        // utilisable pendant l'attente, pas seulement une fois la rétro lancée.
-        <div className="relative flex flex-1 overflow-hidden">
-          <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-            <WaitingStep />
-          </div>
-
-          <DiscussionDrawer />
-        </div>
-      ) : (
-        <>
-          <SessionActionBar
-            isDesktopViewport={isDesktopViewport}
-            isSessionCodeCopied={isSessionCodeCopied}
-            onCopySessionCode={handleCopySessionCode}
-          />
-          <ParticipantsDrawer />
-
-          {/* Discussion en docké (desktop) : panneau à côté des cartes, pas
-              par-dessus — on peut lire/commenter tout en discutant. */}
-          <div className="relative flex flex-1 overflow-hidden">
-            <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-              {activeStep === 'summary' ? (
-                <SummaryStep />
-              ) : activeStep === 'action' ? (
-                <ActionStep onAddAction={handleAddAction} />
-              ) : activeStep === 'results' ? (
-                <ResultsStep />
-              ) : activeStep === 'voting' ? (
-                <VotingStep columns={writingColumns} />
-              ) : (
-                <WritingStep columns={writingColumns} />
-              )}
-            </div>
-
-            <DiscussionDrawer />
-          </div>
-        </>
-      )}
-    </div>
     </SessionContext.Provider>
   );
 };

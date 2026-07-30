@@ -4,6 +4,20 @@
 
 ## Date de dernière mise à jour
 
+2026-07-30 (`REFACTOR-SESSION-DASHBOARD-01` — Refactor pur (zéro changement de
+comportement) de `SessionDashboard.tsx` (373 → 305 lignes), sur
+`feature/REFACTOR-SESSION-DASHBOARD-01`, demandé par l'utilisateur car le fichier
+cumulait trop de responsabilités (orchestration de 9 hooks, handlers de glue, et tout
+le rendu dans une seule fonction).
+- **Correctif** : extraction des 3 handlers socket dans un nouveau hook
+  `useSessionSocketHandlers.ts`, et de tout le rendu dans un nouveau composant
+  `SessionDashboardLayout.tsx` (lit `useSessionContext()`, même principe que
+  `DiscussionDrawer`/`SessionActionBar`/`ParticipantsDrawer`).
+- **Tests** : `tsc --noEmit` propre, 205 tests Vitest + 26 E2E Playwright verts sans
+  aucune modification de test existant (preuve du refactor pur), vérification visuelle
+  réelle sur 2 étapes. Revu par `reviewer-code` : PRÊT À COMMITTER.
+- **État** : PRÊT À COMMITTER, pas encore commité.)
+
 2026-07-30 (Lot de 7 correctifs UI/UX de session, sur `feature/UI-FIXES-BATCH-01` :
 - `BUG-CARD-TEXT-WRAP-01` — texte de carte débordant, classe Tailwind invalide corrigée en `break-words`.
 - `BUG-DISCUSSION-TOGGLE-01` — re-clic sur "Discussion" refermait puis rouvrait aussitôt le panneau flottant, bouton exclu du clic-extérieur.
