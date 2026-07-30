@@ -9,6 +9,7 @@ vi.mock("../../services/participant.service", () => ({
   joinSessionAsGuestParticipantByCode: vi.fn(),
   joinSessionAsGuestParticipant: vi.fn(),
   leaveSession: vi.fn(),
+  reconnectFromResumeCookie: vi.fn(),
   resumeGuestParticipant: vi.fn(),
   checkGuestResume: vi.fn(),
 }));
@@ -28,6 +29,7 @@ import {
   joinAsSelf,
   listParticipants,
   removeParticipant,
+  resumeFromCookie,
   resumeGuest,
   checkGlobalResume,
 } from "../participant.controller";
@@ -37,6 +39,7 @@ import {
   joinSessionAsGuestParticipantByCode,
   joinSessionAsGuestParticipant,
   leaveSession,
+  reconnectFromResumeCookie,
   resumeGuestParticipant,
   checkGuestResume,
 } from "../../services/participant.service";
@@ -49,6 +52,7 @@ const mockGetParticipantsForSession = getParticipantsForSession as unknown as Mo
 const mockJoinSessionAsGuestParticipantByCode = joinSessionAsGuestParticipantByCode as unknown as Mock;
 const mockJoinSessionAsGuestParticipant = joinSessionAsGuestParticipant as unknown as Mock;
 const mockLeaveSession = leaveSession as unknown as Mock;
+const mockReconnectFromResumeCookie = reconnectFromResumeCookie as unknown as Mock;
 const mockResumeGuestParticipant = resumeGuestParticipant as unknown as Mock;
 const mockCheckGuestResume = checkGuestResume as unknown as Mock;
 const mockGetSessionDetails = getSessionDetails as unknown as Mock;
@@ -81,6 +85,7 @@ describe("participant.controller", () => {
     mockJoinSessionAsGuestParticipantByCode.mockReset();
     mockJoinSessionAsGuestParticipant.mockReset();
     mockLeaveSession.mockReset();
+    mockReconnectFromResumeCookie.mockReset();
     mockResumeGuestParticipant.mockReset();
     mockGetSessionDetails.mockReset();
     mockAssertSessionOpen.mockReset();
@@ -238,6 +243,142 @@ describe("participant.controller", () => {
       requesterGuestToken: "tok",
     });
     expect(mockEmitParticipantsUpdated).toHaveBeenCalledWith(10);
+  });
+
+  describe("resumeFromCookie", () => {
+    beforeEach(() => {
+      process.env.JWT_SECRET = "test-secret";
+      mockReconnectFromResumeCookie.mockReset();
+    });
+
+    it("refuse si aucun cookie retro_resume n'est présent (404)", async () => {
+      const req = { params: { sessionId: "10" }, cookies: {} } as unknown as Request;
+      const res = createMockResponse();
+
+      await expect(resumeFromCookie(req, res as unknown as Response)).rejects.toMatchObject({
+        statusCode: 404,
+        code: "RESUME_COOKIE_MISSING",
+      });
+      expect(mockReconnectFromResumeCookie).not.toHaveBeenCalled();
+    });
+
+    it("refuse et efface le cookie si le token est invalide ou expiré (404)", async () => {
+      const req = {
+        params: { sessionId: "10" },
+        cookies: { retro_resume: "invalid-token" },
+      } as unknown as Request;
+      const res = createMockResponse();
+
+      await expect(resumeFromCookie(req, res as unknown as Response)).rejects.toMatchObject({
+        statusCode: 404,
+        code: "RESUME_COOKIE_MISSING",
+      });
+      expect(res.clearCookie).toHaveBeenCalledWith("retro_resume", expect.any(Object));
+      expect(mockReconnectFromResumeCookie).not.toHaveBeenCalled();
+    });
+
+    it("refuse si le cookie concerne une autre session (404)", async () => {
+      const jwt = require("jsonwebtoken");
+      const tokenForOtherSession = jwt.sign(
+        { sessionId: 999, participantId: 1, displayName: "Elyas", guestToken: null },
+        "test-secret"
+      );
+      const req = {
+        params: { sessionId: "10" },
+        cookies: { retro_resume: tokenForOtherSession },
+      } as unknown as Request;
+      const res = createMockResponse();
+
+      await expect(resumeFromCookie(req, res as unknown as Response)).rejects.toMatchObject({
+        statusCode: 404,
+        code: "RESUME_COOKIE_MISMATCH",
+      });
+      expect(mockReconnectFromResumeCookie).not.toHaveBeenCalled();
+    });
+
+    it("propage le refus si la session est clôturée (jamais rouverte en écriture)", async () => {
+      const jwt = require("jsonwebtoken");
+      const validToken = jwt.sign(
+        { sessionId: 10, participantId: 1, displayName: "Elyas", guestToken: null },
+        "test-secret"
+      );
+      mockGetSessionDetails.mockResolvedValueOnce({ id: 10, status: "closed" });
+      mockAssertSessionOpen.mockImplementationOnce(() => {
+        throw new AppError(400, "Cette session est clôturée.", "SESSION_CLOSED");
+      });
+
+      const req = {
+        params: { sessionId: "10" },
+        cookies: { retro_resume: validToken },
+      } as unknown as Request;
+      const res = createMockResponse();
+
+      await expect(resumeFromCookie(req, res as unknown as Response)).rejects.toMatchObject({
+        statusCode: 400,
+        code: "SESSION_CLOSED",
+      });
+      expect(mockReconnectFromResumeCookie).not.toHaveBeenCalled();
+    });
+
+    it("propage l'erreur du service si le participant est introuvable (404)", async () => {
+      const jwt = require("jsonwebtoken");
+      const validToken = jwt.sign(
+        { sessionId: 10, participantId: 1, displayName: "Elyas", guestToken: null },
+        "test-secret"
+      );
+      mockGetSessionDetails.mockResolvedValueOnce({ id: 10, status: "open" });
+      mockReconnectFromResumeCookie.mockRejectedValueOnce(
+        new AppError(404, "Participant introuvable.", "PARTICIPANT_NOT_FOUND")
+      );
+
+      const req = {
+        params: { sessionId: "10" },
+        cookies: { retro_resume: validToken },
+      } as unknown as Request;
+      const res = createMockResponse();
+
+      await expect(resumeFromCookie(req, res as unknown as Response)).rejects.toMatchObject({
+        statusCode: 404,
+        code: "PARTICIPANT_NOT_FOUND",
+      });
+    });
+
+    it("reconnecte le participant, re-signe le cookie et diffuse la mise à jour (200)", async () => {
+      const jwt = require("jsonwebtoken");
+      const validToken = jwt.sign(
+        { sessionId: 10, participantId: 1, displayName: "Elyas", guestToken: null },
+        "test-secret"
+      );
+      mockGetSessionDetails.mockResolvedValueOnce({ id: 10, status: "open" });
+      mockReconnectFromResumeCookie.mockResolvedValueOnce({
+        participant: { id: 1, sessionId: 10, displayName: "Elyas", role: "participant", status: "online" },
+        guestToken: "nouveau-jeton",
+      });
+
+      const req = {
+        params: { sessionId: "10" },
+        cookies: { retro_resume: validToken },
+      } as unknown as Request;
+      const res = createMockResponse();
+
+      await resumeFromCookie(req, res as unknown as Response);
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body).toEqual({
+        success: true,
+        data: {
+          id: 1,
+          sessionId: 10,
+          displayName: "Elyas",
+          role: "participant",
+          status: "online",
+          guestToken: "nouveau-jeton",
+        },
+      });
+      expect(mockReconnectFromResumeCookie).toHaveBeenCalledWith(10, 1);
+      expect(mockEmitParticipantsUpdated).toHaveBeenCalledWith(10);
+      expect(res.cookie).toHaveBeenCalledWith("retro_resume", expect.any(String), expect.any(Object));
+    });
   });
 
   describe("checkGlobalResume", () => {

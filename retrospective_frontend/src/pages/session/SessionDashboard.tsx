@@ -249,7 +249,12 @@ const SessionDashboard = () => {
   // Visiteur sans compte et sans identité invitée pour cette session (ex :
   // ouverture directe du lien d'invitation) : on lui demande un pseudo sur
   // place, jamais de redirection vers l'accueil ou vers la connexion.
-  if (details.status !== 'closed' && !isAuthenticated && !identity.guestIdentity) {
+  if (
+    details.status !== 'closed' &&
+    !isAuthenticated &&
+    !identity.guestIdentity &&
+    !identity.isResumingFromCookie
+  ) {
     return <JoinSessionModal sessionId={sessionId} sessionName={details.sessionName} onJoined={identity.handleGuestJoined} />;
   }
 
