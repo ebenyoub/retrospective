@@ -31,9 +31,14 @@ export const RETRO_FORMAT_OPTIONS: RetroFormatOption[] = [
     name: "Bien passé / À améliorer / Prochaines actions",
     columns: ["Bien passé", "À améliorer", "Prochaines actions"],
   },
+  {
+    id: "custom-3-columns",
+    name: "Créer un format personnalisé (3 colonnes)",
+    columns: ["Colonne 1", "Colonne 2", "Colonne 3"],
+  },
 ];
 
-export const DEFAULT_RETRO_FORMAT_ID: RetroFormatId = "start-stop-continue";
+export const DEFAULT_RETRO_FORMAT_ID = "start-stop-continue";
 
 export const getRetroFormatById = (formatId: string): RetroFormatOption =>
   RETRO_FORMAT_OPTIONS.find((format) => format.id === formatId) ?? RETRO_FORMAT_OPTIONS[0];

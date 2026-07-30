@@ -59,7 +59,7 @@ describe('CreateSessionForm', () => {
     });
   });
 
-  it('affiche uniquement les 6 formats MVP validés', () => {
+  it('affiche uniquement les 7 formats de rétro validés', () => {
     renderForm();
 
     fireEvent.click(screen.getByLabelText('Format de rétro'));
@@ -71,6 +71,7 @@ describe('CreateSessionForm', () => {
       "J'ai aimé / J'ai moins aimé / Propositions",
       'Conserver / Améliorer / Innover',
       'Bien passé / À améliorer / Prochaines actions',
+      'Créer un format personnalisé (3 colonnes)',
     ]);
   });
 });

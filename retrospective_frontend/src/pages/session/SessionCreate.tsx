@@ -20,6 +20,9 @@ const createSessionSchema = z.object({
     .refine((value) => value.trim().length >= 3, "Le nom doit faire au moins 3 caractères."),
   formatId: z.string()
     .refine((value) => value.trim() !== "", "Le format est requis."),
+  col1: z.string().trim().min(1, "Colonne 1 requise.").optional(),
+  col2: z.string().trim().min(1, "Colonne 2 requise.").optional(),
+  col3: z.string().trim().min(1, "Colonne 3 requise.").optional(),
 });
 
 type CreateSessionValues = z.infer<typeof createSessionSchema>;
@@ -33,21 +36,35 @@ const SessionCreate = () => {
     register,
     control,
     handleSubmit,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<CreateSessionValues>({
     resolver: zodResolver(createSessionSchema),
-    defaultValues: { name: "", formatId: DEFAULT_RETRO_FORMAT_ID },
+    defaultValues: { name: "", formatId: DEFAULT_RETRO_FORMAT_ID, col1: "Colonne 1", col2: "Colonne 2", col3: "Colonne 3" },
     mode: "all",
   });
 
+  const formatId = watch("formatId");
+
   const onSubmit = async (values: CreateSessionValues) => {
     const selectedFormat = getRetroFormatById(values.formatId);
+    let formatName = selectedFormat.name;
+    let formatColumns = selectedFormat.columns;
+
+    if (values.formatId === "custom-3-columns") {
+      formatColumns = [
+        values.col1?.trim() || "Colonne 1",
+        values.col2?.trim() || "Colonne 2",
+        values.col3?.trim() || "Colonne 3",
+      ];
+      formatName = formatColumns.join(" / ");
+    }
 
     try {
       const result = await createSession({
         name: values.name,
-        formatName: selectedFormat.name,
-        formatColumns: selectedFormat.columns,
+        formatName,
+        formatColumns,
         stepDurationMinutes: 5,
       });
 
@@ -105,6 +122,41 @@ const SessionCreate = () => {
               />
               {errors.formatId && <small id="formatId-error" className="text-red-500 text-xs mt-1">{errors.formatId.message}</small>}
             </FormField>
+
+            {formatId === "custom-3-columns" && (
+              <div className="grid grid-cols-3 gap-2">
+                <FormField>
+                  <FormLabel htmlFor="col1">Col. 1</FormLabel>
+                  <FormInput
+                    id="col1"
+                    disabled={isSubmitting}
+                    className={errors.col1 ? 'border-red-500' : ''}
+                    {...register("col1")}
+                  />
+                  {errors.col1 && <small className="text-red-500 text-xs mt-1">{errors.col1.message}</small>}
+                </FormField>
+                <FormField>
+                  <FormLabel htmlFor="col2">Col. 2</FormLabel>
+                  <FormInput
+                    id="col2"
+                    disabled={isSubmitting}
+                    className={errors.col2 ? 'border-red-500' : ''}
+                    {...register("col2")}
+                  />
+                  {errors.col2 && <small className="text-red-500 text-xs mt-1">{errors.col2.message}</small>}
+                </FormField>
+                <FormField>
+                  <FormLabel htmlFor="col3">Col. 3</FormLabel>
+                  <FormInput
+                    id="col3"
+                    disabled={isSubmitting}
+                    className={errors.col3 ? 'border-red-500' : ''}
+                    {...register("col3")}
+                  />
+                  {errors.col3 && <small className="text-red-500 text-xs mt-1">{errors.col3.message}</small>}
+                </FormField>
+              </div>
+            )}
 
             <Button unstyled type="submit" className="w-full justify-center">
               Créer la session
