@@ -5,7 +5,7 @@ const prepareSession = async (page: Page): Promise<void> => {
     window.localStorage.setItem('token', 'playwright-token');
   });
 
-  await page.route('http://localhost:8000/auth/profile', async (route) => {
+  await page.route('http://localhost:8000/api/auth/profile', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -15,7 +15,7 @@ const prepareSession = async (page: Page): Promise<void> => {
       }),
     });
   });
-  await page.route('http://localhost:8000/session/200', async (route) => {
+  await page.route('http://localhost:8000/api/session/200', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -34,21 +34,21 @@ const prepareSession = async (page: Page): Promise<void> => {
       }),
     });
   });
-  await page.route('http://localhost:8000/session/200/cards', async (route) => {
+  await page.route('http://localhost:8000/api/session/200/cards', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify({ success: true, data: [] }),
     });
   });
-  await page.route('http://localhost:8000/session/200/participants/self', async (route) => {
+  await page.route('http://localhost:8000/api/session/200/participants/self', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify({ success: true, data: { id: 1, role: 'facilitator' } }),
     });
   });
-  await page.route('http://localhost:8000/session/200/participants', async (route) => {
+  await page.route('http://localhost:8000/api/session/200/participants', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',

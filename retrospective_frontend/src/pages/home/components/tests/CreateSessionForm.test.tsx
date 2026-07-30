@@ -47,7 +47,7 @@ describe('CreateSessionForm', () => {
     await vi.waitFor(() => expect(onSessionCreated).toHaveBeenCalledWith(7));
     // L'authentification passe par le cookie (credentials), plus par un header.
     expect(fetchMock).toHaveBeenCalledWith(
-      'http://localhost:8000/session/create-session',
+      'http://localhost:8000/api/session/create-session',
       expect.objectContaining({ credentials: 'include' })
     );
     expect(JSON.parse(String(fetchMock.mock.calls[0][1].body))).toEqual({

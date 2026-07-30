@@ -10,7 +10,7 @@ const prepareActionSummarySession = async (
     window.localStorage.setItem('token', 'playwright-token');
   });
 
-  await page.route('http://localhost:8000/auth/profile', async (route) => {
+  await page.route('http://localhost:8000/api/auth/profile', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -24,7 +24,7 @@ const prepareActionSummarySession = async (
     });
   });
 
-  await page.route('http://localhost:8000/session/600', async (route) => {
+  await page.route('http://localhost:8000/api/session/600', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -44,7 +44,7 @@ const prepareActionSummarySession = async (
     });
   });
 
-  await page.route('http://localhost:8000/session/600/cards', async (route) => {
+  await page.route('http://localhost:8000/api/session/600/cards', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -78,7 +78,7 @@ const prepareActionSummarySession = async (
     });
   });
 
-  await page.route('http://localhost:8000/session/600/participants/self', async (route) => {
+  await page.route('http://localhost:8000/api/session/600/participants/self', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -86,7 +86,7 @@ const prepareActionSummarySession = async (
     });
   });
 
-  await page.route('http://localhost:8000/session/600/participants', async (route) => {
+  await page.route('http://localhost:8000/api/session/600/participants', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -100,7 +100,7 @@ const prepareActionSummarySession = async (
     });
   });
 
-  await page.route('http://localhost:8000/session/600/step', async (route) => {
+  await page.route('http://localhost:8000/api/session/600/step', async (route) => {
     const payload = route.request().postDataJSON();
     state.currentStep = payload.step;
 
@@ -111,7 +111,7 @@ const prepareActionSummarySession = async (
     });
   });
 
-  await page.route('http://localhost:8000/session/600/actions', async (route) => {
+  await page.route('http://localhost:8000/api/session/600/actions', async (route) => {
     if (route.request().method() === 'POST') {
       const payload = route.request().postDataJSON();
       const created = {
@@ -141,7 +141,7 @@ const prepareActionSummarySession = async (
     });
   });
 
-  await page.route('http://localhost:8000/session/600/chat/messages', async (route) => {
+  await page.route('http://localhost:8000/api/session/600/chat/messages', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',

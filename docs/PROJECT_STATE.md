@@ -4,6 +4,44 @@
 
 ## Date de dernière mise à jour
 
+2026-07-30 (`BUG-SESSION-RELOAD-ROUTING-01` — Recharger (F5) une page `/session/:id` en
+production affichait le JSON brut de l'API au lieu de l'app React, sur
+`feature/BUG-SESSION-RELOAD-ROUTING-01`.
+- **Cause** : collision de chemin entre la route SPA `/session/:id` (React Router) et
+  le préfixe API `/session` — le nginx du VPS partagé (voir décision `DEPLOY-VPS-01`
+  du 2026-07-29, routage par chemin sous un même sous-domaine) routait tout
+  `/session/...` vers le backend, y compris une vraie navigation navigateur (F5), pas
+  seulement les appels `fetch` de l'app.
+- **Correctif** : toute l'API bascule sous un préfixe distinct `/api`, qui n'entre
+  jamais en collision avec une route frontend. Backend : `server.ts` monte désormais
+  `/api/auth` et `/api/session` (au lieu de `/auth`/`/session`). Frontend :
+  `API_BASE` (`src/lib/api.ts`) inclut `/api`. `docs/technical/nginx-retrospective.conf`
+  mis à jour : les deux blocs `location /auth/`/`location /session/` fusionnés en un
+  seul `location /api/`.
+- **Tests** : 329/329 backend, 203/203 Vitest frontend, 26/26 E2E Playwright — tous mis
+  à jour pour appeler les nouveaux chemins `/api/*`. Un premier test E2E de
+  non-régression ajouté par erreur a été retiré en cours de revue (`reviewer-code`) :
+  la topologie Vite dev server (origine séparée du backend mocké) ne peut
+  structurellement pas reproduire une collision de chemin nginx à origine unique — il
+  aurait donné une fausse impression de couverture sans jamais pouvoir échouer.
+- **Déploiement en 3 temps, sans coupure** (ce changement de préfixe casserait le site
+  s'il était appliqué d'un coup, code et nginx devant rester synchrones) :
+  1. Ajout du bloc `/api/` dans le nginx du VPS, **sans retirer** encore `/auth/`/
+     `/session/` (purement additif, zéro risque, le site actuel continue de
+     fonctionner à l'identique).
+  2. Merge de la PR vers `main` → déploiement automatique du nouveau code (qui
+     appelle `/api/*`) via le pipeline CI/CD existant.
+  3. Une fois le nouveau code confirmé stable en prod, retrait des anciens blocs
+     `/auth/`/`/session/` du nginx (devenus inutiles, et responsables du bug initial).
+  Étapes 1 et 3 exécutées manuellement par l'orchestrateur sur le VPS, comme pour
+  `DEPLOY-VPS-01`/`02`. La vérification finale du bug corrigé (F5 sur une page de
+  session en prod) reste manuelle, non automatisable en E2E local (topologie à
+  origine unique propre à nginx, absente en environnement de test).
+- **État actuel** : code prêt (17 fichiers modifiés), revu, testé, pas encore commité
+  ni déployé. Prochaine étape : `commit-agent`, validation utilisateur, commit + push
+  + PR vers `dev`, puis exécution de la séquence de déploiement ci-dessus par
+  l'orchestrateur.)
+
 2026-07-29 (`DEPLOY-VPS-01` — Déploiement du projet sur le VPS partagé Hetzner (`167.233.194.26`), sur `feature/DEPLOY-VPS-01-deploiement-vps`. Architecture validée par l'utilisateur, en cours de mise en place (documentation faite en parallèle de la création des fichiers techniques par `frontend-react`/`backend-express` ; premier déploiement réel pas encore exécuté).
 - Sous-domaine `retrospective.elyasbenyoub.dev`, nginx partagé du VPS, routage par chemin sous un même sous-domaine (`/auth/`, `/session/`, `/socket.io/` → backend, `/` → frontend) — nécessaire pour le cookie HttpOnly d'authentification, particularité de ce projet par rapport aux 3 autres déjà déployés sur ce VPS.
 - Bloc nginx complet documenté dans `docs/technical/nginx-retrospective.conf` (en-têtes WebSocket pour Socket.IO, autre particularité de ce projet).
