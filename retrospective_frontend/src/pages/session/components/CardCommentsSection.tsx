@@ -1,5 +1,5 @@
 import { Send, Trash2 } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState, useContext } from 'react';
+import { useCallback, useEffect, useRef, useState,} from 'react';
 import IconButton from '@/components/ui/IconButton';
 import Avatar from '@/components/ui/Avatar';
 import { useToast } from '@/context/toast/useToast';
@@ -7,14 +7,17 @@ import { getApiErrorMessage, NETWORK_ERROR_MESSAGE } from '@/lib/apiError';
 
 import type { CardComment } from '../types/comment.types';
 import { createComment, deleteComment, getComments } from '../services/commentApi';
-import { SessionContext } from '../context/SessionContext';
+import { useSessionDetailsState, useSessionIdentityState, useSessionChatState, useSessionActionsState } from '../context/useSessionContext';
 
 interface CardCommentsSectionProps {
   cardId: number;
 }
 
 const CardCommentsSection = ({ cardId }: CardCommentsSectionProps) => {
-  const session = useContext(SessionContext);
+  const { sessionId } = useSessionDetailsState();
+  const { actorHeaders, selfParticipantId, isReadOnly } = useSessionIdentityState();
+  const { lastCommentAdded } = useSessionChatState();
+  const { onCommentsChanged } = useSessionActionsState();
   const { addToast } = useToast();
 
   const [comments, setComments] = useState<CardComment[]>([]);
@@ -23,12 +26,6 @@ const CardCommentsSection = ({ cardId }: CardCommentsSectionProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
-
-  if (!session) {
-    throw new Error('CardCommentsSection must be used within a SessionContext.Provider');
-  }
-
-  const { sessionId, actorHeaders, selfParticipantId, onCommentsChanged, isReadOnly, lastCommentAdded } = session;
 
   const loadComments = useCallback(async (): Promise<void> => {
     setIsLoading(true);

@@ -2,7 +2,7 @@ import { MessageCircle } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
 import Button from '@/components/ui/Button';
 import type { RetroCard } from '../types/card.types';
-import { useSessionContext } from '../context/useSessionContext';
+import { useSessionPanelsState } from '../context/useSessionContext';
 import CardCommentsSection from './CardCommentsSection';
 import type { ResultCategory, SessionResultsProps } from './types/SessionResults.types';
 import TopVotedCards from './TopVotedCards';
@@ -35,7 +35,7 @@ const VoteBar = ({ votes, maxVotes, color }: { votes: number; maxVotes: number; 
 
 // Carte compacte affichée dans une colonne de catégorie.
 const ResultCard = ({ card, category, maxVotes }: { card: RetroCard; category: ResultCategory; maxVotes: number }) => {
-  const { panels } = useSessionContext();
+  const panels = useSessionPanelsState();
   // Même accordéon global qu'à l'étape Écriture (useSessionPanels) : un seul
   // panneau de commentaires ouvert à la fois, toutes cartes/écrans confondus.
   const isCommentsExpanded = panels.openCommentsCardId === card.id;

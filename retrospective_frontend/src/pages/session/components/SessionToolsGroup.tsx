@@ -1,7 +1,7 @@
 import { Check, Copy, MessageCircle, Users, Volume2, VolumeX } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import IconButton from '@/components/ui/IconButton';
-import { useSessionContext } from '../context/useSessionContext';
+import { useSessionDetailsState, useSessionParticipantsState, useSessionPanelsState, useSessionChatState, useSessionIdentityState } from '../context/useSessionContext';
 import type { SessionToolsGroupProps } from './types/SessionToolsGroup.types';
 
 // Groupe "code de session / Participants / Discussion / Son", partagé entre
@@ -10,20 +10,23 @@ import type { SessionToolsGroupProps } from './types/SessionToolsGroup.types';
 // jamais deux instances montées en même temps (le parent choisit lequel
 // l'affiche selon la largeur réelle, pas juste via CSS).
 const SessionToolsGroup = ({ isSessionCodeCopied, onCopySessionCode }: SessionToolsGroupProps) => {
-  const context = useSessionContext();
-  const step = context.details.step;
-  const sessionCode = context.details.sessionCode;
-  const participantCount = context.participants.filter(
+  const { details } = useSessionDetailsState();
+  const { participants } = useSessionParticipantsState();
+  const panels = useSessionPanelsState();
+  const { isDiscussionBlinking, clearDiscussionBlinking } = useSessionChatState();
+  const step = details.step;
+  const sessionCode = details.sessionCode;
+  const participantCount = participants.filter(
     (participant) => participant.status === 'online'
   ).length;
-  const onToggleParticipants = context.panels.toggleParticipantsDrawer;
-  const onToggleDiscussion = context.panels.toggleDiscussionDrawer;
-  const isParticipantsOpen = context.panels.isParticipantsDrawerOpen;
-  const isDiscussionOpen = context.panels.isDiscussionDrawerOpen;
-  const isDiscussionBlinking = context.isDiscussionBlinking;
-  const clearDiscussionBlinking = context.clearDiscussionBlinking;
-  const isSoundEnabled = context.isSoundEnabled;
-  const onToggleSound = context.toggleSound;
+  const onToggleParticipants = panels.toggleParticipantsDrawer;
+  const onToggleDiscussion = panels.toggleDiscussionDrawer;
+  const isParticipantsOpen = panels.isParticipantsDrawerOpen;
+  const isDiscussionOpen = panels.isDiscussionDrawerOpen;
+  
+  
+  
+  const { isSoundEnabled, toggleSound } = useSessionIdentityState();
   // En salle d'attente, la liste des participants et le code de session sont
   // déjà affichés en permanence dans le panneau latéral (WaitingScreen) :
   // les répéter dans la navbar n'apporte rien, sur cette seule étape.
@@ -94,7 +97,7 @@ const SessionToolsGroup = ({ isSessionCodeCopied, onCopySessionCode }: SessionTo
         <span className="hidden md:inline">Discussion</span>
       </Button>
       <IconButton
-        onClick={onToggleSound}
+        onClick={toggleSound}
         aria-label={isSoundEnabled ? 'Désactiver le son' : 'Activer le son'}
         title={isSoundEnabled ? 'Désactiver le son' : 'Activer le son'}
         aria-pressed={isSoundEnabled}

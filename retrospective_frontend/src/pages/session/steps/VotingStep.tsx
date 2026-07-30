@@ -1,9 +1,11 @@
 import SessionCardsGrid from './SessionCardsGrid';
-import { useSessionContext } from '../context/useSessionContext';
+import { useSessionCardsState, useSessionViewportState, useSessionIdentityState } from '../context/useSessionContext';
 import type { VotingStepProps } from './types/VotingStep.types';
 
 const VotingStep = ({ columns }: VotingStepProps) => {
-  const { sessionCards, viewport, identity, isReadOnly } = useSessionContext();
+  const sessionCards = useSessionCardsState();
+  const viewport = useSessionViewportState();
+  const { identity, isReadOnly } = useSessionIdentityState();
 
   return (
     <SessionCardsGrid

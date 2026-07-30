@@ -1,18 +1,12 @@
 import { WaitingScreen } from '../components/WaitingScreen';
-import { useSessionContext } from '../context/useSessionContext';
+import { useSessionDetailsState, useSessionIdentityState, useSessionParticipantsState, useSessionActionsState, useSessionViewportState } from '../context/useSessionContext';
 
 const WaitingStep = () => {
-  const {
-    sessionId,
-    details,
-    participants,
-    identity,
-    viewport,
-    handleLeaveSession,
-    handleUpdateFormat,
-    handleUpdateTimer,
-    handleTransitionStep,
-  } = useSessionContext();
+  const { details, sessionId } = useSessionDetailsState();
+  const { participants } = useSessionParticipantsState();
+  const { identity } = useSessionIdentityState();
+  const viewport = useSessionViewportState();
+  const { handleLeaveSession, handleUpdateFormat, handleUpdateTimer, handleTransitionStep } = useSessionActionsState();
   const selfParticipantId = identity.selfParticipantId;
 
   if (!selfParticipantId) {

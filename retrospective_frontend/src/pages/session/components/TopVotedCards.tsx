@@ -1,7 +1,7 @@
 import { MessageCircle } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import type { RetroCard } from '../types/card.types';
-import { useSessionContext } from '../context/useSessionContext';
+import { useSessionPanelsState } from '../context/useSessionContext';
 import CardCommentsSection from './CardCommentsSection';
 
 const DEFAULT_CATEGORY_LABELS = ['Commencer', 'Arrêter', 'Continuer'];
@@ -48,7 +48,7 @@ const TopVotedCardItem = ({
   color: string;
   showComments: boolean;
 }) => {
-  const { panels } = useSessionContext();
+  const panels = useSessionPanelsState();
   const isCommentsExpanded = showComments && panels.openCommentsCardId === card.id;
 
   return (

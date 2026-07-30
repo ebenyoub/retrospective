@@ -1,7 +1,7 @@
 import Avatar from '@/components/ui/Avatar';
 import Badge from '@/components/ui/Badge';
 import type { ActionItem } from '../types/action.types';
-import { useSessionContext } from '../context/useSessionContext';
+import { useSessionDetailsState, useSessionCardsState, useSessionActionsState, useSessionParticipantsState } from '../context/useSessionContext';
 import TopVotedCards from '../components/TopVotedCards';
 
 const PRIORITY_META: Record<ActionItem['priority'], { label: string; color: string; badgeClassName: string }> = {
@@ -29,7 +29,10 @@ const SectionHeader = ({ label, icon, count }: { label: string; icon?: string; c
 );
 
 const SummaryStep = () => {
-  const { details, sessionCards, actions, participants } = useSessionContext();
+  const { details } = useSessionDetailsState();
+  const sessionCards = useSessionCardsState();
+  const { actions } = useSessionActionsState();
+  const { participants } = useSessionParticipantsState();
   const { cards } = sessionCards;
   const { sessionName, formatColumns } = details;
   const totalVotes = cards.reduce((sum, card) => sum + card.votesCount, 0);

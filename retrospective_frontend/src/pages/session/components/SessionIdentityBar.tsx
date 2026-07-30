@@ -4,7 +4,7 @@ import ParticipantBadge from './ParticipantBadge';
 import ProfileMenu from '@/components/ProfileMenu';
 import StepIndicator from './StepIndicator';
 import { useAuth } from '@/context/auth/useAuth';
-import { useSessionContext } from '../context/useSessionContext';
+import { useSessionIdentityState, useSessionDetailsState, useSessionActionsState } from '../context/useSessionContext';
 import type { SessionIdentityBarProps } from './types/SessionIdentityBar.types';
 
 // Zone stable réservée à l'identité de session : Accueil à gauche, titre
@@ -17,21 +17,22 @@ import type { SessionIdentityBarProps } from './types/SessionIdentityBar.types';
 // caché) : un `auto` masqué en CSS ne retombe pas forcément à 0 dans la
 // grille, ce qui décale le badge du bord droit en dessous de xl.
 const SessionIdentityBar = ({ canRenameSelf = false, onBack, isDesktopViewport }: SessionIdentityBarProps) => {
-  const context = useSessionContext();
-  const { isAuthenticated, username } = useAuth();
+  const { identity, isReadOnly } = useSessionIdentityState();
+  const { details } = useSessionDetailsState();
+    const { isAuthenticated, username } = useAuth();
 
-  const sessionId = context.sessionId;
-  const sessionName = context.details.sessionName;
-  const step = context.details.step;
+  
+  const sessionName = details.sessionName;
+  const step = details.step;
   // Badge du participant (pseudo + menu) : absent pour le facilitateur, qui a
   // déjà son menu de compte.
-  const selfDisplayName = context.identity.role === 'participant'
-    ? (context.identity.guestIdentity?.displayName ?? (isAuthenticated ? username : null))
+  const selfDisplayName = identity.role === 'participant'
+    ? (identity.guestIdentity?.displayName ?? (isAuthenticated ? username : null))
     : null;
-  const onRenameSelf = context.identity.renameSelf;
-  const onLeaveSession = context.handleLeaveSession;
+  const onRenameSelf = identity.renameSelf;
+  const { handleLeaveSession } = useSessionActionsState();
 
-  const displayName = sessionName || `Session ${sessionId}`;
+  const displayName = sessionName || `Session ${details.sessionCode}`;
 
   return (
     <nav
@@ -73,13 +74,13 @@ const SessionIdentityBar = ({ canRenameSelf = false, onBack, isDesktopViewport }
       )}
 
       <div className="flex items-center justify-end gap-1.5">
-        {selfDisplayName && onRenameSelf && onLeaveSession && (
+        {selfDisplayName && onRenameSelf && handleLeaveSession && (
           <ParticipantBadge
             displayName={selfDisplayName}
             canRename={canRenameSelf}
-            isReadOnly={context.isReadOnly}
+            isReadOnly={isReadOnly}
             onRename={onRenameSelf}
-            onLeave={onLeaveSession}
+            onLeave={handleLeaveSession}
           />
         )}
         {isAuthenticated && <ProfileMenu />}

@@ -5,10 +5,12 @@ import IconButton from '@/components/ui/IconButton';
 import Avatar from "@/components/ui/Avatar";
 import type { RetroCardItemProps } from './types/RetroCardItem.types';
 import CardCommentsSection from './CardCommentsSection';
-import { useSessionContext } from '../context/useSessionContext';
+import { useSessionPanelsState, useSessionChatState, useSessionDetailsState } from '../context/useSessionContext';
 
 const RetroCardItem = ({ card, accentClassName, currentUserId, onVote, onUpdateCard, onDeleteCard, canVote = true, canEdit = true }: RetroCardItemProps) => {
-  const { lastCommentAdded, details, panels } = useSessionContext();
+    const panels = useSessionPanelsState();
+  const { lastCommentAdded } = useSessionChatState();
+  const { details } = useSessionDetailsState();
   // Le nombre de votes n'a pas de sens tant que le vote n'a pas commencé :
   // masqué à l'étape Écriture, affiché dès le vote (RetroCardItem n'est
   // utilisé qu'à ces deux étapes, jamais après).

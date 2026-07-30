@@ -5,7 +5,7 @@ import ParticipantsDrawer from './ParticipantsDrawer';
 import SessionActionBar from './SessionActionBar';
 import SessionIdentityBar from './SessionIdentityBar';
 import SessionNavigationBar from './SessionNavigationBar';
-import { useSessionContext } from '../context/useSessionContext';
+import { useSessionDetailsState, useSessionViewportState } from '../context/useSessionContext';
 import ActionStep from '../steps/ActionStep';
 import ResultsStep from '../steps/ResultsStep';
 import SummaryStep from '../steps/SummaryStep';
@@ -22,7 +22,8 @@ const SessionDashboardLayout = ({
   onAddAction,
 }: SessionDashboardLayoutProps) => {
   const { isAuthenticated } = useAuth();
-  const { details, viewport } = useSessionContext();
+  const { details } = useSessionDetailsState();
+  const viewport = useSessionViewportState();
   const activeStep = details.step;
   const isDesktopViewport = viewport.isDesktopViewport;
 

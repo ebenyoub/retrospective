@@ -1,17 +1,19 @@
 import StepIndicatorCompact from './StepIndicatorCompact';
 import SessionToolsGroup from './SessionToolsGroup';
 import TimerChip from './TimerChip';
-import { useSessionContext } from '../context/useSessionContext';
+import { useSessionDetailsState, useSessionIdentityState, useSessionActionsState } from '../context/useSessionContext';
 import type { SessionNavigationBarProps } from './types/SessionNavigationBar.types';
 
 // Zone dédiée au déroulement (étape/progression, timer) et aux outils de session
 // (code, participants, discussion, son).
 const SessionNavigationBar = ({ isSessionCodeCopied, onCopySessionCode, isDesktopViewport }: SessionNavigationBarProps) => {
-  const context = useSessionContext();
-  const step = context.details.step;
-  const stepEndsAt = context.stepEndsAt;
-  const isFacilitator = context.identity.isFacilitator;
-  const onUpdateTimer = context.handleUpdateTimer;
+  const { details } = useSessionDetailsState();
+    const { identity } = useSessionIdentityState();
+  const { stepEndsAt, handleUpdateTimer } = useSessionActionsState();
+  const step = details.step;
+  
+  const isFacilitator = identity.isFacilitator;
+  
   const isWaiting = step === 'waiting';
 
   // Hors salle d'attente, à partir de xl, les outils rejoignent la barre d'actions
@@ -26,7 +28,7 @@ const SessionNavigationBar = ({ isSessionCodeCopied, onCopySessionCode, isDeskto
         <div className="flex min-w-0 shrink-0 items-center gap-2">
           <StepIndicatorCompact currentStep={step} />
           {(step === 'writing' || step === 'voting') && stepEndsAt && (
-            <TimerChip endsAt={stepEndsAt} isEditable={isFacilitator} onSubmitMinutes={onUpdateTimer} />
+            <TimerChip endsAt={stepEndsAt} isEditable={isFacilitator} onSubmitMinutes={handleUpdateTimer} />
           )}
         </div>
       )}

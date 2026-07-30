@@ -5,7 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { getApiErrorMessage, NETWORK_ERROR_MESSAGE } from '@/lib/apiError';
 import { getRetroFormatById, DEFAULT_RETRO_FORMAT_ID } from '@/lib/retroFormats';
-import { SessionContext } from './context/SessionContext';
+import { SessionViewportContext, SessionDetailsContext, SessionIdentityContext, SessionPanelsContext, SessionCardsContext, SessionParticipantsContext, SessionChatContext, SessionActionsContext } from './context/SessionContext';
 import SessionDashboardLayout from './components/SessionDashboardLayout';
 import JoinSessionModal from './components/JoinSessionModal';
 import { useSessionActions } from './hooks/useSessionActions';
@@ -184,6 +184,57 @@ const SessionDashboard = () => {
     }
   };
 
+  const viewportValue = useMemo(() => ({
+    activeMobileColumn,
+    isMobileViewport,
+    isDesktop,
+    isDesktopViewport,
+    setActiveMobileColumn,
+  }), [activeMobileColumn, isMobileViewport, isDesktop, isDesktopViewport, setActiveMobileColumn]);
+
+  const detailsValue = useMemo(() => ({
+    details: { ...details, step: activeStep },
+    sessionId,
+  }), [details, activeStep, sessionId]);
+
+  const identityValue = useMemo(() => ({
+    identity: { ...identity, isFacilitator },
+    actorHeaders: identity.actorHeaders ?? EMPTY_HEADERS,
+    selfParticipantId: identity.selfParticipantId,
+    isReadOnly: details.status === 'closed',
+    isSoundEnabled,
+    toggleSound,
+  }), [identity, isFacilitator, details.status, isSoundEnabled, toggleSound]);
+
+  const panelsValue = useMemo(() => panels, [panels]);
+
+  const sessionCardsValue = useMemo(() => sessionCards, [sessionCards]);
+
+  const participantsValue = useMemo(() => ({
+    participants,
+  }), [participants]);
+
+  const chatValue = useMemo(() => ({
+    messages,
+    setMessages,
+    isDiscussionBlinking,
+    clearDiscussionBlinking,
+    lastCommentAdded,
+  }), [messages, setMessages, isDiscussionBlinking, clearDiscussionBlinking, lastCommentAdded]);
+
+  const actionsValue = useMemo(() => ({
+    actions,
+    setActions,
+    votesLeft: sessionCards.votesLeft,
+    stepEndsAt: details.stepEndsAt,
+    handleTransitionStep,
+    handleUpdateFormat,
+    handleUpdateTimer,
+    handleCloseSession,
+    handleLeaveSession,
+    onCommentsChanged: sessionCards.fetchCards,
+  }), [actions, setActions, sessionCards.votesLeft, sessionCards.fetchCards, details.stepEndsAt, handleTransitionStep, handleUpdateFormat, handleUpdateTimer, handleCloseSession, handleLeaveSession]);
+
   if (isLoading) {
     return (
       <div className="flex flex-1 items-center justify-center">
@@ -214,58 +265,31 @@ const SessionDashboard = () => {
     );
   }
 
+  
   return (
-    <SessionContext.Provider
-      value={{
-        sessionId,
-        actorHeaders: identity.actorHeaders ?? EMPTY_HEADERS,
-        selfParticipantId: identity.selfParticipantId,
-        isReadOnly: details.status === 'closed',
-        onCommentsChanged: sessionCards.fetchCards,
-
-        viewport: {
-          activeMobileColumn,
-          isMobileViewport,
-          isDesktop,
-          isDesktopViewport,
-          setActiveMobileColumn,
-        },
-        panels,
-        // `step` reflète l'étape réellement affichée (une session clôturée
-        // reste sur "results" quelle que soit l'étape enregistrée côté
-        // backend) : c'est la même valeur que l'ancienne `activeStep`.
-        details: { ...details, step: activeStep },
-        identity: { ...identity, isFacilitator },
-        sessionCards,
-
-        participants,
-        messages,
-        setMessages,
-        actions,
-        setActions,
-        lastCommentAdded,
-        isDiscussionBlinking,
-        clearDiscussionBlinking,
-        isSoundEnabled,
-        toggleSound,
-
-        votesLeft: sessionCards.votesLeft,
-        stepEndsAt: details.stepEndsAt,
-        handleTransitionStep,
-        handleUpdateFormat,
-        handleUpdateTimer,
-        handleCloseSession,
-        handleLeaveSession,
-      }}
-    >
-      <SessionDashboardLayout
-        isSessionCodeCopied={isSessionCodeCopied}
-        onCopySessionCode={handleCopySessionCode}
-        onBack={handleGoHome}
-        writingColumns={writingColumns}
-        onAddAction={handleAddAction}
-      />
-    </SessionContext.Provider>
+    <SessionViewportContext.Provider value={viewportValue}>
+      <SessionDetailsContext.Provider value={detailsValue}>
+        <SessionIdentityContext.Provider value={identityValue}>
+          <SessionPanelsContext.Provider value={panelsValue}>
+            <SessionCardsContext.Provider value={sessionCardsValue}>
+              <SessionParticipantsContext.Provider value={participantsValue}>
+                <SessionChatContext.Provider value={chatValue}>
+                  <SessionActionsContext.Provider value={actionsValue}>
+                    <SessionDashboardLayout
+                      isSessionCodeCopied={isSessionCodeCopied}
+                      onCopySessionCode={handleCopySessionCode}
+                      onBack={handleGoHome}
+                      writingColumns={writingColumns}
+                      onAddAction={handleAddAction}
+                    />
+                  </SessionActionsContext.Provider>
+                </SessionChatContext.Provider>
+              </SessionParticipantsContext.Provider>
+            </SessionCardsContext.Provider>
+          </SessionPanelsContext.Provider>
+        </SessionIdentityContext.Provider>
+      </SessionDetailsContext.Provider>
+    </SessionViewportContext.Provider>
   );
 };
 

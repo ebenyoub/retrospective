@@ -58,11 +58,12 @@ export const useSessionParticipants = (
     if (!self || !sessionId || sessionId === "undefined" || isNaN(idVal) || idVal <= 0) return;
 
     let isActive = true;
+    let hasReceivedParticipantsUpdate = false;
 
     const loadInitial = async () => {
       try {
         const result = await listParticipants(sessionId);
-        if (isActive && result.ok) {
+        if (isActive && result.ok && !hasReceivedParticipantsUpdate) {
           setParticipants(result.data);
         }
       } catch (error) {
@@ -101,7 +102,9 @@ export const useSessionParticipants = (
     const socket: Socket = io(API_BASE, { transports: ["websocket", "polling"], withCredentials: true });
 
     const handleParticipantsUpdated = (next: ParticipantSummary[]) => {
-      if (isActive) setParticipants(next);
+      if (!isActive) return;
+      hasReceivedParticipantsUpdate = true;
+      setParticipants(next);
     };
 
     const handleSessionStarted = ({ step, stepEndsAt }: { step: string; stepEndsAt?: string | null }) => {
@@ -162,10 +165,6 @@ export const useSessionParticipants = (
       }
     };
 
-    if (socket.connected) {
-      handleConnect();
-    }
-
     socket.on("connect", handleConnect);
     socket.on("session:participants-updated", handleParticipantsUpdated);
     socket.on("session:started", handleSessionStarted);
@@ -174,6 +173,10 @@ export const useSessionParticipants = (
     socket.on("session:message-added", handleMessageAdded);
     socket.on("session:action-added", handleActionAdded);
     socket.on("session:comment-added", handleCommentAdded);
+
+    if (socket.connected) {
+      handleConnect();
+    }
 
     return () => {
       isActive = false;

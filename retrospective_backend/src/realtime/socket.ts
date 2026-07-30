@@ -5,7 +5,7 @@ import { getParticipantsForSession, markParticipantOffline, markParticipantOnlin
 import { findSessionById } from "../models/session.model";
 import { readTokenFromCookieHeader } from "../utils/authCookie";
 import { logger } from "../utils/logger";
-import type { JoinPayload } from "./types/socket.types";
+import type { JoinPayload, MessageSummary, ActionDetails, CommentSummary } from "./types/socket.types";
 
 let io: SocketIOServer | null = null;
 
@@ -120,17 +120,17 @@ export const emitSessionClosed = (sessionId: number): void => {
   io.to(roomName(sessionId)).emit("session:closed");
 };
 
-export const emitMessageAdded = (sessionId: number, message: any): void => {
+export const emitMessageAdded = (sessionId: number, message: MessageSummary): void => {
   if (!io) return;
   io.to(roomName(sessionId)).emit("session:message-added", message);
 };
 
-export const emitActionAdded = (sessionId: number, action: any): void => {
+export const emitActionAdded = (sessionId: number, action: ActionDetails): void => {
   if (!io) return;
   io.to(roomName(sessionId)).emit("session:action-added", action);
 };
 
-export const emitCommentAdded = (sessionId: number, cardId: number, comment: any): void => {
+export const emitCommentAdded = (sessionId: number, cardId: number, comment: CommentSummary): void => {
   if (!io) return;
   io.to(roomName(sessionId)).emit("session:comment-added", { cardId, comment });
 };

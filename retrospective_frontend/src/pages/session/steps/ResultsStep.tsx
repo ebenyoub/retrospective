@@ -1,8 +1,10 @@
 import SessionResults from '../components/SessionResults';
-import { useSessionContext } from '../context/useSessionContext';
+import { useSessionCardsState, useSessionDetailsState, useSessionViewportState } from '../context/useSessionContext';
 
 const ResultsStep = () => {
-  const { sessionCards, details, viewport } = useSessionContext();
+  const sessionCards = useSessionCardsState();
+  const { details } = useSessionDetailsState();
+  const viewport = useSessionViewportState();
 
   return (
     <SessionResults cards={sessionCards.cards} formatColumns={details.formatColumns} isDesktop={viewport.isDesktop} />

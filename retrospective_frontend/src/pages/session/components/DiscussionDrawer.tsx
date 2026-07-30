@@ -10,7 +10,7 @@ import { getApiErrorMessage, NETWORK_ERROR_MESSAGE } from '@/lib/apiError';
 import { cn } from '@/lib/utils';
 
 import { createMessage } from '../services/messageApi';
-import { useSessionContext } from '../context/useSessionContext';
+import { useSessionPanelsState, useSessionViewportState, useSessionChatState, useSessionIdentityState, useSessionDetailsState } from '../context/useSessionContext';
 import type { DiscussionPanelContentProps } from './types/DiscussionDrawer.types';
 
 const formatTime = (isoString: string): string => {
@@ -211,7 +211,11 @@ const DiscussionPanelContent = ({
 };
 
 const DiscussionDrawer = () => {
-  const { panels, viewport, messages, setMessages, sessionId, actorHeaders, isReadOnly } = useSessionContext();
+  const panels = useSessionPanelsState();
+  const viewport = useSessionViewportState();
+  const { messages, setMessages } = useSessionChatState();
+  const { actorHeaders, isReadOnly } = useSessionIdentityState();
+  const { sessionId } = useSessionDetailsState();
   const isOpen = panels.isDiscussionDrawerOpen;
   const isDesktop = viewport.isDesktop;
   // En dessous de ce seuil (mais pas mobile), il n'y a pas assez de place

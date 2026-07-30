@@ -5,7 +5,7 @@ import Modal, { ModalHeader, ModalTitle, ModalContent, ModalFooter } from '@/com
 import { SESSION_STEPS, SESSION_STEP_LABELS } from '../sessionStep';
 import TimerChip from './TimerChip';
 import SessionToolsGroup from './SessionToolsGroup';
-import { useSessionContext } from '../context/useSessionContext';
+import { useSessionDetailsState, useSessionIdentityState, useSessionActionsState} from '../context/useSessionContext';
 import type { SessionStep } from '../types/session.types';
 import type { SessionActionBarProps } from './types/SessionActionBar.types';
 
@@ -20,15 +20,18 @@ const NEXT_STEP_CTA: Partial<Record<SessionStep, { label: string; nextStep: Sess
 };
 
 const SessionActionBar = ({ isDesktopViewport, isSessionCodeCopied, onCopySessionCode }: SessionActionBarProps) => {
-  const context = useSessionContext();
-  const step = context.details.step;
-  const votesLeft = context.votesLeft;
-  const actionsCount = context.actions.length;
-  const isFacilitator = context.identity.isFacilitator;
-  const stepEndsAt = context.stepEndsAt;
-  const onTransitionStep = context.handleTransitionStep;
-  const onUpdateTimer = context.handleUpdateTimer;
-  const onCloseSession = context.handleCloseSession;
+  const { details } = useSessionDetailsState();
+  const { identity } = useSessionIdentityState();
+    const { votesLeft, stepEndsAt, handleTransitionStep, handleUpdateTimer, handleCloseSession } = useSessionActionsState();
+    const step = details.step;
+  
+  const { actions } = useSessionActionsState();
+  const actionsCount = actions.length;
+  const isFacilitator = identity.isFacilitator;
+  
+  
+  
+  
   const [isBackConfirmOpen, setIsBackConfirmOpen] = useState(false);
 
   if (!isFacilitator && !isDesktopViewport) return null;
@@ -40,7 +43,7 @@ const SessionActionBar = ({ isDesktopViewport, isSessionCodeCopied, onCopySessio
   const previousStep = currentIndex > 0 ? SESSION_STEPS[currentIndex - 1] : null;
 
   const handleConfirmBack = () => {
-    if (previousStep) onTransitionStep(previousStep);
+    if (previousStep) handleTransitionStep(previousStep);
     setIsBackConfirmOpen(false);
   };
 
@@ -95,7 +98,7 @@ const SessionActionBar = ({ isDesktopViewport, isSessionCodeCopied, onCopySessio
 
       <div className="ml-auto flex min-w-0 shrink-0 items-center gap-2">
         {isDesktopViewport && (step === 'writing' || step === 'voting') && stepEndsAt && (
-          <TimerChip endsAt={stepEndsAt} isEditable={isFacilitator} onSubmitMinutes={onUpdateTimer} />
+          <TimerChip endsAt={stepEndsAt} isEditable={isFacilitator} onSubmitMinutes={handleUpdateTimer} />
         )}
 
         {isFacilitator && (
@@ -120,7 +123,7 @@ const SessionActionBar = ({ isDesktopViewport, isSessionCodeCopied, onCopySessio
             <Button
               variant="danger"
               size="sm"
-              onClick={onCloseSession}
+              onClick={handleCloseSession}
               aria-label="Terminer la session"
               title="Terminer la session"
               className="flex h-[30px] items-center justify-center gap-1.5 bg-red-text border border-[#991b1b] text-red-mid hover:bg-[#991b1b] rounded-lg px-2.5 font-sans text-xs font-medium"
@@ -136,7 +139,7 @@ const SessionActionBar = ({ isDesktopViewport, isSessionCodeCopied, onCopySessio
               <Button
                 variant="primary"
                 size="sm"
-                onClick={() => onTransitionStep(NEXT_STEP_CTA[step]!.nextStep)}
+                onClick={() => handleTransitionStep(NEXT_STEP_CTA[step]!.nextStep)}
                 aria-label={NEXT_STEP_CTA[step]!.label}
                 title={NEXT_STEP_CTA[step]!.label}
                 className="flex h-[30px] items-center justify-center gap-1.5 px-2.5 font-sans text-xs font-medium"
