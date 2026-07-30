@@ -13,6 +13,7 @@ const RetroFormatDropdown = ({
   disabled = false,
   "aria-invalid": ariaInvalid,
   "aria-describedby": ariaDescribedBy,
+  "aria-label": ariaLabel,
 }: RetroFormatDropdownProps) => {
   const selectedIndex = RETRO_FORMAT_OPTIONS.findIndex((format) => format.id === value);
   const [isOpen, setIsOpen] = useState(false);
@@ -83,6 +84,7 @@ const RetroFormatDropdown = ({
         aria-controls={`${id}-listbox`}
         aria-invalid={ariaInvalid}
         aria-describedby={ariaDescribedBy}
+        aria-label={ariaLabel}
         className="w-full flex items-center justify-between gap-2 rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none transition-colors focus:border-blue-400 disabled:opacity-60"
       >
         <span className="truncate">{selectedFormat.name}</span>
