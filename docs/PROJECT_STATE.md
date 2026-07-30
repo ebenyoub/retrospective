@@ -14,7 +14,7 @@
 - `BUG-CARD-COMMENTS-TITLE-01` — titre "Discussion" retiré à tort du panneau de commentaires d'une carte, "Discussion" ne désignant que le panneau latéral de messages.
 - **Régression trouvée et corrigée en cours de route** sur `BUG-DISCUSSION-TOGGLE-01` : un premier correctif cassait complètement l'ouverture du panneau en mode flottant, re-testé sur les 3 scénarios exacts après correction.
 - **Tests** : 203/203 Vitest, 26/26 Playwright, vérification visuelle en navigateur réel pour `UX-STEP-BREAKPOINT-01`/`UX-NAVBAR-RIGHT-STABLE-01` à plusieurs largeurs de viewport.
-- **État** : commité (`7708ba9`), PR #52 vers `dev` ouverte.)
+- **État** : commité (`7708ba9`), mergé dans `dev` (PR #52), mergé dans `main` (PR #53), déployé en production.)
 
 2026-07-30 (`BUG-SESSION-RELOAD-ROUTING-01` — Recharger (F5) une page `/session/:id` en
 production affichait le JSON brut de l'API au lieu de l'app React, sur
@@ -49,9 +49,15 @@ production affichait le JSON brut de l'API au lieu de l'app React, sur
   `DEPLOY-VPS-01`/`02`. La vérification finale du bug corrigé (F5 sur une page de
   session en prod) reste manuelle, non automatisable en E2E local (topologie à
   origine unique propre à nginx, absente en environnement de test).
-- **État actuel** : commité (`6134847`), mergé dans `dev` (PR #51). Reste à exécuter la
-  séquence de déploiement ci-dessus (étape 1 nginx additive, merge vers `main`, étape 3
-  nginx).)
+- **État final** : commité (`6134847`), mergé dans `dev` (PR #51), mergé dans `main`
+  (PR #53), déployé en production. Séquence de déploiement en 3 temps exécutée
+  intégralement par l'orchestrateur (nginx additif, merge, retrait des anciens blocs).
+  **Vérification réelle en production** : `curl https://retrospective.elyasbenyoub.dev/session/138`
+  renvoie désormais le HTML de l'app React (`<title>retrospective</title>`, script Vite)
+  au lieu du JSON brut de la session comme avant le correctif ; `GET /api/auth/profile`
+  → 401, `GET /api/session/resume/active` → 200. Non-régression vérifiée par `curl` sur
+  les 4 autres projets du VPS partagé (`elyasbenyoub.dev`, `laloge.`, `mediatheque.`,
+  `marsai.` — tous 200).)
 
 2026-07-30 (`BUG-SESSION-RESUME-01` — Bug hors backlog, sur `feature/BUG-SESSION-RESUME-01` : le bouton "Revenir à la session en cours" de l'accueil échouait pour un utilisateur authentifié dont le JWT (1h) avait expiré mais dont le cookie de reprise `retro_resume` (24h) était encore valide — modale "choisir un pseudo" affichée à tort au lieu d'une reconnexion.
 - **Cause racine** : `retro_resume` et `token` (JWT) ont des durées de vie différentes. Un utilisateur authentifié qui rejoint une session (`joinAsSelf`) pose `retro_resume` mais ne stocke rien en `localStorage` (réservé aux invités) ; entre 1h et 24h plus tard, le JWT a expiré mais `retro_resume` reste valide, et `SessionDashboard` ne savait alors reconnecter cette identité par aucun moyen (ni JWT valide, ni `guestIdentity` local).
@@ -60,7 +66,7 @@ production affichait le JSON brut de l'API au lieu de l'app React, sur
 - **Correctif frontend** : `participantApi.ts` (appel du nouvel endpoint), nouvel effet dans `useSessionIdentity.ts` exécuté avant l'affichage de `JoinSessionModal`, nouvel état `isResumingFromCookie` dans `SessionDashboard.tsx` pour éviter le flash de la modale pendant la vérification.
 - **Tests** : nouveaux tests backend (`participant.model.test.ts`, `participant.service.test.ts`, `participant.controller.test.ts`) et frontend (`SessionDashboard.waiting.test.tsx`) au vert. Revu par `reviewer-code` : PRÊT À COMMITTER sur backend et frontend.
 - **Non concerné par ce ticket** : les durées de vie des cookies (1h/24h) restent inchangées ; le mécanisme existant de réouverture en lecture seule d'une session close n'est pas touché.
-- **État** : commité (`416c2ef`), mergé dans `dev` (PR #50).)
+- **État** : commité (`416c2ef`), mergé dans `dev` (PR #50), mergé dans `main` (PR #53), déployé en production.)
 
 2026-07-29 (`DEPLOY-VPS-01` — Déploiement du projet sur le VPS partagé Hetzner (`167.233.194.26`), sur `feature/DEPLOY-VPS-01-deploiement-vps`. Architecture validée par l'utilisateur, en cours de mise en place (documentation faite en parallèle de la création des fichiers techniques par `frontend-react`/`backend-express` ; premier déploiement réel pas encore exécuté).
 - Sous-domaine `retrospective.elyasbenyoub.dev`, nginx partagé du VPS, routage par chemin sous un même sous-domaine (`/auth/`, `/session/`, `/socket.io/` → backend, `/` → frontend) — nécessaire pour le cookie HttpOnly d'authentification, particularité de ce projet par rapport aux 3 autres déjà déployés sur ce VPS.
