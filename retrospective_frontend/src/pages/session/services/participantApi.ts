@@ -13,6 +13,14 @@ export const joinAsSelf = (sessionId: string) =>
     method: 'POST',
   });
 
+// Reprise automatique via le cookie retro_resume (24h) : utilisée quand le
+// JWT a expiré mais que l'utilisateur avait rejoint cette session
+// authentifié récemment. Rien à envoyer, le cookie HttpOnly suffit.
+export const resumeFromCookie = (sessionId: string) =>
+  requestApi<GuestJoinResponse>(`${API_BASE}/session/${sessionId}/participants/resume-from-cookie`, {
+    method: 'POST',
+  });
+
 export const resumeGuestParticipant = (
   sessionId: string,
   participantId: number,

@@ -15,6 +15,7 @@ import {
   findParticipantByUserId,
   findParticipantsBySession,
   insertParticipant,
+  setParticipantGuestToken,
   touchParticipant,
 } from "../participant.model";
 
@@ -73,6 +74,14 @@ describe("participant.model", () => {
     await expect(
       insertParticipant({ sessionId: 1, userId: null, guestToken: "tok", displayName: "Sarah", role: "participant" })
     ).resolves.toBe(9);
+  });
+
+  it("setParticipantGuestToken enregistre le jeton invité attribué", async () => {
+    mockExecute.mockResolvedValueOnce([{ affectedRows: 1 }]);
+
+    await setParticipantGuestToken(1, "nouveau-token");
+
+    expect(mockExecute).toHaveBeenCalledWith(expect.any(String), ["nouveau-token", 1]);
   });
 
   it("touchParticipant met à jour statut et last_seen_at", async () => {
