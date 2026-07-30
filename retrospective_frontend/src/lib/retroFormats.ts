@@ -1,4 +1,4 @@
-import type { RetroFormatId, RetroFormatOption } from './types/retroFormats.types';
+import type { RetroFormatOption } from './types/retroFormats.types';
 
 export const RETRO_FORMAT_OPTIONS: RetroFormatOption[] = [
   {

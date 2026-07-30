@@ -217,7 +217,7 @@ const CreateAccountForm = ({ onSessionCreated }: CreateAccountFormProps) => {
           render={({ field }) => (
             <RetroFormatDropdown
               id="formatId"
-              value={field.value}
+              value={field.value ?? ""}
               onChange={field.onChange}
               disabled={isSubmitting}
               aria-invalid={!!errors.formatId}
