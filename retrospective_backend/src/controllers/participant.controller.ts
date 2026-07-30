@@ -19,6 +19,7 @@ import {
   joinSessionAsGuestParticipantByCode,
   joinSessionAsGuestParticipant,
   leaveSession,
+  reconnectFromResumeCookie,
   renameParticipant,
   resumeGuestParticipant,
 } from "../services/participant.service";
@@ -136,6 +137,47 @@ export const resumeGuest = async (req: Request, res: Response) => {
   res.cookie(RESUME_COOKIE_NAME, token, resumeCookieOptions);
 
   return res.status(200).json({ success: true, data: participant });
+};
+
+// Reprise complète (avec droits d'écriture) à partir du seul cookie signé
+// retro_resume, sans rien lire du body : contrairement à /resume, sert un
+// participant dont le JWT (1h) a expiré alors que le cookie de reprise (24h)
+// est toujours valide (BUG-SESSION-RESUME-01). Le cookie fait foi puisqu'il
+// est signé côté serveur ; aucun participantId/guestToken client n'est utilisé.
+export const resumeFromCookie = async (req: Request, res: Response) => {
+  const sessionId = parseSessionId(req);
+  const cookieToken = req.cookies?.[RESUME_COOKIE_NAME];
+
+  if (!cookieToken) {
+    throw new AppError(404, "Aucune session à reprendre.", "RESUME_COOKIE_MISSING");
+  }
+
+  const payload = verifyResumeToken(cookieToken);
+  if (!payload) {
+    res.clearCookie(RESUME_COOKIE_NAME, clearResumeCookieOptions);
+    throw new AppError(404, "Aucune session à reprendre.", "RESUME_COOKIE_MISSING");
+  }
+
+  if (payload.sessionId !== sessionId) {
+    throw new AppError(404, "Ce lien de reprise ne concerne pas cette session.", "RESUME_COOKIE_MISMATCH");
+  }
+
+  // Une vraie reprise ne doit jamais rouvrir une session clôturée, comme /resume.
+  const session = await getSessionDetails(sessionId);
+  assertSessionOpen(session);
+
+  const { participant, guestToken } = await reconnectFromResumeCookie(sessionId, payload.participantId);
+  await emitParticipantsUpdated(sessionId);
+
+  const token = signResumeToken({
+    sessionId: participant.sessionId,
+    participantId: participant.id,
+    displayName: participant.displayName,
+    guestToken,
+  });
+  res.cookie(RESUME_COOKIE_NAME, token, resumeCookieOptions);
+
+  return res.status(200).json({ success: true, data: { ...participant, guestToken } });
 };
 
 export const removeParticipant = async (req: Request, res: Response) => {
