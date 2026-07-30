@@ -10,4 +10,4 @@
 // pointe automatiquement vers la même IP au lieu du "localhost" de ce
 // poste-là (qui ne désignerait pas la machine hébergeant le backend).
 // Pas d'IP en dur à maintenir : ça suit l'IP réelle utilisée pour se connecter.
-export const API_BASE = import.meta.env.VITE_API_URL ?? `http://${window.location.hostname}:8000`;
+export const API_BASE = (import.meta.env.VITE_API_URL ?? `http://${window.location.hostname}:8000`) + '/api';

@@ -11,7 +11,7 @@ test.describe('Parcours d\'authentification et d\'identité étanches', () => {
     });
 
     // Mock du profil utilisateur connecté (non connecté par défaut)
-    await page.route('http://localhost:8000/auth/profile', async (route) => {
+    await page.route('http://localhost:8000/api/auth/profile', async (route) => {
       await route.fulfill({
         status: 401,
         contentType: 'application/json',
@@ -23,7 +23,7 @@ test.describe('Parcours d\'authentification et d\'identité étanches', () => {
     });
 
     // Mock de reprise de session active (renvoie vide par défaut)
-    await page.route('http://localhost:8000/session/resume/active', async (route) => {
+    await page.route('http://localhost:8000/api/session/resume/active', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -32,7 +32,7 @@ test.describe('Parcours d\'authentification et d\'identité étanches', () => {
     });
 
     // Mock des sessions (renvoie vide pour éviter toute interférence historique)
-    await page.route('http://localhost:8000/session', async (route) => {
+    await page.route('http://localhost:8000/api/session', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -44,7 +44,7 @@ test.describe('Parcours d\'authentification et d\'identité étanches', () => {
     });
 
     // Mock de jointure en tant que connecté
-    await page.route('http://localhost:8000/session/join', async (route) => {
+    await page.route('http://localhost:8000/api/session/join', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -56,7 +56,7 @@ test.describe('Parcours d\'authentification et d\'identité étanches', () => {
     });
 
     // Mock de jointure en tant qu'invité
-    await page.route('http://localhost:8000/session/join-guest', async (route) => {
+    await page.route('http://localhost:8000/api/session/join-guest', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -68,7 +68,7 @@ test.describe('Parcours d\'authentification et d\'identité étanches', () => {
     });
 
     // Mock des détails de la session 600
-    await page.route('http://localhost:8000/session/600', async (route) => {
+    await page.route('http://localhost:8000/api/session/600', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -89,7 +89,7 @@ test.describe('Parcours d\'authentification et d\'identité étanches', () => {
     });
 
     // Mock des participants de la session 600
-    await page.route('http://localhost:8000/session/600/participants/self', async (route) => {
+    await page.route('http://localhost:8000/api/session/600/participants/self', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -97,7 +97,7 @@ test.describe('Parcours d\'authentification et d\'identité étanches', () => {
       });
     });
 
-    await page.route('http://localhost:8000/session/600/participants', async (route) => {
+    await page.route('http://localhost:8000/api/session/600/participants', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -106,7 +106,7 @@ test.describe('Parcours d\'authentification et d\'identité étanches', () => {
     });
 
     // Mock des cartes
-    await page.route('http://localhost:8000/session/600/cards', async (route) => {
+    await page.route('http://localhost:8000/api/session/600/cards', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -119,7 +119,7 @@ test.describe('Parcours d\'authentification et d\'identité étanches', () => {
   });
 
   test('1 & 9. Connexion d\'un compte existant et affichage des menus de compte', async ({ page }) => {
-    await page.route('http://localhost:8000/auth/login', async (route) => {
+    await page.route('http://localhost:8000/api/auth/login', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -148,7 +148,7 @@ test.describe('Parcours d\'authentification et d\'identité étanches', () => {
   });
 
   test('2 & 7. Inscription d\'un nouveau compte et absence de redirection automatique', async ({ page }) => {
-    await page.route('http://localhost:8000/auth/signup', async (route) => {
+    await page.route('http://localhost:8000/api/auth/signup', async (route) => {
       await route.fulfill({
         status: 201,
         contentType: 'application/json',
@@ -180,7 +180,7 @@ test.describe('Parcours d\'authentification et d\'identité étanches', () => {
       window.localStorage.setItem('token', 'jwt-token');
     });
 
-    await page.route('http://localhost:8000/auth/profile', async (route) => {
+    await page.route('http://localhost:8000/api/auth/profile', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -208,7 +208,7 @@ test.describe('Parcours d\'authentification et d\'identité étanches', () => {
       window.localStorage.setItem('token', 'jwt-token');
     });
 
-    await page.route('http://localhost:8000/auth/profile', async (route) => {
+    await page.route('http://localhost:8000/api/auth/profile', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -256,7 +256,7 @@ test.describe('Parcours d\'authentification et d\'identité étanches', () => {
       window.localStorage.setItem('token', 'jwt-token');
     });
 
-    await page.route('http://localhost:8000/auth/profile', async (route) => {
+    await page.route('http://localhost:8000/api/auth/profile', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -289,7 +289,7 @@ test.describe('Parcours d\'authentification et d\'identité étanches', () => {
       window.localStorage.setItem('retro:guest:600', JSON.stringify({ participantId: 9, displayName: 'Sarah', guestToken: 'guest-token' }));
     });
 
-    await page.route('http://localhost:8000/auth/login', async (route) => {
+    await page.route('http://localhost:8000/api/auth/login', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -317,7 +317,7 @@ test.describe('Parcours d\'authentification et d\'identité étanches', () => {
       window.localStorage.setItem('token', 'jwt-token');
     });
 
-    await page.route('http://localhost:8000/auth/profile', async (route) => {
+    await page.route('http://localhost:8000/api/auth/profile', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -328,7 +328,7 @@ test.describe('Parcours d\'authentification et d\'identité étanches', () => {
       });
     });
 
-    await page.route('http://localhost:8000/session/create-session', async (route) => {
+    await page.route('http://localhost:8000/api/session/create-session', async (route) => {
       await route.fulfill({
         status: 201,
         contentType: 'application/json',

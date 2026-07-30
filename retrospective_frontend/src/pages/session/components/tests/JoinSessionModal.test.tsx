@@ -46,7 +46,7 @@ describe('JoinSessionModal', () => {
       expect(onJoined).toHaveBeenCalledWith({ id: 9, displayName: 'EBNoob', role: 'participant', guestToken: 'secret' });
     });
     expect(fetchMock).toHaveBeenCalledWith(
-      'http://localhost:8000/session/1/participants/guest-join',
+      'http://localhost:8000/api/session/1/participants/guest-join',
       expect.objectContaining({ body: JSON.stringify({ pseudo: 'EBNoob' }) })
     );
   });

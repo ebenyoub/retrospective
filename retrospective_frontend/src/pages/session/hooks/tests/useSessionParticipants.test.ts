@@ -65,7 +65,7 @@ describe('useSessionParticipants', () => {
     await waitFor(() => expect(result.current.participants).toHaveLength(1));
     // L'authentification passe par le cookie (credentials), plus par un token.
     expect(fetchMock).toHaveBeenCalledWith(
-      'http://localhost:8000/session/1/participants',
+      'http://localhost:8000/api/session/1/participants',
       expect.objectContaining({ credentials: 'include' })
     );
 

@@ -35,8 +35,8 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(morgan('dev'));
 
-app.use('/auth', authRoutes);
-app.use('/session', sessionRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/session', sessionRoutes);
 
 // Middleware d'erreur centralisé — doit être déclaré après toutes les routes.
 // N'est atteint que par les routes passées à asyncHandler (voir src/utils/asyncHandler.ts).
