@@ -1,7 +1,7 @@
 import type { Server as HttpServer } from "http";
 import { Server as SocketIOServer, type Socket } from "socket.io";
 import jwt from "jsonwebtoken";
-import { getParticipantsForSession, markParticipantOffline, findParticipantForGuestToken } from "../services/participant.service";
+import { getParticipantsForSession, markParticipantOffline, markParticipantOnline, findParticipantForGuestToken } from "../services/participant.service";
 import { findSessionById } from "../models/session.model";
 import { readTokenFromCookieHeader } from "../utils/authCookie";
 import { logger } from "../utils/logger";
@@ -71,6 +71,8 @@ export const initSocket = (
         currentSessionId = payload.sessionId;
         currentParticipantId = payload.participantId;
         socket.join(roomName(payload.sessionId));
+
+        await markParticipantOnline(payload.participantId);
 
         await emitParticipantsUpdated(payload.sessionId);
       } catch (error) {

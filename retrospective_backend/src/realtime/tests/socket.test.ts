@@ -7,6 +7,7 @@ import type { Mock } from "vitest";
 vi.mock("../../services/participant.service", () => ({
   getParticipantsForSession: vi.fn(),
   markParticipantOffline: vi.fn(),
+  markParticipantOnline: vi.fn(),
   findParticipantForGuestToken: vi.fn(),
 }));
 
@@ -18,12 +19,14 @@ import { initSocket } from "../socket";
 import {
   getParticipantsForSession,
   markParticipantOffline,
+  markParticipantOnline,
   findParticipantForGuestToken,
 } from "../../services/participant.service";
 import { findSessionById } from "../../models/session.model";
 
 const mockGetParticipantsForSession = getParticipantsForSession as unknown as Mock;
 const mockMarkParticipantOffline = markParticipantOffline as unknown as Mock;
+const mockMarkParticipantOnline = markParticipantOnline as unknown as Mock;
 const mockFindParticipantForGuestToken = findParticipantForGuestToken as unknown as Mock;
 const mockFindSessionById = findSessionById as unknown as Mock;
 
@@ -63,6 +66,7 @@ describe("realtime socket", () => {
   beforeEach(async () => {
     mockGetParticipantsForSession.mockReset();
     mockMarkParticipantOffline.mockReset();
+    mockMarkParticipantOnline.mockReset();
     mockFindParticipantForGuestToken.mockReset();
     mockFindSessionById.mockReset();
     mockFindSessionById.mockResolvedValue({ id: 10, status: "open" });

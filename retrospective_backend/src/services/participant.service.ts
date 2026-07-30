@@ -292,6 +292,10 @@ export const markParticipantOffline = async (participantId: number): Promise<voi
   await touchParticipant(participantId, "offline");
 };
 
+export const markParticipantOnline = async (participantId: number): Promise<void> => {
+  await touchParticipant(participantId, "online");
+};
+
 // Changement de pseudo : seul le propriétaire de la ligne (invité via son
 // jeton, utilisateur via son compte) peut renommer SA participation.
 export const renameParticipant = async ({

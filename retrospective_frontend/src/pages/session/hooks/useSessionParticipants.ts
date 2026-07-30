@@ -162,6 +162,10 @@ export const useSessionParticipants = (
       }
     };
 
+    if (socket.connected) {
+      handleConnect();
+    }
+
     socket.on("connect", handleConnect);
     socket.on("session:participants-updated", handleParticipantsUpdated);
     socket.on("session:started", handleSessionStarted);
