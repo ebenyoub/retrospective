@@ -266,12 +266,12 @@ describe("session.service", () => {
     );
   });
 
-  it("createSessionForUser refuse un format absent des formats MVP", async () => {
+  it("createSessionForUser refuse un format avec un nombre incorrect de colonnes", async () => {
     await expect(createSessionForUser({
       userId: 1,
       name: "Nouvelle Session",
-      formatName: "Mad / Sad / Glad",
-      formatColumns: ["Mad", "Sad", "Glad"],
+      formatName: "Invalide",
+      formatColumns: ["Colonne 1", "Colonne 2"],
     })).rejects.toMatchObject({
       statusCode: 400,
       code: "FORMAT_INVALID",
