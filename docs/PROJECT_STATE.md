@@ -61,14 +61,6 @@ production affichait le JSON brut de l'API au lieu de l'app React, sur
 - **Tests** : nouveaux tests backend (`participant.model.test.ts`, `participant.service.test.ts`, `participant.controller.test.ts`) et frontend (`SessionDashboard.waiting.test.tsx`) au vert. Revu par `reviewer-code` : PRÊT À COMMITTER sur backend et frontend.
 - **Non concerné par ce ticket** : les durées de vie des cookies (1h/24h) restent inchangées ; le mécanisme existant de réouverture en lecture seule d'une session close n'est pas touché.
 - **État** : commité (`416c2ef`), mergé dans `dev` (PR #50).)
-<<<<<<< HEAD
-=======
-
-2026-07-30 (`UI-FIXES-BATCH-01` — Lot de 7 petits correctifs UI/UX de session, traités ensemble sur `feature/UI-FIXES-BATCH-01` : `BUG-CARD-TEXT-WRAP-01` (texte de carte qui débordait), `BUG-DISCUSSION-TOGGLE-01` (re-clic fermait puis rouvrait le panneau Discussion), `BUG-CARD-INPUT-SCROLL-01` (ascenseur inesthétique dans le champ d'ajout de carte), `BUG-CARD-COMMENTS-OUTSIDE-CLICK-01` (clic en dehors d'une carte ferme ses commentaires), `UX-STEP-BREAKPOINT-01` (seuil de bascule 2/3 navbars abaissé de 1280px à 1152px), `UX-NAVBAR-RIGHT-STABLE-01` (labels de navbar synchronisés sur ce même seuil), `BUG-CARD-COMMENTS-TITLE-01` (titre "Discussion" retiré des commentaires de carte).
-- **Régression trouvée et corrigée en cours de route** : un premier correctif de `BUG-DISCUSSION-TOGGLE-01` cassait totalement l'ouverture du panneau en mode flottant (768-1151px) — détecté par `qa-tests`, corrigé (exclusion du bouton toggle dans le clic-extérieur), re-testé sur les 3 scénarios clés.
-- **Tests** : 203/203 Vitest, 26/26 Playwright, vérification visuelle réelle en navigateur (plusieurs largeurs de viewport) pour les tickets 5/6. Revu par `reviewer-code` : PRÊT À COMMITTER.
-- **État** : commité (`7708ba9`), PR #52 vers `dev` ouverte.)
->>>>>>> origin/dev
 
 2026-07-29 (`DEPLOY-VPS-01` — Déploiement du projet sur le VPS partagé Hetzner (`167.233.194.26`), sur `feature/DEPLOY-VPS-01-deploiement-vps`. Architecture validée par l'utilisateur, en cours de mise en place (documentation faite en parallèle de la création des fichiers techniques par `frontend-react`/`backend-express` ; premier déploiement réel pas encore exécuté).
 - Sous-domaine `retrospective.elyasbenyoub.dev`, nginx partagé du VPS, routage par chemin sous un même sous-domaine (`/auth/`, `/session/`, `/socket.io/` → backend, `/` → frontend) — nécessaire pour le cookie HttpOnly d'authentification, particularité de ce projet par rapport aux 3 autres déjà déployés sur ce VPS.
