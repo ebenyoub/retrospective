@@ -27,7 +27,7 @@ export const useSessionSocketHandlers = ({
     addToast('success', 'Le facilitateur a mis fin à la session. Redirection vers les résultats.');
     setStatus('closed');
     hasShownClosedToastRef.current = true;
-  }, [addToast, setStatus]);
+  }, [addToast, setStatus, hasShownClosedToastRef]);
 
   return { handleSessionStarted, handleTimerUpdated, handleSessionClosedBySocket };
 };
