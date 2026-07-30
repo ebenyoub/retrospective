@@ -25,6 +25,7 @@ import {
   removeParticipant,
   renameParticipantSelf,
   resumeCheck,
+  resumeFromCookie,
   resumeGuest,
   checkGlobalResume,
 } from '../controllers/participant.controller';
@@ -69,6 +70,9 @@ router.get('/:sessionId/participants', asyncHandler(listParticipants));
 router.post('/:sessionId/participants/self', auth, asyncHandler(joinAsSelf));
 router.post('/:sessionId/participants/guest-join', validate(guestJoinSchema), asyncHandler(guestJoin));
 router.post('/:sessionId/participants/resume', validate(resumeGuestSchema), asyncHandler(resumeGuest));
+// Pas de validate() : rien n'est lu du body, l'identité vient uniquement du
+// cookie signé retro_resume (voir resumeFromCookie, BUG-SESSION-RESUME-01).
+router.post('/:sessionId/participants/resume-from-cookie', asyncHandler(resumeFromCookie));
 router.post('/:sessionId/participants/resume-check', validate(resumeGuestSchema), asyncHandler(resumeCheck));
 router.patch('/:sessionId/participants/:participantId', validate(renameParticipantSchema), asyncHandler(renameParticipantSelf));
 router.delete('/:sessionId/participants/:participantId', validate(leaveParticipantSchema), asyncHandler(removeParticipant));

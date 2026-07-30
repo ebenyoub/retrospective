@@ -243,4 +243,46 @@
 
 ---
 
+## 2026-07-30 — Reconnexion via cookie de reprise : accès complet en écriture, pas une reprise en lecture seule
+
+**Décision** : Sur `BUG-SESSION-RESUME-01`, un participant dont le JWT (1h) a expiré mais dont le cookie signé `retro_resume` (24h) est encore valide est reconnecté avec les **mêmes droits qu'à sa jointure initiale** (écriture, vote, etc.), via un nouveau `guest_token` généré côté serveur (`POST /session/:sessionId/participants/resume-from-cookie`) et non plus par son JWT. Un participant initialement authentifié redevient ainsi "pilotable" comme un invité classique (jeton en `localStorage`) une fois cette reprise effectuée.
+
+**Pourquoi** : `retro_resume` est un cookie **signé côté serveur**, jamais falsifiable par le client — il constitue donc une preuve d'identité suffisante pour réactiver un participant sans lui redemander son mot de passe, et limiter la reprise à de la lecture seule aurait dégradé l'expérience sans bénéfice de sécurité réel.
+
+**Alternatives considérées** :
+- Pré-remplir seulement le pseudo dans la modale de jointure → rejeté par l'utilisateur, oblige à rejoindre à nouveau alors que l'identité est déjà prouvée par le cookie.
+- Reprise en lecture seule uniquement (comme une session close) → rejeté, la session reste ouverte et le participant doit pouvoir continuer à y contribuer normalement.
+
+---
+
+## 2026-07-30 — Préfixe `/api` pour toute l'API, déployé en 3 temps sans coupure
+
+**Décision** : Toute l'API bascule sous un préfixe distinct `/api` (`server.ts` monte
+`/api/auth`/`/api/session`, `API_BASE` frontend inclut `/api`), et le nginx du VPS
+partagé fusionne ses deux blocs `location /auth/`/`location /session/` en un seul
+`location /api/`. Le déploiement se fait en 3 temps pour éviter toute coupure : ajout
+additif du bloc `/api/` sur le VPS (sans retirer les anciens) → merge/déploiement du
+nouveau code → retrait des anciens blocs une fois le nouveau code confirmé stable.
+
+**Pourquoi** : Corrige `BUG-SESSION-RELOAD-ROUTING-01` — le nginx du VPS partagé
+(routage par chemin sous un même sous-domaine, voir décision `DEPLOY-VPS-01` du
+2026-07-29) routait tout `/session/...` vers le backend, y compris les vraies
+navigations navigateur, en collision directe avec la route SPA `/session/:id` du
+frontend : un F5 sur cette page renvoyait le JSON brut de l'API au lieu de l'app
+React. Un préfixe dédié (`/api`) lève l'ambiguïté à la racine, de façon durable :
+aucune route frontend ne pourra plus jamais commencer par `/api`, contrairement à
+`/session` qui reste un chemin métier légitime côté frontend.
+
+**Alternatives considérées** :
+- Contournement nginx basé sur l'en-tête `Accept` (JSON vs HTML) → rejeté, plus
+  fragile (dépend de ce que le navigateur envoie réellement lors d'un F5, pas toujours
+  fiable) et moins standard qu'un préfixe de chemin explicite, plus difficile à
+  expliquer et à maintenir.
+- Déployer nginx et code en une seule fois → rejeté, romprait le site le temps que les
+  deux composants (nginx, backend/frontend) soient synchronisés ; le déploiement en 3
+  temps (additif → code → nettoyage) garantit qu'à chaque étape l'ancien et le nouveau
+  chemin restent tous deux valides jusqu'à confirmation de stabilité.
+
+---
+
 > Ajouter une entrée à chaque fois qu'une décision technique importante est prise.

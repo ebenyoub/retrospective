@@ -10,6 +10,7 @@ vi.mock("../../models/participant.model", () => ({
   findParticipantByUserId: vi.fn(),
   findParticipantsBySession: vi.fn(),
   insertParticipant: vi.fn(),
+  setParticipantGuestToken: vi.fn(),
   touchParticipant: vi.fn(),
   updateParticipantName: vi.fn(),
 }));
@@ -29,6 +30,7 @@ import {
   findParticipantByUserId,
   findParticipantsBySession,
   insertParticipant,
+  setParticipantGuestToken,
   touchParticipant,
   updateParticipantName,
 } from "../../models/participant.model";
@@ -42,6 +44,7 @@ import {
   joinSessionAsGuestParticipantByCode,
   joinSessionAsGuestParticipant,
   leaveSession,
+  reconnectFromResumeCookie,
   renameParticipant,
   resumeGuestParticipant,
 } from "../participant.service";
@@ -55,6 +58,7 @@ const mockFindParticipantByName = findParticipantByName as unknown as Mock;
 const mockFindParticipantByUserId = findParticipantByUserId as unknown as Mock;
 const mockFindParticipantsBySession = findParticipantsBySession as unknown as Mock;
 const mockInsertParticipant = insertParticipant as unknown as Mock;
+const mockSetParticipantGuestToken = setParticipantGuestToken as unknown as Mock;
 const mockTouchParticipant = touchParticipant as unknown as Mock;
 const mockUpdateParticipantName = updateParticipantName as unknown as Mock;
 const mockFindSessionByCode = findSessionByCode as unknown as Mock;
@@ -82,6 +86,7 @@ describe("participant.service", () => {
     mockFindParticipantByUserId.mockReset();
     mockFindParticipantsBySession.mockReset();
     mockInsertParticipant.mockReset();
+    mockSetParticipantGuestToken.mockReset();
     mockTouchParticipant.mockReset();
     mockUpdateParticipantName.mockReset();
     mockFindSessionByCode.mockReset();
@@ -335,6 +340,58 @@ describe("participant.service", () => {
       mockFindParticipantById.mockResolvedValueOnce({ ...baseParticipantRow, joined_at: joinedUnder24hAgo });
 
       await expect(resumeGuestParticipant(10, 1, "guest-token")).resolves.toMatchObject({ id: 1 });
+    });
+  });
+
+  describe("reconnectFromResumeCookie", () => {
+    it("refuse si le participant n'existe pas ou n'appartient pas à la session", async () => {
+      mockFindParticipantById.mockResolvedValueOnce(null);
+
+      await expect(reconnectFromResumeCookie(10, 1)).rejects.toMatchObject({
+        statusCode: 404,
+        code: "PARTICIPANT_NOT_FOUND",
+      } satisfies Partial<AppError>);
+      expect(mockTouchParticipant).not.toHaveBeenCalled();
+    });
+
+    it("refuse si le participant appartient à une autre session", async () => {
+      mockFindParticipantById.mockResolvedValueOnce({ ...baseParticipantRow, session_id: 999 });
+
+      await expect(reconnectFromResumeCookie(10, 1)).rejects.toMatchObject({
+        statusCode: 404,
+        code: "PARTICIPANT_NOT_FOUND",
+      } satisfies Partial<AppError>);
+    });
+
+    it("refuse si le jeton invité a plus de 24h (T-PART-02)", async () => {
+      const joinedOver24hAgo = new Date(Date.now() - 25 * 60 * 60 * 1000);
+      mockFindParticipantById.mockResolvedValueOnce({ ...baseParticipantRow, joined_at: joinedOver24hAgo });
+
+      await expect(reconnectFromResumeCookie(10, 1)).rejects.toMatchObject({
+        statusCode: 401,
+        code: "GUEST_TOKEN_EXPIRED",
+      } satisfies Partial<AppError>);
+      expect(mockTouchParticipant).not.toHaveBeenCalled();
+    });
+
+    it("réutilise le jeton invité existant sans en générer un nouveau", async () => {
+      mockFindParticipantById.mockResolvedValueOnce(baseParticipantRow);
+
+      const result = await reconnectFromResumeCookie(10, 1);
+
+      expect(result.guestToken).toBe("guest-token");
+      expect(mockSetParticipantGuestToken).not.toHaveBeenCalled();
+      expect(mockTouchParticipant).toHaveBeenCalledWith(1, "online");
+    });
+
+    it("génère et persiste un nouveau jeton pour une participation authentifiée sans jeton invité", async () => {
+      mockFindParticipantById.mockResolvedValueOnce({ ...baseParticipantRow, user_id: 3, guest_token: null });
+
+      const result = await reconnectFromResumeCookie(10, 1);
+
+      expect(result.guestToken).toMatch(/^[0-9a-f]{48}$/);
+      expect(mockSetParticipantGuestToken).toHaveBeenCalledWith(1, result.guestToken);
+      expect(mockTouchParticipant).toHaveBeenCalledWith(1, "online");
     });
   });
 

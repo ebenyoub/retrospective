@@ -4,6 +4,64 @@
 
 ## Date de dernière mise à jour
 
+2026-07-30 (Lot de 7 correctifs UI/UX de session, sur `feature/UI-FIXES-BATCH-01` :
+- `BUG-CARD-TEXT-WRAP-01` — texte de carte débordant, classe Tailwind invalide corrigée en `break-words`.
+- `BUG-DISCUSSION-TOGGLE-01` — re-clic sur "Discussion" refermait puis rouvrait aussitôt le panneau flottant, bouton exclu du clic-extérieur.
+- `BUG-CARD-INPUT-SCROLL-01` — ascenseur inesthétique du champ d'ajout de carte, overflow piloté dynamiquement en JS.
+- `BUG-CARD-COMMENTS-OUTSIDE-CLICK-01` — commentaires d'une carte ne se fermaient pas au clic extérieur, nouveau clic-extérieur ajouté.
+- `UX-STEP-BREAKPOINT-01` — indicateur d'étapes disparaissant trop tôt à 1280px, seuil abaissé à 1152px.
+- `UX-NAVBAR-RIGHT-STABLE-01` — éléments de la navbar droite instables au redimensionnement, synchronisés sur le même seuil 1152px que `UX-STEP-BREAKPOINT-01`.
+- `BUG-CARD-COMMENTS-TITLE-01` — titre "Discussion" retiré à tort du panneau de commentaires d'une carte, "Discussion" ne désignant que le panneau latéral de messages.
+- **Régression trouvée et corrigée en cours de route** sur `BUG-DISCUSSION-TOGGLE-01` : un premier correctif cassait complètement l'ouverture du panneau en mode flottant, re-testé sur les 3 scénarios exacts après correction.
+- **Tests** : 203/203 Vitest, 26/26 Playwright, vérification visuelle en navigateur réel pour `UX-STEP-BREAKPOINT-01`/`UX-NAVBAR-RIGHT-STABLE-01` à plusieurs largeurs de viewport.
+- **État** : commité (`7708ba9`), PR #52 vers `dev` ouverte.)
+
+2026-07-30 (`BUG-SESSION-RELOAD-ROUTING-01` — Recharger (F5) une page `/session/:id` en
+production affichait le JSON brut de l'API au lieu de l'app React, sur
+`feature/BUG-SESSION-RELOAD-ROUTING-01`.
+- **Cause** : collision de chemin entre la route SPA `/session/:id` (React Router) et
+  le préfixe API `/session` — le nginx du VPS partagé (voir décision `DEPLOY-VPS-01`
+  du 2026-07-29, routage par chemin sous un même sous-domaine) routait tout
+  `/session/...` vers le backend, y compris une vraie navigation navigateur (F5), pas
+  seulement les appels `fetch` de l'app.
+- **Correctif** : toute l'API bascule sous un préfixe distinct `/api`, qui n'entre
+  jamais en collision avec une route frontend. Backend : `server.ts` monte désormais
+  `/api/auth` et `/api/session` (au lieu de `/auth`/`/session`). Frontend :
+  `API_BASE` (`src/lib/api.ts`) inclut `/api`. `docs/technical/nginx-retrospective.conf`
+  mis à jour : les deux blocs `location /auth/`/`location /session/` fusionnés en un
+  seul `location /api/`.
+- **Tests** : 329/329 backend, 203/203 Vitest frontend, 26/26 E2E Playwright — tous mis
+  à jour pour appeler les nouveaux chemins `/api/*`. Un premier test E2E de
+  non-régression ajouté par erreur a été retiré en cours de revue (`reviewer-code`) :
+  la topologie Vite dev server (origine séparée du backend mocké) ne peut
+  structurellement pas reproduire une collision de chemin nginx à origine unique — il
+  aurait donné une fausse impression de couverture sans jamais pouvoir échouer.
+- **Déploiement en 3 temps, sans coupure** (ce changement de préfixe casserait le site
+  s'il était appliqué d'un coup, code et nginx devant rester synchrones) :
+  1. Ajout du bloc `/api/` dans le nginx du VPS, **sans retirer** encore `/auth/`/
+     `/session/` (purement additif, zéro risque, le site actuel continue de
+     fonctionner à l'identique).
+  2. Merge de la PR vers `main` → déploiement automatique du nouveau code (qui
+     appelle `/api/*`) via le pipeline CI/CD existant.
+  3. Une fois le nouveau code confirmé stable en prod, retrait des anciens blocs
+     `/auth/`/`/session/` du nginx (devenus inutiles, et responsables du bug initial).
+  Étapes 1 et 3 exécutées manuellement par l'orchestrateur sur le VPS, comme pour
+  `DEPLOY-VPS-01`/`02`. La vérification finale du bug corrigé (F5 sur une page de
+  session en prod) reste manuelle, non automatisable en E2E local (topologie à
+  origine unique propre à nginx, absente en environnement de test).
+- **État actuel** : commité (`6134847`), mergé dans `dev` (PR #51). Reste à exécuter la
+  séquence de déploiement ci-dessus (étape 1 nginx additive, merge vers `main`, étape 3
+  nginx).)
+
+2026-07-30 (`BUG-SESSION-RESUME-01` — Bug hors backlog, sur `feature/BUG-SESSION-RESUME-01` : le bouton "Revenir à la session en cours" de l'accueil échouait pour un utilisateur authentifié dont le JWT (1h) avait expiré mais dont le cookie de reprise `retro_resume` (24h) était encore valide — modale "choisir un pseudo" affichée à tort au lieu d'une reconnexion.
+- **Cause racine** : `retro_resume` et `token` (JWT) ont des durées de vie différentes. Un utilisateur authentifié qui rejoint une session (`joinAsSelf`) pose `retro_resume` mais ne stocke rien en `localStorage` (réservé aux invités) ; entre 1h et 24h plus tard, le JWT a expiré mais `retro_resume` reste valide, et `SessionDashboard` ne savait alors reconnecter cette identité par aucun moyen (ni JWT valide, ni `guestIdentity` local).
+- **Décision produit validée par l'utilisateur** : reconnexion complète avec droits d'écriture (pas un simple pré-remplissage du pseudo ni une reprise en lecture seule) — voir `docs/decisions/DECISIONS.md` (entrée du 2026-07-30).
+- **Correctif backend** : nouvel endpoint `POST /session/:sessionId/participants/resume-from-cookie` (`participant.model.ts`/`participant.service.ts`/`participant.controller.ts`/`session.routes.ts`) qui lit uniquement le cookie signé côté serveur (jamais de `participantId`/`guestToken` fourni par le client) et régénère un `guest_token` pour le participant retrouvé, y compris s'il était initialement authentifié.
+- **Correctif frontend** : `participantApi.ts` (appel du nouvel endpoint), nouvel effet dans `useSessionIdentity.ts` exécuté avant l'affichage de `JoinSessionModal`, nouvel état `isResumingFromCookie` dans `SessionDashboard.tsx` pour éviter le flash de la modale pendant la vérification.
+- **Tests** : nouveaux tests backend (`participant.model.test.ts`, `participant.service.test.ts`, `participant.controller.test.ts`) et frontend (`SessionDashboard.waiting.test.tsx`) au vert. Revu par `reviewer-code` : PRÊT À COMMITTER sur backend et frontend.
+- **Non concerné par ce ticket** : les durées de vie des cookies (1h/24h) restent inchangées ; le mécanisme existant de réouverture en lecture seule d'une session close n'est pas touché.
+- **État** : commité (`416c2ef`), mergé dans `dev` (PR #50).)
+
 2026-07-29 (`DEPLOY-VPS-01` — Déploiement du projet sur le VPS partagé Hetzner (`167.233.194.26`), sur `feature/DEPLOY-VPS-01-deploiement-vps`. Architecture validée par l'utilisateur, en cours de mise en place (documentation faite en parallèle de la création des fichiers techniques par `frontend-react`/`backend-express` ; premier déploiement réel pas encore exécuté).
 - Sous-domaine `retrospective.elyasbenyoub.dev`, nginx partagé du VPS, routage par chemin sous un même sous-domaine (`/auth/`, `/session/`, `/socket.io/` → backend, `/` → frontend) — nécessaire pour le cookie HttpOnly d'authentification, particularité de ce projet par rapport aux 3 autres déjà déployés sur ce VPS.
 - Bloc nginx complet documenté dans `docs/technical/nginx-retrospective.conf` (en-têtes WebSocket pour Socket.IO, autre particularité de ce projet).

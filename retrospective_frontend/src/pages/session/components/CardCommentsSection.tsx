@@ -1,4 +1,4 @@
-import { MessageCircle, Send, Trash2 } from 'lucide-react';
+import { Send, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState, useContext } from 'react';
 import IconButton from '@/components/ui/IconButton';
 import Avatar from '@/components/ui/Avatar';
@@ -123,15 +123,10 @@ const CardCommentsSection = ({ cardId }: CardCommentsSectionProps) => {
   return (
     <div
       role="region"
-      aria-label="Discussion"
+      aria-label="Commentaires"
       className="mt-3 pt-3 border-t border-navy-border flex flex-col gap-3 font-sans"
       id={`card-comments-${cardId}`}
     >
-      <div className="flex items-center gap-1.5 text-xs text-slate-400 font-semibold select-none">
-        <MessageCircle size={13} aria-hidden="true" />
-        <span>Discussion</span>
-      </div>
-
       {/* Champ de saisie au-dessus de la liste : les commentaires sont déjà
           affichés du plus récent au plus ancien (UX-WRITING-05), le champ
           reste ainsi juste au-dessus du dernier commentaire, pas en dessous

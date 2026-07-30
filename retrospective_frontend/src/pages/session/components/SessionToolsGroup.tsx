@@ -63,7 +63,7 @@ const SessionToolsGroup = ({ isSessionCodeCopied, onCopySessionCode }: SessionTo
           }`}
         >
           <Users size={14} aria-hidden="true" />
-          <span className="hidden lg:inline">Participants</span>
+          <span className="hidden min-[1152px]:inline">Participants</span>
           {participantCount > 0 && (
             <span className="rounded-full bg-green-figma/20 px-1.5 font-mono text-[10px] text-green-figma">
               {participantCount}
@@ -88,7 +88,7 @@ const SessionToolsGroup = ({ isSessionCodeCopied, onCopySessionCode }: SessionTo
         } ${isDiscussionBlinking ? 'animate-pulse border-green-figma/50 bg-green-figma/10 text-green-figma' : ''}`}
       >
         <MessageCircle size={14} aria-hidden="true" />
-        <span className="hidden lg:inline">Discussion</span>
+        <span className="hidden min-[1152px]:inline">Discussion</span>
       </Button>
       <IconButton
         onClick={onToggleSound}

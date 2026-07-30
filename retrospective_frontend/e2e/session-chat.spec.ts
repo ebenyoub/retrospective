@@ -5,7 +5,7 @@ const prepareChatSession = async (page: Page): Promise<void> => {
     window.localStorage.setItem('token', 'playwright-token');
   });
 
-  await page.route('http://localhost:8000/auth/profile', async (route) => {
+  await page.route('http://localhost:8000/api/auth/profile', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -16,7 +16,7 @@ const prepareChatSession = async (page: Page): Promise<void> => {
     });
   });
 
-  await page.route('http://localhost:8000/session/450', async (route) => {
+  await page.route('http://localhost:8000/api/session/450', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -36,7 +36,7 @@ const prepareChatSession = async (page: Page): Promise<void> => {
     });
   });
 
-  await page.route('http://localhost:8000/session/450/cards', async (route) => {
+  await page.route('http://localhost:8000/api/session/450/cards', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -44,7 +44,7 @@ const prepareChatSession = async (page: Page): Promise<void> => {
     });
   });
 
-  await page.route('http://localhost:8000/session/450/participants/self', async (route) => {
+  await page.route('http://localhost:8000/api/session/450/participants/self', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -52,7 +52,7 @@ const prepareChatSession = async (page: Page): Promise<void> => {
     });
   });
 
-  await page.route('http://localhost:8000/session/450/participants', async (route) => {
+  await page.route('http://localhost:8000/api/session/450/participants', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -65,7 +65,7 @@ const prepareChatSession = async (page: Page): Promise<void> => {
 
   let messages: Array<{ id: number; sessionId: number; authorId: number; authorName: string; content: string; createdAt: string }> = [];
 
-  await page.route('http://localhost:8000/session/450/chat/messages', async (route) => {
+  await page.route('http://localhost:8000/api/session/450/chat/messages', async (route) => {
     if (route.request().method() === 'GET') {
       await route.fulfill({
         status: 200,

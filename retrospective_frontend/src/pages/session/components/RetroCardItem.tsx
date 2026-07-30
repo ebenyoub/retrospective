@@ -1,5 +1,5 @@
 import { MessageCircle, Pencil, Trash2 } from 'lucide-react';
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import Button from '@/components/ui/Button';
 import IconButton from '@/components/ui/IconButton';
 import Avatar from "@/components/ui/Avatar";
@@ -17,6 +17,7 @@ const RetroCardItem = ({ card, accentClassName, currentUserId, onVote, onUpdateC
   // confondues), état centralisé dans useSessionPanels : ouvrir celui d'une
   // carte ferme automatiquement celui d'une autre, pour économiser l'espace.
   const isCommentsExpanded = panels.openCommentsCardId === card.id;
+  const cardRef = useRef<HTMLDivElement>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [draftContent, setDraftContent] = useState(card.content);
   const [isCommentsBlinking, setIsCommentsBlinking] = useState(false);
@@ -63,8 +64,25 @@ const RetroCardItem = ({ card, accentClassName, currentUserId, onVote, onUpdateC
     setIsEditing(true);
   };
 
+  // Un clic en dehors de la carte referme ses commentaires s'ils sont
+  // ouverts. Le bouton "Commentaires" qui bascule l'ouverture est lui-même
+  // à l'intérieur de ce conteneur (cardRef) : jamais traité comme un clic
+  // extérieur, donc pas de risque de refermer puis rouvrir (contrairement à
+  // DiscussionDrawer, `mousedown` est sûr ici).
+  useEffect(() => {
+    if (!isCommentsExpanded) return;
+
+    const handleClickOutside = (event: MouseEvent): void => {
+      if (cardRef.current?.contains(event.target as Node)) return;
+      panels.toggleComments(card.id);
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isCommentsExpanded, panels, card.id]);
+
   return (
-    <div className={`bg-navy-mid border border-navy-border border-l-[3px] ${accentClassName} rounded-figma-md p-[10px_12px] flex flex-col gap-2 transition-all`}>
+    <div ref={cardRef} className={`bg-navy-mid border border-navy-border border-l-[3px] ${accentClassName} rounded-figma-md p-[10px_12px] flex flex-col gap-2 transition-all`}>
       
       {/* Top Section: Avatar + Author Name */}
       {!isEditing && (
@@ -105,7 +123,7 @@ const RetroCardItem = ({ card, accentClassName, currentUserId, onVote, onUpdateC
           </div>
         </form>
       ) : (
-        <p className="text-sm text-slate-100 font-sans leading-[1.55] wrap-break-words">{card.content}</p>
+        <p className="text-sm text-slate-100 font-sans leading-[1.55] break-words">{card.content}</p>
       )}
 
       {/* Action Buttons Section */}

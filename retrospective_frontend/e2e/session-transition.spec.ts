@@ -5,7 +5,7 @@ const prepareDynamicMocks = async (page: Page, state: { currentStep: string }): 
     window.localStorage.setItem('token', 'playwright-token');
   });
 
-  await page.route('http://localhost:8000/auth/profile', async (route) => {
+  await page.route('http://localhost:8000/api/auth/profile', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -17,7 +17,7 @@ const prepareDynamicMocks = async (page: Page, state: { currentStep: string }): 
   });
 
   // Mock de session dynamique reflétant l'état courant
-  await page.route('http://localhost:8000/session/500', async (route) => {
+  await page.route('http://localhost:8000/api/session/500', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -37,7 +37,7 @@ const prepareDynamicMocks = async (page: Page, state: { currentStep: string }): 
     });
   });
 
-  await page.route('http://localhost:8000/session/500/cards', async (route) => {
+  await page.route('http://localhost:8000/api/session/500/cards', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -60,7 +60,7 @@ const prepareDynamicMocks = async (page: Page, state: { currentStep: string }): 
     });
   });
 
-  await page.route('http://localhost:8000/session/500/participants/self', async (route) => {
+  await page.route('http://localhost:8000/api/session/500/participants/self', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -68,7 +68,7 @@ const prepareDynamicMocks = async (page: Page, state: { currentStep: string }): 
     });
   });
 
-  await page.route('http://localhost:8000/session/500/participants', async (route) => {
+  await page.route('http://localhost:8000/api/session/500/participants', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -88,7 +88,7 @@ const prepareDynamicMocks = async (page: Page, state: { currentStep: string }): 
   });
 
   // Intercepteur du PATCH pour changer dynamiquement l'étape dans la "base de données" mockée
-  await page.route('http://localhost:8000/session/500/step', async (route) => {
+  await page.route('http://localhost:8000/api/session/500/step', async (route) => {
     const payload = route.request().postDataJSON();
     state.currentStep = payload.step;
 

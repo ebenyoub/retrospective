@@ -84,7 +84,7 @@ describe('JoinSessionForm', () => {
       JSON.stringify({ participantId: 9, guestToken: 'guest-token', displayName: 'Sarah' })
     );
     expect(fetchMock).toHaveBeenCalledWith(
-      'http://localhost:8000/session/join-guest',
+      'http://localhost:8000/api/session/join-guest',
       expect.objectContaining({ body: JSON.stringify({ code: '1234', pseudo: 'Sarah' }) })
     );
   });
