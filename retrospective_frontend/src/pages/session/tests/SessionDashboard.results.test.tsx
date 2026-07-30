@@ -192,7 +192,7 @@ describe('SessionDashboard - Vue des résultats (Results Step)', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Commentaires' }));
 
-    const section = await screen.findByRole('region', { name: 'Discussion' });
+    const section = await screen.findByRole('region', { name: 'Commentaires' });
     await within(section).findByText('Un avis sur cette carte');
   });
 

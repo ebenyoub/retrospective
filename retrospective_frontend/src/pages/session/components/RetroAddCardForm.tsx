@@ -40,6 +40,10 @@ const RetroAddCardForm = ({ color, onAddCard }: RetroAddCardFormProps) => {
 
     el.style.height = 'auto';
     el.style.height = `${Math.min(el.scrollHeight, maxHeightRef.current)}px`;
+    // Ascenseur affiché seulement si le contenu dépasse réellement 2 lignes,
+    // jamais avant (un overflow-y-auto statique pouvait apparaître à tort à
+    // cause d'un arrondi sous-pixel entre scrollHeight et la hauteur appliquée).
+    el.style.overflowY = el.scrollHeight > maxHeightRef.current ? 'auto' : 'hidden';
   }, [value]);
 
   const submit = async () => {
@@ -75,7 +79,7 @@ const RetroAddCardForm = ({ color, onAddCard }: RetroAddCardFormProps) => {
           rows={1}
           disabled={isSubmitting}
           aria-label="Contenu de la nouvelle carte"
-          className="flex-1 resize-none overflow-y-auto rounded-[9px] bg-navy-surface px-[10px] py-2 text-[13px] text-slate-50 placeholder:text-slate-500 outline-none transition-colors disabled:opacity-50"
+          className="flex-1 resize-none rounded-[9px] bg-navy-surface px-[10px] py-2 text-[13px] text-slate-50 placeholder:text-slate-500 outline-none transition-colors disabled:opacity-50"
           style={{
             border: `1px solid ${hasContent ? color + '60' : 'rgba(255,255,255,0.13)'}`,
           }}

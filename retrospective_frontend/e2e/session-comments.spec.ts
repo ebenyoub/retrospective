@@ -133,7 +133,7 @@ test('ajoute et supprime un commentaire réel, sans donnée fictive', async ({ p
   // 1. Clic sur le bouton de commentaires et dépliage de la section
   await commentsButton.click();
 
-  const commentsSection = page.getByRole('region', { name: 'Discussion' });
+  const commentsSection = page.getByRole('region', { name: 'Commentaires' });
   await expect(commentsSection).toBeVisible();
 
   // 2. Vérification de l'état vide (aucun commentaire côté serveur)
