@@ -48,16 +48,17 @@ const SessionIdentityBar = ({ canRenameSelf = false, onBack, isDesktopViewport }
         size="sm"
         onClick={onBack}
         aria-label="Accueil"
+        title="Retour à l'accueil"
         className="inline-flex h-[30px] shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border border-navy-border bg-transparent px-2.5 font-sans text-xs font-medium leading-none text-slate-400 transition-colors select-none hover:bg-navy-surface hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-navy-mid"
       >
         <Home size={14} aria-hidden="true" />
-        <span className="hidden md:inline">Accueil</span>
+        <span className="hidden sm:inline">Accueil</span>
       </Button>
 
       <div className="flex min-w-0 items-center gap-2">
         <span className="inline-flex h-[30px] shrink-0 items-center font-sans text-[15px] font-extrabold leading-none text-green-figma">
-          <span className="md:hidden">RTC</span>
-          <span className="hidden md:inline">Range ta chambre</span>
+          <span className="sm:hidden">RTC</span>
+          <span className="hidden sm:inline">Range ta chambre</span>
         </span>
         <span className="hidden h-[30px] shrink-0 items-center font-sans text-[13px] leading-none text-slate-700 sm:inline-flex" aria-hidden="true">/</span>
         <span className="inline-flex h-[30px] min-w-0 flex-1 items-center truncate font-sans text-[13px] font-semibold leading-none text-slate-300">

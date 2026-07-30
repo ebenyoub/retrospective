@@ -31,6 +31,7 @@ const SessionActionBar = ({ isDesktopViewport, isSessionCodeCopied, onCopySessio
   const onCloseSession = context.handleCloseSession;
   const [isBackConfirmOpen, setIsBackConfirmOpen] = useState(false);
 
+  if (!isFacilitator && !isDesktopViewport) return null;
   if ((step === 'results' || step === 'summary') && !isFacilitator) return null;
 
   // Le backend n'impose aucun ordre : revenir en arrière réutilise le même
@@ -49,7 +50,7 @@ const SessionActionBar = ({ isDesktopViewport, isSessionCodeCopied, onCopySessio
       aria-label="Actions de l'étape"
       className="flex h-12 shrink-0 items-center gap-2 border-b border-navy-border bg-navy-surface px-3 md:px-5"
     >
-      <div className="flex min-w-0 shrink-0 items-center">
+      <div className="hidden md:flex min-w-0 shrink-0 items-center">
         {step === 'results' ? (
           <span className="font-sans text-xs leading-none text-slate-400 select-none">
             Rétrospective terminée
@@ -93,14 +94,12 @@ const SessionActionBar = ({ isDesktopViewport, isSessionCodeCopied, onCopySessio
       )}
 
       <div className="ml-auto flex min-w-0 shrink-0 items-center gap-2">
-        {(step === 'writing' || step === 'voting') && stepEndsAt && (
+        {isDesktopViewport && (step === 'writing' || step === 'voting') && stepEndsAt && (
           <TimerChip endsAt={stepEndsAt} isEditable={isFacilitator} onSubmitMinutes={onUpdateTimer} />
         )}
 
         {isFacilitator && (
-          // Précédent, Terminer et le CTA d'avancement forment un seul bloc
-          // collé (pas de répartition sur toute la largeur).
-          <div className="flex shrink-0 items-center gap-2">
+          <div className="flex shrink-0 items-center gap-1.5">
             {previousStep && (
               <Button
                 variant="ghost"
@@ -108,10 +107,13 @@ const SessionActionBar = ({ isDesktopViewport, isSessionCodeCopied, onCopySessio
                 onClick={() => setIsBackConfirmOpen(true)}
                 aria-label="Étape précédente"
                 title="Étape précédente"
-                className="flex items-center gap-1.5"
+                className="flex h-[30px] items-center justify-center gap-1.5 px-2.5 font-sans text-xs font-medium"
               >
                 <ArrowLeft size={14} aria-hidden="true" />
-                <span className="hidden lg:inline">Étape précédente</span>
+                <span className="hidden md:inline">
+                  <span className="hidden min-[1152px]:inline">Étape précédente</span>
+                  <span className="inline min-[1152px]:hidden">Précédent</span>
+                </span>
               </Button>
             )}
 
@@ -121,10 +123,13 @@ const SessionActionBar = ({ isDesktopViewport, isSessionCodeCopied, onCopySessio
               onClick={onCloseSession}
               aria-label="Terminer la session"
               title="Terminer la session"
-              className="flex items-center gap-1.5 bg-red-text border border-[#991b1b] text-red-mid hover:bg-[#991b1b] rounded-figma-md h-9"
+              className="flex h-[30px] items-center justify-center gap-1.5 bg-red-text border border-[#991b1b] text-red-mid hover:bg-[#991b1b] rounded-lg px-2.5 font-sans text-xs font-medium"
             >
               <Square size={13} aria-hidden="true" />
-              <span className="hidden lg:inline">Terminer la session</span>
+              <span className="hidden md:inline">
+                <span className="hidden min-[1152px]:inline">Terminer la session</span>
+                <span className="inline min-[1152px]:hidden">Terminer</span>
+              </span>
             </Button>
 
             {NEXT_STEP_CTA[step] && (
@@ -134,9 +139,14 @@ const SessionActionBar = ({ isDesktopViewport, isSessionCodeCopied, onCopySessio
                 onClick={() => onTransitionStep(NEXT_STEP_CTA[step]!.nextStep)}
                 aria-label={NEXT_STEP_CTA[step]!.label}
                 title={NEXT_STEP_CTA[step]!.label}
-                className="flex items-center gap-1.5"
+                className="flex h-[30px] items-center justify-center gap-1.5 px-2.5 font-sans text-xs font-medium"
               >
-                <span className="hidden lg:inline">{NEXT_STEP_CTA[step]!.label}</span>
+                <span className="hidden md:inline">
+                  <span className="hidden min-[1152px]:inline">{NEXT_STEP_CTA[step]!.label}</span>
+                  <span className="inline min-[1152px]:hidden">
+                    {step === 'writing' ? 'Voter' : step === 'voting' ? 'Résultats' : step === 'results' ? 'Plan' : step === 'action' ? 'Synthèse' : NEXT_STEP_CTA[step]!.label}
+                  </span>
+                </span>
                 <ArrowRight size={14} aria-hidden="true" />
               </Button>
             )}
