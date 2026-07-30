@@ -1,35 +1,48 @@
 # Ticket actuel
 
-**CI-E2E-01 — Ajouter les tests E2E au CI GitHub Actions** (terminé, en attente de commit)
+Aucun — les 3 tickets de cette session sont terminés, mergés dans `main` et déployés en
+production, vérifiés en conditions réelles. Dépôt propre sur `dev`/`main`. En attente du
+prochain sujet.
 
-# Objectif
+# Dernier travail terminé (2026-07-30)
 
-Suite directe de `E2E-VOTING-01` : la régression `US-17`/hostname (18 tests E2E sur 26 cassés) était restée invisible plusieurs jours faute de couverture CI. Recommandation soumise à l'utilisateur et acceptée.
+Trois tickets hors backlog, demandés explicitement par l'utilisateur, traités dans
+l'ordre :
 
-# Branche
+1. **`BUG-SESSION-RESUME-01`** (PR #50) — reconnexion automatique via le cookie de
+   reprise `retro_resume` quand le JWT (1h) a expiré mais pas le cookie (24h). Nouvel
+   endpoint `POST /session/:sessionId/participants/resume-from-cookie`.
+2. **`BUG-SESSION-RELOAD-ROUTING-01`** (PR #51) — recharger (F5) une page
+   `/session/:id` en prod affichait le JSON brut de l'API : collision de chemin entre
+   la route SPA et le préfixe API `/session`. Toute l'API bascule sous `/api`.
+   Déploiement en 3 temps sur le nginx du VPS partagé (additif → code → nettoyage),
+   exécuté intégralement.
+3. **`UI-FIXES-BATCH-01`** (PR #52) — lot de 7 petits correctifs UI/UX de session
+   (texte de carte qui déborde, toggle Discussion, scroll du champ d'ajout de carte,
+   clic extérieur sur les commentaires, seuil de bascule navbar à 1152px, stabilité de
+   la navbar droite, titre "Discussion" en trop dans les commentaires d'une carte).
+   Une régression a été trouvée et corrigée en cours de route sur le ticket toggle
+   Discussion.
 
-`feature/CI-E2E-01-playwright` (= `dev` + le nouveau job CI, pas encore commité).
+PR #53 (`dev` → `main`) mergée, déploiement automatique CI/CD réussi. PR #55
+(synchronisation finale de `docs/PROJECT_STATE.md`) mergée dans `dev`.
 
-# Travail terminé
+**Vérification réelle en production** (pas seulement les tests) : `curl
+https://retrospective.elyasbenyoub.dev/session/138` renvoie désormais le HTML de l'app
+React au lieu du JSON brut de la session. `/api/auth/profile` → 401,
+`/api/session/resume/active` → 200. Non-régression vérifiée par `curl` sur les 4 autres
+projets du VPS partagé (portfolio, laloge, mediatheque, marsai — tous 200).
 
-- Nouveau job `e2e` dans `.github/workflows/ci.yml` : `npm install`, `npx playwright install --with-deps chromium`, `npx playwright test`.
-- Vérifié en conditions réelles qu'aucun service backend/DB n'est nécessaire : conteneurs `retrospective-backend`/`retrospective-db` arrêtés en local, suite E2E rejouée (26/26 toujours au vert) — chaque spec moque intégralement ses appels API.
-- Rapport HTML Playwright envoyé en artefact CI (7 jours) uniquement en cas d'échec.
-- `docs/PROJECT_STATE.md` mis à jour.
+# État Git
 
-# Travail restant
+`dev` et `main` synchronisés et à jour avec `origin`. Arbre de travail propre à part
+`package-lock.json` (non suivi, préexistant depuis une session antérieure, sans lien
+avec ces tickets).
 
-- Commit unique, PR vers `dev` — **vérifier que le nouveau job `e2e` tourne réellement au vert dans le vrai CI GitHub Actions** avant de merger (pas seulement testé en local).
+# État du Product Backlog / TODO.md / BACKLOG_IDEAS.md
 
-# Fichiers concernés
-
-- `.github/workflows/ci.yml`
-- `docs/PROJECT_STATE.md`
-
-# Tests requis
-
-`npx playwright test` en local (déjà fait, 26/26). Le vrai test de ce ticket est l'exécution réelle du nouveau job dans GitHub Actions.
+`docs/backlog/PRODUCT_BACKLOG.md` : 100% ✅ Terminé (ces 3 tickets sont hors backlog).
 
 # Prochaine action unique
 
-Committer, ouvrir la PR, surveiller que le nouveau job `e2e` passe réellement en CI (pas juste les jobs `frontend`/`backend` existants), puis merger.
+Demander à l'utilisateur quel est le prochain sujet.
