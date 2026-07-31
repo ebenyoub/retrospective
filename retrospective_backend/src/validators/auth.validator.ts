@@ -24,14 +24,14 @@ export const forgotSchema = z.object({
 export const verifyCodeSchema = z.object({
   body: z.object({
     email: z.string({ error: "L'adresse email est requise." }).email("L'adresse email n'est pas valide."),
-    code: z.string({ error: "Le code est requis." }).min(1, "Le code est requis.")
+    code: z.string({ error: "Le code est requis." }).regex(/^\d{4}$/, "Le code doit contenir exactement 4 chiffres.")
   })
 });
 
 export const resetPasswordSchema = z.object({
   body: z.object({
     email: z.string({ error: "L'adresse email est requise." }).email("L'adresse email n'est pas valide."),
-    code: z.string({ error: "Le code est requis." }).min(1, "Le code est requis."),
+    tempToken: z.string({ error: "Le jeton temporaire est requis." }).min(1, "Le jeton temporaire est requis."),
     newPassword: z.string({ error: "Le nouveau mot de passe est requis." }).min(8, "Le mot de passe doit faire au moins 8 caractères.")
   })
 });

@@ -1,13 +1,14 @@
 import bcrypt from "bcrypt";
+import { randomInt } from "crypto";
 import jwt, { SignOptions } from "jsonwebtoken";
 import { transporter } from "../../authentication/utils/transporter";
 import {
+  consumePasswordResetAndUpdateUserPassword,
   deletePasswordTokenByEmail,
-  findActivePasswordResetByEmail,
+  deleteExpiredPasswordTokens,
   findActivePasswordTokenByEmail,
   findUserByEmail,
   insertPasswordToken,
-  updateUserPasswordByEmail,
 } from "../models/passwordReset.model";
 import { AppError } from "../utils/AppError";
 import { logger } from "../utils/logger";
@@ -19,25 +20,25 @@ export const requestPasswordReset = async ({ email }: ForgotPasswordInput): Prom
   }
 
   try {
+    await deleteExpiredPasswordTokens();
     const user = await findUserByEmail(email);
 
     if (!user) {
-      throw new AppError(401, "Cet email n'existe pas");
+      return;
     }
 
-    const code = Math.floor(1000 + Math.random() * 9000);
-    logger.info("📨 Code de récupération généré:", code);
+    const code = randomInt(1000, 10000);
 
     const jwtSecret = process.env.JWT_SECRET as string;
     const jwtExpiresIn = "10m" as SignOptions["expiresIn"];
     const signOptions: jwt.SignOptions = { expiresIn: jwtExpiresIn };
-    const token = jwt.sign({ userId: user.id, email, code }, jwtSecret, signOptions);
+    const token = jwt.sign({ purpose: "password-reset-code", userId: user.id, email, code }, jwtSecret, signOptions);
     const expireAt = new Date(Date.now() + 10 * 60 * 1000);
 
     await deletePasswordTokenByEmail(email);
     await insertPasswordToken(token, email, expireAt);
 
-    const info = await transporter.sendMail({
+    await transporter.sendMail({
       from: process.env.EMAIL_FROM ?? '"Range Ta Chambre" <no-reply@rangetachambre.com>',
       to: email,
       subject: "🔐 Réinitialisation",
@@ -52,7 +53,6 @@ export const requestPasswordReset = async ({ email }: ForgotPasswordInput): Prom
             `,
     });
 
-    logger.info("Message sent: ", info.messageId);
   } catch (error) {
     if (error instanceof AppError) {
       throw error;
@@ -64,7 +64,7 @@ export const requestPasswordReset = async ({ email }: ForgotPasswordInput): Prom
 };
 
 export const verifyPasswordResetCode = async ({ email, code }: VerifyCodeInput): Promise<string> => {
-  if (!email || !code || typeof email !== "string") {
+  if (!email || typeof email !== "string" || typeof code !== "string" || !/^\d{4}$/.test(code)) {
     throw new AppError(400, "L'email et le code sont requis.");
   }
 
@@ -79,14 +79,22 @@ export const verifyPasswordResetCode = async ({ email, code }: VerifyCodeInput):
     const jwtSecret = process.env.JWT_SECRET as string;
 
     try {
-      const decoded = jwt.verify(storedToken, jwtSecret) as { code: number; userId: number };
+      const decoded = jwt.verify(storedToken, jwtSecret) as {
+        code?: number;
+        email?: string;
+        purpose?: string;
+      };
 
-      if (parseInt(String(code)) !== decoded.code) {
+      if (decoded.purpose !== "password-reset-code" || decoded.email !== email || Number(code) !== decoded.code) {
         throw new AppError(400, "Le code est incorrect.");
       }
 
-      logger.info("✅ Le code est validé.");
-      return storedToken;
+      const tempToken = jwt.sign(
+        { purpose: "password-reset", email, passwordResetId: row.id },
+        jwtSecret,
+        { expiresIn: "5m" as SignOptions["expiresIn"] }
+      );
+      return tempToken;
     } catch (error) {
       if (error instanceof AppError) {
         throw error;
@@ -107,26 +115,43 @@ export const verifyPasswordResetCode = async ({ email, code }: VerifyCodeInput):
 
 export const resetPasswordForEmail = async ({
   email,
-  code,
+  tempToken,
   newPassword,
 }: ResetPasswordInput): Promise<void> => {
-  if (!email || !code || !newPassword || typeof email !== "string" || typeof newPassword !== "string") {
+  if (!email || !tempToken || !newPassword || typeof email !== "string" || typeof tempToken !== "string" || typeof newPassword !== "string") {
     throw new AppError(400, "Tous les champs sont requis.");
   }
 
   try {
-    const row = await findActivePasswordResetByEmail(email);
+    const jwtSecret = process.env.JWT_SECRET as string;
+    let decoded: { purpose?: string; email?: string; passwordResetId?: number };
 
-    if (!row) {
-      throw new AppError(400, "Le délai a expiré ou le code est invalide. Recommencez.");
+    try {
+      decoded = jwt.verify(tempToken, jwtSecret) as { purpose?: string; email?: string; passwordResetId?: number };
+    } catch {
+      throw new AppError(400, "Le jeton temporaire est invalide ou expiré.");
+    }
+
+    if (
+      decoded.purpose !== "password-reset" ||
+      decoded.email !== email ||
+      typeof decoded.passwordResetId !== "number" ||
+      !Number.isInteger(decoded.passwordResetId)
+    ) {
+      throw new AppError(400, "Le jeton temporaire est invalide ou expiré.");
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
+    const wasConsumed = await consumePasswordResetAndUpdateUserPassword(
+      decoded.passwordResetId,
+      email,
+      hashedPassword
+    );
 
-    await updateUserPasswordByEmail(email, hashedPassword);
-    await deletePasswordTokenByEmail(email);
+    if (!wasConsumed) {
+      throw new AppError(400, "Le jeton temporaire est invalide ou expiré.");
+    }
 
-    logger.info(`✅ Mot de passe modifié pour ${email}`);
   } catch (error) {
     if (error instanceof AppError) {
       throw error;

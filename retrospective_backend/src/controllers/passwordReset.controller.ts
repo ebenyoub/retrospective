@@ -24,14 +24,14 @@ export const verifyCode = async (req: Request, res: Response) => {
   return res.status(200).json({
     success: true,
     message: "Code validé.",
-    tempToken,
+    data: { tempToken },
   });
 };
 
 export const resetPassword = async (req: Request, res: Response) => {
-  const { email, code, newPassword } = req.body;
+  const { email, tempToken, newPassword } = req.body;
 
-  await resetPasswordForEmail({ email, code, newPassword });
+  await resetPasswordForEmail({ email, tempToken, newPassword });
 
   return res.status(200).json({
     success: true,

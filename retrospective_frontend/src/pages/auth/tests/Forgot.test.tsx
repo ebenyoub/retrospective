@@ -39,7 +39,7 @@ const goToCodeStep = async () => {
 
 const goToPasswordStep = async () => {
   await goToCodeStep();
-  mockVerifyCodeApi.mockResolvedValueOnce({ ok: true, data: undefined });
+  mockVerifyCodeApi.mockResolvedValueOnce({ ok: true, data: { tempToken: 'temporary-token' } });
   fireEvent.change(screen.getByLabelText('Code à 4 chiffres'), { target: { value: '1234' } });
   fireEvent.click(screen.getByRole('button', { name: 'Valider le code' }));
   await screen.findByRole('heading', { name: 'Nouveau mot de passe' });
@@ -69,19 +69,19 @@ describe('Forgot', () => {
       await goToCodeStep();
 
       expect(mockForgotApi).toHaveBeenCalledWith('test@example.com');
-      expect(screen.getByText('test@example.com')).toBeTruthy();
+      expect(screen.getByText('Si une adresse correspondante existe, un code de vérification a été envoyé.')).toBeTruthy();
     });
 
-    it('affiche un message global et reste sur EMAIL si forgotApi échoue', async () => {
+    it('utilise un message neutre et passe à CODE si forgotApi échoue', async () => {
       mockForgotApi.mockResolvedValueOnce({ ok: false, payload: { message: 'Cet email n\'existe pas' } });
       renderForgot();
 
       fireEvent.change(screen.getByLabelText('Adresse e-mail'), { target: { value: 'inconnu@test.com' } });
       fireEvent.click(screen.getByRole('button', { name: 'Recevoir un code' }));
 
-      expect(await screen.findByText('Cet email n\'existe pas')).toBeTruthy();
-      expect(screen.getByRole('alert')).toBeTruthy();
-      expect(screen.getByText('Récupération du mot de passe')).toBeTruthy();
+      expect(await screen.findByText('Code de vérification')).toBeTruthy();
+      expect(screen.getByText('Si une adresse correspondante existe, un code de vérification a été envoyé.')).toBeTruthy();
+      expect(screen.queryByText('Cet email n\'existe pas')).toBeNull();
     });
   });
 
@@ -97,16 +97,15 @@ describe('Forgot', () => {
       expect(mockVerifyCodeApi).not.toHaveBeenCalled();
     });
 
-    it('accepte un code de 4 caractères non numériques (seule la longueur est vérifiée, comme avant la migration)', async () => {
-      mockVerifyCodeApi.mockResolvedValueOnce({ ok: true, data: undefined });
+    it('rejette un code non numérique sans appeler verifyCodeApi', async () => {
       renderForgot();
       await goToCodeStep();
 
       fireEvent.change(screen.getByLabelText('Code à 4 chiffres'), { target: { value: 'abcd' } });
       fireEvent.click(screen.getByRole('button', { name: 'Valider le code' }));
 
-      await screen.findByRole('heading', { name: 'Nouveau mot de passe' });
-      expect(mockVerifyCodeApi).toHaveBeenCalledWith('test@example.com', 'abcd');
+      expect(await screen.findByText('Le code doit contenir 4 chiffres exactement')).toBeTruthy();
+      expect(mockVerifyCodeApi).not.toHaveBeenCalled();
     });
 
     it('revient à l\'étape EMAIL via "Ce n\'est pas le bon email ?"', async () => {
@@ -116,6 +115,44 @@ describe('Forgot', () => {
       fireEvent.click(screen.getByText('Ce n\'est pas le bon email ?'));
 
       expect(await screen.findByText('Récupération du mot de passe')).toBeTruthy();
+      expect(screen.getByLabelText('Adresse e-mail')).toHaveValue('');
+    });
+
+    it('efface le code et le jeton temporaire quand l\'email est modifié', async () => {
+      renderForgot();
+      await goToCodeStep();
+
+      fireEvent.change(screen.getByLabelText('Code à 4 chiffres'), { target: { value: '1234' } });
+      fireEvent.click(screen.getByText('Ce n\'est pas le bon email ?'));
+      await screen.findByText('Récupération du mot de passe');
+
+      await goToCodeStep();
+      expect(screen.getByLabelText('Code à 4 chiffres')).toHaveValue('');
+
+      mockVerifyCodeApi.mockResolvedValueOnce({ ok: true, data: { tempToken: 'new-temporary-token' } });
+      fireEvent.change(screen.getByLabelText('Code à 4 chiffres'), { target: { value: '5678' } });
+      fireEvent.click(screen.getByRole('button', { name: 'Valider le code' }));
+      await screen.findByRole('heading', { name: 'Nouveau mot de passe' });
+
+      fireEvent.change(screen.getByLabelText('Nouveau mot de passe'), { target: { value: 'password123' } });
+      fireEvent.change(screen.getByLabelText('Confirmation du nouveau mot de passe'), { target: { value: 'password123' } });
+      mockResetPasswordApi.mockResolvedValueOnce({ ok: true, data: undefined });
+      fireEvent.click(screen.getByRole('button', { name: 'Modifier' }));
+
+      await vi.waitFor(() => expect(mockResetPasswordApi).toHaveBeenCalledWith('test@example.com', 'new-temporary-token', 'password123'));
+    });
+
+    it('reste à l\'étape CODE si la vérification ne fournit pas de jeton temporaire', async () => {
+      mockVerifyCodeApi.mockResolvedValueOnce({ ok: true, data: undefined });
+      renderForgot();
+      await goToCodeStep();
+
+      fireEvent.change(screen.getByLabelText('Code à 4 chiffres'), { target: { value: '1234' } });
+      fireEvent.click(screen.getByRole('button', { name: 'Valider le code' }));
+
+      expect(await screen.findByText('Votre session a expiré. Veuillez demander un nouveau code.')).toBeTruthy();
+      expect(screen.getByText('Code de vérification')).toBeTruthy();
+      expect(mockResetPasswordApi).not.toHaveBeenCalled();
     });
   });
 
@@ -154,7 +191,7 @@ describe('Forgot', () => {
       fireEvent.change(screen.getByLabelText('Confirmation du nouveau mot de passe'), { target: { value: 'password123' } });
       fireEvent.click(screen.getByRole('button', { name: 'Modifier' }));
 
-      await vi.waitFor(() => expect(mockResetPasswordApi).toHaveBeenCalledWith('test@example.com', 'password123', '1234'));
+      await vi.waitFor(() => expect(mockResetPasswordApi).toHaveBeenCalledWith('test@example.com', 'temporary-token', 'password123'));
       await vi.waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/login'));
     });
   });

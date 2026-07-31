@@ -24,18 +24,22 @@ export const forgotApi = (email: string) =>
     body: JSON.stringify({ email }),
   });
 
+export interface VerifyCodeResponse {
+  tempToken: string;
+}
+
 export const verifyCodeApi = (email: string, code: string) =>
-  requestApi<unknown>(`${API_BASE}/auth/verify-code`, {
+  requestApi<VerifyCodeResponse>(`${API_BASE}/auth/verify-code`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, code }),
   });
 
-export const resetPasswordApi = (email: string, newPassword: string, code: string) =>
+export const resetPasswordApi = (email: string, tempToken: string, newPassword: string) =>
   requestApi<unknown>(`${API_BASE}/auth/reset-password`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, newPassword, code }),
+    body: JSON.stringify({ email, tempToken, newPassword }),
   });
 
 export const fetchProfileApi = () =>
