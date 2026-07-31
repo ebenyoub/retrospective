@@ -79,7 +79,7 @@ describe("passwordReset.controller", () => {
       expect(res.body).toEqual({
         success: true,
         message: "Code validé.",
-        tempToken: "token",
+        data: { tempToken: "token" },
       });
       expect(mockVerifyPasswordResetCode).toHaveBeenCalledWith({ email: "e@test.com", code: "1234" });
     });
@@ -96,7 +96,7 @@ describe("passwordReset.controller", () => {
   describe("resetPassword", () => {
     it("appelle le service puis renvoie 200", async () => {
       mockResetPasswordForEmail.mockResolvedValueOnce(undefined);
-      const req = { body: { email: "e@test.com", code: "1234", newPassword: "TEST_PASSWORD_VALUE" } } as Parameters<typeof resetPassword>[0];
+      const req = { body: { email: "e@test.com", tempToken: "verified-token", newPassword: "TEST_PASSWORD_VALUE" } } as Parameters<typeof resetPassword>[0];
       const res = createMockResponse();
 
       await resetPassword(req, res as unknown as Response);
@@ -108,14 +108,14 @@ describe("passwordReset.controller", () => {
       });
       expect(mockResetPasswordForEmail).toHaveBeenCalledWith({
         email: "e@test.com",
-        code: "1234",
+        tempToken: "verified-token",
         newPassword: "TEST_PASSWORD_VALUE",
       });
     });
 
     it("ne capture pas les erreurs du service", async () => {
       mockResetPasswordForEmail.mockRejectedValueOnce(new Error("boom"));
-      const req = { body: { email: "", code: "", newPassword: "" } } as Parameters<typeof resetPassword>[0];
+      const req = { body: { email: "", tempToken: "", newPassword: "" } } as Parameters<typeof resetPassword>[0];
       const res = createMockResponse();
 
       await expect(resetPassword(req, res as unknown as Response)).rejects.toThrow("boom");

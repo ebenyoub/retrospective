@@ -1,5 +1,6 @@
 import { afterEach } from 'vitest';
 import { cleanup } from '@testing-library/react';
+import '@testing-library/jest-dom/vitest';
 
 // Node 22+ expose son propre global `localStorage` expérimental (lié à
 // --localstorage-file), qui masque celui fourni par jsdom et se retrouve, dans

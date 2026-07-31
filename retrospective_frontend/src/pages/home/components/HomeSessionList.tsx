@@ -22,8 +22,8 @@ const HomeSessionList = () => {
         const result = await listSessions();
 
         if (result.ok) {
-          // On garde les 5 sessions les plus récentes pour la page d'accueil
-          setSessions(result.data.slice(0, 5));
+          // On garde les 6 sessions les plus récentes pour la page d'accueil
+          setSessions(result.data.slice(0, 6));
         } else {
           setErrorMessage(getApiErrorMessage(result.payload, 'Impossible de charger les sessions.'));
         }

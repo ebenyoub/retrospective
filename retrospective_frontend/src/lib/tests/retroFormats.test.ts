@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { DEFAULT_RETRO_FORMAT_ID, RETRO_FORMAT_OPTIONS, getRetroFormatById } from "../retroFormats";
 
 describe("retroFormats", () => {
-  it("expose les 6 formats MVP en français avec des identifiants techniques stables", () => {
+  it("expose les 7 formats de rétro avec des identifiants techniques stables", () => {
     expect(RETRO_FORMAT_OPTIONS.map((format) => format.id)).toEqual([
       "start-stop-continue",
       "positive-negative-actions",
@@ -10,6 +10,7 @@ describe("retroFormats", () => {
       "liked-less-liked-proposals",
       "keep-improve-innovate",
       "went-well-improve-next-actions",
+      "custom-3-columns",
     ]);
     expect(RETRO_FORMAT_OPTIONS.map((format) => format.name)).toEqual([
       "Commencer / Arrêter / Continuer",
@@ -18,6 +19,7 @@ describe("retroFormats", () => {
       "J'ai aimé / J'ai moins aimé / Propositions",
       "Conserver / Améliorer / Innover",
       "Bien passé / À améliorer / Prochaines actions",
+      "Créer un format personnalisé (3 colonnes)",
     ]);
   });
 

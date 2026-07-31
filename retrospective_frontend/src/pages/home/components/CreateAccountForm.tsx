@@ -1,16 +1,17 @@
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { NavLink } from "react-router-dom";
 import Button from "@/components/ui/Button";
 import { FormField, FormLabel, FormInput } from "@/components/ui/Form";
+import RetroFormatDropdown from "@/components/RetroFormatDropdown";
 import { useAuth } from "@/context/auth/useAuth";
 import type { AuthLoginData } from "@/context/auth/types/auth.types";
 import { getApiErrorMessage, isApiSuccess, NETWORK_ERROR_MESSAGE, readJsonSafely } from "@/lib/apiError";
 import FieldError from "@/components/ui/FieldError";
 
 import { API_BASE } from "@/lib/api";
-import { DEFAULT_RETRO_FORMAT_ID, RETRO_FORMAT_OPTIONS, getRetroFormatById } from "@/lib/retroFormats";
+import { DEFAULT_RETRO_FORMAT_ID, getRetroFormatById } from "@/lib/retroFormats";
 import type { CreateAccountFormProps } from "./types/CreateAccountForm.types";
 
 const createAccountSchema = z
@@ -26,6 +27,9 @@ const createAccountSchema = z
       .int("La durée doit être un nombre entier de minutes.")
       .min(1, "La durée doit être d'au moins 1 minute.")
       .max(120, "La durée ne peut pas dépasser 120 minutes."),
+    col1: z.string().trim().min(1, "Colonne 1 requise.").optional(),
+    col2: z.string().trim().min(1, "Colonne 2 requise.").optional(),
+    col3: z.string().trim().min(1, "Colonne 3 requise.").optional(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Les mots de passe ne correspondent pas.",
@@ -39,8 +43,10 @@ const CreateAccountForm = ({ onSessionCreated }: CreateAccountFormProps) => {
 
   const {
     register,
+    control,
     handleSubmit,
     setError,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<CreateAccountValues>({
     resolver: zodResolver(createAccountSchema),
@@ -53,11 +59,27 @@ const CreateAccountForm = ({ onSessionCreated }: CreateAccountFormProps) => {
       retroName: "",
       formatId: DEFAULT_RETRO_FORMAT_ID,
       stepDurationMinutes: 5,
+      col1: "Colonne 1",
+      col2: "Colonne 2",
+      col3: "Colonne 3",
     },
   });
 
+  const formatId = watch("formatId");
+
   const onSubmit = async (values: CreateAccountValues) => {
     const selectedFormat = getRetroFormatById(values.formatId);
+    let formatName = selectedFormat.name;
+    let formatColumns = selectedFormat.columns;
+
+    if (values.formatId === "custom-3-columns") {
+      formatColumns = [
+        values.col1?.trim() || "Colonne 1",
+        values.col2?.trim() || "Colonne 2",
+        values.col3?.trim() || "Colonne 3",
+      ];
+      formatName = formatColumns.join(" / ");
+    }
 
     try {
       const username = `${values.prenom.trim()} ${values.nom.trim()}`;
@@ -86,8 +108,8 @@ const CreateAccountForm = ({ onSessionCreated }: CreateAccountFormProps) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: values.retroName.trim(),
-          formatName: selectedFormat.name,
-          formatColumns: selectedFormat.columns,
+          formatName,
+          formatColumns,
           stepDurationMinutes: values.stepDurationMinutes,
         }),
       });
@@ -189,20 +211,60 @@ const CreateAccountForm = ({ onSessionCreated }: CreateAccountFormProps) => {
 
       <FormField>
         <FormLabel htmlFor="formatId">Format de rétro</FormLabel>
-        <select
-          id="formatId"
-          disabled={isSubmitting}
-          className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none transition-colors focus:border-blue-400 disabled:opacity-60"
-          {...register("formatId")}
-        >
-          {RETRO_FORMAT_OPTIONS.map((format) => (
-            <option key={format.id} value={format.id}>
-              {format.name}
-            </option>
-          ))}
-        </select>
+        <Controller
+          name="formatId"
+          control={control}
+          render={({ field }) => (
+            <RetroFormatDropdown
+              id="formatId"
+              value={field.value ?? ""}
+              onChange={field.onChange}
+              disabled={isSubmitting}
+              aria-invalid={!!errors.formatId}
+              aria-describedby={errors.formatId ? "formatId-error" : undefined}
+            />
+          )}
+        />
         <FieldError id="formatId-error" message={errors.formatId?.message} />
       </FormField>
+
+      {formatId === "custom-3-columns" && (
+        <div className="grid grid-cols-3 gap-2">
+          <FormField>
+            <FormLabel htmlFor="col1">Col. 1</FormLabel>
+            <FormInput
+              id="col1"
+              disabled={isSubmitting}
+              aria-invalid={!!errors.col1}
+              aria-describedby={errors.col1 ? "col1-error" : undefined}
+              {...register("col1")}
+            />
+            <FieldError id="col1-error" message={errors.col1?.message} />
+          </FormField>
+          <FormField>
+            <FormLabel htmlFor="col2">Col. 2</FormLabel>
+            <FormInput
+              id="col2"
+              disabled={isSubmitting}
+              aria-invalid={!!errors.col2}
+              aria-describedby={errors.col2 ? "col2-error" : undefined}
+              {...register("col2")}
+            />
+            <FieldError id="col2-error" message={errors.col2?.message} />
+          </FormField>
+          <FormField>
+            <FormLabel htmlFor="col3">Col. 3</FormLabel>
+            <FormInput
+              id="col3"
+              disabled={isSubmitting}
+              aria-invalid={!!errors.col3}
+              aria-describedby={errors.col3 ? "col3-error" : undefined}
+              {...register("col3")}
+            />
+            <FieldError id="col3-error" message={errors.col3?.message} />
+          </FormField>
+        </div>
+      )}
 
       <FormField>
         <FormLabel htmlFor="stepDurationMinutes">Durée des étapes (minutes)</FormLabel>

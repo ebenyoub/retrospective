@@ -26,12 +26,16 @@ describe("retroFormats", () => {
     });
   });
 
-  it("valide uniquement les formats MVP avec leurs colonnes attendues", () => {
+  it("valide les formats MVP et accepte les formats personnalisés à 3 colonnes", () => {
     expect(isValidRetroFormatSelection(
       DEFAULT_RETRO_FORMAT_PRESET.name,
       getRetroFormatColumnLabels(DEFAULT_RETRO_FORMAT_PRESET)
     )).toBe(true);
-    expect(isValidRetroFormatSelection("Mad / Sad / Glad", ["Mad", "Sad", "Glad"])).toBe(false);
+    // Un format personnalisé (non présent dans les presets) avec 3 colonnes est valide
+    expect(isValidRetroFormatSelection("Mad / Sad / Glad", ["Mad", "Sad", "Glad"])).toBe(true);
+    // Un format preset officiel avec des colonnes qui ne correspondent pas est invalide
     expect(isValidRetroFormatSelection(DEFAULT_RETRO_FORMAT_PRESET.name, ["Start", "Stop", "Continue"])).toBe(false);
+    // Un format avec un nombre incorrect de colonnes est invalide
+    expect(isValidRetroFormatSelection("Test", ["Col1", "Col2"])).toBe(false);
   });
 });

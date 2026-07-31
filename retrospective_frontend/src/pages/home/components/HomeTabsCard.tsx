@@ -15,7 +15,7 @@ const HomeTabsCard = ({ initialTab = "create" }: HomeTabsCardProps) => {
   const goToSession = (sessionId: number) => navigate(`/session/${sessionId}`);
 
   return (
-    <Card className="w-full overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.25)] bg-navy-mid border-navy-border">
+    <Card className="w-full shadow-[0_8px_32px_rgba(0,0,0,0.25)] bg-navy-mid border-navy-border">
       <div className="flex border-b border-navy-border">
         <button
           type="button"

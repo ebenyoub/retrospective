@@ -298,7 +298,8 @@ test('parcours produit complet : inscription, création, écriture, vote, plan d
 
   // 2. Création de session (directement sur la page d'accueil connectée)
   await page.getByLabel('Nom de la rétro').fill('Sprint Full Journey');
-  await page.getByLabel('Format de rétro').selectOption('start-stop-continue');
+  await page.getByLabel('Format de rétro').click();
+  await page.getByRole('option', { name: 'Commencer / Arrêter / Continuer' }).click();
   await page.getByRole('button', { name: 'Créer et lancer' }).click();
 
   // Attendre la redirection directe vers le tableau

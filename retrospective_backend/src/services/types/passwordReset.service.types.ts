@@ -9,6 +9,6 @@ export interface VerifyCodeInput {
 
 export interface ResetPasswordInput {
   email: unknown;
-  code: unknown;
+  tempToken: unknown;
   newPassword: unknown;
 }
