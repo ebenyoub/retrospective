@@ -54,7 +54,10 @@ const SessionCardsGrid = ({
         <RetroColumn
           key={column.key}
           className={isMobileViewport
-            ? (activeMobileColumn === column.key ? 'pt-11' : 'hidden')
+            // Les onglets sont positionnés au-dessus de la colonne. Une
+            // marge de sécurité supplémentaire garde la première carte bien
+            // séparée de leur bord inférieur sur les écrans étroits.
+            ? (activeMobileColumn === column.key ? 'pt-14' : 'hidden')
             : ''}
           showHeader={!isMobileViewport}
           title={column.title}
