@@ -12,6 +12,14 @@ import type { ActionItem } from "../types/action.types";
 import type { CardComment } from "../types/comment.types";
 import type { UseSessionParticipantsOptions } from './types/useSessionParticipants.types';
 
+// API_BASE inclut le préfixe REST `/api`. Socket.IO doit se connecter à
+// l'origine du serveur, sinon `/api` est interprété comme un namespace.
+// Le second argument couvre aussi une éventuelle URL relative en test.
+const socketServerUrl = new URL(
+  API_BASE,
+  typeof window === "undefined" ? "http://localhost" : window.location.origin
+).origin;
+
 // Source de vérité = backend : liste initiale par API, puis mises à jour en
 // direct par socket. Un socket dédié est ouvert par montage (fermé au
 // démontage) : changer de session ou fermer l'onglet nettoie proprement la
@@ -98,7 +106,7 @@ export const useSessionParticipants = (
 
     // withCredentials : le cookie d'authentification HttpOnly accompagne le
     // handshake, le serveur y lit le JWT de l'utilisateur connecté.
-    const socket: Socket = io(API_BASE, { transports: ["websocket", "polling"], withCredentials: true });
+    const socket: Socket = io(socketServerUrl, { transports: ["websocket", "polling"], withCredentials: true });
 
     const handleParticipantsUpdated = (next: ParticipantSummary[]) => {
       if (isActive) setParticipants(next);
