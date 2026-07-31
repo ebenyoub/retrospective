@@ -41,6 +41,7 @@
 
 html {
   height: 100%;
+  min-height: 100dvh;
 }
 
 body {
@@ -48,6 +49,8 @@ body {
   background-color: #0f172a;
   color: white;
   height: 100%;
+  height: 100dvh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
 }
@@ -57,6 +60,7 @@ body {
   flex-direction: column;
   flex: 1;
   min-height: 0;
+  min-height: 100dvh;
 }
 
 main {
@@ -65,6 +69,18 @@ main {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+}
+
+/* Safari iOS effectue un zoom automatique au focus d'un champ dont le texte
+   est inférieur à 16px. Cette règle ne s'applique qu'aux petits écrans : les
+   contrôles restent compacts sur desktop et le zoom navigateur n'est jamais
+   désactivé dans la meta viewport. */
+@media (max-width: 767px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
 }
 
 .spin-card {
