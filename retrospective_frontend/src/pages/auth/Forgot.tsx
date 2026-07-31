@@ -20,7 +20,7 @@ const emailSchema = z.object({
 type EmailFormValues = z.infer<typeof emailSchema>;
 
 const codeSchema = z.object({
-  code: z.string().refine((value) => value.trim().length === 4, "Le code doit contenir 4 chiffres exactement"),
+  code: z.string().regex(/^\d{4}$/, "Le code doit contenir 4 chiffres exactement"),
 });
 type CodeFormValues = z.infer<typeof codeSchema>;
 
@@ -32,7 +32,8 @@ interface PasswordFormValues {
 const Forgot = () => {
   const [step, setStep] = useState<Step>('EMAIL');
   const [email, setEmail] = useState("");
-  const [code, setCode] = useState("");
+  const [tempToken, setTempToken] = useState("");
+  const [forgotConfirmation, setForgotConfirmation] = useState("");
   const [globalError, setGlobalError] = useState("");
   const navigate = useNavigate();
 
@@ -54,22 +55,43 @@ const Forgot = () => {
     || codeForm.formState.isSubmitting
     || passwordForm.formState.isSubmitting;
 
+  const returnToCodeStep = (message: string) => {
+    setTempToken("");
+    codeForm.reset();
+    passwordForm.reset();
+    setStep('CODE');
+    setGlobalError(message);
+  };
+
+  const returnToEmailStep = () => {
+    setEmail("");
+    setTempToken("");
+    setForgotConfirmation("");
+    emailForm.reset();
+    codeForm.reset();
+    passwordForm.reset();
+    setGlobalError("");
+    setStep('EMAIL');
+  };
+
+  const startCodeStep = (submittedEmail: string) => {
+    setEmail(submittedEmail);
+    setTempToken("");
+    codeForm.reset();
+    passwordForm.reset();
+    setForgotConfirmation("Si une adresse correspondante existe, un code de vérification a été envoyé.");
+    setStep('CODE');
+  };
+
   // --- ENVOI DE L'EMAIL ---
   const onEmailSubmit = async (values: EmailFormValues) => {
     setGlobalError("");
 
     try {
-      const result = await forgotApi(values.email);
-
-      if (result.ok) {
-        setEmail(values.email);
-        setStep('CODE');
-      } else {
-        setGlobalError(getApiErrorMessage(result.payload, "Impossible d'envoyer le code."));
-      }
-    } catch (err) {
+      await forgotApi(values.email);
+      startCodeStep(values.email);
+    } catch {
       setGlobalError(NETWORK_ERROR_MESSAGE);
-      console.error(err);
     }
   };
 
@@ -80,14 +102,15 @@ const Forgot = () => {
     try {
       const result = await verifyCodeApi(email, values.code);
 
-      if (result.ok) {
-        setCode(values.code);
+      if (result.ok && typeof result.data?.tempToken === "string" && result.data.tempToken.length > 0) {
+        setTempToken(result.data.tempToken);
         setStep('NEW_PASSWORD');
       } else {
-        setGlobalError(getApiErrorMessage(result.payload, "Code invalide."));
+        setGlobalError(result.ok
+          ? "Votre session a expiré. Veuillez demander un nouveau code."
+          : getApiErrorMessage(result.payload, "Code invalide."));
       }
-    } catch (err) {
-      console.error(err);
+    } catch {
       setGlobalError(NETWORK_ERROR_MESSAGE);
     }
   };
@@ -100,6 +123,11 @@ const Forgot = () => {
   const onPasswordSubmit = async (values: PasswordFormValues) => {
     passwordForm.clearErrors();
     setGlobalError("");
+
+    if (!tempToken) {
+      returnToCodeStep("Votre session a expiré. Veuillez demander un nouveau code.");
+      return;
+    }
 
     const fieldErrors: Partial<Record<keyof PasswordFormValues, string>> = {};
 
@@ -121,15 +149,14 @@ const Forgot = () => {
     }
 
     try {
-      const result = await resetPasswordApi(email, values.newPassword, code);
+      const result = await resetPasswordApi(email, tempToken, values.newPassword);
 
       if (result.ok) {
         navigate("/login");
       } else {
         setGlobalError(getApiErrorMessage(result.payload, "Erreur lors du changement de mot de passe."));
       }
-    } catch (error) {
-      console.error(error);
+    } catch {
       setGlobalError(NETWORK_ERROR_MESSAGE);
     }
   };
@@ -150,12 +177,12 @@ const Forgot = () => {
 
         {/* --- FORMULAIRE 1 : EMAIL --- */}
         {step === 'EMAIL' && (
-          <Form onSubmit={emailForm.handleSubmit(onEmailSubmit)} aria-busy={isLoading}>
+          <Form noValidate onSubmit={emailForm.handleSubmit(onEmailSubmit)} aria-busy={isLoading}>
             <FormTitle>Récupération du mot de passe</FormTitle>
             <FormField
               id="email"
               label="Adresse e-mail"
-              type="text"
+              type="email"
               autoComplete="email"
               autoFocus
               disabled={isLoading}
@@ -180,7 +207,7 @@ const Forgot = () => {
           <Form onSubmit={codeForm.handleSubmit(onCodeSubmit)} aria-busy={isLoading}>
             <FormTitle>Code de vérification</FormTitle>
             <p className="text-gray-400 text-sm text-center mb-4">
-              Envoyé à : <span className="text-white font-semibold">{email}</span>
+              {forgotConfirmation}
             </p>
 
             <FormField
@@ -203,7 +230,7 @@ const Forgot = () => {
 
             <button
               type="button"
-              onClick={() => { setStep('EMAIL'); setGlobalError(""); }}
+              onClick={returnToEmailStep}
               className="mt-4 text-xs text-gray-500 hover:text-gray-300 underline w-full text-center"
             >
               Ce n'est pas le bon email ?
@@ -229,7 +256,7 @@ const Forgot = () => {
               id="confirm"
               label="Confirmation du nouveau mot de passe"
               type="password"
-              autoComplete="confirm"
+              autoComplete="new-password"
               disabled={isLoading}
               error={passwordForm.formState.errors.confirmation?.message}
               {...passwordForm.register("confirmation")}

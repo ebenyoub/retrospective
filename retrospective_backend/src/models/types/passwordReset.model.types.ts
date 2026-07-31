@@ -8,5 +8,6 @@ export interface PasswordResetUserRow extends RowDataPacket {
 }
 
 export interface PasswordTokenRow extends RowDataPacket {
+  id: number;
   token: string;
 }
