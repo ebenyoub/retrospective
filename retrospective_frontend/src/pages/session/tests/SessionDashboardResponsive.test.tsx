@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
-import { screen, render } from '@testing-library/react';
+import { fireEvent, screen, render } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import SessionDashboard from '../SessionDashboard';
 import { emptyCardsResponse, createDashboardFetchMock } from './sessionTestUtils';
@@ -141,9 +141,19 @@ describe('SessionDashboard - Responsive Navigation & Actions', () => {
     const prevBtn = screen.getByLabelText('Étape précédente');
     const closeBtn = screen.getByLabelText('Terminer la session');
     const nextBtn = screen.getByLabelText('Passer au vote');
+    const discussionButton = screen.getByRole('button', { name: 'Discussion' });
+    const soundButton = screen.getByRole('button', { name: 'Désactiver le son' });
 
     expect(prevBtn).toBeTruthy();
     expect(closeBtn).toBeTruthy();
     expect(nextBtn).toBeTruthy();
+    expect(discussionButton.getAttribute('aria-expanded')).toBe('false');
+    expect(soundButton.getAttribute('aria-pressed')).toBe('true');
+
+    fireEvent.click(discussionButton);
+    fireEvent.click(soundButton);
+
+    expect(screen.getByRole('button', { name: 'Discussion' }).getAttribute('aria-expanded')).toBe('true');
+    expect(screen.getByRole('button', { name: 'Activer le son' }).getAttribute('aria-pressed')).toBe('false');
   });
 });
