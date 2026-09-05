@@ -62,11 +62,11 @@ const TopVotedCardItem = ({
         </span>
         <div className="min-w-0 flex-1">
           <p className="mb-1 text-[13px] leading-[1.4] text-slate-100 break-words">{card.content}</p>
-          <span className="text-[11px] text-slate-500">{card.authorName}</span>
+          <span className="text-[11px] text-slate-400">{card.authorName}</span>
         </div>
         <div className="flex-shrink-0 text-center">
           <p className="font-mono text-lg font-bold leading-none" style={{ color }}>{card.votesCount}</p>
-          <p className="text-[10px] text-slate-500">votes</p>
+          <p className="text-[10px] text-slate-400">votes</p>
         </div>
       </div>
 
@@ -80,7 +80,7 @@ const TopVotedCardItem = ({
             aria-label="Commentaires"
             aria-expanded={isCommentsExpanded}
             aria-controls={`card-comments-${card.id}`}
-            className="h-auto inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-slate-300 bg-transparent hover:bg-navy-surface rounded-[8px] border border-transparent hover:border-navy-border px-2 py-1.5 transition-all cursor-pointer"
+            className="h-auto inline-flex items-center gap-1 text-xs font-semibold text-slate-400 hover:text-slate-300 bg-transparent hover:bg-navy-surface rounded-[8px] border border-transparent hover:border-navy-border px-2 py-1.5 transition-all cursor-pointer"
           >
             <MessageCircle size={13} aria-hidden="true" />
             <span>Commentaires{card.commentsCount > 0 ? ` (${card.commentsCount})` : ''}</span>

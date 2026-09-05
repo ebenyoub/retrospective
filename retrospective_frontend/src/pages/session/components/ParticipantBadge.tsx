@@ -93,7 +93,7 @@ const ParticipantBadge = ({ displayName, canRename, isReadOnly, onRename, onLeav
 
           {canRename && !isReadOnly && isEditing && (
             <div className="px-3 py-2">
-              <label htmlFor="rename-pseudo" className="mb-1 block font-sans text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+              <label htmlFor="rename-pseudo" className="mb-1 block font-sans text-[10px] font-semibold uppercase tracking-wider text-slate-400">
                 Nouveau pseudo
               </label>
               <input

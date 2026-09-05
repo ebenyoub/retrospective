@@ -79,7 +79,7 @@ const RetroAddCardForm = ({ color, onAddCard }: RetroAddCardFormProps) => {
           rows={1}
           disabled={isSubmitting}
           aria-label="Contenu de la nouvelle carte"
-          className="flex-1 resize-none rounded-[9px] bg-navy-surface px-[10px] py-2 text-[13px] text-slate-50 placeholder:text-slate-500 outline-none transition-colors disabled:opacity-50"
+          className="flex-1 resize-none rounded-[9px] bg-navy-surface px-[10px] py-2 text-[13px] text-slate-50 placeholder:text-slate-400 outline-none transition-colors disabled:opacity-50"
           style={{
             border: `1px solid ${hasContent ? color + '60' : 'rgba(255,255,255,0.13)'}`,
           }}

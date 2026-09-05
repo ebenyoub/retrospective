@@ -59,7 +59,7 @@ describe('JoinSessionForm', () => {
     fireEvent.change(screen.getByLabelText('Prénom ou pseudo'), { target: { value: 'A' } });
     fireEvent.click(screen.getByRole('button', { name: /Rejoindre/ }));
 
-    // Même règle que le backend (schéma partagé) : le serveur n'est jamais appelé.
+    // Même règle de validation que le backend : le serveur n'est jamais appelé.
     const error = await screen.findByText('Le pseudo doit contenir au moins 2 caractères.');
     expect(error.id).toBe('pseudo-error');
     expect(fetchMock).not.toHaveBeenCalled();

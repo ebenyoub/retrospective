@@ -24,7 +24,7 @@ const HomeTabsCard = ({ initialTab = "create" }: HomeTabsCardProps) => {
             borderBottom: `2px solid ${tab === "create" ? "var(--color-slate-50)" : "transparent"}`
           }}
           className={`flex-1 py-[13px] text-[13px] font-semibold transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-inset ${
-            tab === "create" ? "text-slate-50" : "text-slate-500 hover:text-slate-300"
+            tab === "create" ? "text-slate-50" : "text-slate-400 hover:text-slate-300"
           }`}
         >
           Créer une rétro
@@ -36,7 +36,7 @@ const HomeTabsCard = ({ initialTab = "create" }: HomeTabsCardProps) => {
             borderBottom: `2px solid ${tab === "join" ? "var(--color-slate-50)" : "transparent"}`
           }}
           className={`flex-1 py-[13px] text-[13px] font-semibold transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-inset ${
-            tab === "join" ? "text-slate-50" : "text-slate-500 hover:text-slate-300"
+            tab === "join" ? "text-slate-50" : "text-slate-400 hover:text-slate-300"
           }`}
         >
           Rejoindre

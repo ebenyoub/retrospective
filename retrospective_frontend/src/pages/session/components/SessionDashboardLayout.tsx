@@ -6,6 +6,7 @@ import SessionActionBar from './SessionActionBar';
 import SessionIdentityBar from './SessionIdentityBar';
 import SessionNavigationBar from './SessionNavigationBar';
 import { useSessionContext } from '../context/useSessionContext';
+import { SESSION_STEP_LABELS } from '../sessionStep';
 import ActionStep from '../steps/ActionStep';
 import ResultsStep from '../steps/ResultsStep';
 import SummaryStep from '../steps/SummaryStep';
@@ -28,6 +29,12 @@ const SessionDashboardLayout = ({
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
+      {/* Titre de page annoncé aux lecteurs d'écran (RGAA 9.1) : invisible à
+          l'écran, mais chaque étape a son propre <h1> pour la navigation par
+          titres — aucun des écrans de session n'en avait avant cet audit. */}
+      <h1 className="sr-only">
+        Range ta chambre — {details.sessionName} — {SESSION_STEP_LABELS[activeStep]}
+      </h1>
       <SessionIdentityBar
         canRenameSelf={!isAuthenticated && details.status !== 'closed'}
         onBack={onBack}

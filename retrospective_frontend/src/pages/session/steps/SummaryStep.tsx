@@ -14,7 +14,7 @@ const StatTile = ({ label, value, sublabel, color }: { label: string; value: str
   <div className="rounded-xl border border-navy-border bg-navy-mid px-4 py-3.5">
     <p className="mb-0.5 font-mono text-xl font-bold" style={{ color }}>{value}</p>
     <p className="mb-0.5 text-[13px] font-semibold text-slate-300">{label}</p>
-    <p className="text-[11px] text-slate-500">{sublabel}</p>
+    <p className="text-[11px] text-slate-400">{sublabel}</p>
   </div>
 );
 
@@ -23,7 +23,7 @@ const SectionHeader = ({ label, icon, count }: { label: string; icon?: string; c
     {icon && <span aria-hidden="true">{icon}</span>}
     <span className="text-[11px] font-bold uppercase tracking-[0.8px] text-slate-400">{label}</span>
     {count !== undefined && (
-      <span className="rounded-md bg-navy-surface-med px-1.5 font-mono text-[11px] text-slate-600">{count}</span>
+      <span className="rounded-md bg-navy-surface-med px-1.5 font-mono text-[11px] text-slate-400">{count}</span>
     )}
   </div>
 );
@@ -48,7 +48,7 @@ const SummaryStep = () => {
       <div className="flex flex-shrink-0 items-center gap-3 border-b border-navy-border px-4 py-3 sm:px-6">
         <div className="min-w-0 flex-1">
           <div className="mb-0.5 flex items-center gap-2">
-            <span className="text-[11px] font-bold uppercase tracking-[0.8px] text-slate-500">Récapitulatif final</span>
+            <span className="text-[11px] font-bold uppercase tracking-[0.8px] text-slate-400">Récapitulatif final</span>
             <Badge className="bg-green-500/10 text-green-400 border-green-500/20">✓ Prêt à clôturer</Badge>
           </div>
           <h2 className="text-sm font-bold text-slate-100">{sessionName}</h2>
@@ -89,7 +89,7 @@ const SummaryStep = () => {
         <section aria-label="Plan d'action" className="mb-4">
           <SectionHeader label="Plan d'action" count={actions.length} />
           {actions.length === 0 ? (
-            <p className="text-[13px] text-slate-500">Aucune action n'a été définie.</p>
+            <p className="text-[13px] text-slate-400">Aucune action n'a été définie.</p>
           ) : (
             <div className="flex flex-col gap-2">
               {actions.map((item) => {

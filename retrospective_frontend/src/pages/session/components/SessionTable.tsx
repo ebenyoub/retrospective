@@ -63,7 +63,7 @@ export const SessionTable = ({
                 )}
               </td>
               <td className="px-6 py-4 font-mono text-xs text-slate-300 select-all">
-                {session.joinCode ?? <span className="text-slate-500 italic">Clôturée</span>}
+                {session.joinCode ?? <span className="text-slate-400 italic">Clôturée</span>}
               </td>
               <td className="px-6 py-4 text-xs text-slate-400">
                 {ROLE_LABEL[session.role]}

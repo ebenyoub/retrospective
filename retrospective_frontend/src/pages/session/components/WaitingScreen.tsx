@@ -71,7 +71,7 @@ const ParticipantCard = ({ participant, isSelf }: { participant: ParticipantSumm
         <div className="flex items-center gap-1.5 flex-wrap">
           <p className="font-sans text-sm font-medium text-slate-100 truncate m-0">
             {participant.displayName}
-            {isSelf && <span className="text-slate-500 font-normal"> (vous)</span>}
+            {isSelf && <span className="text-slate-400 font-normal"> (vous)</span>}
           </p>
           {participant.role === 'facilitator' && (
             <span className="font-sans text-[10px] font-semibold text-amber-300 bg-amber-400/10 border border-amber-400/25 rounded-full px-1.5 py-0.5 leading-none whitespace-nowrap">
@@ -81,7 +81,7 @@ const ParticipantCard = ({ participant, isSelf }: { participant: ParticipantSumm
         </div>
         {/* Le point de statut est déjà porté par l'avatar (ParticipantAvatar) :
             pas besoin de le répéter ici, le texte suffit. */}
-        <p className={`font-sans text-xs mt-1 ${isOnline ? 'text-green-300' : 'text-slate-500'}`}>
+        <p className={`font-sans text-xs mt-1 ${isOnline ? 'text-green-300' : 'text-slate-400'}`}>
           {isOnline ? 'En ligne' : 'Hors ligne'}
         </p>
       </div>
@@ -150,7 +150,7 @@ export const WaitingScreen = ({
 
   const formatRow = (
     <div className="flex items-center justify-between gap-3 py-2 border-b border-navy-border">
-      <span className="shrink-0 font-sans text-xs text-slate-500">Format</span>
+      <span className="shrink-0 font-sans text-xs text-slate-400">Format</span>
       <RetroFormatSelector
         formatName={formatName}
         isFacilitator={isFacilitator}
@@ -162,7 +162,7 @@ export const WaitingScreen = ({
   // Seul le facilitateur peut modifier la durée ; les participants la voient.
   const durationRow = (
     <div className="flex items-center justify-between py-2 border-b border-navy-border">
-      <span className="font-sans text-xs text-slate-500">Durée des étapes</span>
+      <span className="font-sans text-xs text-slate-400">Durée des étapes</span>
       {isFacilitator ? (
         <StepDurationEditor minutes={stepDurationMinutes} onSubmit={onUpdateStepDuration} />
       ) : (
@@ -173,7 +173,7 @@ export const WaitingScreen = ({
 
   const codeRow = (
     <div className="flex items-center justify-between py-2 border-b border-navy-border">
-      <span className="font-sans text-xs text-slate-500">Code session</span>
+      <span className="font-sans text-xs text-slate-400">Code session</span>
       <span className="flex items-center gap-2">
         <span className="font-sans text-xs text-slate-200 font-mono font-semibold tracking-wider">{sessionCode}</span>
         <IconButton
@@ -269,7 +269,7 @@ export const WaitingScreen = ({
 
             <div className="bg-navy-mid border border-navy-border rounded-[12px] p-3 flex items-center justify-between gap-3 mb-7">
               <div className="flex items-center gap-2.5 min-w-0">
-                <span className="text-slate-500 flex-shrink-0"><CopyIcon /></span>
+                <span className="text-slate-400 flex-shrink-0"><CopyIcon /></span>
                 <span className="font-mono text-xs text-slate-400 truncate">{sessionUrl.replace(/^https?:\/\//, '')}</span>
               </div>
               <Button
@@ -296,8 +296,8 @@ export const WaitingScreen = ({
 
         <div className="flex-1 overflow-y-auto p-8">
           <div className="flex items-center justify-between mb-5">
-            <span className="font-sans text-[11px] font-bold text-slate-500 tracking-wider uppercase">Participants</span>
-            <span className="font-mono text-[11px] text-slate-500 font-bold">{participants.length}</span>
+            <span className="font-sans text-[11px] font-bold text-slate-400 tracking-wider uppercase">Participants</span>
+            <span className="font-mono text-[11px] text-slate-400 font-bold">{participants.length}</span>
           </div>
           {participantsList}
 
@@ -320,7 +320,7 @@ export const WaitingScreen = ({
 
         <div className="bg-navy-mid border border-navy-border rounded-[12px] p-3 flex items-center justify-between gap-3 mb-4">
           <div className="flex items-center gap-2.5 min-w-0">
-            <span className="text-slate-500 flex-shrink-0"><CopyIcon /></span>
+            <span className="text-slate-400 flex-shrink-0"><CopyIcon /></span>
             <span className="font-mono text-xs text-slate-400 truncate">{sessionUrl.replace(/^https?:\/\//, '')}</span>
           </div>
           <Button
@@ -343,8 +343,8 @@ export const WaitingScreen = ({
 
         <div className="mb-6">
           <div className="flex items-center justify-between mb-3">
-            <span className="font-sans text-[11px] font-bold text-slate-500 tracking-wider uppercase">Participants</span>
-            <span className="font-mono text-[11px] text-slate-500 font-bold">{participants.length}</span>
+            <span className="font-sans text-[11px] font-bold text-slate-400 tracking-wider uppercase">Participants</span>
+            <span className="font-mono text-[11px] text-slate-400 font-bold">{participants.length}</span>
           </div>
           <div className="grid grid-cols-1 gap-2">
             {participants.map((participant) => (

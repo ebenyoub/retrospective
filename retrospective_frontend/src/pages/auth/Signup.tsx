@@ -124,7 +124,7 @@ return (
                     id="confirm"
                     label="Confirmation du mot de passe"
                     type="password"
-                    autoComplete="new-confirm"
+                    autoComplete="new-password"
                     disabled={isSubmitting}
                     value={confirmValue}
                     error={errors.confirm?.message}

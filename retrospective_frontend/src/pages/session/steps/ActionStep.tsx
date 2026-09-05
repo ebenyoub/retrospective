@@ -50,7 +50,7 @@ const ActionCard = ({ item }: { item: ActionItem }) => {
         </span>
       </div>
       <p className="min-w-0 flex-1 text-[13px] leading-[1.5] text-slate-100 break-words">{item.description}</p>
-      <span className="flex-shrink-0 font-mono text-[11px] text-slate-500">{formatDeadline(item.deadline)}</span>
+      <span className="flex-shrink-0 font-mono text-[11px] text-slate-400">{formatDeadline(item.deadline)}</span>
     </article>
   );
 };
@@ -92,7 +92,7 @@ const AddActionForm = ({
 
   return (
     <div className="flex flex-col gap-3.5 rounded-[14px] border border-navy-border bg-navy-mid px-4 py-4">
-      <p className="text-[11px] font-bold uppercase tracking-[0.8px] text-slate-500">Nouvelle action</p>
+      <p className="text-[11px] font-bold uppercase tracking-[0.8px] text-slate-400">Nouvelle action</p>
       <textarea
         value={description}
         onChange={(e) => setDescription(e.target.value)}
@@ -100,11 +100,11 @@ const AddActionForm = ({
         aria-label="Description de l'action"
         rows={2}
         disabled={isSubmitting}
-        className="w-full resize-none rounded-[10px] border border-navy-border-med bg-navy-surface px-3.5 py-2.5 text-sm text-slate-50 placeholder:text-slate-500 outline-none transition-colors disabled:opacity-50 focus:border-white/30"
+        className="w-full resize-none rounded-[10px] border border-navy-border-med bg-navy-surface px-3.5 py-2.5 text-sm text-slate-50 placeholder:text-slate-400 outline-none transition-colors disabled:opacity-50 focus:border-white/30"
       />
       <div className="flex flex-wrap gap-2.5">
         <div className="min-w-[140px] flex-1">
-          <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.4px] text-slate-500">Responsable</label>
+          <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.4px] text-slate-400">Responsable</label>
           <input
             value={owner}
             onChange={(e) => setOwner(e.target.value)}
@@ -115,7 +115,7 @@ const AddActionForm = ({
           />
         </div>
         <div className="min-w-[140px] flex-1">
-          <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.4px] text-slate-500">Date limite</label>
+          <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.4px] text-slate-400">Date limite</label>
           <input
             type="date"
             value={deadline}
@@ -126,7 +126,7 @@ const AddActionForm = ({
           />
         </div>
         <div className="min-w-[220px] flex-[1_1_220px]">
-          <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.4px] text-slate-500">Priorité</label>
+          <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.4px] text-slate-400">Priorité</label>
           <div className="flex gap-1.5">
             {PRIORITY_ORDER.map((p) => {
               const meta = PRIORITY_META[p];
@@ -189,7 +189,7 @@ const ActionStep = ({ onAddAction }: ActionStepProps) => {
       <div className="flex flex-shrink-0 items-center gap-3 border-b border-navy-border px-4 py-3 sm:px-6">
         <div className="min-w-0 flex-1">
           <h2 className="text-sm font-bold text-slate-100">Plan d'action</h2>
-          <p className="mt-0.5 text-xs text-slate-500">
+          <p className="mt-0.5 text-xs text-slate-400">
             {actions.length} action{actions.length !== 1 ? 's' : ''} à réaliser après la rétrospective
           </p>
         </div>
@@ -235,7 +235,7 @@ const ActionStep = ({ onAddAction }: ActionStepProps) => {
                   <span className="text-xs font-bold tracking-[0.5px]" style={{ color: meta.color }}>
                     Priorité {meta.label}
                   </span>
-                  <span className="rounded-md bg-navy-surface-med px-1.5 font-mono text-[11px] text-slate-600">{items.length}</span>
+                  <span className="rounded-md bg-navy-surface-med px-1.5 font-mono text-[11px] text-slate-400">{items.length}</span>
                 </div>
                 <div className="flex flex-col gap-2">
                   {items.map((item) => (

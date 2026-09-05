@@ -59,7 +59,7 @@ const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
           {...props}
           type={isPassword ? (show ? 'text' : 'password') : type}
           className={cn(
-            'flex h-10 w-full rounded-figma-md border border-navy-border-med bg-navy-surface px-3 py-2 text-sm text-slate-50 placeholder:text-slate-500 focus:border-white/30 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 transition-colors',
+            'flex h-10 w-full rounded-figma-md border border-navy-border-med bg-navy-surface px-3 py-2 text-sm text-slate-50 placeholder:text-slate-400 focus:border-white/30 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 transition-colors',
             isPassword && 'pr-10',
             className
           )}
@@ -68,7 +68,7 @@ const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
         {isPassword && (
           <button
             type="button"
-            className="absolute z-10 right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 cursor-pointer focus:outline-none"
+            className="absolute z-10 right-1.5 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-slate-300 cursor-pointer focus:outline-none"
             onClick={() => setShow((prev) => !prev)}
             aria-label={show ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
           >

@@ -32,14 +32,14 @@ const SessionCardsGrid = ({
                 className={`flex flex-1 items-center justify-center gap-1.5 border-b-2 px-1 py-2.5 text-xs font-semibold transition-colors ${
                   isActive
                     ? `${column.tabActiveClassName} text-slate-50`
-                    : 'border-transparent text-slate-500 hover:text-slate-300'
+                    : 'border-transparent text-slate-400 hover:text-slate-300'
                 }`}
               >
                 <span className="text-[14px] leading-none" role="img" aria-hidden="true">{column.emoji}</span>
                 <span>{column.title}</span>
                 <span
                   className={`rounded px-1.5 font-mono text-[10px] ${
-                    isActive ? 'bg-navy-surface-med text-slate-200' : 'bg-navy-surface text-slate-600'
+                    isActive ? 'bg-navy-surface-med text-slate-200' : 'bg-navy-surface text-slate-400'
                   }`}
                 >
                   {count}

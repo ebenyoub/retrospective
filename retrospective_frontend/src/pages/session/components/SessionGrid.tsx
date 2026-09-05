@@ -71,7 +71,7 @@ export const SessionGrid = ({
               )}
             </div>
 
-            <div className="text-[10px] text-slate-500">
+            <div className="text-[10px] text-slate-400">
               Créée le {new Date(session.createdAt).toLocaleDateString('fr-FR')}
             </div>
           </CardContent>

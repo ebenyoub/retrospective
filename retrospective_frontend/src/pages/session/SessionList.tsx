@@ -125,7 +125,7 @@ const SessionList = () => {
       ) : errorMessage ? (
         <p className="rounded border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-200">{errorMessage}</p>
       ) : sessions.length === 0 ? (
-        <p className="text-sm text-slate-500">Aucune session pour l'instant.</p>
+        <p className="text-sm text-slate-400">Aucune session pour l'instant.</p>
       ) : (
         <>
           <SessionGrid
