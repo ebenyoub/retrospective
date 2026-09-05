@@ -151,7 +151,7 @@ const CardCommentsSection = ({ cardId }: CardCommentsSectionProps) => {
           // Safari/Chrome iOS zooment automatiquement la page au focus d'un
           // champ, ce qui masque des boutons. sm:text-xs restaure la taille
           // compacte voulue sur desktop.
-          className="min-h-[34px] flex-1 resize-none rounded-lg border border-navy-border-med bg-navy-surface px-3 py-1.5 text-base sm:text-xs text-slate-100 placeholder:text-slate-500 outline-none focus:border-white/30 disabled:cursor-not-allowed disabled:opacity-70"
+          className="min-h-[34px] flex-1 resize-none rounded-lg border border-navy-border-med bg-navy-surface px-3 py-1.5 text-base sm:text-xs text-slate-100 placeholder:text-slate-400 outline-none focus:border-white/30 disabled:cursor-not-allowed disabled:opacity-70"
         />
         <IconButton
           onClick={() => void handleSubmit()}
@@ -166,9 +166,9 @@ const CardCommentsSection = ({ cardId }: CardCommentsSectionProps) => {
       </div>}
 
       {isLoading ? (
-        <p className="text-center text-xs text-slate-500 py-2">Chargement des commentaires...</p>
+        <p className="text-center text-xs text-slate-400 py-2">Chargement des commentaires...</p>
       ) : comments.length === 0 ? (
-        <p className="text-center text-xs text-slate-500 py-2">Aucun commentaire pour le moment.</p>
+        <p className="text-center text-xs text-slate-400 py-2">Aucun commentaire pour le moment.</p>
       ) : (
         <ul ref={listRef} className="flex flex-col gap-2.5 max-h-[200px] overflow-y-auto pr-1">
           {orderedComments.map((comment) => (
@@ -185,7 +185,7 @@ const CardCommentsSection = ({ cardId }: CardCommentsSectionProps) => {
                       aria-label="Supprimer le commentaire"
                       variant="ghost"
                       size="xs"
-                      className="h-5 w-5 border-0 text-slate-500 hover:text-red-400 p-0 cursor-pointer"
+                      className="h-5 w-5 border-0 text-slate-400 hover:text-red-400 p-0 cursor-pointer"
                     >
                       <Trash2 size={11} aria-hidden="true" />
                     </IconButton>

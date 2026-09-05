@@ -47,7 +47,7 @@ const ResultCard = ({ card, category, maxVotes }: { card: RetroCard; category: R
     >
       <div className="mb-1.5 flex items-center gap-[7px]">
         <Avatar name={card.authorName} colorSeed={card.authorId} size={18} fallback="P" />
-        <span className="text-[11px] text-slate-500">{card.authorName}</span>
+        <span className="text-[11px] text-slate-400">{card.authorName}</span>
       </div>
       <p className="mb-2 text-[13px] leading-[1.45] text-slate-200 break-words">{card.content}</p>
       <VoteBar votes={card.votesCount} maxVotes={maxVotes} color={category.color} />
@@ -60,7 +60,7 @@ const ResultCard = ({ card, category, maxVotes }: { card: RetroCard; category: R
           aria-label="Commentaires"
           aria-expanded={isCommentsExpanded}
           aria-controls={`card-comments-${card.id}`}
-          className="h-auto inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-slate-300 bg-transparent hover:bg-navy-surface rounded-[8px] border border-transparent hover:border-navy-border px-2 py-1.5 transition-all cursor-pointer"
+          className="h-auto inline-flex items-center gap-1 text-xs font-semibold text-slate-400 hover:text-slate-300 bg-transparent hover:bg-navy-surface rounded-[8px] border border-transparent hover:border-navy-border px-2 py-1.5 transition-all cursor-pointer"
         >
           <MessageCircle size={13} aria-hidden="true" />
           <span>Commentaires{card.commentsCount > 0 ? ` (${card.commentsCount})` : ''}</span>
@@ -100,13 +100,13 @@ const SessionResults = ({ cards, formatColumns, isDesktop }: SessionResultsProps
               <span className="font-mono text-sm font-bold" style={{ color: stat.color }}>
                 {stat.value}
               </span>
-              <span className="text-[11px] text-slate-500">{stat.label}</span>
+              <span className="text-[11px] text-slate-400">{stat.label}</span>
             </div>
           ))}
         </div>
 
         {cards.length === 0 ? (
-          <p className="flex flex-1 items-center justify-center text-sm text-slate-500">
+          <p className="flex flex-1 items-center justify-center text-sm text-slate-400">
             Aucune carte n'a été ajoutée pendant cette rétrospective.
           </p>
         ) : (
@@ -125,13 +125,13 @@ const SessionResults = ({ cards, formatColumns, isDesktop }: SessionResultsProps
                       <span className="text-xs font-bold" style={{ color: category.color }}>
                         {category.label}
                       </span>
-                      <span className="ml-auto font-mono text-[11px] text-slate-500">
+                      <span className="ml-auto font-mono text-[11px] text-slate-400">
                         {categoryCards.length} carte{categoryCards.length !== 1 ? 's' : ''}
                       </span>
                     </div>
                     <div className="flex flex-1 flex-col gap-1.5 overflow-y-auto px-3 py-2">
                       {categoryCards.length === 0 ? (
-                        <p className="py-6 text-center text-xs text-slate-600">Aucune carte</p>
+                        <p className="py-6 text-center text-xs text-slate-400">Aucune carte</p>
                       ) : (
                         categoryCards.map((card) => (
                           <ResultCard key={card.id} card={card} category={category} maxVotes={maxVotes} />
@@ -155,13 +155,13 @@ const SessionResults = ({ cards, formatColumns, isDesktop }: SessionResultsProps
         {stats.map((stat) => (
           <div key={stat.label} className="min-w-[100px] flex-1 rounded-[10px] border border-navy-border bg-navy-mid px-3.5 py-2.5">
             <p className="font-mono text-xl font-bold" style={{ color: stat.color }}>{stat.value}</p>
-            <p className="text-[11px] text-slate-500">{stat.label}</p>
+            <p className="text-[11px] text-slate-400">{stat.label}</p>
           </div>
         ))}
       </div>
 
       {cards.length === 0 ? (
-        <p className="py-12 text-center text-sm text-slate-500">
+        <p className="py-12 text-center text-sm text-slate-400">
           Aucune carte n'a été ajoutée pendant cette rétrospective.
         </p>
       ) : (
@@ -178,7 +178,7 @@ const SessionResults = ({ cards, formatColumns, isDesktop }: SessionResultsProps
                 <div className="mb-2.5 flex items-center gap-2">
                   <span aria-hidden="true" className="text-base">{category.emoji}</span>
                   <span className="text-xs font-bold uppercase tracking-[0.8px] text-slate-400">{category.label}</span>
-                  <span className="font-mono text-[11px] text-slate-600">
+                  <span className="font-mono text-[11px] text-slate-400">
                     {categoryCards.length} carte{categoryCards.length !== 1 ? 's' : ''}
                   </span>
                 </div>

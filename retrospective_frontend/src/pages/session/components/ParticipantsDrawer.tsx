@@ -37,7 +37,7 @@ const ParticipantsDrawer = () => {
           <h2 id="participants-drawer-title" className="font-sans text-sm font-bold text-slate-50">
             Participants ({participants.length})
           </h2>
-          <p className="mt-0.5 font-sans text-[11px] text-slate-500">
+          <p className="mt-0.5 font-sans text-[11px] text-slate-400">
             {onlineCount} en ligne
           </p>
         </div>
@@ -48,7 +48,7 @@ const ParticipantsDrawer = () => {
 
       <div className="flex-1 overflow-y-auto px-2 py-3">
         {participants.length === 0 ? (
-          <p className="px-3 py-4 font-sans text-sm text-slate-500">
+          <p className="px-3 py-4 font-sans text-sm text-slate-400">
             Aucun participant pour le moment.
           </p>
         ) : (
@@ -67,7 +67,7 @@ const ParticipantsDrawer = () => {
                       {participant.displayName}
                     </p>
                     <div className="mt-1 flex flex-wrap items-center gap-2">
-                      <span className="font-sans text-[10px] font-semibold text-slate-500">
+                      <span className="font-sans text-[10px] font-semibold text-slate-400">
                         {participant.role === 'facilitator' ? 'Facilitateur' : 'Participant'}
                       </span>
                       {participant.role === 'facilitator' && (
@@ -79,7 +79,7 @@ const ParticipantsDrawer = () => {
                   </div>
                   <div className="flex flex-shrink-0 items-center gap-1.5">
                     <span className={`h-2 w-2 rounded-full ${statusClassName[participant.status]}`} aria-hidden="true" />
-                    <span className="font-sans text-[11px] text-slate-500">
+                    <span className="font-sans text-[11px] text-slate-400">
                       {statusLabel[participant.status]}
                     </span>
                   </div>

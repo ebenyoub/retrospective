@@ -99,7 +99,7 @@ const RetroCardItem = ({ card, accentClassName, currentUserId, onVote, onUpdateC
             value={draftContent}
             onChange={(event) => setDraftContent(event.target.value)}
             rows={3}
-            className="w-full resize-none rounded-[9px] border border-navy-border-med bg-navy-surface px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 outline-none focus:border-white/30 transition-colors"
+            className="w-full resize-none rounded-[9px] border border-navy-border-med bg-navy-surface px-3 py-2 text-sm text-slate-100 placeholder:text-slate-400 outline-none focus:border-white/30 transition-colors"
           />
           <div className="flex flex-wrap justify-end gap-2">
             <Button
@@ -145,7 +145,7 @@ const RetroCardItem = ({ card, accentClassName, currentUserId, onVote, onUpdateC
             aria-label="Commentaires"
             aria-expanded={isCommentsExpanded}
             aria-controls={`card-comments-${card.id}`}
-            className={`h-auto inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-slate-300 bg-transparent hover:bg-navy-surface rounded-[8px] border border-transparent hover:border-navy-border px-2 py-1.5 transition-all cursor-pointer ${
+            className={`h-auto inline-flex items-center gap-1 text-xs font-semibold text-slate-400 hover:text-slate-300 bg-transparent hover:bg-navy-surface rounded-[8px] border border-transparent hover:border-navy-border px-2 py-1.5 transition-all cursor-pointer ${
               isCommentsBlinking ? 'animate-pulse border-green-figma/50 bg-green-figma/10 text-green-figma' : ''
             }`}
           >

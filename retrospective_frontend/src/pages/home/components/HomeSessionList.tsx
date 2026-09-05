@@ -62,7 +62,7 @@ const HomeSessionList = () => {
         <p className="rounded-xl border border-red-500/30 bg-red-500/10 p-3.5 text-xs text-red-200">{errorMessage}</p>
       ) : sessions.length === 0 ? (
         <div className="flex flex-grow flex-col items-center justify-center text-center p-6 border border-dashed border-navy-border rounded-xl bg-navy-mid/20 py-10">
-          <p className="text-sm text-slate-500 mb-3">Aucune session pour le moment.</p>
+          <p className="text-sm text-slate-400 mb-3">Aucune session pour le moment.</p>
           <button
             onClick={() => navigate('/session')}
             className="text-xs text-blue-400 font-bold hover:underline cursor-pointer"
@@ -95,7 +95,7 @@ const HomeSessionList = () => {
                 <Badge className="text-[10px] py-0 px-2 font-semibold">
                   {session.status === 'open' ? 'Active' : 'Close'}
                 </Badge>
-                <span className="text-slate-500 group-hover:text-blue-400 transition-colors transform group-hover:translate-x-[2px] duration-300 text-sm">
+                <span className="text-slate-400 group-hover:text-blue-400 transition-colors transform group-hover:translate-x-[2px] duration-300 text-sm">
                   →
                 </span>
               </div>

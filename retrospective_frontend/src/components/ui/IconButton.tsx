@@ -6,7 +6,7 @@ const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
   ({ children, className, variant = 'default', size = 'sm', type = 'button', ...props }, ref) => {
     const variantClassName: Record<NonNullable<IconButtonProps['variant']>, string> = {
       default: 'border-navy-border-med bg-navy-surface text-slate-400 hover:bg-navy-surface-med hover:text-slate-100',
-      ghost: 'border-transparent bg-transparent text-slate-500 hover:bg-navy-surface hover:text-slate-200',
+      ghost: 'border-transparent bg-transparent text-slate-400 hover:bg-navy-surface hover:text-slate-200',
       danger: 'border-red-500/20 bg-transparent text-red-400 hover:bg-red-500/10 hover:text-red-300',
     };
 

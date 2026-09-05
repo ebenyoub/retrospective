@@ -30,7 +30,7 @@ const RetroColumn = ({
         <div className="flex flex-shrink-0 items-center gap-2 px-4 py-[12px] border-b border-navy-border">
           <span className={`w-2.5 h-2.5 rounded-full ${dotClassName} shrink-0`} />
           <span className="text-[13px] font-bold text-slate-200 font-sans">{title}</span>
-          <span className="ml-auto font-mono text-[11px] text-slate-500 bg-navy-surface-med rounded-[5px] px-1.5 py-0.5 select-none">
+          <span className="ml-auto font-mono text-[11px] text-slate-400 bg-navy-surface-med rounded-[5px] px-1.5 py-0.5 select-none">
             {cards.length}
           </span>
         </div>

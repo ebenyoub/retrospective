@@ -7,8 +7,8 @@ const containerClassName: Record<EmptyStateVariant, string> = {
 };
 
 const iconClassName: Record<EmptyStateVariant, string> = {
-  default: 'mb-1 text-2xl leading-none text-slate-600',
-  panel: 'mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-navy-border-med bg-navy-surface text-slate-500',
+  default: 'mb-1 text-2xl leading-none text-slate-400',
+  panel: 'mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-navy-border-med bg-navy-surface text-slate-400',
 };
 
 const titleClassName: Record<EmptyStateVariant, string> = {
@@ -17,8 +17,8 @@ const titleClassName: Record<EmptyStateVariant, string> = {
 };
 
 const descriptionBaseClassName: Record<EmptyStateVariant, string> = {
-  default: 'max-w-[280px] font-sans text-[13px] leading-relaxed text-slate-600',
-  panel: 'mx-auto mt-2 font-sans text-xs leading-5 text-slate-500',
+  default: 'max-w-[280px] font-sans text-[13px] leading-relaxed text-slate-400',
+  panel: 'mx-auto mt-2 font-sans text-xs leading-5 text-slate-400',
 };
 
 const EmptyState = ({

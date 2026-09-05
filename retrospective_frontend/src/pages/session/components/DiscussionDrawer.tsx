@@ -92,7 +92,7 @@ const DiscussionPanelContent = ({
             <h2 id="discussion-drawer-title" className="font-sans text-sm font-bold text-slate-50">
               Discussion
             </h2>
-            <p className="mt-0.5 font-sans text-[11px] text-slate-500">
+            <p className="mt-0.5 font-sans text-[11px] text-slate-400">
               {`${messages.length} message${messages.length !== 1 ? 's' : ''}`}
             </p>
           </div>
@@ -150,7 +150,7 @@ const DiscussionPanelContent = ({
                       <span className="truncate font-sans text-[11px] font-semibold text-slate-300">
                         {isMe ? "Vous" : message.authorName}
                       </span>
-                      <span className="font-mono text-[9px] text-slate-500">
+                      <span className="font-mono text-[9px] text-slate-400">
                         {formatTime(message.createdAt)}
                       </span>
                     </div>
@@ -194,7 +194,7 @@ const DiscussionPanelContent = ({
           // Safari/Chrome iOS zooment automatiquement la page au focus d'un
           // champ, ce qui masque des boutons. sm:text-sm restaure la taille
           // voulue sur desktop.
-          className="min-h-[38px] flex-1 resize-none rounded-lg border border-navy-border-med bg-navy-surface px-3 py-2 font-sans text-base sm:text-sm text-slate-100 placeholder:text-slate-500 disabled:cursor-not-allowed disabled:opacity-70 outline-none focus:border-white/30 transition-colors"
+          className="min-h-[38px] flex-1 resize-none rounded-lg border border-navy-border-med bg-navy-surface px-3 py-2 font-sans text-base sm:text-sm text-slate-100 placeholder:text-slate-400 disabled:cursor-not-allowed disabled:opacity-70 outline-none focus:border-white/30 transition-colors"
         />
         <IconButton
           type="submit"
