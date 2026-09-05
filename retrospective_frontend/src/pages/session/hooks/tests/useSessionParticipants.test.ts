@@ -63,6 +63,13 @@ describe('useSessionParticipants', () => {
     const { result } = renderHook(() => useSessionParticipants('1', self));
 
     await waitFor(() => expect(result.current.participants).toHaveLength(1));
+    expect(ioMock).toHaveBeenCalledWith(
+      'http://localhost:8000',
+      expect.objectContaining({
+        transports: ['websocket', 'polling'],
+        withCredentials: true,
+      })
+    );
     // L'authentification passe par le cookie (credentials), plus par un token.
     expect(fetchMock).toHaveBeenCalledWith(
       'http://localhost:8000/api/session/1/participants',
@@ -117,6 +124,14 @@ describe('useSessionParticipants', () => {
     unmount();
 
     expect(mockSocket.disconnect).toHaveBeenCalledTimes(1);
+    expect(mockSocket.off).toHaveBeenCalledTimes(8);
+    expect(mockSocket.off).toHaveBeenCalledWith('connect', expect.any(Function));
     expect(mockSocket.off).toHaveBeenCalledWith('session:participants-updated', expect.any(Function));
+    expect(mockSocket.off).toHaveBeenCalledWith('session:started', expect.any(Function));
+    expect(mockSocket.off).toHaveBeenCalledWith('session:timer-updated', expect.any(Function));
+    expect(mockSocket.off).toHaveBeenCalledWith('session:closed', expect.any(Function));
+    expect(mockSocket.off).toHaveBeenCalledWith('session:message-added', expect.any(Function));
+    expect(mockSocket.off).toHaveBeenCalledWith('session:action-added', expect.any(Function));
+    expect(mockSocket.off).toHaveBeenCalledWith('session:comment-added', expect.any(Function));
   });
 });

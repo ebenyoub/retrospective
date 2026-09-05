@@ -87,9 +87,14 @@ const Drawer = ({
     sm: 'w-[280px]',
     md: 'w-[420px]',
   };
+  const safeAreaClassName = side === 'full'
+    ? 'pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]'
+    : side === 'bottom'
+      ? 'pb-[env(safe-area-inset-bottom)]'
+      : '';
 
   return (
-    <div className="fixed inset-0 z-50" role="presentation" aria-hidden={!open}>
+    <div className="fixed inset-x-0 top-0 z-50 h-dvh" role="presentation" aria-hidden={!open}>
       <button
         type="button"
         aria-label={overlayLabel}
@@ -106,6 +111,7 @@ const Drawer = ({
         className={cn(
           'absolute flex flex-col overflow-hidden border-navy-border bg-navy-mid shadow-2xl transition-transform duration-200 ease-out focus:outline-none',
           sideClassName[side],
+          safeAreaClassName,
           (side === 'right' || side === 'left') && sizeClassName[size]
         )}
       >
